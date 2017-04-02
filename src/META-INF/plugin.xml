@@ -68,8 +68,8 @@
 
   <actions>
     <group>
-      <action id="Metrics.ProjectMetricsAction" class="com.sixrr.metrics.plugin.ProjectMetricsAction"
-              text="Calculate Metrics..."/>
+      <action id="Metrics.AutomaticRefactoringAction" class="com.sixrr.metrics.plugin.AutomaticRefactoringAction"
+              text="Automatic refactoring..."/>
       <!--action id="Metrics.ViewOfflineMetricsResults"
               class="com.sixrr.metrics.offline.ViewOfflineMetricsResultsAction"
               text="View Offline Metrics Results...">

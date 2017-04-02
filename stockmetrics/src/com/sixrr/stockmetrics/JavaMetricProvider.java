@@ -330,7 +330,8 @@ public class JavaMetricProvider implements MetricProvider {
     @Override
     public List<PrebuiltMetricProfile> getPrebuiltProfiles() {
         final List<PrebuiltMetricProfile> out = new ArrayList<PrebuiltMetricProfile>(10);
-        out.add(createChidamberKemererProfile());
+        out.add(createRefactoringProfile());
+        /*out.add(createChidamberKemererProfile());
         out.add(createClassCountProfile());
         out.add(createCodeSizeProfile());
         out.add(createComplexityProfile());
@@ -340,7 +341,20 @@ public class JavaMetricProvider implements MetricProvider {
         out.add(createMartinProfile());
         out.add(createMoodProfile());
         out.add(createTestProfile());
+        */
         return out;
+    }
+
+    private static PrebuiltMetricProfile createRefactoringProfile() {
+        final PrebuiltMetricProfile profile =
+                new PrebuiltMetricProfile(StockMetricsBundle.message("refactoring.metrics.profile.name"));
+        //profile.addMetric(CouplingBetweenObjectsClassMetric.class);
+        profile.addMetric(DepthOfInheritanceMetric.class);
+        //profile.addMetric(LackOfCohesionOfMethodsClassMetric.class);
+        profile.addMetric(NumChildrenMetric.class);
+        //profile.addMetric(ResponseForClassMetric.class);
+        //profile.addMetric(WeightedMethodComplexityMetric.class);
+        return profile;
     }
 
     private static PrebuiltMetricProfile createChidamberKemererProfile() {
