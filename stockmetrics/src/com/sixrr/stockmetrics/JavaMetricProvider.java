@@ -347,6 +347,7 @@ public class JavaMetricProvider implements MetricProvider {
         out.add(createMartinProfile());
         out.add(createMoodProfile());
         out.add(createTestProfile());
+        out.add(createFanProfile());
         */
         return out;
     }
@@ -354,15 +355,13 @@ public class JavaMetricProvider implements MetricProvider {
     private static PrebuiltMetricProfile createRefactoringProfile() {
         final PrebuiltMetricProfile profile =
                 new PrebuiltMetricProfile(StockMetricsBundle.message("refactoring.metrics.profile.name"));
-        //profile.addMetric(CouplingBetweenObjectsClassMetric.class);
         profile.addMetric(DepthOfInheritanceMetric.class);
-        //profile.addMetric(LackOfCohesionOfMethodsClassMetric.class);
         profile.addMetric(NumChildrenMetric.class);
-        //profile.addMetric(ResponseForClassMetric.class);
-        //profile.addMetric(WeightedMethodComplexityMetric.class);
-=======
-        out.add(createFanProfile());
-        return out;
+        profile.addMetric(FanInClassMetric.class);
+        profile.addMetric(FanOutClassMetric.class);
+        profile.addMetric(FanInMethodMetric.class);
+        profile.addMetric(FanOutMethodMetric.class);
+        return profile;
     }
 
     private static PrebuiltMetricProfile createFanProfile() {
@@ -371,7 +370,6 @@ public class JavaMetricProvider implements MetricProvider {
         profile.addMetric(FanOutClassMetric.class);
         profile.addMetric(FanInMethodMetric.class);
         profile.addMetric(FanOutMethodMetric.class);
->>>>>>> fan/fan_metrics
         return profile;
     }
 
