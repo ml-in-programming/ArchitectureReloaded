@@ -36,4 +36,18 @@ public class ClassEntity extends Entity {
         return MetricCategory.Class;
     }
 
+    protected Double[] initializeVector(MetricsRunImpl metricsRun) {
+        Double[] vector = new Double[Dimension];
+        MetricCategory category = getCategory();
+        MetricsResult results = metricsRun.getResultsForCategory(category);
+
+        for (Metric metric : metricsRun.getMetrics()) {
+            if (metric.getCategory().equals(category)) {
+                Integer id = components.get(metric.getAbbreviation());
+                vector[id] = results.getValueForMetric(metric, getName());
+            }
+        }
+
+        return vector;
+    }
 }

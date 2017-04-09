@@ -16,7 +16,9 @@
 
 package vector.model;
 
+import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
+import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
 
 import java.util.List;
@@ -31,5 +33,33 @@ public class MethodEntity extends Entity {
 
     public MetricCategory getCategory() {
         return MetricCategory.Method;
+    }
+
+    protected Double[] initializeVector(MetricsRunImpl metricsRun) {
+        Double[] vector = new Double[Dimension];
+        MetricCategory category = getCategory();
+        MetricsResult results = metricsRun.getResultsForCategory(category);
+        MetricsResult classResults = metricsRun.getResultsForCategory(MetricCategory.Class);
+        String className = getClassName();
+        for (Metric metric : metricsRun.getMetrics()) {
+            if (metric.getCategory().equals(MetricCategory.Class)) {
+                Integer id = components.get(metric.getAbbreviation());
+                vector[id] = classResults.getValueForMetric(metric, className);
+            }
+        }
+
+        for (Metric metric : metricsRun.getMetrics()) {
+            if (metric.getCategory().equals(category)) {
+                Integer id = components.get(metric.getAbbreviation());
+                vector[id] = results.getValueForMetric(metric, getName());
+            }
+        }
+
+        return vector;
+    }
+
+    private String getClassName() {
+        String name = getName();
+        return name.substring(0, name.lastIndexOf('.'));
     }
 }

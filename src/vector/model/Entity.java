@@ -21,7 +21,9 @@ import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Kivi on 04.04.2017.
@@ -29,26 +31,11 @@ import java.util.HashMap;
 public abstract class Entity {
 
     public Entity(String entity_name, MetricsRunImpl metricsRun) {
-        vector = new Double[Dimension];
         name = entity_name;
-        MetricCategory category = getCategory();
-        MetricsResult results = metricsRun.getResultsForCategory(category);
-
-        HashMap<String, Integer> components = new HashMap<String, Integer>();
-        components.put("DIT", 1);
-        components.put("NOC", 2);
-        components.put("FIC", 3);
-        components.put("FOC", 4);
-        components.put("FIM", 3);
-        components.put("FOM", 4);
-
-        for (Metric metric : metricsRun.getMetrics()) {
-            if (metric.getCategory().equals(category)) {
-                Integer id = components.get(metric.getAbbreviation());
-                vector[id] = results.getValueForMetric(metric, entity_name);
-            }
-        }
+        vector = initializeVector(metricsRun);
     }
+
+    public static final int Dimension = 5;
 
     abstract MetricCategory getCategory();
 
@@ -63,5 +50,17 @@ public abstract class Entity {
     private Double[] vector;
     private String name;
 
-    public static final int Dimension = 5;
+    protected abstract Double[] initializeVector(MetricsRunImpl metricsRun);
+
+    protected static final Map<String, Integer> components;
+    static {
+        Map<String, Integer> comps = new HashMap<String, Integer>();
+        comps.put("DIT", 1);
+        comps.put("NOC", 2);
+        comps.put("FIC", 3);
+        comps.put("FOC", 4);
+        comps.put("FIM", 3);
+        comps.put("FOM", 4);
+        components = Collections.unmodifiableMap(comps);
+    }
 }
