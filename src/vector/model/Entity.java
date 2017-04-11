@@ -23,6 +23,7 @@ import com.sixrr.metrics.metricModel.MetricsRunImpl;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -30,12 +31,13 @@ import java.util.Map;
  */
 public abstract class Entity {
 
-    public Entity(String entity_name, MetricsRunImpl metricsRun) {
+    public Entity(String entity_name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
         name = entity_name;
         vector = initializeVector(metricsRun);
+        relevantProperties = propertiesFinder.getProperties(name);
     }
 
-    public static final int Dimension = 5;
+    public static final int Dimension = 4;
 
     abstract MetricCategory getCategory();
 
@@ -48,19 +50,21 @@ public abstract class Entity {
     }
 
     private Double[] vector;
+    private RelevantProperties relevantProperties;
     private String name;
 
     protected abstract Double[] initializeVector(MetricsRunImpl metricsRun);
+    protected abstract HashSet<String> findRelevantProperties();
 
     protected static final Map<String, Integer> components;
     static {
         Map<String, Integer> comps = new HashMap<String, Integer>();
-        comps.put("DIT", 1);
-        comps.put("NOC", 2);
-        comps.put("FIC", 3);
-        comps.put("FOC", 4);
-        comps.put("FIM", 3);
-        comps.put("FOM", 4);
+        comps.put("DIT", 0);
+        comps.put("NOC", 1);
+        comps.put("FIC", 2);
+        comps.put("FOC", 3);
+        comps.put("FIM", 2);
+        comps.put("FOM", 3);
         components = Collections.unmodifiableMap(comps);
     }
 }

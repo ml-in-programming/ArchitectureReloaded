@@ -21,14 +21,15 @@ import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
 
+import java.util.HashSet;
 import java.util.List;
 
 /**
  * Created by Kivi on 04.04.2017.
  */
 public class MethodEntity extends Entity {
-    public MethodEntity(String entity_name, MetricsRunImpl metricsRun) {
-        super(entity_name, metricsRun);
+    public MethodEntity(String entity_name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
+        super(entity_name, metricsRun, propertiesFinder);
     }
 
     public MetricCategory getCategory() {
@@ -56,6 +57,14 @@ public class MethodEntity extends Entity {
         }
 
         return vector;
+    }
+
+    protected HashSet<String> findRelevantProperties() {
+        HashSet<String> properties = new HashSet<String>();
+        properties.add(getName());
+        properties.add(getClassName());
+
+        return properties;
     }
 
     private String getClassName() {
