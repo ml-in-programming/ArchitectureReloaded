@@ -22,9 +22,13 @@ import java.util.List;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.psi.JavaElementVisitor;
+import com.intellij.psi.PsiElementVisitor;
 import com.sixrr.metrics.config.MetricsReloadedConfig;
 import com.sixrr.metrics.metricModel.*;
 import com.sixrr.metrics.profile.MetricsProfile;
@@ -55,9 +59,7 @@ import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import vector.model.ClassEntity;
-import vector.model.MethodEntity;
-import vector.model.Entity;
+import vector.model.*;
 
 import java.util.Arrays;
 
@@ -80,6 +82,16 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
         final MetricsProfile profile = repository.getCurrentProfile();
         final MetricsToolWindow toolWindow = MetricsToolWindow.getInstance(project);
         final MetricsRunImpl metricsRun = new MetricsRunImpl();
+
+        final PropertiesFinder properties = new PropertiesFinder();
+        final PsiElementVisitor visitor = properties.createVisitor();
+        ProgressManager.getInstance().runProcess(new Runnable() {
+            @Override
+            public void run() {
+                analysisScope.accept(visitor);;
+            }
+        }, new EmptyProgressIndicator());
+
         new MetricsExecutionContextImpl(project, analysisScope) {
 
             @Override
@@ -96,18 +108,19 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
                 metricsRun.setTimestamp(new TimeStamp());
                 toolWindow.show(metricsRun, profile, analysisScope, showOnlyWarnings);
 
-                System.out.println("here");
+                System.out.println("here!");
                 MetricsResult classMetrics = metricsRun.getResultsForCategory(MetricCategory.Class);
                 MetricsResult methodMetrics = metricsRun.getResultsForCategory(MetricCategory.Method);
 
                 ArrayList<Entity> entities = new ArrayList<Entity>();
 
                 for (String obj : classMetrics.getMeasuredObjects()) {
-                    Entity classEnt = new ClassEntity(obj, metricsRun);
+                    Entity classEnt = new ClassEntity(obj, metricsRun, properties);
+
                     entities.add(classEnt);
                 }
                 for (String obj : methodMetrics.getMeasuredObjects()) {
-                    Entity methodEnt = new MethodEntity(obj, metricsRun);
+                    Entity methodEnt = new MethodEntity(obj, metricsRun, properties);
                     entities.add(methodEnt);
                 }
 
