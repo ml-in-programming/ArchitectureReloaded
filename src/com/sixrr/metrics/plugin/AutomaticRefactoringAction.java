@@ -125,9 +125,8 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
                 }
 
                 for (Entity ent : entities) {
-                    System.out.print(ent.getName());
-                    System.out.print(' ');
-                    System.out.println(Arrays.toString(ent.getVector()));
+                    ent.print();
+                    System.out.println();
                 }
 
                 System.out.println("!!!\n");
