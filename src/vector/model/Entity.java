@@ -67,4 +67,18 @@ public abstract class Entity {
         comps.put("FOM", 3);
         components = Collections.unmodifiableMap(comps);
     }
+
+    public void print() {
+        System.out.println(name + ": " + getCategory().name());
+        System.out.print("    ");
+        for (Double comp : vector) {
+            System.out.print(comp);
+            System.out.print(" ");
+        }
+        System.out.println();
+        if (name.equals("startOverAgain.seriousMode.CompGetUp()")) {
+            System.out.println("here");
+        }
+        relevantProperties.printAll();
+    }
 }

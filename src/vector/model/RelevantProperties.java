@@ -19,6 +19,8 @@ package vector.model;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiParameter;
+import com.sixrr.metrics.utils.MethodUtils;
 
 import java.util.HashSet;
 
@@ -42,6 +44,26 @@ public class RelevantProperties {
 
     public void addField(PsiField field) {
         fields.add(field);
+    }
+
+    public void printAll() {
+        System.out.print("    ");
+        for (PsiClass aClass : classes) {
+            System.out.print(aClass.getQualifiedName() + " ");
+        }
+        System.out.println();
+
+        System.out.print("    ");
+        for (PsiMethod method : methods) {
+            System.out.print(MethodUtils.calculateSignature(method) + ' ');
+        }
+        System.out.println();
+
+        System.out.print("    ");
+        for (PsiField field : fields) {
+            System.out.print(field.getContainingClass().getQualifiedName() + "." + field.getName() + " ");
+        }
+        System.out.println();
     }
 
     private HashSet<PsiMethod> methods;
