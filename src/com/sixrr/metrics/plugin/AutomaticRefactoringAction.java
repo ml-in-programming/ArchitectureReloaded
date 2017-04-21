@@ -121,12 +121,18 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
                 }
 
                 Set<String> fields = properties.getAllFields();
-
                 for (String field : fields) {
                     Entity fieldEnt = new FieldEntity(field, metricsRun, properties);
                     entities.add(fieldEnt);
                 }
 
+                for (Entity ent : entities) {
+                    ent.print();
+                    System.out.println();
+                }
+                System.out.println("!!!\n");
+
+                Entity.normalize(entities);
                 for (Entity ent : entities) {
                     ent.print();
                     System.out.println();

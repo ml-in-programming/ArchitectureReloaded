@@ -21,10 +21,7 @@ import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Kivi on 04.04.2017.
@@ -35,6 +32,36 @@ public abstract class Entity {
         name = entity_name;
         vector = initializeVector(metricsRun);
         relevantProperties = propertiesFinder.getProperties(name);
+    }
+
+    public double dist(Entity entity) {
+        double ans = 1;
+        for (int i = 0; i < Dimension; i++) {
+            ans += Math.pow(vector[i] - entity.vector[i], 2);
+        }
+
+        int rpIntersect = entity.relevantProperties.sizeOfIntersect(relevantProperties);
+        ans -= (rpIntersect) / (1.0 * relevantProperties.size() + entity.relevantProperties.size() -
+                rpIntersect);
+
+        return ans;
+    }
+
+    public static void normalize(ArrayList<Entity> entities) {
+        for (int i = 0; i < Dimension; i++) {
+            Double mx = 0.0;
+            for (Entity entity : entities) {
+                mx = Math.max(mx, entity.vector[i]);
+            }
+
+            if (mx == 0.0) {
+                continue;
+            }
+
+            for (int j = 0; j < entities.size(); j++) {
+                entities.get(j).vector[i] /= mx;
+            }
+        }
     }
 
     public static final int Dimension = 4;

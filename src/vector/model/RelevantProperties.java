@@ -55,6 +55,27 @@ public class RelevantProperties {
         return new HashSet<PsiField>(fields);
     }
 
+    public int size() {
+        return classes.size() + fields.size() + methods.size();
+    }
+
+    public int sizeOfIntersect(RelevantProperties rp) {
+        int ans = 0;
+        Set<PsiClass> c = new HashSet<PsiClass>(classes);
+        c.retainAll(rp.classes);
+        ans += c.size();
+
+        Set<PsiMethod> m = new HashSet<PsiMethod>(methods);
+        m.retainAll(rp.methods);
+        ans += m.size();
+
+        Set<PsiField> f = new HashSet<PsiField>(fields);
+        f.retainAll(rp.fields);
+        ans += f.size();
+
+        return ans;
+    }
+
     public void printAll() {
         System.out.print("    ");
         for (PsiClass aClass : classes) {
