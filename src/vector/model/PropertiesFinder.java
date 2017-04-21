@@ -38,18 +38,9 @@ package vector.model;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.*;
-
-
-import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.psi.*;
-import com.intellij.psi.impl.source.PsiReferenceListImpl;
 import com.sixrr.metrics.utils.MethodUtils;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
 
 /**
  * Created by Kivi on 10.04.2017.
@@ -61,6 +52,23 @@ public class PropertiesFinder {
     public RelevantProperties getProperties(String name) {
 
         return properties.get(name);
+    }
+
+    public Set<String> getAllFields() {
+        Set<String> fields = new HashSet<String>();
+        for (String entity : properties.keySet()) {
+            RelevantProperties rp = properties.get(entity);
+            Set<PsiField> fs = rp.getAllFields();
+            for (PsiField field : fs) {
+                if (!properties.containsKey(field.getContainingClass().getQualifiedName())) {
+                    continue;
+                }
+                String name = field.getContainingClass().getQualifiedName() + "." + field.getName();
+                fields.add(name);
+            }
+        }
+
+        return fields;
     }
 
     private HashMap<String, RelevantProperties> properties = new HashMap<String, RelevantProperties>();
@@ -162,9 +170,18 @@ public class PropertiesFinder {
             PsiElement elem = expression.resolve();
             System.out.println("                " + elem.getClass().getName());
             if (elem instanceof PsiField) {
+                PsiField field = (PsiField) elem;
                 PsiMethod method = methodStack.peek();
                 String fullMethodName = MethodUtils.calculateSignature(method);
-                properties.get(fullMethodName).addField((PsiField) elem);
+                String fullFieldName = field.getContainingClass().getQualifiedName() + "." + field.getName();
+                properties.get(fullMethodName).addField(field);
+
+                if (!properties.containsKey(fullFieldName)) {
+                    RelevantProperties rp = new RelevantProperties();
+                    properties.put(fullFieldName, rp);
+                }
+
+                properties.get(fullFieldName).addMethod(method);
             }
 
             System.out.println();
@@ -191,6 +208,18 @@ public class PropertiesFinder {
             }
 
             System.out.println();
+        }
+
+        @Override
+        public void visitField(PsiField field) {
+            String name = field.getContainingClass().getQualifiedName() + "." + field.getName();
+            System.out.println("    !$! " + name);
+            if (!properties.containsKey(name)) {
+                RelevantProperties rp = new RelevantProperties();
+                properties.put(name, rp);
+            }
+            properties.get(name).addClass(field.getContainingClass());
+            properties.get(name).addField(field);
         }
     }
 }

@@ -49,7 +49,7 @@ public abstract class Entity {
         return name;
     }
 
-    private Double[] vector;
+    protected Double[] vector;
     private RelevantProperties relevantProperties;
     private String name;
 
@@ -76,9 +76,7 @@ public abstract class Entity {
             System.out.print(" ");
         }
         System.out.println();
-        if (name.equals("startOverAgain.seriousMode.CompGetUp()")) {
-            System.out.println("here");
-        }
+
         relevantProperties.printAll();
     }
 }

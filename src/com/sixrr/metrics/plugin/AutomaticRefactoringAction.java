@@ -17,8 +17,8 @@
 package com.sixrr.metrics.plugin;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
@@ -60,8 +60,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import vector.model.*;
-
-import java.util.Arrays;
 
 import javax.swing.*;
 
@@ -108,7 +106,6 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
                 metricsRun.setTimestamp(new TimeStamp());
                 toolWindow.show(metricsRun, profile, analysisScope, showOnlyWarnings);
 
-                System.out.println("here!");
                 MetricsResult classMetrics = metricsRun.getResultsForCategory(MetricCategory.Class);
                 MetricsResult methodMetrics = metricsRun.getResultsForCategory(MetricCategory.Method);
 
@@ -116,12 +113,18 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
 
                 for (String obj : classMetrics.getMeasuredObjects()) {
                     Entity classEnt = new ClassEntity(obj, metricsRun, properties);
-
                     entities.add(classEnt);
                 }
                 for (String obj : methodMetrics.getMeasuredObjects()) {
                     Entity methodEnt = new MethodEntity(obj, metricsRun, properties);
                     entities.add(methodEnt);
+                }
+
+                Set<String> fields = properties.getAllFields();
+
+                for (String field : fields) {
+                    Entity fieldEnt = new FieldEntity(field, metricsRun, properties);
+                    entities.add(fieldEnt);
                 }
 
                 for (Entity ent : entities) {

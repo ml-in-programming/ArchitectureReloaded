@@ -23,6 +23,7 @@ import com.intellij.psi.PsiParameter;
 import com.sixrr.metrics.utils.MethodUtils;
 
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Kivi on 11.04.2017.
@@ -44,6 +45,14 @@ public class RelevantProperties {
 
     public void addField(PsiField field) {
         fields.add(field);
+    }
+
+    public Integer numberOfMethods() {
+        return methods.size();
+    }
+
+    public Set<PsiField> getAllFields() {
+        return new HashSet<PsiField>(fields);
     }
 
     public void printAll() {
