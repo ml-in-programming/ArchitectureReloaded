@@ -73,6 +73,8 @@ public class PropertiesFinder {
 
     private HashMap<String, RelevantProperties> properties = new HashMap<String, RelevantProperties>();
 
+    private HashMap<String, HashSet<PsiMethod>> methods = new HashMap<String, HashSet<PsiMethod>>();
+
     protected Map<String, HashSet<PsiClass>> parents = new HashMap<String, HashSet<PsiClass>>();
 
     protected Map<String, HashSet<PsiMethod>> superMethods = new HashMap<String, HashSet<PsiMethod>>();
@@ -116,7 +118,15 @@ public class PropertiesFinder {
                     if (!properties.containsKey(parentName)) {
                         continue;
                     }
-                    properties.get(parentName).addMethod(method);
+                    properties.get(parentName).addOverrideMethod(method);
+                }
+            }
+
+            for (String name : methods.keySet()) {
+                for (PsiMethod method : methods.get(name)) {
+                    if (methodByName.containsValue(method)) {
+                        properties.get(name).addMethod(method);
+                    }
                 }
             }
         }
@@ -185,6 +195,17 @@ public class PropertiesFinder {
             }
 
             System.out.println();
+        }
+
+        @Override
+        public void visitMethodCallExpression(PsiMethodCallExpression expression) {
+            PsiMethod element = expression.resolveMethod();
+            PsiMethod caller = methodStack.peek();
+            String callerName = MethodUtils.calculateSignature(caller);
+            if (!methods.containsKey(callerName)) {
+                methods.put(callerName, new HashSet<PsiMethod>());
+            }
+            methods.get(callerName).add(element);
         }
 
         @Override

@@ -33,6 +33,7 @@ public class RelevantProperties {
         methods = new HashSet<PsiMethod>();
         classes = new HashSet<PsiClass>();
         fields = new HashSet<PsiField>();
+        overrideMethods = new HashSet<PsiMethod>();
     };
 
     public void addMethod(PsiMethod method) {
@@ -47,12 +48,20 @@ public class RelevantProperties {
         fields.add(field);
     }
 
+    public void addOverrideMethod(PsiMethod method) {
+        overrideMethods.add(method);
+    }
+
     public Integer numberOfMethods() {
         return methods.size();
     }
 
     public Set<PsiField> getAllFields() {
         return new HashSet<PsiField>(fields);
+    }
+
+    public Set<PsiMethod> getAllMethods() {
+        return new HashSet<PsiMethod>(methods);
     }
 
     public int size() {
@@ -72,6 +81,10 @@ public class RelevantProperties {
         Set<PsiField> f = new HashSet<PsiField>(fields);
         f.retainAll(rp.fields);
         ans += f.size();
+
+        Set<PsiMethod> om = new HashSet<PsiMethod>(overrideMethods);
+        om.retainAll(rp.overrideMethods);
+        ans += om.size();
 
         return ans;
     }
@@ -99,4 +112,5 @@ public class RelevantProperties {
     private HashSet<PsiMethod> methods;
     private HashSet<PsiClass> classes;
     private HashSet<PsiField> fields;
+    private HashSet<PsiMethod> overrideMethods;
 }
