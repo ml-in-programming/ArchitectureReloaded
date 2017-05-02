@@ -75,16 +75,15 @@ public class RelevantProperties {
         ans += c.size();
 
         Set<PsiMethod> m = new HashSet<PsiMethod>(methods);
-        m.retainAll(rp.methods);
+        m.addAll(overrideMethods);
+        Set<PsiMethod> rpm = rp.methods;
+        rpm.addAll(rp.overrideMethods);
+        m.retainAll(rpm);
         ans += m.size();
 
         Set<PsiField> f = new HashSet<PsiField>(fields);
         f.retainAll(rp.fields);
         ans += f.size();
-
-        Set<PsiMethod> om = new HashSet<PsiMethod>(overrideMethods);
-        om.retainAll(rp.overrideMethods);
-        ans += om.size();
 
         return ans;
     }
