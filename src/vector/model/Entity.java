@@ -66,6 +66,10 @@ public abstract class Entity {
 
     public static final int Dimension = 4;
 
+    public RelevantProperties getRelevantProperties() {
+        return relevantProperties;
+    }
+
     abstract MetricCategory getCategory();
 
     public Double[] getVector() {
@@ -75,6 +79,8 @@ public abstract class Entity {
     public String getName() {
         return name;
     }
+
+    abstract public String getClassName();
 
     protected Double[] vector;
     private RelevantProperties relevantProperties;

@@ -67,7 +67,8 @@ public class MethodEntity extends Entity {
         return properties;
     }
 
-    private String getClassName() {
+    @Override
+    public String getClassName() {
         String name = getName();
         return name.substring(0, name.lastIndexOf('.'));
     }

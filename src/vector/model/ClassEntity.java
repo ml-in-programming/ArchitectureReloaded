@@ -37,6 +37,11 @@ public class ClassEntity extends Entity {
         return MetricCategory.Class;
     }
 
+    @Override
+    public String getClassName() {
+        return getName();
+    }
+
     protected Double[] initializeVector(MetricsRunImpl metricsRun) {
         Double[] vector = new Double[Dimension];
         MetricCategory category = getCategory();
