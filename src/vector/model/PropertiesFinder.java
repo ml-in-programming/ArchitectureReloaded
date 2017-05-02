@@ -74,6 +74,7 @@ public class PropertiesFinder {
     private HashMap<String, RelevantProperties> properties = new HashMap<String, RelevantProperties>();
 
     private HashMap<String, HashSet<PsiMethod>> methods = new HashMap<String, HashSet<PsiMethod>>();
+    private HashMap<String, HashSet<PsiField>> fields = new HashMap<String, HashSet<PsiField>>();
 
     protected Map<String, HashSet<PsiClass>> parents = new HashMap<String, HashSet<PsiClass>>();
 
@@ -82,6 +83,8 @@ public class PropertiesFinder {
     protected Map<String, PsiClass> classByName = new HashMap<String, PsiClass>();
 
     protected Map<String, PsiMethod> methodByName = new HashMap<String, PsiMethod>();
+
+    protected Map<String, PsiField> fieldByName = new HashMap<String, PsiField>();
 
     private Stack<PsiMethod> methodStack = new Stack<PsiMethod>();
 
@@ -123,9 +126,21 @@ public class PropertiesFinder {
             }
 
             for (String name : methods.keySet()) {
+                if (!methodByName.containsKey(name) && !fieldByName.containsKey(name)
+                        && !classByName.containsKey(name)) {
+                    continue;
+                }
                 for (PsiMethod method : methods.get(name)) {
                     if (methodByName.containsValue(method)) {
                         properties.get(name).addMethod(method);
+                    }
+                }
+            }
+
+            for (String name : fields.keySet()) {
+                for (PsiField field : fields.get(name)) {
+                    if (fieldByName.containsValue(field)) {
+                        properties.get(name).addField(field);
                     }
                 }
             }
@@ -184,14 +199,17 @@ public class PropertiesFinder {
                 PsiMethod method = methodStack.peek();
                 String fullMethodName = MethodUtils.calculateSignature(method);
                 String fullFieldName = field.getContainingClass().getQualifiedName() + "." + field.getName();
-                properties.get(fullMethodName).addField(field);
+                //properties.get(fullMethodName).addField(field);
+                if (!fields.containsKey(fullMethodName)) {
+                    fields.put(fullMethodName, new HashSet<PsiField>());
+                }
+                fields.get(fullMethodName).add(field);
 
-                if (!properties.containsKey(fullFieldName)) {
-                    RelevantProperties rp = new RelevantProperties();
-                    properties.put(fullFieldName, rp);
+                if (!methods.containsKey(fullFieldName)) {
+                    methods.put(fullFieldName, new HashSet<PsiMethod>());
                 }
 
-                properties.get(fullFieldName).addMethod(method);
+                methods.get(fullFieldName).add(method);
             }
 
             System.out.println();
@@ -241,6 +259,7 @@ public class PropertiesFinder {
             }
             properties.get(name).addClass(field.getContainingClass());
             properties.get(name).addField(field);
+            fieldByName.put(name, field);
         }
     }
 }
