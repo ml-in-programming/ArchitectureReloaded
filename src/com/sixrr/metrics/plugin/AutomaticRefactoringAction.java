@@ -142,6 +142,10 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
 
                 CCDA alg = new CCDA(entities);
                 System.out.println(alg.calculateQualityIndex());
+                Map<String, String> refactorings = alg.run();
+                for (String ent : refactorings.keySet()) {
+                    System.out.println(ent + " --> " + refactorings.get(ent));
+                }
             }
         }.execute(profile, metricsRun);
     }

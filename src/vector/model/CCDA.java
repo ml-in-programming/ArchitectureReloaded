@@ -16,7 +16,6 @@
 
 package vector.model;
 
-import com.intellij.codeInspection.bytecodeAnalysis.Direction;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
@@ -43,8 +42,7 @@ public class CCDA {
             }
         }
 
-        aCoefficients = new ArrayList<Integer>(idCommunity.size());
-
+        aCoefficients = new ArrayList<Integer>(Collections.nCopies(idCommunity.size() + 1, 0));
         buildGraph();
     }
 
@@ -84,6 +82,14 @@ public class CCDA {
 
             graph.put(ent.getName(), neighbors);
         }
+
+        System.out.println("Graph built:");
+        for (String ent : graph.keySet()) {
+            System.out.println(ent);
+            for (String neighbor : graph.get(ent)) {
+                System.out.println("  -> " + neighbor);
+            }
+        }
     }
 
     public Map<String, String> run() {
@@ -91,19 +97,54 @@ public class CCDA {
         q = calculateQualityIndex();
         System.out.println(q);
 
+        Double dq = 1.0;
+        System.out.println("Running...");
+        while (dq > 0) {
+            dq = 0.0;
+            int id = -1;
+            Integer community = -1;
+            for (int i = 0; i < nodes.size(); ++i) {
+                Entity ent = nodes.get(i);
+                for (int j = 1; j <= idCommunity.size(); ++j) {
+                    if (j == communityId.get(ent.getName())) {
+                        continue;
+                    }
+                    Double curdq = move(ent, j, true);
+                    if (curdq > dq) {
+                        dq = curdq;
+                        id = i;
+                        community = j;
+                    }
+                }
+            }
+
+            if (dq > 0) {
+                refactorings.put(nodes.get(id).getName(), idCommunity.get(community - 1));
+                move(nodes.get(id), community, false);
+                System.out.println("move " + nodes.get(id).getName() + " to " + idCommunity.get(community - 1));
+                System.out.println("quality index is now: " + q);
+                System.out.println();
+            }
+        }
+
         return refactorings;
     }
 
-    public void move(Entity ent, Integer from, Integer to) {
+    public Double move(Entity ent, Integer to, boolean rollback) {
+        String name = ent.getName();
+        Integer from = communityId.get(name);
         Double dq = 0.0;
         dq += Math.pow(aCoefficients.get(from) * 1.0 / edges, 2);
         dq += Math.pow(aCoefficients.get(to) * 1.0 / edges, 2);
-        aCoefficients.add(from, 0);
-        aCoefficients.add(to, 0);
+        if (!rollback) {
+            aCoefficients.add(from, 0);
+            aCoefficients.add(to, 0);
+        }
+
         Integer aFrom = 0;
         Integer aTo = 0;
         Integer de = 0;
-        String name = ent.getName();
+
         for (String neighbor : graph.get(name)) {
             if (communityId.get(neighbor).equals(from)) {
                 de--;
@@ -118,12 +159,23 @@ public class CCDA {
             }
         }
 
-        aCoefficients.add(from, aFrom);
-        aCoefficients.add(to, aTo);
+        aFrom = aCoefficients.get(from) - aFrom;
+        aTo = aCoefficients.get(to) + aTo;
+
+        if (!rollback) {
+            aCoefficients.add(from, aFrom);
+            aCoefficients.add(to, aTo);
+        }
+
         dq += de * 1.0 / edges;
         dq -= Math.pow(aFrom * 1.0 / edges, 2);
         dq -= Math.pow(aTo * 1.0 / edges, 2);
-        q += dq;
+
+        if (!rollback) {
+            q += dq;
+        }
+
+        return dq;
     }
 
     public Double calculateQualityIndex() {
@@ -134,18 +186,12 @@ public class CCDA {
         }
 
         edges /= 2;
-
-        System.out.println(edges);
-        for (int i = 0; i < idCommunity.size(); ++i) {
-            String com = idCommunity.get(i);
-            System.out.println(com);
+        for (int i = 1; i <= idCommunity.size(); ++i) {
+            String com = idCommunity.get(i - 1);
             Integer e = 0;
             Integer a = 0;
-            System.out.println(graph.size());
 
             for (String node : graph.keySet()) {
-                System.out.println("  " + node);
-
                 if (!communityId.containsKey(node)) {
                     System.out.println("ERROR: unknown community");
                 }
@@ -154,7 +200,6 @@ public class CCDA {
                     continue;
                 }
                 for (String neighbor : graph.get(node)) {
-                    System.out.println("  -> " + neighbor);
                     if (communityId.get(neighbor).equals(communityId.get(com))) {
                         e++;
                     } else {
@@ -166,9 +211,7 @@ public class CCDA {
             e /= 2;
             a += e;
             aCoefficients.add(i, a);
-            System.out.println("  " + e + " " + a);
-            qI += (e * 1.0 / edges) + Math.pow((a * 1.0 / edges), 2);
-            System.out.println("Q: " );
+            qI += (e * 1.0 / edges) - Math.pow((a * 1.0 / edges), 2);
         }
 
         return qI;
