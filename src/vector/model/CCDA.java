@@ -16,6 +16,7 @@
 
 package vector.model;
 
+import com.intellij.codeInspection.bytecodeAnalysis.Direction;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
@@ -41,6 +42,8 @@ public class CCDA {
                 nodes.add(ent);
             }
         }
+
+        aCoefficients = new ArrayList<Integer>(idCommunity.size());
 
         buildGraph();
     }
@@ -91,9 +94,41 @@ public class CCDA {
         return refactorings;
     }
 
+    public void move(Entity ent, Integer from, Integer to) {
+        Double dq = 0.0;
+        dq += Math.pow(aCoefficients.get(from) * 1.0 / edges, 2);
+        dq += Math.pow(aCoefficients.get(to) * 1.0 / edges, 2);
+        aCoefficients.add(from, 0);
+        aCoefficients.add(to, 0);
+        Integer aFrom = 0;
+        Integer aTo = 0;
+        Integer de = 0;
+        String name = ent.getName();
+        for (String neighbor : graph.get(name)) {
+            if (communityId.get(neighbor).equals(from)) {
+                de--;
+            } else {
+                aFrom++;
+            }
+
+            if (communityId.get(neighbor).equals(to)) {
+                de++;
+            } else {
+                aTo++;
+            }
+        }
+
+        aCoefficients.add(from, aFrom);
+        aCoefficients.add(to, aTo);
+        dq += de * 1.0 / edges;
+        dq -= Math.pow(aFrom * 1.0 / edges, 2);
+        dq -= Math.pow(aTo * 1.0 / edges, 2);
+        q += dq;
+    }
+
     public Double calculateQualityIndex() {
         Double qI = 0.0;
-        Integer edges = 0;
+        edges = 0;
         for (String node : graph.keySet()) {
             edges += graph.get(node).size();
         }
@@ -101,7 +136,8 @@ public class CCDA {
         edges /= 2;
 
         System.out.println(edges);
-        for (String com : idCommunity) {
+        for (int i = 0; i < idCommunity.size(); ++i) {
+            String com = idCommunity.get(i);
             System.out.println(com);
             Integer e = 0;
             Integer a = 0;
@@ -129,7 +165,7 @@ public class CCDA {
 
             e /= 2;
             a += e;
-
+            aCoefficients.add(i, a);
             System.out.println("  " + e + " " + a);
             qI += (e * 1.0 / edges) + Math.pow((a * 1.0 / edges), 2);
             System.out.println("Q: " );
@@ -140,10 +176,11 @@ public class CCDA {
 
     private Map<String, Integer> communityId;
     private ArrayList<String> idCommunity;
-
+    private ArrayList<Integer> aCoefficients;
     private Map<String, HashSet<String>> graph;
 
     private List<Entity> nodes;
 
     private Double q;
+    private Integer edges;
 }
