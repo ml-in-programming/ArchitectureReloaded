@@ -121,6 +121,7 @@ public class CCDA {
             if (dq > 0) {
                 refactorings.put(nodes.get(id).getName(), idCommunity.get(community - 1));
                 move(nodes.get(id), community, false);
+                communityId.put(nodes.get(id).getName(), community);
                 System.out.println("move " + nodes.get(id).getName() + " to " + idCommunity.get(community - 1));
                 System.out.println("quality index is now: " + q);
                 System.out.println();
