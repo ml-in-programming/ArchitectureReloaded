@@ -110,17 +110,25 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
                 MetricsResult methodMetrics = metricsRun.getResultsForCategory(MetricCategory.Method);
 
                 ArrayList<Entity> entities = new ArrayList<Entity>();
-
+                System.out.println("Classes: " + classMetrics.getMeasuredObjects().length);
+                System.out.println("Methods: " + methodMetrics.getMeasuredObjects().length);
                 for (String obj : classMetrics.getMeasuredObjects()) {
+                    if (obj.equals("null")) {
+                        continue;
+                    }
                     Entity classEnt = new ClassEntity(obj, metricsRun, properties);
                     entities.add(classEnt);
                 }
                 for (String obj : methodMetrics.getMeasuredObjects()) {
+                    if (obj.substring(0, obj.indexOf('.')).equals("null")) {
+                        continue;
+                    }
                     Entity methodEnt = new MethodEntity(obj, metricsRun, properties);
                     entities.add(methodEnt);
                 }
 
                 Set<String> fields = properties.getAllFields();
+                System.out.println("Properties: " + fields.size());
                 for (String field : fields) {
                     Entity fieldEnt = new FieldEntity(field, metricsRun, properties);
                     entities.add(fieldEnt);
@@ -146,6 +154,11 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
                 for (String ent : refactorings.keySet()) {
                     System.out.println(ent + " --> " + refactorings.get(ent));
                 }
+
+                ARI alg2 = new ARI(entities);
+                System.out.println("Starting ARI...");
+                refactorings = alg2.run();
+                System.out.println("Finished ARI");
             }
         }.execute(profile, metricsRun);
     }

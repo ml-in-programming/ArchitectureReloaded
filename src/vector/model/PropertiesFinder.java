@@ -38,6 +38,7 @@ package vector.model;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.tree.java.AnonymousClassElement;
 import com.sixrr.metrics.utils.MethodUtils;
 
 import java.util.*;
@@ -150,8 +151,13 @@ public class PropertiesFinder {
     private class EntityVisitor extends JavaRecursiveElementVisitor {
         @Override
         public void visitClass(PsiClass aClass) {
+            if (aClass instanceof AnonymousClassElement) {
+                return;
+            }
+
             RelevantProperties rp = new RelevantProperties();
             String fullName = aClass.getQualifiedName();
+
             classByName.put(fullName, aClass);
             rp.addClass(aClass);
             System.out.println("    !@! " + aClass.getName() + " : " + aClass.getQualifiedName());
@@ -196,6 +202,9 @@ public class PropertiesFinder {
             System.out.println("                " + elem.getClass().getName());
             if (elem instanceof PsiField) {
                 PsiField field = (PsiField) elem;
+                if (methodStack.empty()) {
+                    return;
+                }
                 PsiMethod method = methodStack.peek();
                 String fullMethodName = MethodUtils.calculateSignature(method);
                 String fullFieldName = field.getContainingClass().getQualifiedName() + "." + field.getName();
@@ -218,6 +227,9 @@ public class PropertiesFinder {
         @Override
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
             PsiMethod element = expression.resolveMethod();
+            if (methodStack.empty()) {
+                return;
+            }
             PsiMethod caller = methodStack.peek();
             String callerName = MethodUtils.calculateSignature(caller);
             if (!methods.containsKey(callerName)) {
@@ -228,9 +240,13 @@ public class PropertiesFinder {
 
         @Override
         public void visitMethod(PsiMethod method) {
+            if (method.getContainingClass().equals(null)) {
+                return;
+            }
             String methodName = MethodUtils.calculateSignature(method);
             methodByName.put(methodName, method);
-            System.out.println("    !%! " + methodName);
+            System.out.println("        !%! " + methodName);
+
             RelevantProperties rp = new RelevantProperties();
             rp.addMethod(method);
             rp.addClass(method.getContainingClass());
@@ -251,8 +267,12 @@ public class PropertiesFinder {
 
         @Override
         public void visitField(PsiField field) {
+            if (field.getContainingClass().equals(null)) {
+                return;
+            }
             String name = field.getContainingClass().getQualifiedName() + "." + field.getName();
-            System.out.println("    !$! " + name);
+            System.out.println("        !$! " + name);
+
             if (!properties.containsKey(name)) {
                 RelevantProperties rp = new RelevantProperties();
                 properties.put(name, rp);
