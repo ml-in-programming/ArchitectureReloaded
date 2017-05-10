@@ -45,6 +45,13 @@ public class CCDA {
         aCoefficients = new ArrayList<Integer>(Collections.nCopies(idCommunity.size() + 1, 0));
         buildGraph();
     }
+    
+    public void applyRefactorings(Map<String, String> refactorings) {
+        for (String entity : refactorings.keySet()) {
+            String com = refactorings.get(entity);
+            communityId.put(entity, communityId.get(com));
+        }
+    }
 
     public void buildGraph() {
         graph = new HashMap<String, HashSet<String>>();
