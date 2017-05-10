@@ -17,15 +17,21 @@
 package com.sixrr.stockmetrics.classCalculators;
 
 import com.intellij.psi.*;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.sixrr.stockmetrics.utils.FieldUsageMap;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 
 /**
- * Created by Aleksandr Chudov on 27.03.2017.
+ * @author Aleksandr Chudov.
  */
-public class FanInClassCalculator extends ClassCalculator {
-    private final Stack<Integer> fanInMetrics = new Stack<Integer>();
-    private int currentMetric = -1;
+public class FanInClassCalculator extends FanClassCalculator {
     private final Stack<PsiClass> classes = new Stack<PsiClass>();
 
     @Override
@@ -34,31 +40,45 @@ public class FanInClassCalculator extends ClassCalculator {
     }
 
     private class Visitor extends JavaRecursiveElementVisitor {
-
         @Override
         public void visitClass(PsiClass aClass) {
-            if (currentMetric != -1) {
-                fanInMetrics.push(Integer.valueOf(currentMetric));
+            if (!metrics.containsKey(aClass)) {
+                metrics.put(aClass, new HashSet<PsiClass>());
             }
             classes.push(aClass);
-            currentMetric = 0;
+            visitedClasses.add(aClass);
             super.visitClass(aClass);
-            postMetric(aClass, currentMetric);
             classes.pop();
-            currentMetric = fanInMetrics.empty() ? -1 : fanInMetrics.pop().intValue();
+            final FieldUsageMap map = executionContext.getUserData(fieldUsageKey);
+            final PsiField[] fields = aClass.getFields();
+            for (final PsiField field : fields) {
+                final Set<PsiReference> references = map.calculateFieldUsagePoints(field);
+                for (final PsiReference reference : references) {
+                    final PsiElement element = reference.getElement();
+                    final PsiClass fieldClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
+                    if (fieldClass == null || fieldClass.equals(aClass)) {
+                        continue;
+                    }
+                    final Set<PsiClass> classes = metrics.get(aClass);
+                    classes.add(fieldClass);
+                }
+            }
         }
 
         @Override
-        public void visitMethodCallExpression(PsiMethodCallExpression expression) {
-            super.visitMethodCallExpression(expression);
-            if (classes.empty()) {
+        public void visitCallExpression(PsiCallExpression callExpression) {
+            super.visitCallExpression(callExpression);
+            final PsiMethod method = callExpression.resolveMethod();
+            if (method == null) {
                 return;
             }
-            final PsiMethod method = expression.resolveMethod();
-            if (method == null || classes.peek().equals(method.getContainingClass())) {
+            final PsiClass aClass = method.getContainingClass();
+            if (aClass == null || classes.empty() || classes.peek().equals(aClass)) {
                 return;
             }
-            currentMetric++;
+            final Set<PsiClass> s = metrics.containsKey(aClass) ? metrics.get(aClass) : new HashSet<PsiClass>();
+            s.add(classes.peek());
+            metrics.put(aClass, s);
         }
     }
 }
