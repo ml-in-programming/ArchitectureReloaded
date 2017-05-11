@@ -155,10 +155,6 @@ public class CCDA {
         Double dq = 0.0;
         dq += Math.pow(aCoefficients.get(from) * 1.0 / edges, 2);
         dq += Math.pow(aCoefficients.get(to) * 1.0 / edges, 2);
-        if (!rollback) {
-            aCoefficients.add(from, 0);
-            aCoefficients.add(to, 0);
-        }
 
         Integer aFrom = 0;
         Integer aTo = 0;
