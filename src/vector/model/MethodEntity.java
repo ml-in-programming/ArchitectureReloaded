@@ -49,14 +49,16 @@ public class MethodEntity extends Entity {
         for (Metric metric : metricsRun.getMetrics()) {
             if (metric.getCategory().equals(MetricCategory.Class)) {
                 Integer id = components.get(metric.getAbbreviation());
-                vector[id] = classResults.getValueForMetric(metric, className);
+                if (classResults.getValueForMetric(metric, getName()) != null) {
+                    vector[id] = classResults.getValueForMetric(metric, className);
+                }
             }
         }
 
         for (Metric metric : metricsRun.getMetrics()) {
             if (metric.getCategory().equals(category)) {
                 Integer id = components.get(metric.getAbbreviation());
-                if (!results.getValueForMetric(metric, getName()).equals(null)) {
+                if (results.getValueForMetric(metric, getName()) != null) {
                     vector[id] = results.getValueForMetric(metric, getName());
                 }
             }

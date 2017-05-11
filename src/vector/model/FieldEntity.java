@@ -40,12 +40,17 @@ public class FieldEntity extends Entity {
 
     protected Double[] initializeVector(MetricsRunImpl metricsRun) {
         Double[] vector = new Double[Dimension];
+        for (int i = 0; i < Dimension; i++) {
+            vector[i] = 0.0;
+        }
         MetricsResult classResults = metricsRun.getResultsForCategory(MetricCategory.Class);
         String className = getClassName();
         for (Metric metric : metricsRun.getMetrics()) {
             if (metric.getCategory().equals(MetricCategory.Class)) {
                 Integer id = components.get(metric.getAbbreviation());
-                vector[id] = classResults.getValueForMetric(metric, className);
+                if (classResults.getValueForMetric(metric, className) != null) {
+                    vector[id] = classResults.getValueForMetric(metric, className);
+                }
             }
         }
 
