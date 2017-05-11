@@ -50,6 +50,9 @@ public class FanOutClassCalculator extends FanClassCalculator {
 
         @Override
         public void visitClass(PsiClass aClass) {
+            if (!isConcreteClass(aClass)) {
+                return;
+            }
             if (!metrics.containsKey(aClass)) {
                 metrics.put(aClass, new HashSet<PsiClass>());
             }
@@ -72,6 +75,10 @@ public class FanOutClassCalculator extends FanClassCalculator {
                     metrics.put(fieldClass, s);
                 }
             }
+        }
+
+        @Override
+        public void visitLambdaExpression(PsiLambdaExpression expression) {
         }
 
         @Override

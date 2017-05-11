@@ -42,6 +42,9 @@ public class FanInClassCalculator extends FanClassCalculator {
     private class Visitor extends JavaRecursiveElementVisitor {
         @Override
         public void visitClass(PsiClass aClass) {
+            if (!isConcreteClass(aClass)) {
+                return;
+            }
             if (!metrics.containsKey(aClass)) {
                 metrics.put(aClass, new HashSet<PsiClass>());
             }
@@ -63,6 +66,10 @@ public class FanInClassCalculator extends FanClassCalculator {
                     classes.add(fieldClass);
                 }
             }
+        }
+
+        @Override
+        public void visitLambdaExpression(PsiLambdaExpression expression) {
         }
 
         @Override
