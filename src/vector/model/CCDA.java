@@ -42,6 +42,7 @@ public class CCDA {
         for (Entity ent : entities) {
             if (!ent.getCategory().equals(MetricCategory.Class) && communityId.containsKey(ent.getClassName())) {
                 nodes.add(ent);
+                communityId.put(ent.getName(), communityId.get(ent.getClassName()));
             }
         }
 
@@ -63,7 +64,6 @@ public class CCDA {
     public void buildGraph() {
         graph = new HashMap<String, HashSet<String>>();
         for (Entity ent : nodes) {
-            communityId.put(ent.getName(), communityId.get(ent.getClassName()));
             RelevantProperties rp = ent.getRelevantProperties();
             HashSet<String> neighbors = new HashSet<String>();
             if (graph.containsKey(ent.getName())) {
@@ -117,7 +117,7 @@ public class CCDA {
 
         Double dq = 1.0;
         System.out.println("Running...");
-        while (dq > 0) {
+        while (dq > eps) {
             dq = 0.0;
             int id = -1;
             Integer community = -1;
@@ -136,7 +136,7 @@ public class CCDA {
                 }
             }
 
-            if (dq > 0) {
+            if (dq > eps) {
                 refactorings.put(nodes.get(id).getName(), idCommunity.get(community - 1));
                 move(nodes.get(id), community, false);
                 communityId.put(nodes.get(id).getName(), community);
@@ -248,4 +248,6 @@ public class CCDA {
 
     private Double q;
     private Integer edges;
+
+    private static Double eps = 1e-7;
 }
