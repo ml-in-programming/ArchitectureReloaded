@@ -45,10 +45,14 @@ public class CCDA {
         aCoefficients = new ArrayList<Integer>(Collections.nCopies(idCommunity.size() + 1, 0));
         buildGraph();
     }
-    
+
     public void applyRefactorings(Map<String, String> refactorings) {
         for (String entity : refactorings.keySet()) {
             String com = refactorings.get(entity);
+            if (!communityId.containsKey(com)) {
+                communityId.put(com, communityId.size() + 1);
+                idCommunity.add(com);
+            }
             communityId.put(entity, communityId.get(com));
         }
     }
