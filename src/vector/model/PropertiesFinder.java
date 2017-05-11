@@ -160,46 +160,44 @@ public class PropertiesFinder {
 
             classByName.put(fullName, aClass);
             rp.addClass(aClass);
-            System.out.println("    !@! " + aClass.getName() + " : " + aClass.getQualifiedName());
+            //System.out.println("    !@! " + aClass.getName() + " : " + aClass.getQualifiedName());
             super.visitClass(aClass);
             PsiField[] fields = aClass.getAllFields();
             for (PsiField field : fields) {
-                System.out.println("        " + field.getName());
+                //System.out.println("        " + field.getName());
                 rp.addField(field);
             }
-            System.out.println();
+            //System.out.println();
             PsiMethod[] methods = aClass.getAllMethods();
             for (PsiMethod method : methods) {
                 rp.addMethod(method);
-                System.out.println("        " + method.getContainingClass().getName() + "." + method.getName());
+                //System.out.println("        " + method.getContainingClass().getName() + "." + method.getName());
             }
-            System.out.println();
+            //System.out.println();
 
             PsiClass[] supers = aClass.getSupers();
             for (PsiClass sup : supers) {
                 if (sup.isInterface()) {
                     rp.addClass(sup);
-                    System.out.println("        interface@ " + sup.getQualifiedName());
                 } else {
                     if (!parents.containsKey(fullName)) {
                         parents.put(fullName, new HashSet<PsiClass>());
                     }
 
                     parents.get(fullName).add(sup);
-                    System.out.println("        superclass@ " + sup.getQualifiedName());
                 }
             }
 
             properties.put(fullName, rp);
 
-            System.out.println();
+            //System.out.println();
         }
 
         @Override
         public void visitReferenceExpression(PsiReferenceExpression expression) {
-            System.out.println("            !*! " + expression.getText());
+            //System.out.println("            !*! " + expression.getText());
             PsiElement elem = expression.resolve();
-            System.out.println("                " + elem.getClass().getName());
+            //System.out.println("                " + elem.getClass().getName());
             if (elem instanceof PsiField) {
                 PsiField field = (PsiField) elem;
                 if (methodStack.empty()) {
@@ -221,7 +219,7 @@ public class PropertiesFinder {
                 methods.get(fullFieldName).add(method);
             }
 
-            System.out.println();
+            //System.out.println();
         }
 
         @Override
@@ -245,7 +243,7 @@ public class PropertiesFinder {
             }
             String methodName = MethodUtils.calculateSignature(method);
             methodByName.put(methodName, method);
-            System.out.println("        !%! " + methodName);
+            //System.out.println("        !%! " + methodName);
 
             RelevantProperties rp = new RelevantProperties();
             rp.addMethod(method);
@@ -259,10 +257,10 @@ public class PropertiesFinder {
             superMethods.put(methodName, new HashSet<PsiMethod>());
             for (PsiMethod met : methods) {
                 superMethods.get(methodName).add(met);
-                System.out.println("        " + met.getContainingClass().getQualifiedName() + "." + met.getName());
+                //System.out.println("        " + met.getContainingClass().getQualifiedName() + "." + met.getName());
             }
 
-            System.out.println();
+            //System.out.println();
         }
 
         @Override
@@ -271,7 +269,7 @@ public class PropertiesFinder {
                 return;
             }
             String name = field.getContainingClass().getQualifiedName() + "." + field.getName();
-            System.out.println("        !$! " + name);
+            //System.out.println("        !$! " + name);
 
             if (!properties.containsKey(name)) {
                 RelevantProperties rp = new RelevantProperties();
