@@ -238,7 +238,7 @@ public class PropertiesFinder {
 
         @Override
         public void visitMethod(PsiMethod method) {
-            if (method.getContainingClass().equals(null)) {
+            if (method.getContainingClass() == null) {
                 return;
             }
             String methodName = MethodUtils.calculateSignature(method);
@@ -265,7 +265,7 @@ public class PropertiesFinder {
 
         @Override
         public void visitField(PsiField field) {
-            if (field.getContainingClass().equals(null)) {
+            if (field.getContainingClass() == null) {
                 return;
             }
             String name = field.getContainingClass().getQualifiedName() + "." + field.getName();

@@ -37,7 +37,10 @@ public class CCDA {
                 Integer id = communityId.size() + 1;
                 communityId.put(ent.getName(), id);
                 idCommunity.add(ent.getName());
-            } else {
+            }
+        }
+        for (Entity ent : entities) {
+            if (!ent.getCategory().equals(MetricCategory.Class) && communityId.containsKey(ent.getClassName())) {
                 nodes.add(ent);
             }
         }
@@ -69,7 +72,7 @@ public class CCDA {
             Set<PsiMethod> methods = rp.getAllMethods();
             for (PsiMethod method : methods) {
                 String name = MethodUtils.calculateSignature(method);
-                if (name.equals(ent.getName())) {
+                if (name.equals(ent.getName()) || !communityId.containsKey(name)) {
                     continue;
                 }
 
@@ -83,6 +86,9 @@ public class CCDA {
 
             for (PsiField field : rp.getAllFields()) {
                 String name = field.getContainingClass().getQualifiedName() + "." + field.getName();
+                if (name.equals(ent.getName()) || !communityId.containsKey(name)) {
+                    continue;
+                }
                 neighbors.add(name);
                 if (!graph.containsKey(name)) {
                     graph.put(name, new HashSet<String>());
@@ -101,6 +107,7 @@ public class CCDA {
                 System.out.println("  -> " + neighbor);
             }
         }
+        System.out.println("-----");
     }
 
     public Map<String, String> run() {
@@ -191,6 +198,7 @@ public class CCDA {
     }
 
     public Double calculateQualityIndex() {
+        System.out.println("Calculating Q...");
         Double qI = 0.0;
         edges = 0;
         for (String node : graph.keySet()) {
@@ -198,6 +206,7 @@ public class CCDA {
         }
 
         edges /= 2;
+        System.out.println(edges);
         for (int i = 1; i <= idCommunity.size(); ++i) {
             String com = idCommunity.get(i - 1);
             Integer e = 0;
@@ -206,6 +215,7 @@ public class CCDA {
             for (String node : graph.keySet()) {
                 if (!communityId.containsKey(node)) {
                     System.out.println("ERROR: unknown community");
+                    System.out.println(node);
                 }
 
                 if (!communityId.get(node).equals(communityId.get(com))) {
