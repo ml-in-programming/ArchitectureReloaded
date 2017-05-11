@@ -44,13 +44,18 @@ public class ClassEntity extends Entity {
 
     protected Double[] initializeVector(MetricsRunImpl metricsRun) {
         Double[] vector = new Double[Dimension];
+        for (int i = 0; i < Dimension; i++) {
+            vector[i] = 0.0;
+        }
         MetricCategory category = getCategory();
         MetricsResult results = metricsRun.getResultsForCategory(category);
 
         for (Metric metric : metricsRun.getMetrics()) {
             if (metric.getCategory().equals(category)) {
                 Integer id = components.get(metric.getAbbreviation());
-                vector[id] = results.getValueForMetric(metric, getName());
+                if (!results.getValueForMetric(metric, getName()).equals(null)) {
+                    vector[id] = results.getValueForMetric(metric, getName());
+                }
             }
         }
 

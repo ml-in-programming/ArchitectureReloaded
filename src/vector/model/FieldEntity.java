@@ -31,7 +31,6 @@ public class FieldEntity extends Entity {
         super(entity_name, metricsRun, propertiesFinder);
         RelevantProperties rp = propertiesFinder.getProperties(entity_name);
         double temp = rp.numberOfMethods();
-        System.out.println(temp);
         vector[3] = Double.valueOf(temp);
     }
 
