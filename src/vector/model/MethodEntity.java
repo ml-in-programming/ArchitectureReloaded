@@ -49,7 +49,7 @@ public class MethodEntity extends Entity {
         for (Metric metric : metricsRun.getMetrics()) {
             if (metric.getCategory().equals(MetricCategory.Class)) {
                 Integer id = components.get(metric.getAbbreviation());
-                if (classResults.getValueForMetric(metric, getName()) != null) {
+                if (classResults.getValueForMetric(metric, className) != null) {
                     vector[id] = classResults.getValueForMetric(metric, className);
                 }
             }
