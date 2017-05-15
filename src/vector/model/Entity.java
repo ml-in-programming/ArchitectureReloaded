@@ -16,6 +16,7 @@
 
 package vector.model;
 
+import com.intellij.psi.PsiElement;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.metricModel.MetricsResult;
@@ -32,10 +33,11 @@ public abstract class Entity {
         name = entity_name;
         vector = initializeVector(metricsRun);
         relevantProperties = propertiesFinder.getProperties(name);
+        psiEntity = propertiesFinder.getPsiElement(entity_name);
     }
 
     public double dist(Entity entity) {
-        double ans = 1;
+        double ans = 0.0;
         for (int i = 0; i < Dimension; i++) {
             ans += Math.pow(vector[i] - entity.vector[i], 2);
         }
@@ -44,10 +46,10 @@ public abstract class Entity {
         if (rpIntersect == 0) {
             return Double.MAX_VALUE;
         }
-        ans -= (rpIntersect) / (1.0 * relevantProperties.size() + entity.relevantProperties.size() -
-                rpIntersect);
+        ans += 2.0 * (1 - (rpIntersect) / (1.0 * relevantProperties.size() + entity.relevantProperties.size() -
+                rpIntersect));
 
-        ans /= (Dimension + 1);
+        ans /= (Dimension + 2);
         return Math.sqrt(ans);
     }
 
@@ -115,5 +117,11 @@ public abstract class Entity {
         System.out.println();
 
         relevantProperties.printAll();
+    }
+
+    private PsiElement psiEntity;
+
+    public PsiElement getPsiElement() {
+        return psiEntity;
     }
 }
