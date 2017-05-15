@@ -31,7 +31,7 @@ public class FieldEntity extends Entity {
         super(entity_name, metricsRun, propertiesFinder);
         RelevantProperties rp = propertiesFinder.getProperties(entity_name);
         double temp = rp.numberOfMethods();
-        vector[3] = Double.valueOf(temp);
+        vector[2] = Double.valueOf(temp);
     }
 
     public MetricCategory getCategory() {
@@ -54,7 +54,7 @@ public class FieldEntity extends Entity {
             }
         }
 
-        vector[2] = 0.0;
+        vector[3] = 0.0;
 
         return vector;
     }
