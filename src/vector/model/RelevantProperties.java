@@ -22,6 +22,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import com.sixrr.metrics.utils.MethodUtils;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -46,6 +47,14 @@ public class RelevantProperties {
 
     public void addField(PsiField field) {
         fields.add(field);
+    }
+
+    public void retainMethods(Collection<PsiMethod> methodsSet) {
+        methods.retainAll(methodsSet);
+    }
+
+    public void retainClasses(Collection<PsiClass> classSet) {
+        classes.retainAll(classSet);
     }
 
     public void addOverrideMethod(PsiMethod method) {

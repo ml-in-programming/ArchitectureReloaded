@@ -145,6 +145,12 @@ public class PropertiesFinder {
                     }
                 }
             }
+
+            for (String name : properties.keySet()) {
+                properties.get(name).retainClasses(classByName.values());
+                properties.get(name).retainMethods(methodByName.values());
+            }
+
         }
     }
 
