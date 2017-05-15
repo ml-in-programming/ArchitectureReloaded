@@ -41,10 +41,14 @@ public abstract class Entity {
         }
 
         int rpIntersect = entity.relevantProperties.sizeOfIntersect(relevantProperties);
+        if (rpIntersect == 0) {
+            return Double.MAX_VALUE;
+        }
         ans -= (rpIntersect) / (1.0 * relevantProperties.size() + entity.relevantProperties.size() -
                 rpIntersect);
 
-        return ans;
+        ans /= (Dimension + 1);
+        return Math.sqrt(ans);
     }
 
     public static void normalize(ArrayList<Entity> entities) {
