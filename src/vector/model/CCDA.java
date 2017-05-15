@@ -245,5 +245,5 @@ public class CCDA {
     private Double q;
     private Integer edges;
 
-    private static Double eps = 1e-7;
+    private static Double eps = 1e-3;
 }
