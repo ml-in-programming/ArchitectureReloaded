@@ -134,17 +134,17 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
                     entities.add(fieldEnt);
                 }
 
-                for (Entity ent : entities) {
+                /*for (Entity ent : entities) {
                     ent.print();
                     System.out.println();
-                }
+                }*/
                 System.out.println("!!!\n");
 
                 Entity.normalize(entities);
-                for (Entity ent : entities) {
+                /*for (Entity ent : entities) {
                     ent.print();
                     System.out.println();
-                }
+                }*/
 
                 System.out.println("!!!\n");
 
@@ -157,8 +157,12 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
 
                 ARI alg2 = new ARI(entities);
                 System.out.println("Starting ARI...");
+                //alg2.printTableDistances();
                 refactorings = alg2.run();
                 System.out.println("Finished ARI");
+                for (String method : refactorings.keySet()) {
+                    System.out.println(method + "--> " + refactorings.get(method));
+                }
             }
         }.execute(profile, metricsRun);
     }
