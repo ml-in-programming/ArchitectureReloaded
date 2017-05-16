@@ -37,6 +37,18 @@ public class RelevantProperties {
         overrideMethods = new HashSet<PsiMethod>();
     };
 
+    public void removeMethod(PsiMethod method) {
+        methods.remove(method);
+    }
+
+    public void removeField(PsiField field) {
+        fields.remove(field);
+    }
+
+    public void removeClass(PsiClass aClass) {
+        classes.remove(aClass);
+    }
+
     public void addMethod(PsiMethod method) {
         methods.add(method);
     }
@@ -71,6 +83,10 @@ public class RelevantProperties {
 
     public Set<PsiMethod> getAllMethods() {
         return new HashSet<PsiMethod>(methods);
+    }
+
+    public Set<PsiClass> getAllClasses() {
+        return new HashSet<PsiClass>(classes);
     }
 
     public int size() {

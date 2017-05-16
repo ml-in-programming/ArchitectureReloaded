@@ -117,7 +117,10 @@ public class ARI {
                     }
 
                     if (!isOverride) {
-                        refactorings.put(entity.getName(), entities.get(idClass).getClassName());
+                        Entity newClass = entities.get(idClass);
+                        refactorings.put(entity.getName(), newClass.getClassName());
+                        entity.moveToClass((PsiClass) newClass.getPsiElement());
+                        newClass.removeFromClass((PsiMethod) entity.getPsiElement());
                     }
                 }
             }

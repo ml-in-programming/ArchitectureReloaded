@@ -16,7 +16,10 @@
 
 package vector.model;
 
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.metricModel.MetricsResult;
@@ -68,6 +71,23 @@ public abstract class Entity {
                 entities.get(j).vector[i] /= mx;
             }
         }
+    }
+
+    public void moveToClass(PsiClass newClass) {
+        Set<PsiClass> oldClasses = relevantProperties.getAllClasses();
+        for (PsiClass oldClass : oldClasses) {
+            relevantProperties.removeClass(oldClass);
+        }
+        relevantProperties.addClass(newClass);
+    }
+
+    public void removeFromClass(PsiMethod method) {
+        relevantProperties.removeMethod(method);
+    }
+
+
+    public void removeFromClass(PsiField field) {
+        relevantProperties.removeField(field);
     }
 
     public static final int Dimension = 4;
