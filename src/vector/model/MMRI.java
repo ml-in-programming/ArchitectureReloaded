@@ -42,9 +42,9 @@ import de.lmu.ifi.dbs.elki.math.random.RandomFactory;
 /**
  * Created by Kivi on 09.05.2017.
  */
-public class ARI {
+public class MMRI {
 
-    public ARI(List<Entity> entityList, Set<PsiClass> existingClasses) {
+    public MMRI(List<Entity> entityList, Set<PsiClass> existingClasses) {
         entities = entityList;
         allClasses = existingClasses;
     }
