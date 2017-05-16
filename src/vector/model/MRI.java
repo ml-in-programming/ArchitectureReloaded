@@ -42,9 +42,9 @@ import de.lmu.ifi.dbs.elki.math.random.RandomFactory;
 /**
  * Created by Kivi on 09.05.2017.
  */
-public class MMRI {
+public class MRI {
 
-    public MMRI(List<Entity> entityList, Set<PsiClass> existingClasses) {
+    public MRI(List<Entity> entityList, Set<PsiClass> existingClasses) {
         entities = entityList;
         allClasses = existingClasses;
     }
@@ -52,7 +52,7 @@ public class MMRI {
     public Map<String, String> run() {
         Map<String, String> refactorings = new HashMap<String, String>();
         for (Entity entity : entities) {
-            if (entity.getCategory().equals(MetricCategory.Method)) {
+            if (entity.getCategory() != MetricCategory.Class) {
                 String className = entity.getClassName();
                 double minDist = Double.MAX_VALUE;
                 int idClass = -1;
@@ -74,53 +74,57 @@ public class MMRI {
                         continue;
                     }
 
-                    PsiMethod method = (PsiMethod) entity.getPsiElement();
-                    PsiClass moveFromClass = method.getContainingClass();
-                    PsiClass moveToClass = (PsiClass) entities.get(idClass).getPsiElement();
+                    if (entity.getCategory() == MetricCategory.Method) {
+                        PsiMethod method = (PsiMethod) entity.getPsiElement();
+                        PsiClass moveFromClass = method.getContainingClass();
+                        PsiClass moveToClass = (PsiClass) entities.get(idClass).getPsiElement();
 
-                    Set<PsiClass> supersTo = PSIUtil.getAllSupers(moveToClass, allClasses);//new HashSet<PsiClass>(Arrays.asList(moveToClass.getSupers()));
-                    boolean isSuper = false;
+                        Set<PsiClass> supersTo = PSIUtil.getAllSupers(moveToClass, allClasses);//new HashSet<PsiClass>(Arrays.asList(moveToClass.getSupers()));
+                        boolean isSuper = false;
 
-                    for (PsiClass sup : supersTo) {
-                        if (sup.equals(moveFromClass)) {
-                            isSuper = true;
-                            break;
-                        }
-                    }
-
-                    Set<PsiClass> supersFrom = PSIUtil.getAllSupers(moveFromClass, allClasses);//new HashSet<PsiClass>(Arrays.asList(moveFromClass.getSupers()));
-                    for (PsiClass sup : supersFrom) {
-                        if (sup.equals(moveToClass)) {
-                            isSuper = true;
-                            break;
-                        }
-                    }
-                    supersFrom.retainAll(supersTo);
-                    boolean isOverride = false;
-
-                    if (isSuper) {
-                        continue;
-                    }
-
-                    for (PsiClass sup : supersFrom) {
-                        PsiMethod[] methods = sup.getMethods();
-                        for (PsiMethod m : methods) {
-                            if (m.equals(method)) {
-                                isOverride = true;
+                        for (PsiClass sup : supersTo) {
+                            if (sup.equals(moveFromClass)) {
+                                isSuper = true;
                                 break;
                             }
                         }
 
-                        if (isOverride) {
-                            break;
+                        Set<PsiClass> supersFrom = PSIUtil.getAllSupers(moveFromClass, allClasses);//new HashSet<PsiClass>(Arrays.asList(moveFromClass.getSupers()));
+                        for (PsiClass sup : supersFrom) {
+                            if (sup.equals(moveToClass)) {
+                                isSuper = true;
+                                break;
+                            }
                         }
-                    }
+                        supersFrom.retainAll(supersTo);
+                        boolean isOverride = false;
 
-                    if (!isOverride) {
-                        Entity newClass = entities.get(idClass);
-                        refactorings.put(entity.getName(), newClass.getClassName());
-                        entity.moveToClass((PsiClass) newClass.getPsiElement());
-                        newClass.removeFromClass((PsiMethod) entity.getPsiElement());
+                        if (isSuper) {
+                            continue;
+                        }
+
+                        for (PsiClass sup : supersFrom) {
+                            PsiMethod[] methods = sup.getMethods();
+                            for (PsiMethod m : methods) {
+                                if (m.equals(method)) {
+                                    isOverride = true;
+                                    break;
+                                }
+                            }
+
+                            if (isOverride) {
+                                break;
+                            }
+                        }
+
+                        if (!isOverride) {
+                            Entity newClass = entities.get(idClass);
+                            refactorings.put(entity.getName(), newClass.getClassName());
+                            entity.moveToClass((PsiClass) newClass.getPsiElement());
+                            newClass.removeFromClass((PsiMethod) entity.getPsiElement());
+                        }
+                    } else {
+                        refactorings.put(entity.getName(), entities.get(idClass).getName());
                     }
                 }
             }

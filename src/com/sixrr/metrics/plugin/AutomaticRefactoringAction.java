@@ -134,7 +134,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
                 System.out.println("Properties: " + fields.size());
                 for (String field : fields) {
                     Entity fieldEnt = new FieldEntity(field, metricsRun, properties);
-                    //entities.add(fieldEnt);
+                    entities.add(fieldEnt);
                 }
 
                 /*for (Entity ent : entities) {
@@ -152,16 +152,35 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
                 System.out.println("!!!\n");
 
                 CCDA alg = new CCDA(entities);
+                System.out.println("Starting CCDA...");
                 System.out.println(alg.calculateQualityIndex());
                 Map<String, String> refactorings = alg.run();
+                System.out.println("Finished CCDA\n");
                 for (String ent : refactorings.keySet()) {
                     System.out.println(ent + " --> " + refactorings.get(ent));
                 }
 
-                ARI alg2 = new ARI(entities, properties.getAllClasses());
-                System.out.println("Starting ARI...");
+                MRI alg2 = new MRI(entities, properties.getAllClasses());
+                System.out.println("\nStarting MMRI...");
                 //alg2.printTableDistances();
                 refactorings = alg2.run();
+                System.out.println("Finished MMRI");
+                for (String method : refactorings.keySet()) {
+                    System.out.println(method + " --> " + refactorings.get(method));
+                }
+
+
+                HAC alg3 = new HAC(entities);
+                System.out.println("\nStarting HAC...");
+                refactorings = alg3.run();
+                System.out.println("Finished HAC");
+                for (String method : refactorings.keySet()) {
+                    System.out.println(method + " --> " + refactorings.get(method));
+                }
+
+                ARI alg4 = new ARI(entities);
+                System.out.println("\nStarting ARI...");
+                refactorings = alg4.run();
                 System.out.println("Finished ARI");
                 for (String method : refactorings.keySet()) {
                     System.out.println(method + " --> " + refactorings.get(method));
