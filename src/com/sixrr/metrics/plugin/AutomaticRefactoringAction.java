@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.JavaElementVisitor;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementVisitor;
 import com.sixrr.metrics.config.MetricsReloadedConfig;
 import com.sixrr.metrics.metricModel.*;
@@ -82,7 +83,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
         final MetricsRunImpl metricsRun = new MetricsRunImpl();
 
         final PropertiesFinder properties = new PropertiesFinder();
-        final PsiElementVisitor visitor = properties.createVisitor();
+        final PsiElementVisitor visitor = properties.createVisitor(analysisScope);
         ProgressManager.getInstance().runProcess(new Runnable() {
             @Override
             public void run() {
@@ -123,15 +124,17 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
                     if (obj.substring(0, obj.indexOf('.')).equals("null")) {
                         continue;
                     }
-                    Entity methodEnt = new MethodEntity(obj, metricsRun, properties);
-                    entities.add(methodEnt);
+                    if (properties.hasElement(obj)) {
+                        Entity methodEnt = new MethodEntity(obj, metricsRun, properties);
+                        entities.add(methodEnt);
+                    }
                 }
 
                 Set<String> fields = properties.getAllFields();
                 System.out.println("Properties: " + fields.size());
                 for (String field : fields) {
                     Entity fieldEnt = new FieldEntity(field, metricsRun, properties);
-                    entities.add(fieldEnt);
+                    //entities.add(fieldEnt);
                 }
 
                 /*for (Entity ent : entities) {
@@ -155,13 +158,13 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
                     System.out.println(ent + " --> " + refactorings.get(ent));
                 }
 
-                ARI alg2 = new ARI(entities);
+                ARI alg2 = new ARI(entities, properties.getAllClasses());
                 System.out.println("Starting ARI...");
                 //alg2.printTableDistances();
                 refactorings = alg2.run();
                 System.out.println("Finished ARI");
                 for (String method : refactorings.keySet()) {
-                    System.out.println(method + "--> " + refactorings.get(method));
+                    System.out.println(method + " --> " + refactorings.get(method));
                 }
             }
         }.execute(profile, metricsRun);
