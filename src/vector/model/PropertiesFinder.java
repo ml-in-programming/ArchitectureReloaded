@@ -35,6 +35,7 @@ package vector.model;
  *  limitations under the License.
  */
 
+import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.*;
@@ -48,7 +49,17 @@ import java.util.*;
  */
 public class PropertiesFinder {
 
-    public PsiElementVisitor createVisitor() {return new FileVisitor();}
+    public PsiElementVisitor createVisitor(final AnalysisScope analysisScope) {
+        final PsiElementVisitor visitor = new FileClassesCounter();
+        ProgressManager.getInstance().runProcess(new Runnable() {
+            @Override
+            public void run() {
+                analysisScope.accept(visitor);;
+            }
+        }, new EmptyProgressIndicator());
+
+        return new FileVisitor();
+    }
 
     public boolean hasElement(String name) {
         return properties.containsKey(name);
@@ -113,11 +124,53 @@ public class PropertiesFinder {
         return null;
     }
 
+
+    private class ClassCounter extends JavaRecursiveElementVisitor {
+        @Override
+        public void visitClass(PsiClass aClass) {
+            if (aClass instanceof AnonymousClassElement) {
+                return;
+            }
+
+            if (aClass.getQualifiedName() == null) {
+                return;
+            }
+            allClasses.add(aClass);
+            super.visitClass(aClass);
+        }
+    }
+
+
+    private class FileClassesCounter extends JavaElementVisitor {
+
+        @Override
+        public void visitFile(final PsiFile file) {
+            System.out.println("!#! " + file.getName());
+
+            final PsiElementVisitor counter = new ClassCounter();
+            ProgressManager.getInstance().runProcess(new Runnable() {
+                @Override
+                public void run() {
+                    file.accept(counter);
+                }
+            }, new EmptyProgressIndicator());
+
+        }
+    }
+
     private class FileVisitor extends JavaElementVisitor {
 
         @Override
         public void visitFile(final PsiFile file) {
             System.out.println("!#! " + file.getName());
+
+            final PsiElementVisitor counter = new ClassCounter();
+            ProgressManager.getInstance().runProcess(new Runnable() {
+                @Override
+                public void run() {
+                    file.accept(counter);
+                }
+            }, new EmptyProgressIndicator());
 
             final PsiElementVisitor visitor = new EntityVisitor();
             ProgressManager.getInstance().runProcess(new Runnable() {
@@ -185,7 +238,10 @@ public class PropertiesFinder {
                 return;
             }
 
-            allClasses.add(aClass);
+            if (aClass.getQualifiedName() == null) {
+                return;
+            }
+            //allClasses.add(aClass);
 
             RelevantProperties rp = new RelevantProperties();
             String fullName = aClass.getQualifiedName();
@@ -288,9 +344,12 @@ public class PropertiesFinder {
             super.visitMethod(method);
             methodStack.pop();
 
-            PsiMethod[] methods = method.findSuperMethods();
+            Set<PsiMethod> methods = PSIUtil.getAllSupers(method, allClasses);
             superMethods.put(methodName, new HashSet<PsiMethod>());
             for (PsiMethod met : methods) {
+                if (methodName.equals("org.jhotdraw.draw.AttributedFigure.clone()")) {
+                    System.out.println("HERE: " + MethodUtils.calculateSignature(met));
+                }
                 superMethods.get(methodName).add(met);
                 //System.out.println("        " + met.getContainingClass().getQualifiedName() + "." + met.getName());
             }
