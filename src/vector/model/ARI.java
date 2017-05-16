@@ -16,6 +16,8 @@
 
 package vector.model;
 
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 
 import java.util.*;
@@ -27,11 +29,13 @@ public class ARI {
     public ARI(List<Entity> entityList) {
         methodsAndFields = new ArrayList<Entity>();
         classes = new ArrayList<ClassEntity>();
+        allClasses = new HashSet<PsiClass>();
         for (Entity entity : entityList) {
             String name = entity.getName();
             entityByName.put(name, entity);
             if (entity.getCategory() == MetricCategory.Class) {
                 classes.add((ClassEntity) entity);
+                allClasses.add((PsiClass) entity.getPsiElement());
             } else {
                 methodsAndFields.add(entity);
             }
@@ -46,11 +50,55 @@ public class ARI {
             int classId = -1;
             for (int i = 0; i < classes.size(); i++) {
                 ClassEntity cl = classes.get(i);
-                double d = method.dist(cl);
-                if (method.getName().equals("class_B.methodB1()")) {
-                    System.out.println(cl.getName() + " " + d);
+                if (method.getCategory() == MetricCategory.Method) {
+                    PsiClass moveFromClass = ((PsiMethod) method.getPsiElement()).getContainingClass();
+                    PsiClass moveToClass = (PsiClass) cl.getPsiElement();
 
+                    Set<PsiClass> supersTo = PSIUtil.getAllSupers(moveToClass, allClasses);//new HashSet<PsiClass>(Arrays.asList(moveToClass.getSupers()));
+                    boolean isSuper = false;
+
+                    for (PsiClass sup : supersTo) {
+                        if (sup.equals(moveFromClass)) {
+                            isSuper = true;
+                            break;
+                        }
+                    }
+
+                    Set<PsiClass> supersFrom = PSIUtil.getAllSupers(moveFromClass, allClasses);//new HashSet<PsiClass>(Arrays.asList(moveFromClass.getSupers()));
+                    for (PsiClass sup : supersFrom) {
+                        if (sup.equals(moveToClass)) {
+                            isSuper = true;
+                            break;
+                        }
+                    }
+                    supersFrom.retainAll(supersTo);
+                    boolean isOverride = false;
+
+                    if (isSuper) {
+                        continue;
+                    }
+
+                    for (PsiClass sup : supersFrom) {
+                        PsiMethod[] methods = sup.getMethods();
+                        for (PsiMethod m : methods) {
+                            if (m.equals(method)) {
+                                isOverride = true;
+                                break;
+                            }
+                        }
+
+                        if (isOverride) {
+                            break;
+                        }
+                    }
+
+                    if (isOverride) {
+                        continue;
+                    }
                 }
+
+                double d = method.dist(cl);
+
                 if (d < minD) {
                     minD = d;
                     classId = i;
@@ -99,5 +147,6 @@ public class ARI {
 
     private List<Entity> methodsAndFields;
     private List<ClassEntity> classes;
+    private Set<PsiClass> allClasses;
     private HashMap<String, Entity> entityByName = new HashMap<String, Entity>();
 }
