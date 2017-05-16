@@ -81,11 +81,6 @@ public class ARI {
                     Set<PsiClass> supersTo = PSIUtil.getAllSupers(moveToClass, allClasses);//new HashSet<PsiClass>(Arrays.asList(moveToClass.getSupers()));
                     boolean isSuper = false;
 
-                    if (moveFromClass.getQualifiedName().equals("org.jhotdraw.draw.LineConnectionFigure")
-                            && moveToClass.getQualifiedName().equals("org.jhotdraw.draw.LineFigure")) {
-                        System.out.println("HERE!");
-                    }
-
                     for (PsiClass sup : supersTo) {
                         if (sup.equals(moveFromClass)) {
                             isSuper = true;
@@ -95,10 +90,6 @@ public class ARI {
 
                     Set<PsiClass> supersFrom = PSIUtil.getAllSupers(moveFromClass, allClasses);//new HashSet<PsiClass>(Arrays.asList(moveFromClass.getSupers()));
                     for (PsiClass sup : supersFrom) {
-                        if (moveFromClass.getQualifiedName().equals("org.jhotdraw.draw.LineConnectionFigure")
-                                && moveToClass.getQualifiedName().equals("org.jhotdraw.draw.LineFigure")) {
-                            System.out.println(sup.getQualifiedName());
-                        }
                         if (sup.equals(moveToClass)) {
                             isSuper = true;
                             break;
@@ -106,8 +97,6 @@ public class ARI {
                     }
                     supersFrom.retainAll(supersTo);
                     boolean isOverride = false;
-
-
 
                     if (isSuper) {
                         continue;
