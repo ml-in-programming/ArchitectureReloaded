@@ -16,10 +16,10 @@
 
 package vector.model;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import de.lmu.ifi.dbs.elki.algorithm.clustering.kmeans.KMeansLloyd;
 import de.lmu.ifi.dbs.elki.algorithm.clustering.kmeans.initialization.RandomlyGeneratedInitialMeans;
@@ -44,8 +44,9 @@ import de.lmu.ifi.dbs.elki.math.random.RandomFactory;
  */
 public class ARI {
 
-    public ARI(List<Entity> entityList) {
+    public ARI(List<Entity> entityList, Set<PsiClass> existingClasses) {
         entities = entityList;
+        allClasses = existingClasses;
     }
 
     public Map<String, String> run() {
@@ -69,7 +70,64 @@ public class ARI {
                 if (idClass == -1) {
                     System.out.println("WARNING: " + entity.getName() + " has no nearest class");
                 } else {
-                    if (!entities.get(idClass).getName().equals(entity.getClassName())) {
+                    if (entities.get(idClass).getName().equals(className)) {
+                        continue;
+                    }
+
+                    PsiMethod method = (PsiMethod) entity.getPsiElement();
+                    PsiClass moveFromClass = method.getContainingClass();
+                    PsiClass moveToClass = (PsiClass) entities.get(idClass).getPsiElement();
+
+                    Set<PsiClass> supersTo = PSIUtil.getAllSupers(moveToClass, allClasses);//new HashSet<PsiClass>(Arrays.asList(moveToClass.getSupers()));
+                    boolean isSuper = false;
+
+                    if (moveFromClass.getQualifiedName().equals("org.jhotdraw.draw.LineConnectionFigure")
+                            && moveToClass.getQualifiedName().equals("org.jhotdraw.draw.LineFigure")) {
+                        System.out.println("HERE!");
+                    }
+
+                    for (PsiClass sup : supersTo) {
+                        if (sup.equals(moveFromClass)) {
+                            isSuper = true;
+                            break;
+                        }
+                    }
+
+                    Set<PsiClass> supersFrom = PSIUtil.getAllSupers(moveFromClass, allClasses);//new HashSet<PsiClass>(Arrays.asList(moveFromClass.getSupers()));
+                    for (PsiClass sup : supersFrom) {
+                        if (moveFromClass.getQualifiedName().equals("org.jhotdraw.draw.LineConnectionFigure")
+                                && moveToClass.getQualifiedName().equals("org.jhotdraw.draw.LineFigure")) {
+                            System.out.println(sup.getQualifiedName());
+                        }
+                        if (sup.equals(moveToClass)) {
+                            isSuper = true;
+                            break;
+                        }
+                    }
+                    supersFrom.retainAll(supersTo);
+                    boolean isOverride = false;
+
+
+
+                    if (isSuper) {
+                        continue;
+                    }
+
+                    for (PsiClass sup : supersFrom) {
+                        PsiMethod[] methods = sup.getMethods();
+                        for (PsiMethod m : methods) {
+                            if (m.equals(method)) {
+                                isOverride = true;
+                                break;
+                            }
+                        }
+
+                        if (isOverride) {
+                            break;
+                        }
+                    }
+
+                    if (!isOverride) {
                         refactorings.put(entity.getName(), entities.get(idClass).getClassName());
                     }
                 }
@@ -163,4 +221,5 @@ public class ARI {
     */
 
     List<Entity> entities;
+    Set<PsiClass> allClasses;
 }

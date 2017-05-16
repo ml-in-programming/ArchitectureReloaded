@@ -50,6 +50,10 @@ public class PropertiesFinder {
 
     public PsiElementVisitor createVisitor() {return new FileVisitor();}
 
+    public boolean hasElement(String name) {
+        return properties.containsKey(name);
+    }
+
     public RelevantProperties getProperties(String name) {
 
         return properties.get(name);
@@ -88,6 +92,26 @@ public class PropertiesFinder {
     protected Map<String, PsiField> fieldByName = new HashMap<String, PsiField>();
 
     private Stack<PsiMethod> methodStack = new Stack<PsiMethod>();
+
+    private Set<PsiClass> allClasses = new HashSet<PsiClass>();
+
+    public Set<PsiClass> getAllClasses() {
+        return allClasses;
+    }
+
+    public PsiElement getPsiElement(String name) {
+        if (methodByName.containsKey(name)) {
+            return methodByName.get(name);
+        }
+        if (classByName.containsKey(name)) {
+            return classByName.get(name);
+        }
+        if (fieldByName.containsKey(name)) {
+            return fieldByName.get(name);
+        }
+
+        return null;
+    }
 
     private class FileVisitor extends JavaElementVisitor {
 
@@ -161,6 +185,8 @@ public class PropertiesFinder {
                 return;
             }
 
+            allClasses.add(aClass);
+
             RelevantProperties rp = new RelevantProperties();
             String fullName = aClass.getQualifiedName();
 
@@ -181,7 +207,7 @@ public class PropertiesFinder {
             }
             //System.out.println();
 
-            PsiClass[] supers = aClass.getSupers();
+            Set<PsiClass> supers = PSIUtil.getAllSupers(aClass);//aClass.getSupers();
             for (PsiClass sup : supers) {
                 if (sup.isInterface()) {
                     rp.addClass(sup);
@@ -245,6 +271,9 @@ public class PropertiesFinder {
         @Override
         public void visitMethod(PsiMethod method) {
             if (method.getContainingClass() == null) {
+                return;
+            }
+            if (method.getContainingClass().isInterface()) {
                 return;
             }
             String methodName = MethodUtils.calculateSignature(method);

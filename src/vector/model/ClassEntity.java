@@ -16,6 +16,7 @@
 
 package vector.model;
 
+import com.intellij.psi.PsiClass;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsResult;
@@ -24,6 +25,7 @@ import com.sixrr.metrics.metricModel.MetricsRunImpl;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Kivi on 04.04.2017.
@@ -67,5 +69,9 @@ public class ClassEntity extends Entity {
         properties.add(getName());
 
         return properties;
+    }
+
+    public Set<PsiClass> getAllSupers(Set<PsiClass> existing) {
+        return PSIUtil.getAllSupers((PsiClass) getPsiElement(), existing);
     }
 }
