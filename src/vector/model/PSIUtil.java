@@ -17,6 +17,7 @@
 package vector.model;
 
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMethod;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -33,6 +34,9 @@ public class PSIUtil {
 
         PsiClass[] supers = aClass.getSupers();
         for (PsiClass sup : supers) {
+            if (!existing.contains(sup)) {
+                continue;
+            }
             allSupers.add(sup);
             allSupers.addAll(getAllSupers(sup, existing));
         }
@@ -47,6 +51,36 @@ public class PSIUtil {
         for (PsiClass sup : supers) {
             allSupers.add(sup);
             allSupers.addAll(getAllSupers(sup));
+        }
+
+        return allSupers;
+    }
+
+    public static Set<PsiMethod> getAllSupers(PsiMethod method, Set<PsiClass> existing) {
+        if (!existing.contains(method.getContainingClass())) {
+            return new HashSet<PsiMethod>();
+        }
+        Set<PsiMethod> allSupers = new HashSet<PsiMethod>();
+
+        PsiMethod[] supers = method.findSuperMethods();
+        for (PsiMethod m : supers) {
+            if (!existing.contains(m.getContainingClass())) {
+                continue;
+            }
+            allSupers.add(m);
+            allSupers.addAll(getAllSupers(m, existing));
+        }
+
+        return allSupers;
+    }
+
+    public static Set<PsiMethod> getAllSupers(PsiMethod method) {
+        Set<PsiMethod> allSupers = new HashSet<PsiMethod>();
+
+        PsiMethod[] supers = method.findSuperMethods();
+        for (PsiMethod m : supers) {
+            allSupers.add(m);
+            allSupers.addAll(getAllSupers(m));
         }
 
         return allSupers;
