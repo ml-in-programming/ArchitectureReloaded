@@ -347,9 +347,6 @@ public class PropertiesFinder {
             Set<PsiMethod> methods = PSIUtil.getAllSupers(method, allClasses);
             superMethods.put(methodName, new HashSet<PsiMethod>());
             for (PsiMethod met : methods) {
-                if (methodName.equals("org.jhotdraw.draw.AttributedFigure.clone()")) {
-                    System.out.println("HERE: " + MethodUtils.calculateSignature(met));
-                }
                 superMethods.get(methodName).add(met);
                 //System.out.println("        " + met.getContainingClass().getQualifiedName() + "." + met.getName());
             }
