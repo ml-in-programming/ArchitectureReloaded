@@ -76,28 +76,64 @@ public class HAC {
             System.out.println("Merge " + id1 + " and " + id2 +  " to " + communityIds.get(entityByName.get(id1)));
         }
 
-        for (Entity ent : communityIds.keySet()) {
+        /*for (Entity ent : communityIds.keySet()) {
             if (!ent.getClassName().equals(communityIds.get(ent))) {
                 refactorings.put(ent.getName(), communityIds.get(ent));
 
+            }
+        }*/
+        for (String center : communities.keySet()) {
+            String newName = receiveClassName(center);
+            for (Entity entity : communities.get(center)) {
+                if (!entity.getClassName().equals(newName)) {
+                    refactorings.put(entity.getName(), newName);
+                }
             }
         }
 
         return refactorings;
     }
 
+    private String receiveClassName(String center) {
+        String name = "";
+        Integer maxClassCount = 0;
+        Map<String, Integer> classCounts = new HashMap<String, Integer>();
+        for (Entity entity : communities.get(center)) {
+            String className = entity.getClassName();
+            if (!classCounts.containsKey(className)) {
+                classCounts.put(className, 0);
+            }
+
+            Integer count = classCounts.get(className);
+            count++;
+            classCounts.put(className, count);
+        }
+
+        for (String className : classCounts.keySet()) {
+            if (maxClassCount < classCounts.get(className)) {
+                maxClassCount = classCounts.get(className);
+                name = className;
+            }
+        }
+
+        if (name.equals("")) {
+            newClassCount++;
+            name = "NewClass" + newClassCount;
+        }
+
+        return name;
+    }
+
     private double distCommunities(String id1, String id2) {
         final Set<Entity> s1 = buildSample(id1);
         final Set<Entity> s2 = buildSample(id2);
 
-        double d = 0.0;
+        double d = 0;
         for (Entity e1 : s1) {
             for (Entity e2 : s2) {
-                d += e1.dist(e2);
+                d = Math.max(d, e1.dist(e2));
             }
         }
-
-        d /= s1.size() * s2.size();
 
         return d;
     }
@@ -153,4 +189,5 @@ public class HAC {
     private List<Entity> entities;
     private HashMap<String, Entity> entityByName = new HashMap<String, Entity>();
     private static int SampleSize = 5;
+    private int newClassCount = 0;
 }
