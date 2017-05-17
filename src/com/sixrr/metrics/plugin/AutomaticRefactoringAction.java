@@ -117,6 +117,9 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
                     if (obj.equals("null")) {
                         continue;
                     }
+                    if (!properties.getAllClassesNames().contains(obj)) {
+                        continue;
+                    }
                     Entity classEnt = new ClassEntity(obj, metricsRun, properties);
                     entities.add(classEnt);
                 }
@@ -163,11 +166,45 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
                 MRI alg2 = new MRI(entities, properties.getAllClasses());
                 System.out.println("\nStarting MMRI...");
                 //alg2.printTableDistances();
-                refactorings = alg2.run();
+                Map<String, String> refactorings2 = alg2.run();
                 System.out.println("Finished MMRI");
-                for (String method : refactorings.keySet()) {
-                    System.out.println(method + " --> " + refactorings.get(method));
+                for (String method : refactorings2.keySet()) {
+                    System.out.println(method + " --> " + refactorings2.get(method));
                 }
+
+                Set<String> common = new HashSet<String>(refactorings.keySet());
+                common.retainAll(refactorings2.keySet());
+                System.out.println("Common for ARI and CCDA: ");
+                for (String move : common) {
+                    System.out.print(move + " to ");
+                    System.out.print(refactorings.get(move));
+                    if (!refactorings2.get(move).equals(refactorings.get(move))) {
+                        System.out.print(" vs " + refactorings2.get(move));
+                    }
+                    System.out.println();
+                }
+                System.out.println();
+
+                AKMeans alg5 = new AKMeans(entities, 50);
+                System.out.println("\nStarting AKMeans...");
+                Map<String, String> refactorings5 = alg5.run();
+                System.out.println("Finished AKMeans");
+                for (String method : refactorings5.keySet()) {
+                    System.out.println(method + " --> " + refactorings5.get(method));
+                }
+
+                Set<String> refactoringsARIEC = new HashSet<String>(refactorings5.keySet());
+                refactoringsARIEC.retainAll(refactorings2.keySet());
+                System.out.println("Common for ARI and EC: ");
+                for (String move : refactoringsARIEC) {
+                    System.out.print(move + " to ");
+                    System.out.print(refactorings5.get(move));
+                    if (!refactorings2.get(move).equals(refactorings5.get(move))) {
+                        System.out.print(" vs " + refactorings2.get(move));
+                    }
+                    System.out.println();
+                }
+                System.out.println();
 
 
                 HAC alg3 = new HAC(entities);
@@ -185,6 +222,9 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
                 for (String method : refactorings.keySet()) {
                     System.out.println(method + " --> " + refactorings.get(method));
                 }
+
+
+
             }
         }.execute(profile, metricsRun);
     }
