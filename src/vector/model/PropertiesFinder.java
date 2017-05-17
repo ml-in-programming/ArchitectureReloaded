@@ -110,6 +110,15 @@ public class PropertiesFinder {
         return allClasses;
     }
 
+    public Set<String> getAllClassesNames() {
+        Set<String> classesNames = new HashSet<String>();
+        for (PsiClass c : allClasses) {
+            classesNames.add(c.getQualifiedName());
+        }
+
+        return classesNames;
+    }
+
     public PsiElement getPsiElement(String name) {
         if (methodByName.containsKey(name)) {
             return methodByName.get(name);
@@ -128,6 +137,9 @@ public class PropertiesFinder {
     private class ClassCounter extends JavaRecursiveElementVisitor {
         @Override
         public void visitClass(PsiClass aClass) {
+            if (aClass.isEnum()) {
+                return;
+            }
             if (aClass instanceof AnonymousClassElement) {
                 return;
             }
@@ -234,6 +246,9 @@ public class PropertiesFinder {
     private class EntityVisitor extends JavaRecursiveElementVisitor {
         @Override
         public void visitClass(PsiClass aClass) {
+            if (aClass.isEnum()) {
+                return;
+            }
             if (aClass instanceof AnonymousClassElement) {
                 return;
             }
