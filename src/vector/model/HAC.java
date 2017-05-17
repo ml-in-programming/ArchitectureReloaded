@@ -27,8 +27,8 @@ public class HAC {
     public HAC(List<Entity> entityList) {
         entities = entityList;
         for (Entity entity : entities) {
-            String name = entity.getName();
-            HashSet<Entity> simpleCommunity = new HashSet<Entity>();
+            final String name = entity.getName();
+            final HashSet<Entity> simpleCommunity = new HashSet<Entity>();
             simpleCommunity.add(entity);
             communities.put(name, simpleCommunity);
             communityIds.put(entity, name);
@@ -37,31 +37,24 @@ public class HAC {
     }
 
     public Map<String, String> run() {
-        Map<String, String> refactorings = new HashMap<String, String>();
+        final Map<String, String> refactorings = new HashMap<String, String>();
 
         double minD = 0.0;
         while (minD < 1.0) {
             minD = Double.MAX_VALUE;
             String id1 = "";
             String id2 = "";
-            for (Entity ent1 : communityIds.keySet()) {
-                final String i = communityIds.get(ent1);
-                for (Entity ent2 : communityIds.keySet()) {
-                    if (ent1.getCategory() == MetricCategory.Class && ent2.getCategory() == MetricCategory.Class) {
+            for (String i : communities.keySet()) {
+                for (String j : communities.keySet()) {
+                    if (i.compareTo(j) >= 0) {
                         continue;
                     }
-                    final String j = communityIds.get(ent2);
-                    if (i.equals(j)) {
+                    if (entityByName.get(i).getCategory() == MetricCategory.Class && entityByName.get(j).getCategory() == MetricCategory.Class) {
                         continue;
                     }
 
-                    final double d = ent1.dist(ent2);
+                    final double d = distCommunities(i, j);
                     if (d < minD) {
-                        if (entityByName.get(i).getCategory() == MetricCategory.Class
-                                && entityByName.get(j).getCategory() == MetricCategory.Class) {
-                            continue;
-                        }
-
                         minD = d;
                         id1 = i;
                         id2 = j;
@@ -93,9 +86,41 @@ public class HAC {
         return refactorings;
     }
 
+    private double distCommunities(String id1, String id2) {
+        final Set<Entity> s1 = buildSample(id1);
+        final Set<Entity> s2 = buildSample(id2);
+
+        double d = 0.0;
+        for (Entity e1 : s1) {
+            for (Entity e2 : s2) {
+                d += e1.dist(e2);
+            }
+        }
+
+        d /= s1.size() * s2.size();
+
+        return d;
+    }
+
+    private Set<Entity> buildSample(String id) {
+        final Set<Entity> sample = new HashSet<Entity>();
+        if (entityByName.get(id).getCategory() == MetricCategory.Class) {
+            sample.add(entityByName.get(id));
+        } else {
+            final List<Entity> s = new ArrayList<Entity>(communities.get(id));
+            final int len = Math.min(SampleSize, s.size());
+            Collections.shuffle(s);
+            for (int i = 0; i < len; ++i) {
+                sample.add(s.get(i));
+            }
+        }
+
+        return sample;
+    }
+
     private void mergeCommunities(String id1, String id2) {
         String newName = id1;
-        Set<Entity> merge = new HashSet<Entity>(communities.get(id1));
+        final Set<Entity> merge = new HashSet<Entity>(communities.get(id1));
         merge.addAll(communities.get(id2));
         int maxInClass = 0;
         for (Entity ent : merge) {
@@ -127,4 +152,5 @@ public class HAC {
 
     private List<Entity> entities;
     private HashMap<String, Entity> entityByName = new HashMap<String, Entity>();
+    private static int SampleSize = 5;
 }
