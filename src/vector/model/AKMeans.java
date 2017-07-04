@@ -22,11 +22,8 @@ import com.sixrr.metrics.MetricCategory;
 
 import java.util.*;
 
-/**
- * Created by Kivi on 17.05.2017.
- */
 public class AKMeans {
-    public AKMeans(List<Entity> entityList, int steps) {
+    public AKMeans(Iterable<Entity> entityList, int steps) {
         this.steps = steps;
         for (Entity e : entityList) {
             if (e.getCategory() != MetricCategory.Class) {
@@ -34,38 +31,37 @@ public class AKMeans {
                 communityIds.put(e, "");
                 entityByName.put(e.getName(), e);
             } else {
-                N++;
+                numberOfClasses++;
                 allClasses.add((PsiClass) e.getPsiElement());
             }
         }
     }
 
     private void initializeCenters() {
-        List<Entity> entities = new ArrayList<Entity>(points);
+        final List<Entity> entities = new ArrayList<>(points);
         Collections.shuffle(entities);
 
-        for (int i = 0; i < N; ++i) {
-            Entity center = entities.get(i);
-            Set<Entity> simpleCommunity = new HashSet<Entity>();
-            simpleCommunity.add(center);
-            communities.put(center.getName(), simpleCommunity);
+        for (int i = 0; i < numberOfClasses; ++i) {
+            final Entity center = entities.get(i);
+            communities.put(center.getName(), new HashSet<>(Collections.singletonList(center)));
         }
     }
 
     public Map<String, String> run() {
-        Map<String, String> refactorings = new HashMap<String, String>();
-
+        final Map<String, String> refactorings = new HashMap<>();
         initializeCenters();
+
         for (int step = 0; step < steps; ++step) {
-            boolean moving = false;
-            Map<Entity, String> newCommunities = new HashMap<Entity, String>();
+            boolean isMoved = false;
+            final Map<Entity, String> newCommunities = new HashMap<>();
             for (Entity entity : points) {
-                String newCenter = findNearestCommunity(entity);
-                if (newCenter.equals("")) {
+                final String newCenter = findNearestCommunity(entity);
+                if (newCenter.isEmpty()) {
                     continue;
                 }
+
                 if (!newCenter.equals(communityIds.get(entity))) {
-                    moving = true;
+                    isMoved = true;
                 }
 
                 newCommunities.put(entity, newCenter);
@@ -80,18 +76,17 @@ public class AKMeans {
             }
             System.out.println();
 
-            if (!moving) {
+            if (!isMoved) {
                 break;
             }
         }
 
         for (String center : communities.keySet()) {
-            String newName = receiveClassName(center);
-            for (Entity entity : communities.get(center)) {
-                if (!entity.getClassName().equals(newName)) {
-                    refactorings.put(entity.getName(), newName);
-                }
-            }
+            final String newName = receiveClassName(center);
+            communities.get(center).stream()
+                    .filter(e -> !e.getClassName().equals(newName))
+                    .forEach(e -> refactorings.put(e.getName(), newName));
+
         }
 
         return refactorings;
@@ -100,16 +95,14 @@ public class AKMeans {
     private String receiveClassName(String center) {
         String name = "";
         Integer maxClassCount = 0;
-        Map<String, Integer> classCounts = new HashMap<String, Integer>();
+        final Map<String, Integer> classCounts = new HashMap<>();
         for (Entity entity : communities.get(center)) {
-            String className = entity.getClassName();
+            final String className = entity.getClassName();
             if (!classCounts.containsKey(className)) {
                 classCounts.put(className, 0);
             }
 
-            Integer count = classCounts.get(className);
-            count++;
-            classCounts.put(className, count);
+            classCounts.put(className, classCounts.get(className) + 1);
         }
 
         for (String className : classCounts.keySet()) {
@@ -119,7 +112,7 @@ public class AKMeans {
             }
         }
 
-        if (name.equals("")) {
+        if (name.isEmpty()) {
             newClassCount++;
             name = "NewClass" + newClassCount;
         }
@@ -149,16 +142,16 @@ public class AKMeans {
             return true;
         }
 
-        PsiMethod method = (PsiMethod) entity.getPsiElement();
-        Set<Entity> cluster = communities.get(center);
+        final PsiMethod method = (PsiMethod) entity.getPsiElement();
+        final Set<Entity> cluster = communities.get(center);
         for (Entity e : cluster) {
             if (e.getCategory() != MetricCategory.Method) {
                 continue;
             }
 
-            PsiMethod component = (PsiMethod) e.getPsiElement();
+            final PsiMethod component = (PsiMethod) e.getPsiElement();
 
-            Set<PsiMethod> supers = PSIUtil.getAllSupers(component, allClasses);
+            final Set<PsiMethod> supers = PSIUtil.getAllSupers(component, allClasses);
             supers.retainAll(PSIUtil.getAllSupers(method));
             if (!supers.isEmpty()) {
                 return false;
@@ -171,7 +164,7 @@ public class AKMeans {
     private double distToCommunity(Entity entity, String center) {
         double minD = 0.0;
         for (Entity point : communities.get(center)) {
-            double d = entity.dist(point);
+            final double d = entity.dist(point);
             minD = Math.max(d, minD);
         }
 
@@ -183,13 +176,12 @@ public class AKMeans {
         communityIds.put(entity, id);
     }
 
-    private List<Entity> points = new ArrayList<Entity>();
-    //private Set<>
-    private Map<String, Set<Entity>> communities = new HashMap<String, Set<Entity>>();
-    private Map<Entity, String> communityIds = new HashMap<Entity, String>();
-    private Map<String, Entity> entityByName = new HashMap<String, Entity>();
-    private Set<PsiClass> allClasses = new HashSet<PsiClass>();
-    private int N = 0;
+    private List<Entity> points = new ArrayList<>();
+    private Map<String, Set<Entity>> communities = new HashMap<>();
+    private Map<Entity, String> communityIds = new HashMap<>();
+    private Map<String, Entity> entityByName = new HashMap<>();
+    private Set<PsiClass> allClasses = new HashSet<>();
+    private int numberOfClasses = 0;
     private int steps = 0;
     private int newClassCount = 0;
 }
