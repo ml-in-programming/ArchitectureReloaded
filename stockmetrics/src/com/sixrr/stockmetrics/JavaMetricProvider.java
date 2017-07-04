@@ -345,6 +345,9 @@ public class JavaMetricProvider implements MetricProvider {
     @NotNull
     @Override
     public List<PrebuiltMetricProfile> getPrebuiltProfiles() {
+        final List<PrebuiltMetricProfile> out = new ArrayList<PrebuiltMetricProfile>(12);
+        out.add(createRefactoringProfile());
+        /*out.add(createChidamberKemererProfile());
         final List<PrebuiltMetricProfile> out = new ArrayList<PrebuiltMetricProfile>(11);
         out.add(createChidamberKemererProfile());
         out.add(createClassCountProfile());
@@ -357,7 +360,20 @@ public class JavaMetricProvider implements MetricProvider {
         out.add(createMoodProfile());
         out.add(createTestProfile());
         out.add(createFanProfile());
+        */
         return out;
+    }
+
+    private static PrebuiltMetricProfile createRefactoringProfile() {
+        final PrebuiltMetricProfile profile =
+                new PrebuiltMetricProfile(StockMetricsBundle.message("refactoring.metrics.profile.name"));
+        profile.addMetric(DepthOfInheritanceMetric.class);
+        profile.addMetric(NumChildrenMetric.class);
+        profile.addMetric(FanInClassMetric.class);
+        profile.addMetric(FanOutClassMetric.class);
+        profile.addMetric(FanInMethodMetric.class);
+        profile.addMetric(FanOutMethodMetric.class);
+        return profile;
     }
 
     private static PrebuiltMetricProfile createFanProfile() {
