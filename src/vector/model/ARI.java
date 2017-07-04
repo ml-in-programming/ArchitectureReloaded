@@ -17,21 +17,19 @@
 package vector.model;
 
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 
 import java.util.*;
 
-/**
- * Created by Kivi on 16.05.2017.
- */
 public class ARI {
-    public ARI(List<Entity> entityList) {
-        methodsAndFields = new ArrayList<Entity>();
-        classes = new ArrayList<ClassEntity>();
-        allClasses = new HashSet<PsiClass>();
+    public ARI(Iterable<Entity> entityList) {
+        methodsAndFields = new ArrayList<>();
+        classes = new ArrayList<>();
+        allClasses = new HashSet<>();
         for (Entity entity : entityList) {
-            String name = entity.getName();
+            final String name = entity.getName();
             entityByName.put(name, entity);
             if (entity.getCategory() == MetricCategory.Class) {
                 classes.add((ClassEntity) entity);
@@ -43,18 +41,18 @@ public class ARI {
     }
 
     public Map<String, String> run() {
-        Map<String, String> refactorings = new HashMap<String, String>();
+        final Map<String, String> refactorings = new HashMap<>();
 
         for (Entity method : methodsAndFields) {
             double minD = Double.MAX_VALUE;
             int classId = -1;
             for (int i = 0; i < classes.size(); i++) {
-                ClassEntity cl = classes.get(i);
+                final ClassEntity classEntity = classes.get(i);
                 if (method.getCategory() == MetricCategory.Method) {
-                    PsiClass moveFromClass = ((PsiMethod) method.getPsiElement()).getContainingClass();
-                    PsiClass moveToClass = (PsiClass) cl.getPsiElement();
+                    final PsiClass moveFromClass = ((PsiMember) method.getPsiElement()).getContainingClass();
+                    final PsiClass moveToClass = (PsiClass) classEntity.getPsiElement();
 
-                    Set<PsiClass> supersTo = PSIUtil.getAllSupers(moveToClass, allClasses);//new HashSet<PsiClass>(Arrays.asList(moveToClass.getSupers()));
+                    final Set<PsiClass> supersTo = PSIUtil.getAllSupers(moveToClass, allClasses);//new HashSet<PsiClass>(Arrays.asList(moveToClass.getSupers()));
                     boolean isSuper = false;
 
                     for (PsiClass sup : supersTo) {
@@ -64,7 +62,7 @@ public class ARI {
                         }
                     }
 
-                    Set<PsiClass> supersFrom = PSIUtil.getAllSupers(moveFromClass, allClasses);//new HashSet<PsiClass>(Arrays.asList(moveFromClass.getSupers()));
+                    final Set<PsiClass> supersFrom = PSIUtil.getAllSupers(moveFromClass, allClasses);//new HashSet<PsiClass>(Arrays.asList(moveFromClass.getSupers()));
                     for (PsiClass sup : supersFrom) {
                         if (sup.equals(moveToClass)) {
                             isSuper = true;
@@ -79,7 +77,7 @@ public class ARI {
                     }
 
                     for (PsiClass sup : supersFrom) {
-                        PsiMethod[] methods = sup.getMethods();
+                        final PsiMethod[] methods = sup.getMethods();
                         for (PsiMethod m : methods) {
                             if (m.equals(method)) {
                                 isOverride = true;
@@ -97,10 +95,10 @@ public class ARI {
                     }
                 }
 
-                double d = method.dist(cl);
+                final double distance = method.dist(classEntity);
 
-                if (d < minD) {
-                    minD = d;
+                if (distance < minD) {
+                    minD = distance;
                     classId = i;
                 }
             }
@@ -109,14 +107,14 @@ public class ARI {
                 System.out.println("HOW??? " + method.getName());
             }
 
-            ClassEntity cl = classes.get(classId);
-            if (communityIds.containsKey(cl)) {
-                putMethodOrField(method, cl);
+            final ClassEntity classEntity = classes.get(classId);
+            if (communityIds.containsKey(classEntity)) {
+                putMethodOrField(method, classEntity);
             } else {
-                createCommunity(method, cl);
+                createCommunity(method, classEntity);
             }
 
-            System.out.println("Add " + method.getName() + " to " + cl.getName());
+            System.out.println("Add " + method.getName() + " to " + classEntity.getName());
         }
 
         for (Entity ent : methodsAndFields) {
@@ -131,7 +129,7 @@ public class ARI {
     private void createCommunity(Entity method, Entity cl) {
         communityIds.put(cl, cl.getName());
         communityIds.put(method, cl.getName());
-        Set<Entity> newCommunity = new HashSet<Entity>();
+        final Set<Entity> newCommunity = new HashSet<>();
         newCommunity.add(method);
         newCommunity.add(cl);
         communities.put(cl.getName(), newCommunity);
@@ -142,11 +140,11 @@ public class ARI {
         communities.get(cl.getName()).add(method);
     }
 
-    private HashMap<String, Set<Entity>> communities = new HashMap<String, Set<Entity>>();
-    private HashMap<Entity, String> communityIds = new HashMap<Entity, String>();
+    private final Map<String, Set<Entity>> communities = new HashMap<>();
+    private final Map<Entity, String> communityIds = new HashMap<>();
 
-    private List<Entity> methodsAndFields;
-    private List<ClassEntity> classes;
-    private Set<PsiClass> allClasses;
-    private HashMap<String, Entity> entityByName = new HashMap<String, Entity>();
+    private final List<Entity> methodsAndFields;
+    private final List<ClassEntity> classes;
+    private final Set<PsiClass> allClasses;
+    private final Map<String, Entity> entityByName = new HashMap<>();
 }

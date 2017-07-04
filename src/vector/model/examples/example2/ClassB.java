@@ -16,31 +16,28 @@
 
 package vector.model.examples.example2;
 
-/**
- * Created by Kivi on 05.05.2017.
- */
-class class_A
+class ClassB
 {
-    static void methodA1()
+    static void methodB1()
     {
-        attributeA1=0;
-        methodA2();
+        ClassA.attributeA1=0;
+        ClassA.attributeA2=0;
+        ClassA.methodA1();
     }
 
-    static void methodA2()
+    static void methodB2()
     {
-        attributeA2=0;
-        attributeA1=0;
+        attributeB1=0;
+        attributeB2=0;
     }
 
-    static void methodA3()
+    static void methodB3()
     {
-        attributeA1=0;
-        attributeA2=0;
-        methodA1();
-        methodA2();
+        attributeB1=0;
+        methodB1();
+        methodB2();
     }
 
-    static int attributeA1;
-    static int attributeA2;
+    static int attributeB1;
+    static int attributeB2;
 }

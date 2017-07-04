@@ -193,7 +193,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
                     System.out.println(method + " --> " + refactorings5.get(method));
                 }
 
-                Set<String> refactoringsARIEC = new HashSet<String>(refactorings5.keySet());
+                Set<String> refactoringsARIEC = new HashSet<>(refactorings5.keySet());
                 refactoringsARIEC.retainAll(refactorings2.keySet());
                 System.out.println("Common for ARI and EC: ");
                 for (String move : refactoringsARIEC) {
