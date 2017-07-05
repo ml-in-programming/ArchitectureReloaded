@@ -18,12 +18,17 @@ package vector.model;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMember;
-import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 
 import java.util.*;
 
 public class ARI {
+    private final Map<String, Set<Entity>> communities = new HashMap<>();
+    private final Map<Entity, String> communityIds = new HashMap<>();
+    private final List<Entity> methodsAndFields;
+    private final List<ClassEntity> classEntities;
+    private final Set<PsiClass> psiClasses;
+
     public ARI(Iterable<Entity> entityList) {
         methodsAndFields = new ArrayList<>();
         classEntities = new ArrayList<>();
@@ -105,11 +110,4 @@ public class ARI {
         communityIds.put(method, cl.getName());
         communities.get(cl.getName()).add(method);
     }
-
-    private final Map<String, Set<Entity>> communities = new HashMap<>();
-    private final Map<Entity, String> communityIds = new HashMap<>();
-
-    private final List<Entity> methodsAndFields;
-    private final List<ClassEntity> classEntities;
-    private final Set<PsiClass> psiClasses;
 }
