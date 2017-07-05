@@ -23,6 +23,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.ui.components.JBTabbedPane;
 import com.sixrr.metrics.ui.refactoringsdisplay.ClassRefactoringPanel;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
+import com.sixrr.metrics.utils.RefactoringUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,7 +73,8 @@ public class RefactoringDialog extends DialogWrapper {
     }
 
     public RefactoringDialog addSolution(String algorithmName, Map<PsiElement, PsiElement> refactorings) {
-        final ClassRefactoringPanel panel = new ClassRefactoringPanel(project, refactorings, scope);
+        final ClassRefactoringPanel panel = new ClassRefactoringPanel(project,
+                RefactoringUtil.filterRefactorings(refactorings), scope);
         panel.addOnRefactoringFinishedListener(p -> closeTab(algorithmName));
         pane.addTab(algorithmName, panel);
         return this;

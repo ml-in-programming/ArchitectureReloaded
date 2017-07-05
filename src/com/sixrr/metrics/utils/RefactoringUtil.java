@@ -17,6 +17,7 @@
 package com.sixrr.metrics.utils;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.move.MoveHandler;
@@ -40,7 +41,15 @@ public final class RefactoringUtil {
             final PsiElement movement = refactoring.getKey();
             final PsiElement[] methods = refactoring.getValue().stream()
                     .toArray(PsiElement[]::new);
-            MoveHandler.doMove(project, methods, movement, null, null);
+//            Arrays.stream(methods).forEach(e -> MakeStaticHandler.invoke((PsiTypeParameterListOwner) e));
+                MoveHandler.doMove(project, methods, movement, DataContext.EMPTY_CONTEXT, null);
         }
+    }
+
+    public static Map<PsiElement, PsiElement> filterRefactorings(Map<PsiElement, PsiElement> refactorings) {
+        return refactorings.entrySet().stream()
+                .filter(e -> !e.getValue().getContainingFile().equals(e.getKey().getContainingFile())) // todo
+                .filter(e -> MoveHandler.canMove(new PsiElement[]{e.getKey()}, e.getValue())) // todo
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }
 }
