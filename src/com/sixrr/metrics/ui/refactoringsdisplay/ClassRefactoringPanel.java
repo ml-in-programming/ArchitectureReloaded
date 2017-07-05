@@ -16,16 +16,18 @@
 
 package com.sixrr.metrics.ui.refactoringsdisplay;
 
+import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
+import com.sixrr.metrics.utils.RefactoringUtil;
 
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 
@@ -35,11 +37,13 @@ import java.util.Map;
 public class ClassRefactoringPanel extends JPanel {
 
     private final Project project; // necessary to do refactorings
+    private final AnalysisScope scope; // necessary to do refactorings
     private final RefactoringsTableModel model;
-    private final List<OnRefactoringFinishedListener> listeners = new ArrayList<>();
+    private final Collection<OnRefactoringFinishedListener> listeners = new ArrayList<>();
 
-    public ClassRefactoringPanel(Project project, Map<String, String> refactorings) {
+    public ClassRefactoringPanel(Project project, Map<String, String> refactorings, AnalysisScope scope) {
         this.project = project;
+        this.scope = scope;
         setLayout(new BorderLayout());
         model = new RefactoringsTableModel(refactorings);
         setupGUI();
@@ -62,8 +66,8 @@ public class ClassRefactoringPanel extends JPanel {
 
         final JButton doRefactorButton = new JButton("Refactor");
         doRefactorButton.addActionListener(e -> {
-            model.extractSelected();
-            // TODO refactoring
+            final Map<String, String> movements =  model.extractSelected();
+            RefactoringUtil.moveRefactoring(movements, project, scope);
             if (model.getRowCount() == 0) {
                 listeners.forEach(l -> l.onRefactoringFinished(this));
             }

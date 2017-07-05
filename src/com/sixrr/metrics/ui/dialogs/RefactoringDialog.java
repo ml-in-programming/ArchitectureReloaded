@@ -16,6 +16,7 @@
 
 package com.sixrr.metrics.ui.dialogs;
 
+import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBTabbedPane;
@@ -35,10 +36,12 @@ public class RefactoringDialog extends DialogWrapper {
     private static final Action[] EMPTY_ACTION_ARRAY = new Action[0];
     private final JBTabbedPane pane = new JBTabbedPane();
     private final Project project;
+    private final AnalysisScope scope;
 
-    public RefactoringDialog(Project project) {
+    public RefactoringDialog(Project project, AnalysisScope scope) {
         super(project, false);
         this.project = project;
+        this.scope = scope;
         setModal(true);
         setTitle(MetricsReloadedBundle.message("refactoring.dialog.title"));
         init();
@@ -68,7 +71,7 @@ public class RefactoringDialog extends DialogWrapper {
     }
 
     public RefactoringDialog addSolution(String algorithmName, Map<String, String> refactorings) {
-        final ClassRefactoringPanel panel = new ClassRefactoringPanel(project, refactorings);
+        final ClassRefactoringPanel panel = new ClassRefactoringPanel(project, refactorings, scope);
         panel.addOnRefactoringFinishedListener(p -> closeTab(algorithmName));
         pane.addTab(algorithmName, panel);
         return this;
