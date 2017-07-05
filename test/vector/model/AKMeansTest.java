@@ -17,11 +17,8 @@
 package vector.model;
 
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElementVisitor;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsExecutionContextImpl;
@@ -62,7 +59,6 @@ public class AKMeansTest extends LightCodeInsightFixtureTestCase {
     }
 
     public void test() throws IOException {
-
         new MetricsExecutionContextImpl(project, analysisScope) {
             @Override
             public void onFinish() {
@@ -103,6 +99,10 @@ public class AKMeansTest extends LightCodeInsightFixtureTestCase {
                 System.out.println("Methods: " + methodMetrics.getMeasuredObjects().length);
                 System.out.println("Properties: " + fields.size());
 
+                assertEquals(2, classMetrics.getMeasuredObjects().length);
+                assertEquals(6, methodMetrics.getMeasuredObjects().length);
+                assertEquals(4, fields.size());
+
                 Entity.normalize(entities);
 
                 System.out.println("!!!\n");
@@ -115,6 +115,9 @@ public class AKMeansTest extends LightCodeInsightFixtureTestCase {
                 for (String ent : refactorings.keySet()) {
                     System.out.println(ent + " --> " + refactorings.get(ent));
                 }
+                assertEquals(1, refactorings.size());
+                assertEquals("ClassB.methodB1()", refactorings.keySet().toArray()[0]);
+                assertEquals("ClassA", refactorings.get("ClassB.methodB1()"));
 
                 MRI alg2 = new MRI(entities, properties.getAllClasses());
                 System.out.println("\nStarting MMRI...");
@@ -124,6 +127,10 @@ public class AKMeansTest extends LightCodeInsightFixtureTestCase {
                 for (String method : refactorings2.keySet()) {
                     System.out.println(method + " --> " + refactorings2.get(method));
                 }
+
+                assertEquals(1, refactorings2.size());
+                assertEquals("ClassB.methodB1()", refactorings2.keySet().toArray()[0]);
+                assertEquals("ClassA", refactorings2.get("ClassB.methodB1()"));
 
                 Set<String> common = new HashSet<String>(refactorings.keySet());
                 common.retainAll(refactorings2.keySet());
@@ -138,6 +145,8 @@ public class AKMeansTest extends LightCodeInsightFixtureTestCase {
                 }
                 System.out.println();
 
+                assertEquals(new HashSet(Collections.singletonList("ClassB.methodB1()")), common);
+
                 AKMeans alg5 = new AKMeans(entities, 50);
                 System.out.println("\nStarting AKMeans...");
                 Map<String, String> refactorings5 = alg5.run();
@@ -145,6 +154,11 @@ public class AKMeansTest extends LightCodeInsightFixtureTestCase {
                 for (String method : refactorings5.keySet()) {
                     System.out.println(method + " --> " + refactorings5.get(method));
                 }
+
+                final Map<String, String> expected = new HashMap<>();
+//                expected.put("ClassB.methodB3()", "ClassA");
+                expected.put("ClassB.methodB1()", "ClassA");
+                assertEquals(expected, refactorings5);
 
                 Set<String> refactoringsARIEC = new HashSet<>(refactorings5.keySet());
                 refactoringsARIEC.retainAll(refactorings2.keySet());
@@ -159,6 +173,7 @@ public class AKMeansTest extends LightCodeInsightFixtureTestCase {
                 }
                 System.out.println();
 
+                assertEquals(new HashSet(Collections.singletonList("ClassB.methodB1()")), refactoringsARIEC);
 
                 HAC alg3 = new HAC(entities);
                 System.out.println("\nStarting HAC...");
@@ -168,6 +183,10 @@ public class AKMeansTest extends LightCodeInsightFixtureTestCase {
                     System.out.println(method + " --> " + refactorings.get(method));
                 }
 
+                final Map<String, String> expectedHAC = new HashMap<>();
+                expectedHAC.put("ClassB.methodB1()", "ClassA");
+                assertEquals(expectedHAC, refactorings);
+
                 ARI alg4 = new ARI(entities);
                 System.out.println("\nStarting ARI...");
                 refactorings = alg4.run();
@@ -176,6 +195,7 @@ public class AKMeansTest extends LightCodeInsightFixtureTestCase {
                     System.out.println(method + " --> " + refactorings.get(method));
                 }
 
+                assertEquals(expectedHAC, refactorings);
             }
         }.execute(profile, metricsRun);
     }
