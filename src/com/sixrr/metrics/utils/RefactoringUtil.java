@@ -48,7 +48,6 @@ public final class RefactoringUtil {
 
     public static Map<PsiElement, PsiElement> filterRefactorings(Map<PsiElement, PsiElement> refactorings) {
         return refactorings.entrySet().stream()
-                .filter(e -> !e.getValue().getContainingFile().equals(e.getKey().getContainingFile())) // todo
                 .filter(e -> MoveHandler.canMove(new PsiElement[]{e.getKey()}, e.getValue())) // todo
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }

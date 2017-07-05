@@ -93,7 +93,7 @@ public class ARI {
         }
 
         for (Entity entity : methodsAndFields) {
-            if (!entity.getPsiElement().equals(communityIds.get(entity))) {
+            if (!entity.getClassName().equals(((PsiClass) communityIds.get(entity)).getQualifiedName())) {
                 refactorings.put(entity.getPsiElement(), communityIds.get(entity));
             }
         }
