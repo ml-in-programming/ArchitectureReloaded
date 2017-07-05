@@ -17,8 +17,11 @@
 package vector.model;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElementVisitor;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsExecutionContextImpl;
@@ -45,7 +48,7 @@ public class AKMeansTest extends LightCodeInsightFixtureTestCase {
         final VirtualFile file2 = myFixture.copyFileToProject("ClassB.java");
 
         project = myFixture.getProject();
-        analysisScope = new AnalysisScope(project, Arrays.asList(file2, file1));
+        analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2));
         properties = new PropertiesFinder();
         analysisScope.accept(properties.createVisitor(analysisScope));
 
@@ -55,7 +58,7 @@ public class AKMeansTest extends LightCodeInsightFixtureTestCase {
 
     @Override
     protected String getTestDataPath() {
-        return "src/vector/model/examples/example2";
+        return "resources/examples/example2";
     }
 
     public void test() throws IOException {
