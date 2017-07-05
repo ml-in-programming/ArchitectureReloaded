@@ -17,17 +17,17 @@
 package com.sixrr.metrics.ui.refactoringsdisplay;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.components.JBOptionButton;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+
 
 /**
  * Created by Артём on 05.07.2017.
@@ -36,6 +36,7 @@ public class ClassRefactoringPanel extends JPanel {
 
     private final Project project; // necessary to do refactorings
     private final RefactoringsTableModel model;
+    private final List<OnRefactoringFinishedListener> listeners = new ArrayList<>();
 
     public ClassRefactoringPanel(Project project, Map<String, String> refactorings) {
         this.project = project;
@@ -60,6 +61,22 @@ public class ClassRefactoringPanel extends JPanel {
         buttonsPanel.add(selectAllButton);
 
         final JButton doRefactorButton = new JButton("Refactor");
+        doRefactorButton.addActionListener(e -> {
+            model.extractSelected();
+            // TODO refactoring
+            if (model.getRowCount() == 0) {
+                listeners.forEach(l -> l.onRefactoringFinished(this));
+            }
+        });
         buttonsPanel.add(doRefactorButton);
+    }
+
+    public void addOnRefactoringFinishedListener(OnRefactoringFinishedListener listener) {
+        listeners.add(listener);
+    }
+
+    @FunctionalInterface
+    public interface OnRefactoringFinishedListener {
+        void onRefactoringFinished(ClassRefactoringPanel panel);
     }
 }

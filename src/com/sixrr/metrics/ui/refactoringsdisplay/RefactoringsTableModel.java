@@ -19,10 +19,7 @@ package com.sixrr.metrics.ui.refactoringsdisplay;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.table.AbstractTableModel;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 /**
@@ -30,14 +27,14 @@ import java.util.Map.Entry;
  */
 public class RefactoringsTableModel extends AbstractTableModel {
 
-    private final List<String> methods = new ArrayList<>();
-    private final List<String> moveTo = new ArrayList<>();
-    private final boolean[] isSelected;
+    private List<String> methods = new ArrayList<>();
+    private List<String> movements = new ArrayList<>();
+    private boolean[] isSelected;
 
     RefactoringsTableModel(Map<String, String> refactorings) {
         for (Entry<String, String> refactoring : refactorings.entrySet()) {
             methods.add(refactoring.getKey());
-            moveTo.add(refactoring.getValue());
+            movements.add(refactoring.getValue());
         }
         isSelected = new boolean[methods.size()];
     }
@@ -45,6 +42,25 @@ public class RefactoringsTableModel extends AbstractTableModel {
     public void selectAll() {
         Arrays.fill(isSelected, true);
         fireTableDataChanged();
+    }
+
+    public Map<String, String> extractSelected() {
+        final List<String> notSelectedMethods = new ArrayList<>();
+        final List<String> notSelectedMovements = new ArrayList<>();
+        final Map<String, String> selected = new HashMap<>();
+        for (int i = 0; i < isSelected.length; i++) {
+            if (isSelected[i]) {
+                selected.put(methods.get(i), movements.get(i));
+            } else {
+                notSelectedMethods.add(methods.get(i));
+                notSelectedMovements.add(movements.get(i));
+            }
+        }
+        methods = notSelectedMethods;
+        movements = notSelectedMovements;
+        isSelected = new boolean[notSelectedMethods.size()];
+        fireTableDataChanged();
+        return selected;
     }
 
     @Override
@@ -90,7 +106,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
         switch (columnIndex) {
             case 0 : return Boolean.valueOf(isSelected[rowIndex]);
             case 1 : return methods.get(rowIndex);
-            case 2 : return moveTo.get(rowIndex);
+            case 2 : return movements.get(rowIndex);
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + columnIndex);
     }

@@ -69,7 +69,16 @@ public class RefactoringDialog extends DialogWrapper {
 
     public RefactoringDialog addSolution(String algorithmName, Map<String, String> refactorings) {
         final ClassRefactoringPanel panel = new ClassRefactoringPanel(project, refactorings);
+        panel.addOnRefactoringFinishedListener(p -> closeTab(algorithmName));
         pane.addTab(algorithmName, panel);
         return this;
+    }
+
+    private void closeTab(String tabName) {
+        final int tabIndex = pane.indexOfTab(tabName);
+        pane.removeTabAt(tabIndex);
+        if (pane.getTabCount() == 0) {
+            close(0, true);
+        }
     }
 }
