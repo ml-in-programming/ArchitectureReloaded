@@ -27,9 +27,6 @@ import com.sixrr.metrics.metricModel.MetricsRunImpl;
 
 import java.util.*;
 
-/**
- * Created by Kivi on 04.04.2017.
- */
 public abstract class Entity {
 
     public Entity(String entity_name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {

@@ -47,9 +47,6 @@ import vector.model.*;
 
 import javax.swing.*;
 
-/**
- * Created by Kivi on 02.04.2017.
- */
 public class AutomaticRefactoringAction extends BaseAnalysisAction {
     public AutomaticRefactoringAction() {
         super(MetricsReloadedBundle.message("metrics.calculation"), MetricsReloadedBundle.message("metrics"));
@@ -66,14 +63,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         final MetricsRunImpl metricsRun = new MetricsRunImpl();
 
         final PropertiesFinder properties = new PropertiesFinder();
-        final PsiElementVisitor visitor = properties.createVisitor(analysisScope);
-        ProgressManager.getInstance().runProcess(new Runnable() {
-            @Override
-            public void run() {
-                analysisScope.accept(visitor);
-                ;
-            }
-        }, new EmptyProgressIndicator());
+        analysisScope.accept(properties.createVisitor(analysisScope));
 
         new MetricsExecutionContextImpl(project, analysisScope) {
 

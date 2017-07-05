@@ -29,7 +29,6 @@ public class AKMeans {
             if (e.getCategory() != MetricCategory.Class) {
                 points.add(e);
                 communityIds.put(e, "");
-                entityByName.put(e.getName(), e);
             } else {
                 numberOfClasses++;
                 allClasses.add((PsiClass) e.getPsiElement());
@@ -68,7 +67,6 @@ public class AKMeans {
                 if (!communityIds.get(entity).equals(newCenter)) {
                     System.out.println("Move " + entity.getName() + " to " + newCenter + ", " + distToCommunity(entity, newCenter));
                 }
-                //moveToCommunity(entity, newCenter);
             }
 
             for (Entity entity : newCommunities.keySet()) {
@@ -86,7 +84,6 @@ public class AKMeans {
             communities.get(center).stream()
                     .filter(e -> !e.getClassName().equals(newName))
                     .forEach(e -> refactorings.put(e.getName(), newName));
-
         }
 
         return refactorings;
@@ -94,7 +91,7 @@ public class AKMeans {
 
     private String receiveClassName(String center) {
         String name = "";
-        Integer maxClassCount = 0;
+        Integer maxClassCount = Integer.valueOf(0);
         final Map<String, Integer> classCounts = new HashMap<>();
         for (Entity entity : communities.get(center)) {
             final String className = entity.getClassName();
@@ -102,7 +99,7 @@ public class AKMeans {
                 classCounts.put(className, 0);
             }
 
-            classCounts.put(className, classCounts.get(className) + 1);
+            classCounts.put(className, Integer.valueOf(classCounts.get(className) + 1));
         }
 
         for (String className : classCounts.keySet()) {
@@ -176,11 +173,10 @@ public class AKMeans {
         communityIds.put(entity, id);
     }
 
-    private List<Entity> points = new ArrayList<>();
-    private Map<String, Set<Entity>> communities = new HashMap<>();
-    private Map<Entity, String> communityIds = new HashMap<>();
-    private Map<String, Entity> entityByName = new HashMap<>();
-    private Set<PsiClass> allClasses = new HashSet<>();
+    private final List<Entity> points = new ArrayList<>();
+    private final Map<String, Set<Entity>> communities = new HashMap<>();
+    private final Map<Entity, String> communityIds = new HashMap<>();
+    private final Set<PsiClass> allClasses = new HashSet<>();
     private int numberOfClasses = 0;
     private int steps = 0;
     private int newClassCount = 0;
