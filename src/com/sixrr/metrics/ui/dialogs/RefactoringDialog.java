@@ -19,6 +19,7 @@ package com.sixrr.metrics.ui.dialogs;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.psi.PsiElement;
 import com.intellij.ui.components.JBTabbedPane;
 import com.sixrr.metrics.ui.refactoringsdisplay.ClassRefactoringPanel;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
@@ -70,7 +71,7 @@ public class RefactoringDialog extends DialogWrapper {
         return panel;
     }
 
-    public RefactoringDialog addSolution(String algorithmName, Map<String, String> refactorings) {
+    public RefactoringDialog addSolution(String algorithmName, Map<PsiElement, PsiElement> refactorings) {
         final ClassRefactoringPanel panel = new ClassRefactoringPanel(project, refactorings, scope);
         panel.addOnRefactoringFinishedListener(p -> closeTab(algorithmName));
         pane.addTab(algorithmName, panel);

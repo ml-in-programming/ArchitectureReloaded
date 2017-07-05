@@ -18,6 +18,7 @@ package com.sixrr.metrics.ui.refactoringsdisplay;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiElement;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
@@ -41,7 +42,7 @@ public class ClassRefactoringPanel extends JPanel {
     private final RefactoringsTableModel model;
     private final Collection<OnRefactoringFinishedListener> listeners = new ArrayList<>();
 
-    public ClassRefactoringPanel(Project project, Map<String, String> refactorings, AnalysisScope scope) {
+    public ClassRefactoringPanel(Project project, Map<PsiElement, PsiElement> refactorings, AnalysisScope scope) {
         this.project = project;
         this.scope = scope;
         setLayout(new BorderLayout());
@@ -66,7 +67,7 @@ public class ClassRefactoringPanel extends JPanel {
 
         final JButton doRefactorButton = new JButton("Refactor");
         doRefactorButton.addActionListener(e -> {
-            final Map<String, String> movements =  model.extractSelected();
+            final Map<PsiElement, PsiElement> movements =  model.extractSelected();
             RefactoringUtil.moveRefactoring(movements, project, scope);
             if (model.getRowCount() == 0) {
                 listeners.forEach(l -> l.onRefactoringFinished(this));

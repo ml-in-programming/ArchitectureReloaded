@@ -18,59 +18,29 @@ package com.sixrr.metrics.utils;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.JavaRecursiveElementVisitor;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiMethod;
-import com.intellij.refactoring.move.MoveCallback;
 import com.intellij.refactoring.move.MoveHandler;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
  * Created by Артём on 05.07.2017.
  */
-public class RefactoringUtil {
-    public static void moveRefactoring(Map<String, String> refactorings, Project project, AnalysisScope scope) {
-        final Set<String> elementsNames = new HashSet<>();
-        elementsNames.addAll(refactorings.keySet());
-        elementsNames.addAll(refactorings.values());
-        final Map<String, PsiElement> psiElements = find(elementsNames, project, scope);
-        final Map<String, List<String>> groupedMovements = refactorings.keySet().stream()
-                .collect(Collectors.groupingBy(refactorings::get, Collectors.toList()));
-        for (Entry<String, List<String>> refactoring : groupedMovements.entrySet()) {
-            final PsiElement movement = psiElements.get(refactoring.getKey());
-            final PsiElement[] methods = new PsiElement[refactoring.getValue().size()];
-            for (int i = 0; i < methods.length; i++) {
-                methods[i] = psiElements.get(refactoring.getValue().get(i));
-            }
-            MoveHandler.doMove(project, methods, movement, null, null);
-        }
+public final class RefactoringUtil {
+    private RefactoringUtil() {
     }
 
-    public static Map<String, PsiElement> find(Collection<String> names, Project project, AnalysisScope analysisScope) {
-        final Map<String, PsiElement> result = new ConcurrentHashMap<>();
-        analysisScope.accept(new JavaRecursiveElementVisitor() {
-            @Override
-            public void visitMethod(PsiMethod method) {
-                final String identifier = MethodUtils.calculateSignature(method);
-                if (names.contains(identifier)) {
-                    result.put(identifier, method);
-                }
-            }
-
-            @Override
-            public void visitClass(PsiClass aClass) {
-                super.visitClass(aClass);
-                final String identifier = aClass.getQualifiedName();
-                if (identifier != null && names.contains(identifier)) {
-                    result.put(identifier, aClass);
-                }
-            }
-        });
-        return result;
+    public static void moveRefactoring(Map<PsiElement, PsiElement> refactorings, Project project, AnalysisScope scope) {
+        final Map<PsiElement, List<PsiElement>> groupedMovements = refactorings.keySet().stream()
+                .collect(Collectors.groupingBy(refactorings::get, Collectors.toList()));
+        for (Entry<PsiElement, List<PsiElement>> refactoring : groupedMovements.entrySet()) {
+            final PsiElement movement = refactoring.getKey();
+            final PsiElement[] methods = refactoring.getValue().stream()
+                    .toArray(PsiElement[]::new);
+            MoveHandler.doMove(project, methods, movement, null, null);
+        }
     }
 }

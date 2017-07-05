@@ -26,6 +26,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.sixrr.metrics.config.MetricsReloadedConfig;
 import com.sixrr.metrics.metricModel.*;
@@ -111,74 +112,11 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                     entities.add(fieldEnt);
                 }
 
-                /*for (Entity ent : entities) {
-                    ent.print();
-                    System.out.println();
-
-
-                Entity.normalize(entities);
-                /*for (Entity ent : entities) {
-                    ent.print();
-                    System.out.println();
-                }*/
-
-
-                CCDA alg = new CCDA(entities);
-                Map<String, String> refactorings1 = alg.run();
-
-                MRI alg2 = new MRI(entities, properties.getAllClasses());
-                Map<String, String> refactorings2 = alg2.run();
-
-//                Set<String> common = new HashSet<String>(refactorings.keySet());
-//                common.retainAll(refactorings2.keySet());
-//                System.out.println("Common for ARI and CCDA: ");
-//                for (String move : common) {
-//                    System.out.print(move + " to ");
-//                    System.out.print(refactorings.get(move));
-//                    if (!refactorings2.get(move).equals(refactorings.get(move))) {
-//                        System.out.print(" vs " + refactorings2.get(move));
-//                    }
-//                    System.out.println();
-//                }
-//                System.out.println();
-
-//                AKMeans alg5 = new AKMeans(entities, 50);
-//                System.out.println("\nStarting AKMeans...");
-//                Map<String, String> refactorings5 = alg5.run();
-//                System.out.println("Finished AKMeans");
-//                for (String method : refactorings5.keySet()) {
-//                    System.out.println(method + " --> " + refactorings5.get(method));
-//                }
-
-//                Set<String> refactoringsARIEC = new HashSet<>(refactorings5.keySet());
-//                refactoringsARIEC.retainAll(refactorings2.keySet());
-//                System.out.println("Common for ARI and EC: ");
-//                for (String move : refactoringsARIEC) {
-//                    System.out.print(move + " to ");
-//                    System.out.print(refactorings5.get(move));
-//                    if (!refactorings2.get(move).equals(refactorings5.get(move))) {
-//                        System.out.print(" vs " + refactorings2.get(move));
-//                    }
-//                    System.out.println();
-//                }
-//                System.out.println();
-//
-//
-//                HAC alg3 = new HAC(entities);
-//                System.out.println("\nStarting HAC...");
-//                refactorings = alg3.run();
-//                System.out.println("Finished HAC");
-//                for (String method : refactorings.keySet()) {
-//                    System.out.println(method + " --> " + refactorings.get(method));
-//                }
-
                 ARI alg4 = new ARI(entities);
-                Map<String, String> refactorings4 = alg4.run();
+                Map<PsiElement, PsiElement> refactorings4 = alg4.run();
 
 
                 new RefactoringDialog(project, analysisScope)
-                        .addSolution("CCDA", refactorings1)
-                        .addSolution("MRI", refactorings2)
                         .addSolution("ARI", refactorings4)
                         .show();
 
