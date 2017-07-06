@@ -53,18 +53,6 @@ public class MethodEntity extends Entity {
         return vector;
     }
 
-    private static void processEntity(String name, MetricCategory category, MetricsResult results
-            , MetricsRun metricsRun, double[] vector) {
-        for (Metric metric : metricsRun.getMetrics()) {
-            if (metric.getCategory() == category) {
-                final int id = components.get(metric.getAbbreviation()).intValue();
-                if (results.getValueForMetric(metric, name) != null) {
-                    vector[id] = results.getValueForMetric(metric, name);
-                }
-            }
-        }
-    }
-
     @Override
     protected HashSet<String> findRelevantProperties() {
         return new HashSet<>(Arrays.asList(getName(), getClassName()));

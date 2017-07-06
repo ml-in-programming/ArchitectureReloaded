@@ -44,17 +44,9 @@ public class FieldEntity extends Entity {
         for (int i = 0; i < DIMENSION; i++) {
             vector[i] = 0.0;
         }
-        final MetricsResult classResults = metricsRun.getResultsForCategory(MetricCategory.Class);
-        final String className = getClassName();
-        for (Metric metric : metricsRun.getMetrics()) {
-            if (metric.getCategory() == MetricCategory.Class) {
-                final int id = components.get(metric.getAbbreviation()).intValue();
-                if (classResults.getValueForMetric(metric, className) != null) {
-                    vector[id] = classResults.getValueForMetric(metric, className);
-                }
-            }
-        }
 
+        final MetricsResult classResults = metricsRun.getResultsForCategory(MetricCategory.Class);
+        processEntity(getClassName(), MetricCategory.Class,  classResults, metricsRun, vector);
         vector[3] = 0.0;
 
         return vector;

@@ -51,15 +51,7 @@ public class ClassEntity extends Entity {
         }
         final MetricCategory category = getCategory();
         final MetricsResult results = metricsRun.getResultsForCategory(category);
-
-        for (Metric metric : metricsRun.getMetrics()) {
-            if (metric.getCategory() == category) {
-                final int id = components.get(metric.getAbbreviation()).intValue();
-                if (results.getValueForMetric(metric, getName()) != null) {
-                    vector[id] = results.getValueForMetric(metric, getName());
-                }
-            }
-        }
+        processEntity(getName(), category, results, metricsRun, vector);
 
         return vector;
     }

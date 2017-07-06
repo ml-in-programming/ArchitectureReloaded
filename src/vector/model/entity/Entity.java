@@ -20,7 +20,10 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
+import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
+import com.sixrr.metrics.metricModel.MetricsResult;
+import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
 import vector.model.PropertiesFinder;
 import vector.model.RelevantProperties;
@@ -130,6 +133,18 @@ public abstract class Entity {
 
     public PsiElement getPsiElement() {
         return psiEntity;
+    }
+
+    protected static void processEntity(String name, MetricCategory category, MetricsResult results
+            , MetricsRun metricsRun, double[] vector) {
+        for (Metric metric : metricsRun.getMetrics()) {
+            if (metric.getCategory() == category) {
+                final int id = components.get(metric.getAbbreviation()).intValue();
+                if (results.getValueForMetric(metric, name) != null) {
+                    vector[id] = results.getValueForMetric(metric, name);
+                }
+            }
+        }
     }
 
     protected abstract double[] initializeVector(MetricsRunImpl metricsRun);
