@@ -1,5 +1,5 @@
 /*
- * Copyright 2005-2017 Sixth and Red River Software, Bas Leijdekkers
+ *  Copyright 2017 Machine Learning Methods in Software Engineering Research Group
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
