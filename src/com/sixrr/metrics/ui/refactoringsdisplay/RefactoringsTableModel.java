@@ -16,10 +16,6 @@
 
 package com.sixrr.metrics.ui.refactoringsdisplay;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiMethod;
-import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.table.AbstractTableModel;
@@ -31,12 +27,12 @@ import java.util.Map.Entry;
  */
 public class RefactoringsTableModel extends AbstractTableModel {
 
-    private List<PsiElement> methods = new ArrayList<>();
-    private List<PsiElement> movements = new ArrayList<>();
+    private List<String> methods = new ArrayList<>();
+    private List<String> movements = new ArrayList<>();
     private boolean[] isSelected;
 
-    RefactoringsTableModel(Map<PsiElement, PsiElement> refactorings) {
-        for (Entry<PsiElement, PsiElement> refactoring : refactorings.entrySet()) {
+    RefactoringsTableModel(Map<String, String> refactorings) {
+        for (Entry<String, String> refactoring : refactorings.entrySet()) {
             methods.add(refactoring.getKey());
             movements.add(refactoring.getValue());
         }
@@ -48,10 +44,10 @@ public class RefactoringsTableModel extends AbstractTableModel {
         fireTableDataChanged();
     }
 
-    public Map<PsiElement, PsiElement> extractSelected() {
-        final List<PsiElement> notSelectedMethods = new ArrayList<>();
-        final List<PsiElement> notSelectedMovements = new ArrayList<>();
-        final Map<PsiElement, PsiElement> selected = new HashMap<>();
+    public Map<String, String> extractSelected() {
+        final List<String> notSelectedMethods = new ArrayList<>();
+        final List<String> notSelectedMovements = new ArrayList<>();
+        final Map<String, String> selected = new HashMap<>();
         for (int i = 0; i < isSelected.length; i++) {
             if (isSelected[i]) {
                 selected.put(methods.get(i), movements.get(i));
@@ -109,22 +105,13 @@ public class RefactoringsTableModel extends AbstractTableModel {
     public Object getValueAt(int rowIndex, int columnIndex) {
         switch (columnIndex) {
             case 0 : return Boolean.valueOf(isSelected[rowIndex]);
-            case 1 : return psiElementToString(methods.get(rowIndex));
-            case 2 : return psiElementToString(movements.get(rowIndex));
+            case 1 : return methods.get(rowIndex);
+            case 2 : return movements.get(rowIndex);
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + columnIndex);
     }
 
-    public PsiElement getElement(int row) {
+    public String getElement(int row) {
         return methods.get(row);
-    }
-
-    private String psiElementToString(PsiElement element) {
-        if (element instanceof PsiClass) {
-            return ((PsiClass) element).getQualifiedName();
-        } else if (element instanceof PsiMethod) {
-            return MethodUtils.calculateSignature((PsiMethod) element);
-        }
-        return element.toString();
     }
 }

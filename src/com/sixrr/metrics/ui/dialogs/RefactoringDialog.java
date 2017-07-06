@@ -72,9 +72,8 @@ public class RefactoringDialog extends DialogWrapper {
         return panel;
     }
 
-    public RefactoringDialog addSolution(String algorithmName, Map<PsiElement, PsiElement> refactorings) {
-        final ClassRefactoringPanel panel = new ClassRefactoringPanel(project,
-                RefactoringUtil.filterRefactorings(refactorings), scope);
+    public RefactoringDialog addSolution(String algorithmName, Map<String, String> refactorings) {
+        final ClassRefactoringPanel panel = new ClassRefactoringPanel(project, refactorings, scope);
         panel.addOnRefactoringFinishedListener(p -> closeTab(algorithmName));
         pane.addTab(algorithmName, panel);
         return this;

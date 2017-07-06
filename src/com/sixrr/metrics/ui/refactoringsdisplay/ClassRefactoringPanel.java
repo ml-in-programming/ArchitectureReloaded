@@ -18,34 +18,24 @@ package com.sixrr.metrics.ui.refactoringsdisplay;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.ide.highlighter.JavaFileType;
-import com.intellij.openapi.fileTypes.FileNameMatcher;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.FileTypeConsumer;
-import com.intellij.openapi.fileTypes.impl.JavaFileTypeFactory;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.JavaCodeFragmentFactory;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.impl.PsiDocumentManagerImpl;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.sixrr.metrics.utils.RefactoringUtil;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+
+import static com.sixrr.metrics.utils.RefactoringUtil.findElement;
 
 
 /**
@@ -57,41 +47,33 @@ public class ClassRefactoringPanel extends JPanel {
     private final AnalysisScope scope; // necessary to do refactorings
     private final RefactoringsTableModel model;
     private final Collection<OnRefactoringFinishedListener> listeners = new ArrayList<>();
+    private final JBTable table;
+    private final JavaCodePanel codePanel;
 
-    public ClassRefactoringPanel(Project project, Map<PsiElement, PsiElement> refactorings, AnalysisScope scope) {
+    public ClassRefactoringPanel(Project project, Map<String, String> refactorings, AnalysisScope scope) {
         this.project = project;
         this.scope = scope;
         setLayout(new BorderLayout());
         model = new RefactoringsTableModel(refactorings);
+        table = new JBTable(model);
+        codePanel = new JavaCodePanel(project);
         setupGUI();
     }
 
     private void setupGUI() {
-        final EditorTextField codePanel = new EditorTextField("", project, JavaFileType.INSTANCE) {{
-            setViewerEnabled(false);
-        }};
-        codePanel.setOneLineMode(false);
+        final JScrollPane codePanelWrapper = ScrollPaneFactory.createScrollPane(codePanel);
+        codePanelWrapper.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
-        final JScrollPane pane = ScrollPaneFactory.createScrollPane(codePanel);
-        pane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        pane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-
-        final JBTable table = new JBTable(model);
         final TableColumn selectionColumn = table.getTableHeader().getColumnModel().getColumn(0);
         selectionColumn.setMaxWidth(30);
         selectionColumn.setMinWidth(30);
         final ListSelectionModel selectionModel = table.getSelectionModel();
         selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        selectionModel.addListSelectionListener(e -> {
-            final PsiElement element = model.getElement(selectionModel.getAnchorSelectionIndex());
-            codePanel.setText(element.getText());
-            pane.revalidate();
-            pane.repaint();
-        });
+        selectionModel.addListSelectionListener(e -> updateCodePanel());
 
         final JBSplitter splitter = new JBSplitter(false); // todo proportion key
         splitter.setFirstComponent(ScrollPaneFactory.createScrollPane(table));
-        splitter.setSecondComponent(pane);
+        splitter.setSecondComponent(codePanelWrapper);
         add(splitter, BorderLayout.CENTER);
 
         final JPanel buttonsPanel = new JBPanel<>();
@@ -103,14 +85,24 @@ public class ClassRefactoringPanel extends JPanel {
         buttonsPanel.add(selectAllButton);
 
         final JButton doRefactorButton = new JButton("Refactor");
-        doRefactorButton.addActionListener(e -> {
-            final Map<PsiElement, PsiElement> movements = model.extractSelected();
-            RefactoringUtil.moveRefactoring(movements, project, scope);
-            if (model.getRowCount() == 0) {
-                listeners.forEach(l -> l.onRefactoringFinished(this));
-            }
-        });
+        doRefactorButton.addActionListener(e -> refactorSelected());
         buttonsPanel.add(doRefactorButton);
+    }
+
+    private void refactorSelected() {
+        final Map<String, String> movements = model.extractSelected();
+        RefactoringUtil.moveRefactoring(movements, project, scope);
+        if (model.getRowCount() == 0) {
+            listeners.forEach(l -> l.onRefactoringFinished(this));
+        }
+    }
+
+    private void updateCodePanel() {
+        final int selectedRow = table.getSelectedRow();
+        new Thread(() -> {
+            final PsiElement element = selectedRow == -1 ? null : findElement(model.getElement(selectedRow), scope);
+            SwingUtilities.invokeLater(() -> codePanel.showElement(element));
+        }).start();
     }
 
     public void addOnRefactoringFinishedListener(OnRefactoringFinishedListener listener) {
@@ -120,5 +112,29 @@ public class ClassRefactoringPanel extends JPanel {
     @FunctionalInterface
     public interface OnRefactoringFinishedListener {
         void onRefactoringFinished(ClassRefactoringPanel panel);
+    }
+
+    private static class JavaCodePanel extends EditorTextField {
+        JavaCodePanel(Project project) {
+            super("", project, JavaFileType.INSTANCE);
+            setOneLineMode(false);
+            setViewerEnabled(false);
+        }
+
+        @Override
+        public void setText(@Nullable String text) {
+            super.setText(text);
+            if (getParent() != null) {
+                getParent().revalidate();
+            }
+        }
+
+        public void showElement(PsiElement element) {
+            if (element == null) {
+                setText("");
+            } else {
+                setText(element.getText());
+            }
+        }
     }
 }

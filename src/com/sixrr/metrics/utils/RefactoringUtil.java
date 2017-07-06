@@ -41,19 +41,20 @@ public final class RefactoringUtil {
     private RefactoringUtil() {
     }
 
-    public static void moveRefactoring(Map<PsiElement, PsiElement> refactorings, Project project, AnalysisScope scope) {
-        final Map<PsiElement, List<PsiElement>> groupedMovements = refactorings.keySet().stream()
-                .collect(Collectors.groupingBy(refactorings::get, Collectors.toList()));
-        for (Entry<PsiElement, List<PsiElement>> refactoring : groupedMovements.entrySet()) {
-            final PsiElement movement = refactoring.getKey();
-            final PsiElement[] methods = refactoring.getValue().stream()
-                    .toArray(PsiElement[]::new);
-//            Arrays.stream(methods).forEach(e -> MakeStaticHandler.invoke((PsiTypeParameterListOwner) e));
-                MoveHandler.doMove(project, methods, movement, DataContext.EMPTY_CONTEXT, null);
-        }
+    public static void moveRefactoring(Map<String, String> refactorings, Project project, AnalysisScope scope) {
+        // todo
+//        final Map<PsiElement, List<PsiElement>> groupedMovements = refactorings.keySet().stream()
+//                .collect(Collectors.groupingBy(refactorings::get, Collectors.toList()));
+//        for (Entry<PsiElement, List<PsiElement>> refactoring : groupedMovements.entrySet()) {
+//            final PsiElement movement = refactoring.getKey();
+//            final PsiElement[] methods = refactoring.getValue().stream()
+//                    .toArray(PsiElement[]::new);
+////            Arrays.stream(methods).forEach(e -> MakeStaticHandler.invoke((PsiTypeParameterListOwner) e));
+//                MoveHandler.doMove(project, methods, movement, DataContext.EMPTY_CONTEXT, null);
+//        }
     }
 
-    public static PsiMethod findMethod(String signature, AnalysisScope scope) {
+    public static PsiMethod findElement(String signature, AnalysisScope scope) {
         final PsiMethod[] resultHolder = new PsiMethod[1];
         scope.accept(new JavaRecursiveElementVisitor() {
             @Override
@@ -64,11 +65,5 @@ public final class RefactoringUtil {
             }
         });
         return resultHolder[0];
-    }
-
-    public static Map<PsiElement, PsiElement> filterRefactorings(Map<PsiElement, PsiElement> refactorings) {
-        return refactorings.entrySet().stream()
-//                .filter(e -> MoveHandler.canMove(new PsiElement[]{e.getKey()}, e.getValue())) // todo
-                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }
 }

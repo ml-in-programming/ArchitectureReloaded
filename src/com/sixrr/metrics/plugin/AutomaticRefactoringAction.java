@@ -116,7 +116,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 }
 
                 ARI alg4 = new ARI(entities);
-                Map<PsiElement, PsiElement> refactorings4 = alg4.run();
+                Map<String, String> refactorings4 = alg4.run();
 
 
                 new RefactoringDialog(project, analysisScope)
