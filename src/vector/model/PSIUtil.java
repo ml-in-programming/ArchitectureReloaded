@@ -22,65 +22,66 @@ import com.intellij.psi.PsiMethod;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Created by Kivi on 16.05.2017.
- */
-public class PSIUtil {
-    public static Set<PsiClass> getAllSupers(PsiClass aClass, Set<PsiClass> existing) {
-        Set<PsiClass> allSupers = new HashSet<PsiClass>();
-        if (!existing.contains(aClass)) {
+public final class PSIUtil {
+    private PSIUtil() {
+    }
+
+    public static Set<PsiClass> getAllSupers(PsiClass aClass, Set<PsiClass> allClasses) {
+        final Set<PsiClass> allSupers = new HashSet<>();
+        if (!allClasses.contains(aClass)) {
             return allSupers;
         }
 
-        PsiClass[] supers = aClass.getSupers();
-        for (PsiClass sup : supers) {
-            if (!existing.contains(sup)) {
+        final PsiClass[] supers = aClass.getSupers();
+        for (PsiClass superClass : supers) {
+            if (!allClasses.contains(superClass)) {
                 continue;
             }
-            allSupers.add(sup);
-            allSupers.addAll(getAllSupers(sup, existing));
+            allSupers.add(superClass);
+            allSupers.addAll(getAllSupers(superClass, allClasses));
         }
 
         return allSupers;
     }
 
     public static Set<PsiClass> getAllSupers(PsiClass aClass) {
-        Set<PsiClass> allSupers = new HashSet<PsiClass>();
+        final Set<PsiClass> allSupers = new HashSet<>();
+        final PsiClass[] supers = aClass.getSupers();
 
-        PsiClass[] supers = aClass.getSupers();
-        for (PsiClass sup : supers) {
-            allSupers.add(sup);
-            allSupers.addAll(getAllSupers(sup));
+        for (PsiClass superClass : supers) {
+            allSupers.add(superClass);
+            allSupers.addAll(getAllSupers(superClass));
         }
 
         return allSupers;
     }
 
-    public static Set<PsiMethod> getAllSupers(PsiMethod method, Set<PsiClass> existing) {
-        if (!existing.contains(method.getContainingClass())) {
-            return new HashSet<PsiMethod>();
+    public static Set<PsiMethod> getAllSupers(PsiMethod method, Set<PsiClass> allClasses) {
+        if (!allClasses.contains(method.getContainingClass())) {
+            return new HashSet<>();
         }
-        Set<PsiMethod> allSupers = new HashSet<PsiMethod>();
 
-        PsiMethod[] supers = method.findSuperMethods();
-        for (PsiMethod m : supers) {
-            if (!existing.contains(m.getContainingClass())) {
+        final Set<PsiMethod> allSupers = new HashSet<>();
+        final PsiMethod[] supers = method.findSuperMethods();
+
+        for (PsiMethod superMethod : supers) {
+            if (!allClasses.contains(superMethod.getContainingClass())) {
                 continue;
             }
-            allSupers.add(m);
-            allSupers.addAll(getAllSupers(m, existing));
+            allSupers.add(superMethod);
+            allSupers.addAll(getAllSupers(superMethod, allClasses));
         }
 
         return allSupers;
     }
 
     public static Set<PsiMethod> getAllSupers(PsiMethod method) {
-        Set<PsiMethod> allSupers = new HashSet<PsiMethod>();
+        final Set<PsiMethod> allSupers = new HashSet<>();
+        final PsiMethod[] supers = method.findSuperMethods();
 
-        PsiMethod[] supers = method.findSuperMethods();
-        for (PsiMethod m : supers) {
-            allSupers.add(m);
-            allSupers.addAll(getAllSupers(m));
+        for (PsiMethod superMethod : supers) {
+            allSupers.add(superMethod);
+            allSupers.addAll(getAllSupers(superMethod));
         }
 
         return allSupers;

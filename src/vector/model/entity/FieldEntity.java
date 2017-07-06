@@ -29,7 +29,7 @@ public class FieldEntity extends Entity {
     public FieldEntity(String name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
         super(name, metricsRun, propertiesFinder);
         final RelevantProperties rp = propertiesFinder.getProperties(name);
-        vector[2] = rp.numberOfMethods().doubleValue();
+        vector[2] = (double) rp.numberOfMethods();
     }
 
     @Override
