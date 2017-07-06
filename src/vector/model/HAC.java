@@ -28,9 +28,7 @@ public class HAC {
     private final Map<String, HashMap<String, Double>> dists = new HashMap<>();
     private final Map<String, Entity> entityByName = new HashMap<>();
     private final SortedSet<Triple> distances = new TreeSet<>();
-
     private int newClassCount = 0;
-    private static final int SAMPLE_SIZE = 5;
 
     private static class Triple implements Comparable<Triple> {
         private final double d;

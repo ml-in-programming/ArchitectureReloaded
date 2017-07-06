@@ -21,9 +21,12 @@ import java.util.*;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
+import org.jetbrains.annotations.Nullable;
 import vector.model.entity.Entity;
 
 public class MRI {
+    private final List<Entity> entities;
+    private final Set<PsiClass> allClasses;
 
     public MRI(List<Entity> entityList, Set<PsiClass> existingClasses) {
         entities = entityList;
@@ -31,172 +34,100 @@ public class MRI {
     }
 
     public Map<String, String> run() {
-        Map<String, String> refactorings = new HashMap<String, String>();
-        for (Entity entity : entities) {
-            if (entity.getCategory() != MetricCategory.Class) {
-                String className = entity.getClassName();
-                double minDist = Double.MAX_VALUE;
-                int idClass = -1;
-                for (int i = 0; i < entities.size(); ++i) {
-                    Entity classEnt = entities.get(i);
-                    if (classEnt.getCategory().equals(MetricCategory.Class)) {
-                        double dist = entity.dist(classEnt);
-                        if (dist < minDist) {
-                            minDist = dist;
-                            idClass = i;
-                        }
-                    }
-                }
+        final Map<String, String> refactorings = new HashMap<>();
 
-                if (idClass == -1) {
-                    System.out.println("WARNING: " + entity.getName() + " has no nearest class");
-                } else {
-                    if (entities.get(idClass).getName().equals(className)) {
-                        continue;
-                    }
+        for (Entity currentEntity : entities) {
+            if (currentEntity.getCategory() == MetricCategory.Class) {
+                continue;
+            }
 
-                    if (entity.getCategory() == MetricCategory.Method) {
-                        PsiMethod method = (PsiMethod) entity.getPsiElement();
-                        PsiClass moveFromClass = method.getContainingClass();
-                        PsiClass moveToClass = (PsiClass) entities.get(idClass).getPsiElement();
+            final Entity nearestClass = getNearestClass(currentEntity);
+            if (nearestClass == null) {
+                System.out.println("WARNING: " + currentEntity.getName() + " has no nearest class");
+                continue;
+            }
 
-                        Set<PsiClass> supersTo = PSIUtil.getAllSupers(moveToClass, allClasses);//new HashSet<PsiClass>(Arrays.asList(moveToClass.getSupers()));
-                        boolean isSuper = false;
+            if (nearestClass.getName().equals(currentEntity.getClassName())) {
+                continue;
+            }
 
-                        for (PsiClass sup : supersTo) {
-                            if (sup.equals(moveFromClass)) {
-                                isSuper = true;
-                                break;
-                            }
-                        }
-
-                        Set<PsiClass> supersFrom = PSIUtil.getAllSupers(moveFromClass, allClasses);//new HashSet<PsiClass>(Arrays.asList(moveFromClass.getSupers()));
-                        for (PsiClass sup : supersFrom) {
-                            if (sup.equals(moveToClass)) {
-                                isSuper = true;
-                                break;
-                            }
-                        }
-                        supersFrom.retainAll(supersTo);
-                        boolean isOverride = false;
-
-                        if (isSuper) {
-                            continue;
-                        }
-
-                        for (PsiClass sup : supersFrom) {
-                            PsiMethod[] methods = sup.getMethods();
-                            for (PsiMethod m : methods) {
-                                if (m.equals(method)) {
-                                    isOverride = true;
-                                    break;
-                                }
-                            }
-
-                            if (isOverride) {
-                                break;
-                            }
-                        }
-
-                        if (!isOverride) {
-                            Entity newClass = entities.get(idClass);
-                            refactorings.put(entity.getName(), newClass.getClassName());
-                            entity.moveToClass((PsiClass) newClass.getPsiElement());
-                            newClass.removeFromClass((PsiMethod) entity.getPsiElement());
-                        }
-                    } else {
-                        refactorings.put(entity.getName(), entities.get(idClass).getName());
-                    }
-                }
+            if (currentEntity.getCategory() == MetricCategory.Method) {
+                processMethod(refactorings, currentEntity, nearestClass);
+            } else {
+                refactorings.put(currentEntity.getName(), nearestClass.getName());
             }
         }
 
         return refactorings;
     }
 
-    public void printTableDistances() {
-        int maxLen = 0;
-        for (Entity ent : entities) {
-            maxLen = Math.max(maxLen, ent.getName().length() + 4);
+    @Nullable
+    private Entity getNearestClass(Entity entity) {
+        Entity candidateClass = null;
+        double minDist = Double.MAX_VALUE;
+
+        for (Entity currentClass : entities) {
+            if (currentClass.getCategory() == MetricCategory.Class) {
+                final double dist = entity.dist(currentClass);
+                if (dist < minDist) {
+                    minDist = dist;
+                    candidateClass = currentClass;
+                }
+            }
+        }
+        return candidateClass;
+    }
+
+    private void processMethod(Map<String, String> refactorings, Entity currentEntity, Entity nearestClass) {
+        final PsiMethod method = (PsiMethod) currentEntity.getPsiElement();
+        final PsiClass classToMoveFrom = method.getContainingClass();
+        final PsiClass classToMoveTo = (PsiClass) nearestClass.getPsiElement();
+
+        final Set<PsiClass> supersTo = PSIUtil.getAllSupers(classToMoveTo, allClasses);
+        final Set<PsiClass> supersFrom = PSIUtil.getAllSupers(classToMoveFrom, allClasses);
+
+        if (supersTo.contains(classToMoveFrom) || supersFrom.contains(classToMoveTo)) {
+            return;
         }
 
-        System.out.print(String.format("%1$" + maxLen + "s", ""));
+        supersFrom.retainAll(supersTo);
+
+        final boolean isOverride = supersFrom.stream()
+                .flatMap(c -> Arrays.stream(c.getMethods()))
+                .anyMatch(method::equals);
+
+        if (!isOverride) {
+            refactorings.put(currentEntity.getName(), nearestClass.getClassName());
+            currentEntity.moveToClass((PsiClass) nearestClass.getPsiElement());
+            nearestClass.removeFromClass((PsiMethod) currentEntity.getPsiElement());
+        }
+    }
+
+    public void printTableDistances() {
+        int maxLength = 0;
         for (Entity ent : entities) {
-            String name = String.format("%1$" + maxLen + "s", ent.getName());
+            maxLength = Math.max(maxLength, ent.getName().length() + 4);
+        }
+
+        System.out.print(String.format("%1$" + maxLength + "s", ""));
+        for (Entity ent : entities) {
+            final String name = String.format("%1$" + maxLength + "s", ent.getName());
             System.out.print(name);
         }
         System.out.println();
 
         for (Entity ent : entities) {
-            String name = String.format("%1$" + maxLen + "s", ent.getName());
+            final String name = String.format("%1$" + maxLength + "s", ent.getName());
             System.out.print(name);
             for (Entity entity : entities) {
-                double dist = ent.dist(entity);
+                final double dist = ent.dist(entity);
                 String d = "";
-                if (dist == Double.MAX_VALUE) {
-                    d = String.format("%1$" + maxLen + "s", "inf");
-                } else {
-                    d = String.format("  %." + (maxLen - 4) + "f", dist);
-                }
+                d = dist == Double.MAX_VALUE
+                        ? String.format("%1$" + maxLength + "s", "inf")
+                        : String.format("  %." + (maxLength - 4) + "f", Double.valueOf(dist));
                 System.out.print(d);
             }
             System.out.println();
         }
     }
-
-    /*public void ELKIrun() {
-        double[][] data = new double[entities.size()][1];
-        for (int i = 0; i < entities.size(); ++i) {
-            data[i][0] = i;
-        }
-
-        System.out.println(data.length);
-        DatabaseConnection dbc = new ArrayAdapterDatabaseConnection(data);
-        Database db = new StaticArrayDatabase(dbc, null);
-        db.initialize();
-
-        System.out.println("here 1");
-
-        RandomlyGeneratedInitialMeans init = new RandomlyGeneratedInitialMeans(RandomFactory.DEFAULT);
-
-        KMeansLloyd<NumberVector> km = new KMeansLloyd<NumberVector>(new EntityDistance(), 5, 20, init);
-        System.out.println("here 2");
-        Clustering<KMeansModel> c = km.run(db);
-        System.out.println("here 3");
-        Relation<NumberVector> rel = db.getRelation(TypeUtil.NUMBER_VECTOR_FIELD);
-        // We know that the ids must be a continuous range:
-        DBIDRange ids = (DBIDRange) rel.getDBIDs();
-
-        int i = 0;
-        for(Cluster<KMeansModel> clu : c.getAllClusters()) {
-            // K-means will name all clusters "Cluster" in lack of noise support:
-            System.out.println("#" + i + ": " + clu.getNameAutomatic());
-            System.out.println("Size: " + clu.size());
-            System.out.println("Center: " + clu.getModel().getPrototype().toString());
-            // Iterate over objects:
-            System.out.print("Objects: ");
-            for(DBIDIter it = clu.getIDs().iter(); it.valid(); it.advance()) {
-                // To get the vector use:
-                NumberVector v = rel.get(it);
-
-                // Offset within our DBID range: "line number"
-                final int offset = ids.getOffset(it);
-                System.out.print(" " + offset);
-                // Do NOT rely on using "internalGetIndex()" directly!
-            }
-            System.out.println();
-            ++i;
-        }
-    }
-
-    private class EntityDistance extends AbstractNumberVectorDistanceFunction {
-        @Override
-        public double distance(NumberVector v1, NumberVector v2) {
-            return entities.get(v1.intValue(0)).dist(entities.get(v2.intValue(0)));
-        }
-    }
-    */
-
-    List<Entity> entities;
-    Set<PsiClass> allClasses;
 }
