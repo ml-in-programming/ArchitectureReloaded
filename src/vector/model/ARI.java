@@ -17,6 +17,7 @@
 package vector.model;
 
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
 import com.sixrr.metrics.MetricCategory;
 import vector.model.entity.ClassEntity;
@@ -25,8 +26,8 @@ import vector.model.entity.Entity;
 import java.util.*;
 
 public class ARI {
-    private final Map<String, Set<Entity>> communities = new HashMap<>();
-    private final Map<Entity, String> communityIds = new HashMap<>();
+    private final Map<PsiElement, Set<Entity>> communities = new HashMap<>();
+    private final Map<Entity, PsiElement> communityIds = new HashMap<>();
     private final List<Entity> methodsAndFields;
     private final List<ClassEntity> classEntities;
     private final Set<PsiClass> psiClasses;
@@ -45,8 +46,8 @@ public class ARI {
         }
     }
 
-    public Map<String, String> run() {
-        final Map<String, String> refactorings = new HashMap<>();
+    public Map<PsiElement, PsiElement> run() {
+        final Map<PsiElement, PsiElement> refactorings = new HashMap<>();
 
         for (Entity method : methodsAndFields) {
             double minD = Double.MAX_VALUE;
@@ -94,8 +95,8 @@ public class ARI {
         }
 
         for (Entity entity : methodsAndFields) {
-            if (!entity.getClassName().equals(communityIds.get(entity))) {
-                refactorings.put(entity.getName(), communityIds.get(entity));
+            if (!entity.getClassName().equals(((PsiClass) communityIds.get(entity)).getQualifiedName())) {
+                refactorings.put(entity.getPsiElement(), communityIds.get(entity));
             }
         }
 
@@ -103,13 +104,13 @@ public class ARI {
     }
 
     private void createCommunity(Entity method, Entity cl) {
-        communityIds.put(cl, cl.getName());
-        communityIds.put(method, cl.getName());
-        communities.put(cl.getName(), new HashSet<>(Arrays.asList(method, cl)));
+        communityIds.put(cl, cl.getPsiElement());
+        communityIds.put(method, cl.getPsiElement());
+        communities.put(cl.getPsiElement(), new HashSet<>(Arrays.asList(method, cl)));
     }
 
     private void putMethodOrField(Entity method, Entity cl) {
-        communityIds.put(method, cl.getName());
-        communities.get(cl.getName()).add(method);
+        communityIds.put(method, cl.getPsiElement());
+        communities.get(cl.getPsiElement()).add(method);
     }
 }

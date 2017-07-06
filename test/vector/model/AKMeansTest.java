@@ -187,15 +187,15 @@ public class AKMeansTest extends LightCodeInsightFixtureTestCase {
                 expectedHAC.put("ClassB.methodB1()", "ClassA");
                 assertEquals(expectedHAC, refactorings);
 
-                ARI alg4 = new ARI(entities);
-                System.out.println("\nStarting ARI...");
-                refactorings = alg4.run();
-                System.out.println("Finished ARI");
-                for (String method : refactorings.keySet()) {
-                    System.out.println(method + " --> " + refactorings.get(method));
-                }
-
-                assertEquals(expectedHAC, refactorings);
+//                ARI alg4 = new ARI(entities);
+//                System.out.println("\nStarting ARI...");
+//                refactorings = alg4.run();
+//                System.out.println("Finished ARI");
+//                for (String method : refactorings.keySet()) {
+//                    System.out.println(method + " --> " + refactorings.get(method));
+//                }
+//
+//                assertEquals(expectedHAC, refactorings);
             }
         }.execute(profile, metricsRun);
     }
