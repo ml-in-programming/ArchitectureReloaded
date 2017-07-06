@@ -19,23 +19,17 @@ package vector.model;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiParameter;
 import com.sixrr.metrics.utils.MethodUtils;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Created by Kivi on 11.04.2017.
- */
 public class RelevantProperties {
-    public RelevantProperties() {
-        methods = new HashSet<PsiMethod>();
-        classes = new HashSet<PsiClass>();
-        fields = new HashSet<PsiField>();
-        overrideMethods = new HashSet<PsiMethod>();
-    };
+    private final Set<PsiMethod> methods = new HashSet<>();
+    private final Set<PsiClass> classes = new HashSet<>();
+    private final Set<PsiField> fields = new HashSet<>();
+    private final Set<PsiMethod> overrideMethods = new HashSet<>();
 
     public void removeMethod(PsiMethod method) {
         methods.remove(method);
@@ -73,7 +67,7 @@ public class RelevantProperties {
         overrideMethods.add(method);
     }
 
-    public Integer numberOfMethods() {
+    public int numberOfMethods() {
         return methods.size();
     }
 
@@ -93,24 +87,24 @@ public class RelevantProperties {
         return classes.size() + fields.size() + methods.size();
     }
 
-    public int sizeOfIntersect(RelevantProperties rp) {
-        int ans = 0;
-        Set<PsiClass> c = new HashSet<PsiClass>(classes);
-        c.retainAll(rp.classes);
-        ans += c.size();
+    public int sizeOfIntersect(RelevantProperties properties) {
+        int result = 0;
+        final Collection<PsiClass> commonClasses = new HashSet<>(classes);
+        commonClasses.retainAll(properties.classes);
+        result += commonClasses.size();
 
-        Set<PsiMethod> m = new HashSet<PsiMethod>(methods);
-        m.addAll(overrideMethods);
-        Set<PsiMethod> rpm = rp.methods;
-        rpm.addAll(rp.overrideMethods);
-        m.retainAll(rpm);
-        ans += m.size();
+        final Collection<PsiMethod> commonMethods = new HashSet<>(methods);
+        commonMethods.addAll(overrideMethods);
+        final Set<PsiMethod> rpMethods = properties.methods;
+        rpMethods.addAll(properties.overrideMethods);
+        commonMethods.retainAll(rpMethods);
+        result += commonMethods.size();
 
-        Set<PsiField> f = new HashSet<PsiField>(fields);
-        f.retainAll(rp.fields);
-        ans += f.size();
+        final Collection<PsiField> commonFields = new HashSet<>(fields);
+        commonFields.retainAll(properties.fields);
+        result += commonFields.size();
 
-        return ans;
+        return result;
     }
 
     public void printAll() {
@@ -132,9 +126,4 @@ public class RelevantProperties {
         }
         System.out.println();
     }
-
-    private HashSet<PsiMethod> methods;
-    private HashSet<PsiClass> classes;
-    private HashSet<PsiField> fields;
-    private HashSet<PsiMethod> overrideMethods;
 }
