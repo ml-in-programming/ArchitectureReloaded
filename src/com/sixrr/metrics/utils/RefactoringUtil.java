@@ -36,11 +36,6 @@ public final class RefactoringUtil {
     }
 
     public static void moveRefactoring(Map<String, String> refactorings, Project project, AnalysisScope scope) {
-        System.out.println("refactorings:");
-        for (Entry<String, String> e : refactorings.entrySet()) {
-            System.out.println(e.getKey() + " to " + e.getValue());
-        }
-
         final Map<String, List<String>> groupedMovements = refactorings.keySet().stream()
                 .collect(Collectors.groupingBy(refactorings::get, Collectors.toList()));
         for (Entry<String, List<String>> refactoring : groupedMovements.entrySet()) {
@@ -59,7 +54,6 @@ public final class RefactoringUtil {
                 .collect(Collectors.groupingBy(RefactoringUtil::containingClass, Collectors.toList()));
         for (Entry<PsiClass, List<PsiElement>> movement : groupByCurrentClass.entrySet()) {
             final PsiElement destiny = findElement(targetClass, scope);
-            System.out.println("move from " + movement.getKey().getQualifiedName() + " to " + destiny);
             final PsiElement[] array = movement.getValue().stream().toArray(PsiElement[]::new);
             MoveHandler.doMove(project, array, destiny, DataContext.EMPTY_CONTEXT, null);
         }
@@ -83,7 +77,7 @@ public final class RefactoringUtil {
                 .filter(MethodUtils::isStatic)
                 .filter(m -> MethodUtils.parametersCount(m) >= MethodUtils.parametersCount(method))
                 .collect(Collectors.toList());
-        return methods.isEmpty()? null : methods.get(0);
+        return methods.isEmpty() ? null : methods.get(0);
     }
 
     public static PsiElement findElement(String humanReadableName, AnalysisScope scope) {
@@ -113,9 +107,6 @@ public final class RefactoringUtil {
                 }
             }
         });
-        if (resultHolder[0] == null) {
-            System.out.println("Not found: " + humanReadableName);
-        }
         return resultHolder[0];
     }
 
@@ -129,9 +120,6 @@ public final class RefactoringUtil {
                 }
             }
         });
-        if (resultCollector.isEmpty()) { // todo remove debug output
-            System.out.println(name);
-        }
         return resultCollector;
     }
 }

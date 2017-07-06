@@ -52,7 +52,6 @@ public class RefactoringDialog extends DialogWrapper {
     @NonNls
     protected String getDimensionServiceKey() {
         return "MetricsReloaded.RefactoringDialog";
-
     }
 
     @NotNull

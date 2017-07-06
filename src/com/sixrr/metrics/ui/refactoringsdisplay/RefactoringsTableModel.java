@@ -71,9 +71,12 @@ public class RefactoringsTableModel extends AbstractTableModel {
     @Override
     public String getColumnName(int column) {
         switch (column) {
-            case 0: return "  ";
-            case 1: return "Method";
-            case 2: return "Move to";
+            case 0:
+                return "  ";
+            case 1:
+                return "Method";
+            case 2:
+                return "Move to";
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }
@@ -85,7 +88,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
-        return columnIndex == 0? Boolean.class : String.class;
+        return columnIndex == 0 ? Boolean.class : String.class;
     }
 
     @Override
@@ -104,9 +107,12 @@ public class RefactoringsTableModel extends AbstractTableModel {
     @Nullable
     public Object getValueAt(int rowIndex, int columnIndex) {
         switch (columnIndex) {
-            case 0 : return Boolean.valueOf(isSelected[rowIndex]);
-            case 1 : return methods.get(rowIndex);
-            case 2 : return movements.get(rowIndex);
+            case 0:
+                return Boolean.valueOf(isSelected[rowIndex]);
+            case 1:
+                return methods.get(rowIndex);
+            case 2:
+                return movements.get(rowIndex);
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + columnIndex);
     }
