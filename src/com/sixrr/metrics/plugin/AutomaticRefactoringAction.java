@@ -20,7 +20,6 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.openapi.project.Project;
-import com.sixrr.metrics.metricModel.MetricsRunImpl;
 import com.sixrr.metrics.profile.MetricsProfile;
 import com.sixrr.metrics.profile.MetricsProfileRepository;
 import com.sixrr.metrics.ui.dialogs.ProfileSelectionPanel;
@@ -29,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Map;
 
 public class AutomaticRefactoringAction extends BaseAnalysisAction{
     public AutomaticRefactoringAction() {
@@ -45,7 +45,16 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
         final MetricsProfile metricsProfile = repository.getCurrentProfile();
         assert metricsProfile != null;
 
-        new RefactoringExecutionContext(project, analysisScope, metricsProfile);
+        final RefactoringExecutionContext context =
+                new RefactoringExecutionContext(project, analysisScope, metricsProfile, true);
+
+        // TODO: call them from RefactoringExecutionContext.onFinish() as callbacks
+        final Map<String, String> refactoringsCCDA = context.calculateCCDA();
+        final Map<String, String> refactoringsMRI = context.calculateMRI();
+        final Map<String, String> refactoringsAKMeans = context.calculateAKMeans();
+        final Map<String, String> refactoringsHAC = context.calculateHAC();
+        final Map<String, String> refactoringsARI = context.calculateARI();
+
     }
 
     @Override

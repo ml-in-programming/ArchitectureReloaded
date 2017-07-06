@@ -42,11 +42,17 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
     @NotNull private final MetricsRunImpl metricsRun = new MetricsRunImpl();
     @NotNull private final MetricsProfile profile;
     @NotNull private final PropertiesFinder properties;
+    private final boolean enableUi;
+    private final List<Entity> entities = new ArrayList<>();
+    private int classCount = 0;
+    private int methodsCount = 0;
+    private int fieldsCount = 0;
 
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope
-            , @NotNull MetricsProfile profile) {
+            , @NotNull MetricsProfile profile, boolean enableUi) {
         super(project, scope);
         this.profile = profile;
+        this.enableUi = enableUi;
 
         properties = new PropertiesFinder();
         scope.accept(properties.createVisitor(scope));
@@ -56,26 +62,26 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
 
     @Override
     public void onFinish() {
-        final boolean showOnlyWarnings = MetricsReloadedConfig.getInstance().isShowOnlyWarnings();
-        if(!metricsRun.hasWarnings(profile) && showOnlyWarnings) {
-            ToolWindowManager.getInstance(project).notifyByBalloon(MetricsToolWindow.METRICS_TOOL_WINDOW_ID,
-                    MessageType.INFO, MetricsReloadedBundle.message("no.metrics.warnings.found"));
-            return;
-        }
-        final String profileName = profile.getName();
-        metricsRun.setProfileName(profileName);
+        metricsRun.setProfileName(profile.getName());
         metricsRun.setContext(scope);
         metricsRun.setTimestamp(new TimeStamp());
 
-        final MetricsToolWindow toolWindow = MetricsToolWindow.getInstance(project);
-        toolWindow.show(metricsRun, profile, scope, showOnlyWarnings);
+        // TODO: move UI out of here. E.g. into AutomaticRefactoringAction
+        if (enableUi) {
+            final boolean showOnlyWarnings = MetricsReloadedConfig.getInstance().isShowOnlyWarnings();
+            if(!metricsRun.hasWarnings(profile) && showOnlyWarnings) {
+                ToolWindowManager.getInstance(project).notifyByBalloon(MetricsToolWindow.METRICS_TOOL_WINDOW_ID,
+                        MessageType.INFO, MetricsReloadedBundle.message("no.metrics.warnings.found"));
+                return;
+            }
 
-        MetricsResult classMetrics = metricsRun.getResultsForCategory(MetricCategory.Class);
-        MetricsResult methodMetrics = metricsRun.getResultsForCategory(MetricCategory.Method);
+            final MetricsToolWindow toolWindow = MetricsToolWindow.getInstance(project);
+            toolWindow.show(metricsRun, profile, scope, showOnlyWarnings);
+        }
 
-        List<Entity> entities = new ArrayList<>();
-        System.out.println("Classes: " + classMetrics.getMeasuredObjects().length);
-        System.out.println("Methods: " + methodMetrics.getMeasuredObjects().length);
+        final MetricsResult classMetrics = metricsRun.getResultsForCategory(MetricCategory.Class);
+        final MetricsResult methodMetrics = metricsRun.getResultsForCategory(MetricCategory.Method);
+
         for (String obj : classMetrics.getMeasuredObjects()) {
             if (obj.equals("null")) {
                 continue;
@@ -83,7 +89,7 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
             if (!properties.getAllClassesNames().contains(obj)) {
                 continue;
             }
-            Entity classEnt = new ClassEntity(obj, metricsRun, properties);
+            final Entity classEnt = new ClassEntity(obj, metricsRun, properties);
             entities.add(classEnt);
         }
         for (String obj : methodMetrics.getMeasuredObjects()) {
@@ -91,103 +97,102 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
                 continue;
             }
             if (properties.hasElement(obj)) {
-                Entity methodEnt = new MethodEntity(obj, metricsRun, properties);
+                final Entity methodEnt = new MethodEntity(obj, metricsRun, properties);
                 entities.add(methodEnt);
             }
         }
 
-        Set<String> fields = properties.getAllFields();
-        System.out.println("Properties: " + fields.size());
+        // TODO: move fields processing to MetricsRunImpl
+        final Set<String> fields = properties.getAllFields();
         for (String field : fields) {
-            Entity fieldEnt = new FieldEntity(field, metricsRun, properties);
+            final Entity fieldEnt = new FieldEntity(field, metricsRun, properties);
             entities.add(fieldEnt);
         }
 
-                /*for (Entity ent : entities) {
-                    ent.print();
-                    System.out.println();
-                }*/
-        System.out.println("!!!\n");
-
         Entity.normalize(entities);
-                /*for (Entity ent : entities) {
-                    ent.print();
-                    System.out.println();
-                }*/
 
-        System.out.println("!!!\n");
+        classCount = classMetrics.getMeasuredObjects().length;
+        methodsCount = methodMetrics.getMeasuredObjects().length;
+        fieldsCount = fields.size();
 
-        CCDA alg = new CCDA(entities);
-        System.out.println("Starting CCDA...");
-        System.out.println(alg.calculateQualityIndex());
-        Map<String, String> refactorings = alg.run();
-        System.out.println("Finished CCDA\n");
-        for (String ent : refactorings.keySet()) {
-            System.out.println(ent + " --> " + refactorings.get(ent));
-        }
-
-        MRI alg2 = new MRI(entities, properties.getAllClasses());
-        System.out.println("\nStarting MMRI...");
-        //alg2.printTableDistances();
-        Map<String, String> refactorings2 = alg2.run();
-        System.out.println("Finished MMRI");
-        for (String method : refactorings2.keySet()) {
-            System.out.println(method + " --> " + refactorings2.get(method));
-        }
-
-        Set<String> common = new HashSet<String>(refactorings.keySet());
-        common.retainAll(refactorings2.keySet());
-        System.out.println("Common for ARI and CCDA: ");
-        for (String move : common) {
-            System.out.print(move + " to ");
-            System.out.print(refactorings.get(move));
-            if (!refactorings2.get(move).equals(refactorings.get(move))) {
-                System.out.print(" vs " + refactorings2.get(move));
-            }
-            System.out.println();
-        }
+        System.out.println("Classes: " + classCount);
+        System.out.println("Methods: " + methodsCount);
+        System.out.println("Properties: " + fieldsCount);
         System.out.println();
+    }
 
-        AKMeans alg5 = new AKMeans(entities, 50);
-        System.out.println("\nStarting AKMeans...");
-        Map<String, String> refactorings5 = alg5.run();
-        System.out.println("Finished AKMeans");
-        for (String method : refactorings5.keySet()) {
-            System.out.println(method + " --> " + refactorings5.get(method));
-        }
-
-        Set<String> refactoringsARIEC = new HashSet<>(refactorings5.keySet());
-        refactoringsARIEC.retainAll(refactorings2.keySet());
-        System.out.println("Common for ARI and EC: ");
-        for (String move : refactoringsARIEC) {
-            System.out.print(move + " to ");
-            System.out.print(refactorings5.get(move));
-            if (!refactorings2.get(move).equals(refactorings5.get(move))) {
-                System.out.print(" vs " + refactorings2.get(move));
-            }
-            System.out.println();
-        }
-        System.out.println();
-
-
-        HAC alg3 = new HAC(entities);
-        System.out.println("\nStarting HAC...");
-        refactorings = alg3.run();
-        System.out.println("Finished HAC");
-        for (String method : refactorings.keySet()) {
-            System.out.println(method + " --> " + refactorings.get(method));
-        }
-
-        ARI alg4 = new ARI(entities);
+    @NotNull
+    public Map<String, String> calculateARI() {
+        final ARI algorithm = new ARI(entities);
         System.out.println("\nStarting ARI...");
-        refactorings = alg4.run();
+        final Map<String, String> refactorings = algorithm.run();
         System.out.println("Finished ARI");
         for (String method : refactorings.keySet()) {
             System.out.println(method + " --> " + refactorings.get(method));
         }
-
-
-
+        return refactorings;
     }
+
+    @NotNull
+    public Map<String, String> calculateHAC() {
+        final HAC algorithm = new HAC(entities);
+        System.out.println("\nStarting HAC...");
+        final Map<String, String> refactorings = algorithm.run();
+        System.out.println("Finished HAC");
+        for (String method : refactorings.keySet()) {
+            System.out.println(method + " --> " + refactorings.get(method));
+        }
+        return refactorings;
+    }
+
+    @NotNull
+    public Map<String, String> calculateAKMeans() {
+        final AKMeans algorithm = new AKMeans(entities, 50);
+        System.out.println("\nStarting AKMeans...");
+        final Map<String, String> refactorings = algorithm.run();
+        System.out.println("Finished AKMeans");
+        for (String method : refactorings.keySet()) {
+            System.out.println(method + " --> " + refactorings.get(method));
+        }
+        return refactorings;
+    }
+
+    @NotNull
+    public Map<String, String> calculateMRI() {
+        final MRI algorithm = new MRI(entities, properties.getAllClasses());
+        System.out.println("\nStarting MMRI...");
+        final Map<String, String> refactorings = algorithm.run();
+        System.out.println("Finished MMRI");
+        for (String method : refactorings.keySet()) {
+            System.out.println(method + " --> " + refactorings.get(method));
+        }
+        return refactorings;
+    }
+
+    @NotNull
+    public Map<String, String> calculateCCDA() {
+        final CCDA algorithm = new CCDA(entities);
+        System.out.println("Starting CCDA...");
+        System.out.println(algorithm.calculateQualityIndex());
+        final Map<String, String> refactorings = algorithm.run();
+        System.out.println("Finished CCDA\n");
+        for (String ent : refactorings.keySet()) {
+            System.out.println(ent + " --> " + refactorings.get(ent));
+        }
+        return refactorings;
+    }
+
+    public int getClassCount() {
+        return classCount;
+    }
+
+    public int getMethodsCount() {
+        return methodsCount;
+    }
+
+    public int getFieldsCount() {
+        return fieldsCount;
+    }
+
 
 }
