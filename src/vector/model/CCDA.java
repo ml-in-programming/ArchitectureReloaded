@@ -21,6 +21,7 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.utils.MethodUtils;
+import vector.model.entity.Entity;
 
 import java.util.*;
 

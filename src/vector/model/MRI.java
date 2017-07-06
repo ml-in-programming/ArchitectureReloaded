@@ -21,6 +21,7 @@ import java.util.*;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
+import vector.model.entity.Entity;
 
 public class MRI {
 

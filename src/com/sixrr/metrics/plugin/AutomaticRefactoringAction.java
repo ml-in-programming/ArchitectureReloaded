@@ -16,20 +16,14 @@
 
 package com.sixrr.metrics.plugin;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
-import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.psi.JavaElementVisitor;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElementVisitor;
 import com.sixrr.metrics.config.MetricsReloadedConfig;
 import com.sixrr.metrics.metricModel.*;
 import com.sixrr.metrics.profile.MetricsProfile;
@@ -39,28 +33,17 @@ import com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 
-import com.intellij.analysis.AnalysisScope;
-import com.intellij.analysis.BaseAnalysisAction;
-import com.intellij.analysis.BaseAnalysisActionDialog;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.MessageType;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.sixrr.metrics.config.MetricsReloadedConfig;
 import com.sixrr.metrics.metricModel.MetricsExecutionContextImpl;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
 import com.sixrr.metrics.metricModel.TimeStamp;
-import com.sixrr.metrics.profile.MetricsProfile;
-import com.sixrr.metrics.profile.MetricsProfileRepository;
-import com.sixrr.metrics.ui.dialogs.ProfileSelectionPanel;
-import com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow;
-import com.sixrr.metrics.utils.MetricsReloadedBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import vector.model.*;
+import vector.model.entity.ClassEntity;
+import vector.model.entity.Entity;
+import vector.model.entity.FieldEntity;
+import vector.model.entity.MethodEntity;
 
 import javax.swing.*;
 
@@ -101,7 +84,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
                 MetricsResult classMetrics = metricsRun.getResultsForCategory(MetricCategory.Class);
                 MetricsResult methodMetrics = metricsRun.getResultsForCategory(MetricCategory.Method);
 
-                ArrayList<Entity> entities = new ArrayList<Entity>();
+                List<Entity> entities = new ArrayList<>();
                 System.out.println("Classes: " + classMetrics.getMeasuredObjects().length);
                 System.out.println("Methods: " + methodMetrics.getMeasuredObjects().length);
                 for (String obj : classMetrics.getMeasuredObjects()) {

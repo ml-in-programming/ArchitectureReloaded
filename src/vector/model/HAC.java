@@ -17,6 +17,7 @@
 package vector.model;
 
 import com.sixrr.metrics.MetricCategory;
+import vector.model.entity.Entity;
 
 import java.util.*;
 

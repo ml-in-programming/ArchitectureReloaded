@@ -14,40 +14,41 @@
  *  limitations under the License.
  */
 
-package vector.model;
+package vector.model.entity;
 
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
+import vector.model.PropertiesFinder;
+import vector.model.RelevantProperties;
+
+import java.util.Arrays;
 import java.util.HashSet;
 
-
-/**
- * Created by Kivi on 04.04.2017.
- */
 public class FieldEntity extends Entity {
-    public FieldEntity(String entity_name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
-        super(entity_name, metricsRun, propertiesFinder);
-        RelevantProperties rp = propertiesFinder.getProperties(entity_name);
-        double temp = rp.numberOfMethods();
-        vector[2] = Double.valueOf(temp);
+    public FieldEntity(String name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
+        super(name, metricsRun, propertiesFinder);
+        final RelevantProperties rp = propertiesFinder.getProperties(name);
+        vector[2] = rp.numberOfMethods().doubleValue();
     }
 
+    @Override
     public MetricCategory getCategory() {
         return MetricCategory.Package;
     }
 
-    protected Double[] initializeVector(MetricsRunImpl metricsRun) {
-        Double[] vector = new Double[Dimension];
-        for (int i = 0; i < Dimension; i++) {
+    @Override
+    protected double[] initializeVector(MetricsRunImpl metricsRun) {
+        final double[] vector = new double[DIMENSION];
+        for (int i = 0; i < DIMENSION; i++) {
             vector[i] = 0.0;
         }
-        MetricsResult classResults = metricsRun.getResultsForCategory(MetricCategory.Class);
-        String className = getClassName();
+        final MetricsResult classResults = metricsRun.getResultsForCategory(MetricCategory.Class);
+        final String className = getClassName();
         for (Metric metric : metricsRun.getMetrics()) {
-            if (metric.getCategory().equals(MetricCategory.Class)) {
-                Integer id = components.get(metric.getAbbreviation());
+            if (metric.getCategory() == MetricCategory.Class) {
+                final int id = components.get(metric.getAbbreviation()).intValue();
                 if (classResults.getValueForMetric(metric, className) != null) {
                     vector[id] = classResults.getValueForMetric(metric, className);
                 }
@@ -59,17 +60,14 @@ public class FieldEntity extends Entity {
         return vector;
     }
 
+    @Override
     protected HashSet<String> findRelevantProperties() {
-        HashSet<String> properties = new HashSet<String>();
-        properties.add(getName());
-        properties.add(getClassName());
-
-        return properties;
+        return new HashSet<>(Arrays.asList(getName(), getClassName()));
     }
 
     @Override
     public String getClassName() {
-        String name = getName();
+        final String name = getName();
         return name.substring(0, name.lastIndexOf('.'));
     }
 }

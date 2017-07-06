@@ -14,27 +14,26 @@
  *  limitations under the License.
  */
 
-package vector.model;
+package vector.model.entity;
 
 import com.intellij.psi.PsiClass;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
+import vector.model.PSIUtil;
+import vector.model.PropertiesFinder;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-/**
- * Created by Kivi on 04.04.2017.
- */
 public class ClassEntity extends Entity {
-    public ClassEntity(String entity_name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
-        super(entity_name, metricsRun, propertiesFinder);
+    public ClassEntity(String name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
+        super(name, metricsRun, propertiesFinder);
     }
 
+    @Override
     public MetricCategory getCategory() {
         return MetricCategory.Class;
     }
@@ -44,17 +43,18 @@ public class ClassEntity extends Entity {
         return getName();
     }
 
-    protected Double[] initializeVector(MetricsRunImpl metricsRun) {
-        Double[] vector = new Double[Dimension];
-        for (int i = 0; i < Dimension; i++) {
+    @Override
+    protected double[] initializeVector(MetricsRunImpl metricsRun) {
+        final double[] vector = new double[DIMENSION];
+        for (int i = 0; i < DIMENSION; i++) {
             vector[i] = 0.0;
         }
-        MetricCategory category = getCategory();
-        MetricsResult results = metricsRun.getResultsForCategory(category);
+        final MetricCategory category = getCategory();
+        final MetricsResult results = metricsRun.getResultsForCategory(category);
 
         for (Metric metric : metricsRun.getMetrics()) {
-            if (metric.getCategory().equals(category)) {
-                Integer id = components.get(metric.getAbbreviation());
+            if (metric.getCategory() == category) {
+                final int id = components.get(metric.getAbbreviation()).intValue();
                 if (results.getValueForMetric(metric, getName()) != null) {
                     vector[id] = results.getValueForMetric(metric, getName());
                 }
@@ -64,11 +64,9 @@ public class ClassEntity extends Entity {
         return vector;
     }
 
+    @Override
     protected HashSet<String> findRelevantProperties() {
-        HashSet<String> properties = new HashSet<String>();
-        properties.add(getName());
-
-        return properties;
+        return new HashSet<>(Collections.singletonList(getName()));
     }
 
     public Set<PsiClass> getAllSupers(Set<PsiClass> existing) {

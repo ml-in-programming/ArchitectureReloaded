@@ -26,6 +26,10 @@ import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
 import com.sixrr.metrics.profile.MetricsProfile;
 import com.sixrr.metrics.profile.MetricsProfileRepository;
+import vector.model.entity.ClassEntity;
+import vector.model.entity.Entity;
+import vector.model.entity.FieldEntity;
+import vector.model.entity.MethodEntity;
 
 import java.io.IOException;
 import java.util.*;

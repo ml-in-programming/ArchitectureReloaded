@@ -19,6 +19,8 @@ package vector.model;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMember;
 import com.sixrr.metrics.MetricCategory;
+import vector.model.entity.ClassEntity;
+import vector.model.entity.Entity;
 
 import java.util.*;
 
