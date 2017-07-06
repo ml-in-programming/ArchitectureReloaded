@@ -45,8 +45,8 @@ import java.util.Map;
 
 public class MetricsExecutionContextImpl implements MetricsExecutionContext {
 
-    private final Project project;
-    private final AnalysisScope scope;
+    protected final Project project;
+    protected final AnalysisScope scope;
 
     public MetricsExecutionContextImpl(Project project, AnalysisScope scope) {
         this.project = project;
