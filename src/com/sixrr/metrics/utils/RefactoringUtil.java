@@ -17,19 +17,12 @@
 package com.sixrr.metrics.utils;
 
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.PlainTextFileType;
-import com.intellij.openapi.fileTypes.impl.JavaFileTypeFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.refactoring.makeStatic.MakeStaticHandler;
 import com.intellij.refactoring.move.MoveHandler;
-import com.intellij.ui.EditorTextField;
-import org.jetbrains.kotlin.js.translate.utils.PsiUtils;
-import org.jetbrains.plugins.groovy.lang.documentation.MethodUtil;
 
 import java.util.*;
 import java.util.Map.Entry;
