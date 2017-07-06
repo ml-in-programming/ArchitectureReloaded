@@ -17,43 +17,53 @@
 package vector.model;
 
 import com.sixrr.metrics.MetricCategory;
+import org.jetbrains.annotations.NotNull;
 import vector.model.entity.Entity;
 
 import java.util.*;
 
-/**
- * Created by Kivi on 16.05.2017.
- */
 public class HAC {
+    private final Map<String, Set<Entity>> communities = new HashMap<>();
+    private final Map<Entity, String> communityIds = new HashMap<>();
+    private final Map<String, HashMap<String, Double>> dists = new HashMap<>();
+    private final Map<String, Entity> entityByName = new HashMap<>();
+    private final SortedSet<Triple> distances = new TreeSet<>();
 
-    private class Triple implements Comparable<Triple> {
+    private int newClassCount = 0;
+    private static final int SAMPLE_SIZE = 5;
 
-        Triple(Double _d, String _c1, String _c2) {
-            d = _d;
-            c1 = _c1;
-            c2 = _c2;
+    private static class Triple implements Comparable<Triple> {
+        private final double d;
+        private final String c1;
+        private final String c2;
+
+        Triple(double d, String c1, String c2) {
+            this.d = d;
+            this.c1 = c1;
+            this.c2 = c2;
         }
 
-        public int compareTo(Triple t) {
-            int compD = d.compareTo(t.d);
-            if (compD != 0) {
-                return compD;
+        @Override
+        public int compareTo(@NotNull Triple other) {
+            final int comparedD = Double.compare(d, other.d);
+            if (comparedD != 0) {
+                return comparedD;
             }
 
-            int compC1 = c1.compareTo(t.c1);
-            if (compC1 != 0) {
-                return compC1;
+            final int comparedC1 = c1.compareTo(other.c1);
+            if (comparedC1 != 0) {
+                return comparedC1;
             }
 
-            int compC2 = c2.compareTo(t.c2);
-            if (compC2 != 0) {
-                return compC2;
+            final int comparedC2 = c2.compareTo(other.c2);
+            if (comparedC2 != 0) {
+                return comparedC2;
             }
 
             return 0;
         }
 
-        public Double getD() {
+        public double getD() {
             return d;
         }
 
@@ -64,16 +74,12 @@ public class HAC {
         public String getC2() {
             return c2;
         }
-
-        private Double d;
-
-        private String c1, c2;
     }
-    public HAC(List<Entity> entityList) {
-        entities = entityList;
-        for (Entity entity : entities) {
+
+    public HAC(Iterable<Entity> entityList) {
+        for (Entity entity : entityList) {
             final String name = entity.getName();
-            final HashSet<Entity> simpleCommunity = new HashSet<Entity>();
+            final Set<Entity> simpleCommunity = new HashSet<>();
             simpleCommunity.add(entity);
             communities.put(name, simpleCommunity);
             communityIds.put(entity, name);
@@ -81,10 +87,10 @@ public class HAC {
         }
 
         for (String com1 : entityByName.keySet()) {
-            dists.put(com1, new HashMap<String, Double>());
+            dists.put(com1, new HashMap<>());
             for (String com2 : entityByName.keySet()) {
-                Double d = entityByName.get(com1).dist(entityByName.get(com2));
-                dists.get(com1).put(com2, d);
+                final double d = entityByName.get(com1).dist(entityByName.get(com2));
+                dists.get(com1).put(com2, Double.valueOf(d));
                 if (com1.compareTo(com2) < 0) {
                     distances.add(new Triple(d, com1, com2));
                 }
@@ -99,27 +105,21 @@ public class HAC {
 
         double minD = 0.0;
         while (minD < 1.0 && !distances.isEmpty()) {
-            Triple min = distances.first();
+            final Triple min = distances.first();
             minD = min.getD();
-            String id1 = min.getC1();
-            String id2 = min.getC2();
 
             if (minD > 1.0) {
                 continue;
             }
 
-            /*if (entityByName.get(id1).getCategory() == MetricCategory.Class
-                    && entityByName.get(id2).getCategory() == MetricCategory.Class) {
-                minD = Double.MAX_VALUE;
-                continue;
-            }*/
-
+            final String id1 = min.getC1();
+            final String id2 = min.getC2();
             mergeCommunities(id1, id2);
             System.out.println("Merge " + id1 + " and " + id2 +  " to " + communityIds.get(entityByName.get(id1)));
         }
 
         for (String center : communities.keySet()) {
-            String newName = receiveClassName(center);
+            final String newName = receiveClassName(center);
             for (Entity entity : communities.get(center)) {
                 if (!entity.getClassName().equals(newName)) {
                     refactorings.put(entity.getName(), newName);
@@ -132,22 +132,23 @@ public class HAC {
 
     private String calculateClassName(String center) {
         String name = "";
-        Integer maxClassCount = 0;
-        Map<String, Integer> classCounts = new HashMap<String, Integer>();
+        int maxClassCount = 0;
+        final Map<String, Integer> classCounts = new HashMap<>();
         for (Entity entity : communities.get(center)) {
-            String className = entity.getClassName();
+            final String className = entity.getClassName();
             if (!classCounts.containsKey(className)) {
                 classCounts.put(className, 0);
             }
 
-            Integer count = classCounts.get(className);
+            int count = classCounts.get(className).intValue();
             count++;
-            classCounts.put(className, count);
+            classCounts.put(className, Integer.valueOf(count));
         }
 
         for (String className : classCounts.keySet()) {
-            if (maxClassCount < classCounts.get(className)) {
-                maxClassCount = classCounts.get(className);
+            final int currentClassCount = classCounts.get(className).intValue();
+            if (maxClassCount < currentClassCount) {
+                maxClassCount = currentClassCount;
                 name = className;
             }
         }
@@ -158,7 +159,7 @@ public class HAC {
     private String receiveClassName(String center) {
         String name = calculateClassName(center);
 
-        if (name.equals("")) {
+        if (name.isEmpty()) {
             newClassCount++;
             name = "NewClass" + newClassCount;
         }
@@ -168,17 +169,13 @@ public class HAC {
 
     private void mergeCommunities(String id1, String id2) {
         String newName = id1;
-        final Set<Entity> merge = new HashSet<Entity>(communities.get(id1));
-        merge.addAll(communities.get(id2));
-        int maxInClass = 0;
-        for (Entity ent : merge) {
+        final Set<Entity> merged = new HashSet<>(communities.get(id1));
+        merged.addAll(communities.get(id2));
+
+        long maxInClass = 0L;
+        for (Entity ent : merged) {
             if (ent.getCategory() == MetricCategory.Class) {
-                int inClass = 0;
-                for (Entity entity : merge) {
-                    if (entity.getClassName().equals(ent.getName())) {
-                        inClass++;
-                    }
-                }
+                final long inClass = merged.stream().filter(e -> e.getClassName().equals(ent.getName())).count();
 
                 if (inClass > maxInClass) {
                     maxInClass = inClass;
@@ -189,12 +186,12 @@ public class HAC {
 
         communities.remove(id1);
         communities.remove(id2);
-        communities.put(newName, merge);
-        for (Entity ent : merge) {
+        communities.put(newName, merged);
+        for (Entity ent : merged) {
             communityIds.put(ent, newName);
         }
 
-        Double d = dists.get(id1).get(id2);
+        final double d = dists.get(id1).get(id2).doubleValue();
 
         dists.get(id1).remove(id2);
         dists.get(id2).remove(id1);
@@ -206,17 +203,21 @@ public class HAC {
             if (entity.equals(id1) || entity.equals(id2)) {
                 continue;
             }
-            Double d1 = dists.get(entity).get(id1);
-            Double d2 = dists.get(entity).get(id2);
-            Double newD = Math.max(d1, d2);
-            dists.get(id1).put(entity, newD);
-            dists.get(entity).put(id1, newD);
+
+            final double d1 = dists.get(entity).get(id1).doubleValue();
+            final double d2 = dists.get(entity).get(id2).doubleValue();
+            final double newD = Math.max(d1, d2);
+
+            dists.get(id1).put(entity, Double.valueOf(newD));
+            dists.get(entity).put(id1, Double.valueOf(newD));
             dists.get(entity).remove(id2);
             dists.get(id2).remove(entity);
+
             distances.remove(new Triple(d1, entity, id1));
             distances.remove(new Triple(d1, id1, entity));
             distances.remove(new Triple(d2, entity, id2));
             distances.remove(new Triple(d2, id2, entity));
+
             if (id1.compareTo(entity) < 0) {
                 distances.add(new Triple(newD, id1, entity));
             } else {
@@ -224,15 +225,4 @@ public class HAC {
             }
         }
     }
-
-    private HashMap<String, Set<Entity>> communities = new HashMap<String, Set<Entity>>();
-    private HashMap<Entity, String> communityIds = new HashMap<Entity, String>();
-    private Map<String, HashMap<String, Double>> dists = new HashMap<String, HashMap<String, Double>>();
-
-    private List<Entity> entities;
-    private HashMap<String, Entity> entityByName = new HashMap<String, Entity>();
-
-    private SortedSet<Triple> distances = new TreeSet<Triple>();
-    private static int SampleSize = 5;
-    private int newClassCount = 0;
 }
