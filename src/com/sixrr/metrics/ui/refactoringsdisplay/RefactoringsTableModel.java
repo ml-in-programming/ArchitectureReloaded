@@ -115,6 +115,10 @@ public class RefactoringsTableModel extends AbstractTableModel {
         throw new IndexOutOfBoundsException("Unexpected column index: " + columnIndex);
     }
 
+    public PsiElement getElement(int row) {
+        return methods.get(row);
+    }
+
     private String psiElementToString(PsiElement element) {
         if (element instanceof PsiClass) {
             return ((PsiClass) element).getQualifiedName();

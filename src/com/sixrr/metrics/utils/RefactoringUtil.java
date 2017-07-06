@@ -17,10 +17,17 @@
 package com.sixrr.metrics.utils;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.PlainTextFileType;
+import com.intellij.openapi.fileTypes.impl.JavaFileTypeFactory;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiMethod;
 import com.intellij.refactoring.move.MoveHandler;
+import com.intellij.ui.EditorTextField;
 
 import java.util.List;
 import java.util.Map;
@@ -46,9 +53,22 @@ public final class RefactoringUtil {
         }
     }
 
+    public static PsiMethod findMethod(String signature, AnalysisScope scope) {
+        final PsiMethod[] resultHolder = new PsiMethod[1];
+        scope.accept(new JavaRecursiveElementVisitor() {
+            @Override
+            public void visitMethod(PsiMethod method) {
+                if (MethodUtils.calculateSignature(method).equals(signature)) {
+                    resultHolder[0] = method;
+                }
+            }
+        });
+        return resultHolder[0];
+    }
+
     public static Map<PsiElement, PsiElement> filterRefactorings(Map<PsiElement, PsiElement> refactorings) {
         return refactorings.entrySet().stream()
-                .filter(e -> MoveHandler.canMove(new PsiElement[]{e.getKey()}, e.getValue())) // todo
+//                .filter(e -> MoveHandler.canMove(new PsiElement[]{e.getKey()}, e.getValue())) // todo
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }
 }
