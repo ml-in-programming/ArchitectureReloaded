@@ -23,14 +23,15 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.PlainTextFileType;
 import com.intellij.openapi.fileTypes.impl.JavaFileTypeFactory;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.JavaRecursiveElementVisitor;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiMethod;
+import com.intellij.psi.*;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.refactoring.makeStatic.MakeStaticHandler;
 import com.intellij.refactoring.move.MoveHandler;
 import com.intellij.ui.EditorTextField;
+import org.jetbrains.kotlin.js.translate.utils.PsiUtils;
+import org.jetbrains.plugins.groovy.lang.documentation.MethodUtil;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
@@ -42,28 +43,102 @@ public final class RefactoringUtil {
     }
 
     public static void moveRefactoring(Map<String, String> refactorings, Project project, AnalysisScope scope) {
-        // todo
-//        final Map<PsiElement, List<PsiElement>> groupedMovements = refactorings.keySet().stream()
-//                .collect(Collectors.groupingBy(refactorings::get, Collectors.toList()));
-//        for (Entry<PsiElement, List<PsiElement>> refactoring : groupedMovements.entrySet()) {
-//            final PsiElement movement = refactoring.getKey();
-//            final PsiElement[] methods = refactoring.getValue().stream()
-//                    .toArray(PsiElement[]::new);
-////            Arrays.stream(methods).forEach(e -> MakeStaticHandler.invoke((PsiTypeParameterListOwner) e));
-//                MoveHandler.doMove(project, methods, movement, DataContext.EMPTY_CONTEXT, null);
-//        }
+        System.out.println("refactorings:");
+        for (Entry<String, String> e : refactorings.entrySet()) {
+            System.out.println(e.getKey() + " to " + e.getValue());
+        }
+
+        final Map<String, List<String>> groupedMovements = refactorings.keySet().stream()
+                .collect(Collectors.groupingBy(refactorings::get, Collectors.toList()));
+        for (Entry<String, List<String>> refactoring : groupedMovements.entrySet()) {
+            final List<PsiElement> members = refactoring.getValue().stream()
+                    .map(name -> findElement(name, scope))
+                    .map(element -> makeStatic(element, scope))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            moveMembersRefactoring(members, refactoring.getKey(), project, scope);
+        }
     }
 
-    public static PsiMethod findElement(String signature, AnalysisScope scope) {
-        final PsiMethod[] resultHolder = new PsiMethod[1];
+    private static void moveMembersRefactoring(Collection<PsiElement> elements, String targetClass, Project project,
+                                               AnalysisScope scope) {
+        final Map<PsiClass, List<PsiElement>> groupByCurrentClass = elements.stream()
+                .collect(Collectors.groupingBy(RefactoringUtil::containingClass, Collectors.toList()));
+        for (Entry<PsiClass, List<PsiElement>> movement : groupByCurrentClass.entrySet()) {
+            final PsiElement destiny = findElement(targetClass, scope);
+            System.out.println("move from " + movement.getKey().getQualifiedName() + " to " + destiny);
+            final PsiElement[] array = movement.getValue().stream().toArray(PsiElement[]::new);
+            MoveHandler.doMove(project, array, destiny, DataContext.EMPTY_CONTEXT, null);
+        }
+    }
+
+    private static PsiClass containingClass(PsiElement element) {
+        return PsiTreeUtil.getParentOfType(element, PsiClass.class);
+    }
+
+    public static PsiElement makeStatic(PsiElement element, AnalysisScope scope) {
+        if (!(element instanceof PsiMethod)) {
+            return element;
+        }
+        final PsiMethod method = (PsiMethod) element;
+        if (MethodUtils.isStatic(method)) {
+            return method;
+        }
+        MakeStaticHandler.invoke(method);
+        final List<PsiMethod> methods = findMethodByName(method.getName(), scope)
+                .stream()
+                .filter(MethodUtils::isStatic)
+                .filter(m -> MethodUtils.parametersCount(m) >= MethodUtils.parametersCount(method))
+                .collect(Collectors.toList());
+        return methods.isEmpty()? null : methods.get(0);
+    }
+
+    public static PsiElement findElement(String humanReadableName, AnalysisScope scope) {
+        final PsiElement[] resultHolder = new PsiElement[1];
         scope.accept(new JavaRecursiveElementVisitor() {
             @Override
             public void visitMethod(PsiMethod method) {
-                if (MethodUtils.calculateSignature(method).equals(signature)) {
+                if (MethodUtils.calculateSignature(method).equals(humanReadableName)) {
                     resultHolder[0] = method;
                 }
             }
+
+            @Override
+            public void visitClass(PsiClass aClass) {
+                super.visitClass(aClass);
+                if (humanReadableName.equals(aClass.getQualifiedName())) {
+                    resultHolder[0] = aClass;
+                }
+            }
+
+            @Override
+            public void visitField(PsiField field) {
+                super.visitField(field);
+                //todo use correct comparision
+                if (humanReadableName.equals(field.getName())) {
+                    resultHolder[0] = field;
+                }
+            }
         });
+        if (resultHolder[0] == null) {
+            System.out.println("Not found: " + humanReadableName);
+        }
         return resultHolder[0];
+    }
+
+    public static List<PsiMethod> findMethodByName(String name, AnalysisScope scope) {
+        final List<PsiMethod> resultCollector = new ArrayList<>();
+        scope.accept(new JavaRecursiveElementVisitor() {
+            @Override
+            public void visitMethod(PsiMethod method) {
+                if (method.getName().equals(name)) {
+                    resultCollector.add(method);
+                }
+            }
+        });
+        if (resultCollector.isEmpty()) { // todo remove debug output
+            System.out.println(name);
+        }
+        return resultCollector;
     }
 }

@@ -53,6 +53,14 @@ public final class MethodUtils {
         return containingClass != null && containingClass.isInterface();
     }
 
+    public static boolean isStatic(PsiMethod method) {
+        return method.hasModifierProperty(PsiModifier.STATIC);
+    }
+
+    public static int parametersCount(PsiMethod method) {
+        return method.getParameterList().getParametersCount();
+    }
+
     public static String calculateSignature(PsiMethod method) {
         final PsiClass containingClass = method.getContainingClass();
         final String className;
