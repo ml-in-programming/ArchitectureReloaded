@@ -124,4 +124,8 @@ public class RefactoringsTableModel extends AbstractTableModel {
     public String getElement(int row) {
         return units.get(row);
     }
+
+    public String getMovement(int row) {
+        return movements.get(row);
+    }
 }

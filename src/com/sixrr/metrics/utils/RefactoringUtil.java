@@ -28,6 +28,8 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import static com.sixrr.metrics.utils.MethodUtils.isStatic;
+
 /**
  * Created by Артём on 05.07.2017.
  */
@@ -68,7 +70,7 @@ public final class RefactoringUtil {
             return element;
         }
         final PsiMethod method = (PsiMethod) element;
-        if (MethodUtils.isStatic(method)) {
+        if (isStatic(method)) {
             return method;
         }
         MakeStaticHandler.invoke(method);
@@ -121,5 +123,17 @@ public final class RefactoringUtil {
             }
         });
         return resultCollector;
+    }
+
+    public static String createDescription(String unit, String moveTo, AnalysisScope scope) {
+        final PsiElement element = findElement(unit, scope);
+        if (element instanceof PsiMethod) {
+            final PsiMethod method = (PsiMethod) element;
+            final String moveFrom = containingClass(method).getQualifiedName();
+            final String descriptionKey;
+            descriptionKey = (isStatic(method) ? "" : "make.static.and.") + "move.description";
+            return ArchitectureReloadedBundle.message(descriptionKey, method.getName(), moveFrom, moveTo);
+        }
+        return "Unsupported element";
     }
 }

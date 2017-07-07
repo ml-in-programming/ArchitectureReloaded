@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
+import static com.sixrr.metrics.utils.RefactoringUtil.createDescription;
 import static com.sixrr.metrics.utils.RefactoringUtil.findElement;
 
 
@@ -52,18 +53,16 @@ public class ClassRefactoringPanel extends JPanel {
     private final AnalysisScope scope;
     private final RefactoringsTableModel model;
     private final Collection<OnRefactoringFinishedListener> listeners = new ArrayList<>();
-    private final JBTable table;
+    private final JBTable table = new JBTable();
     private final JavaCodePanel codePanel;
-    private final JBLabel description;
+    private final JBLabel description = new JBLabel();
 
     public ClassRefactoringPanel(Project project, Map<String, String> refactorings, AnalysisScope scope) {
         this.project = project;
         this.scope = scope;
         setLayout(new BorderLayout());
-        model = new RefactoringsTableModel(refactorings);
-        table = new JBTable(model);
         codePanel = new JavaCodePanel(project);
-        description = new JBLabel();
+        model = new RefactoringsTableModel(refactorings);
         setupGUI();
     }
 
@@ -76,12 +75,13 @@ public class ClassRefactoringPanel extends JPanel {
     }
 
     private JComponent createTablePanel() {
+        table.setModel(model);
         final TableColumn selectionColumn = table.getTableHeader().getColumnModel().getColumn(0);
         selectionColumn.setMaxWidth(30);
         selectionColumn.setMinWidth(30);
         final ListSelectionModel selectionModel = table.getSelectionModel();
         selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        selectionModel.addListSelectionListener(e -> updateCodePanel());
+        selectionModel.addListSelectionListener(e -> updateInfoPanel());
         return ScrollPaneFactory.createScrollPane(table);
     }
 
@@ -103,14 +103,14 @@ public class ClassRefactoringPanel extends JPanel {
 
     private JComponent createInfoPanel() {
         final JPanel infoPanel = new JPanel(new BorderLayout());
-        final JLabel codeTitlePanel = new JLabel("Code of unit");
+        final JLabel codeTitlePanel = new JLabel();
+        codeTitlePanel.setText("Code of element:");
         infoPanel.add(codeTitlePanel, BorderLayout.NORTH);
         final JScrollPane codePanelWrapper = ScrollPaneFactory.createScrollPane(codePanel);
         codePanelWrapper.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         infoPanel.add(codePanelWrapper, BorderLayout.CENTER);
         infoPanel.add(description, BorderLayout.SOUTH);
-        description.setText("Firstly its nessesary to do this unit " +
-                "static, and then it will be moved to another class");
+        description.setText("");
         return infoPanel;
     }
 
@@ -122,11 +122,22 @@ public class ClassRefactoringPanel extends JPanel {
         }
     }
 
-    private void updateCodePanel() {
+    private void updateInfoPanel() {
         final int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            codePanel.showElement(null);
+            description.setText("");
+            return;
+        }
+        final String elementName = model.getElement(selectedRow);
+        final String movement = model.getMovement(selectedRow);
         new Thread(() -> {
-            final PsiElement element = selectedRow == -1 ? null : findElement(model.getElement(selectedRow), scope);
-            SwingUtilities.invokeLater(() -> codePanel.showElement(element));
+            final PsiElement element = findElement(elementName, scope);
+            final String refactoringInfo = createDescription(elementName, movement, scope);
+            SwingUtilities.invokeLater(() -> {
+                codePanel.showElement(element);
+                description.setText(refactoringInfo);
+            });
         }).start();
     }
 
