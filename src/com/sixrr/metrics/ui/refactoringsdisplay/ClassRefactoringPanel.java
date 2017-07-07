@@ -25,6 +25,7 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
+import com.sixrr.metrics.utils.ArchitectureReloadedBundle;
 import com.sixrr.metrics.utils.RefactoringUtil;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,8 +44,11 @@ import static com.sixrr.metrics.utils.RefactoringUtil.findElement;
  */
 public class ClassRefactoringPanel extends JPanel {
 
-    private final Project project; // necessary to do refactorings
-    private final AnalysisScope scope; // necessary to do refactorings
+    private static final String SELECT_ALL_BUTTON_TEXT_KEY = "select.all.button";
+    private static final String REFACTOR_BUTTON_TEXT_KEY = "refactor.button";
+
+    private final Project project;
+    private final AnalysisScope scope;
     private final RefactoringsTableModel model;
     private final Collection<OnRefactoringFinishedListener> listeners = new ArrayList<>();
     private final JBTable table;
@@ -80,11 +84,13 @@ public class ClassRefactoringPanel extends JPanel {
         buttonsPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
         add(buttonsPanel, BorderLayout.SOUTH);
 
-        final JButton selectAllButton = new JButton("Select all");
+        final JButton selectAllButton = new JButton();
+        selectAllButton.setText(ArchitectureReloadedBundle.message(SELECT_ALL_BUTTON_TEXT_KEY));
         selectAllButton.addActionListener(e -> model.selectAll());
         buttonsPanel.add(selectAllButton);
 
-        final JButton doRefactorButton = new JButton("Refactor");
+        final JButton doRefactorButton = new JButton();
+        doRefactorButton.setText(ArchitectureReloadedBundle.message(REFACTOR_BUTTON_TEXT_KEY));
         doRefactorButton.addActionListener(e -> refactorSelected());
         buttonsPanel.add(doRefactorButton);
     }

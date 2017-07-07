@@ -16,6 +16,7 @@
 
 package com.sixrr.metrics.ui.refactoringsdisplay;
 
+import com.sixrr.metrics.utils.ArchitectureReloadedBundle;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.table.AbstractTableModel;
@@ -27,16 +28,19 @@ import java.util.Map.Entry;
  */
 public class RefactoringsTableModel extends AbstractTableModel {
 
-    private List<String> methods = new ArrayList<>();
+    private static final String UNIT_COLUMN_TITLE_KEY = "unit.column.title";
+    private static final String MOVE_TO_COLUMN_TITLE_KEY = "move.to.column.title";
+
+    private List<String> units = new ArrayList<>();
     private List<String> movements = new ArrayList<>();
     private boolean[] isSelected;
 
     RefactoringsTableModel(Map<String, String> refactorings) {
         for (Entry<String, String> refactoring : refactorings.entrySet()) {
-            methods.add(refactoring.getKey());
+            units.add(refactoring.getKey());
             movements.add(refactoring.getValue());
         }
-        isSelected = new boolean[methods.size()];
+        isSelected = new boolean[units.size()];
     }
 
     public void selectAll() {
@@ -45,20 +49,20 @@ public class RefactoringsTableModel extends AbstractTableModel {
     }
 
     public Map<String, String> extractSelected() {
-        final List<String> notSelectedMethods = new ArrayList<>();
+        final List<String> notSelectedUnits = new ArrayList<>();
         final List<String> notSelectedMovements = new ArrayList<>();
         final Map<String, String> selected = new HashMap<>();
         for (int i = 0; i < isSelected.length; i++) {
             if (isSelected[i]) {
-                selected.put(methods.get(i), movements.get(i));
+                selected.put(units.get(i), movements.get(i));
             } else {
-                notSelectedMethods.add(methods.get(i));
+                notSelectedUnits.add(units.get(i));
                 notSelectedMovements.add(movements.get(i));
             }
         }
-        methods = notSelectedMethods;
+        units = notSelectedUnits;
         movements = notSelectedMovements;
-        isSelected = new boolean[notSelectedMethods.size()];
+        isSelected = new boolean[notSelectedUnits.size()];
         fireTableDataChanged();
         return selected;
     }
@@ -72,11 +76,11 @@ public class RefactoringsTableModel extends AbstractTableModel {
     public String getColumnName(int column) {
         switch (column) {
             case 0:
-                return "  ";
+                return "";
             case 1:
-                return "Method";
+                return ArchitectureReloadedBundle.message(UNIT_COLUMN_TITLE_KEY);
             case 2:
-                return "Move to";
+                return ArchitectureReloadedBundle.message(MOVE_TO_COLUMN_TITLE_KEY);
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }
@@ -93,7 +97,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
 
     @Override
     public int getRowCount() {
-        return methods.size();
+        return units.size();
     }
 
 
@@ -110,7 +114,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
             case 0:
                 return Boolean.valueOf(isSelected[rowIndex]);
             case 1:
-                return methods.get(rowIndex);
+                return units.get(rowIndex);
             case 2:
                 return movements.get(rowIndex);
         }
@@ -118,6 +122,6 @@ public class RefactoringsTableModel extends AbstractTableModel {
     }
 
     public String getElement(int row) {
-        return methods.get(row);
+        return units.get(row);
     }
 }

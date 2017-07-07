@@ -21,7 +21,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBTabbedPane;
 import com.sixrr.metrics.ui.refactoringsdisplay.ClassRefactoringPanel;
-import com.sixrr.metrics.utils.MetricsReloadedBundle;
+import com.sixrr.metrics.utils.ArchitectureReloadedBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +33,8 @@ import java.util.Map;
 
 public class RefactoringDialog extends DialogWrapper {
 
+    private static final String DIMENSIONS_SERVICE_KEY = "ArchitectureReloaded.RefactoringDialog";
+    private static final String DIALOG_TITLE_KEY = "refactoring.dialog.title";
     private static final Action[] EMPTY_ACTION_ARRAY = new Action[0];
     private final JBTabbedPane pane = new JBTabbedPane();
     private final Project project;
@@ -43,7 +45,7 @@ public class RefactoringDialog extends DialogWrapper {
         this.project = project;
         this.scope = scope;
         setModal(true);
-        setTitle(MetricsReloadedBundle.message("refactoring.dialog.title"));
+        setTitle(ArchitectureReloadedBundle.message(DIALOG_TITLE_KEY));
         init();
         pack();
     }
@@ -51,7 +53,7 @@ public class RefactoringDialog extends DialogWrapper {
     @Override
     @NonNls
     protected String getDimensionServiceKey() {
-        return "MetricsReloaded.RefactoringDialog";
+        return DIMENSIONS_SERVICE_KEY;
     }
 
     @NotNull
