@@ -3,7 +3,7 @@ public class Laptop {
         System.out.println("Constructor of Laptop class.");
     }
 
-    void laptop_method() {
+    void laptopMethod() {
         System.out.println("99% Battery available.");
     }
 }
