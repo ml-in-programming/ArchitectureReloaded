@@ -35,26 +35,26 @@ public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
+    }
 
+    @Override
+    protected String getTestDataPath() {
+        return "testdata/" + getTestName(true);
+    }
+
+    public void testMoveMethod() throws IOException {
         final VirtualFile file1 = myFixture.copyFileToProject("ClassA.java");
         final VirtualFile file2 = myFixture.copyFileToProject("ClassB.java");
 
         project = myFixture.getProject();
         analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2));
         profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
-    }
 
-    @Override
-    protected String getTestDataPath() {
-        return "resources/examples/example2";
-    }
-
-    public void test() throws IOException {
         new RefactoringExecutionContext(project, analysisScope, profile, false
-                , RefactoringDetectionTest::calculateRefactorings);
+                , RefactoringDetectionTest::calculateMoveMethodRefactorings);
     }
 
-    private static void calculateRefactorings(RefactoringExecutionContext context) {
+    private static void calculateMoveMethodRefactorings(RefactoringExecutionContext context) {
         assertEquals(2, context.getClassCount());
         assertEquals(6, context.getMethodsCount());
         assertEquals(4, context.getFieldsCount());

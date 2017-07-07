@@ -3,7 +3,7 @@ public class Computer {
         System.out.println("Constructor of Computer class.");
     }
 
-    void computer_method() {
+    void computerMethod() {
         System.out.println("Power gone! Shut down your PC soon...");
     }
 
@@ -11,8 +11,8 @@ public class Computer {
         Computer my = new Computer();
         Laptop your = new Laptop();
 
-        my.computer_method();
-        your.laptop_method();
+        my.computerMethod();
+        your.laptopMethod();
     }
 }
 
