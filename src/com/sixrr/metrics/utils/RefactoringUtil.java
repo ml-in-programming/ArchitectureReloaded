@@ -103,8 +103,12 @@ public final class RefactoringUtil {
             @Override
             public void visitField(PsiField field) {
                 super.visitField(field);
-                //todo use correct comparision
-                if (humanReadableName.equals(field.getName())) {
+                final PsiClass containingClass = field.getContainingClass();
+                if (containingClass == null) {
+                    return;
+                }
+                final String fieldName = containingClass.getQualifiedName() + "." + field.getName();
+                if (humanReadableName.equals(fieldName)) {
                     resultHolder[0] = field;
                 }
             }
