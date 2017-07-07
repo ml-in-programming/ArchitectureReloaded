@@ -23,6 +23,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import com.sixrr.metrics.utils.ArchitectureReloadedBundle;
@@ -53,6 +54,7 @@ public class ClassRefactoringPanel extends JPanel {
     private final Collection<OnRefactoringFinishedListener> listeners = new ArrayList<>();
     private final JBTable table;
     private final JavaCodePanel codePanel;
+    private final JBLabel description;
 
     public ClassRefactoringPanel(Project project, Map<String, String> refactorings, AnalysisScope scope) {
         this.project = project;
@@ -61,28 +63,31 @@ public class ClassRefactoringPanel extends JPanel {
         model = new RefactoringsTableModel(refactorings);
         table = new JBTable(model);
         codePanel = new JavaCodePanel(project);
+        description = new JBLabel();
         setupGUI();
     }
 
     private void setupGUI() {
-        final JScrollPane codePanelWrapper = ScrollPaneFactory.createScrollPane(codePanel);
-        codePanelWrapper.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        final JBSplitter splitter = new JBSplitter(false); // todo proportion key
+        splitter.setFirstComponent(createTablePanel());
+        splitter.setSecondComponent(createInfoPanel());
+        add(splitter, BorderLayout.CENTER);
+        add(createButtonsPanel(), BorderLayout.SOUTH);
+    }
 
+    private JComponent createTablePanel() {
         final TableColumn selectionColumn = table.getTableHeader().getColumnModel().getColumn(0);
         selectionColumn.setMaxWidth(30);
         selectionColumn.setMinWidth(30);
         final ListSelectionModel selectionModel = table.getSelectionModel();
         selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         selectionModel.addListSelectionListener(e -> updateCodePanel());
+        return ScrollPaneFactory.createScrollPane(table);
+    }
 
-        final JBSplitter splitter = new JBSplitter(false); // todo proportion key
-        splitter.setFirstComponent(ScrollPaneFactory.createScrollPane(table));
-        splitter.setSecondComponent(codePanelWrapper);
-        add(splitter, BorderLayout.CENTER);
-
+    private JComponent createButtonsPanel() {
         final JPanel buttonsPanel = new JBPanel<>();
         buttonsPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-        add(buttonsPanel, BorderLayout.SOUTH);
 
         final JButton selectAllButton = new JButton();
         selectAllButton.setText(ArchitectureReloadedBundle.message(SELECT_ALL_BUTTON_TEXT_KEY));
@@ -93,6 +98,20 @@ public class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setText(ArchitectureReloadedBundle.message(REFACTOR_BUTTON_TEXT_KEY));
         doRefactorButton.addActionListener(e -> refactorSelected());
         buttonsPanel.add(doRefactorButton);
+        return buttonsPanel;
+    }
+
+    private JComponent createInfoPanel() {
+        final JPanel infoPanel = new JPanel(new BorderLayout());
+        final JLabel codeTitlePanel = new JLabel("Code of unit");
+        infoPanel.add(codeTitlePanel, BorderLayout.NORTH);
+        final JScrollPane codePanelWrapper = ScrollPaneFactory.createScrollPane(codePanel);
+        codePanelWrapper.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        infoPanel.add(codePanelWrapper, BorderLayout.CENTER);
+        infoPanel.add(description, BorderLayout.SOUTH);
+        description.setText("Firstly its nessesary to do this unit " +
+                "static, and then it will be moved to another class");
+        return infoPanel;
     }
 
     private void refactorSelected() {
