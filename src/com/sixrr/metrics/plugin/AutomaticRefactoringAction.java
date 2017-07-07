@@ -23,6 +23,7 @@ import com.intellij.openapi.project.Project;
 import com.sixrr.metrics.profile.MetricsProfile;
 import com.sixrr.metrics.profile.MetricsProfileRepository;
 import com.sixrr.metrics.ui.dialogs.ProfileSelectionPanel;
+import com.sixrr.metrics.ui.dialogs.RefactoringDialog;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +56,13 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
         final Map<String, String> refactoringsAKMeans = context.calculateAKMeans();
         final Map<String, String> refactoringsHAC = context.calculateHAC();
         final Map<String, String> refactoringsARI = context.calculateARI();
+        new RefactoringDialog(context.getProject(), context.getScope())
+                .addSolution("CCDA", refactoringsCCDA)
+                .addSolution("MRI", refactoringsMRI)
+                .addSolution("AKMeans", refactoringsAKMeans)
+                .addSolution("HAC", refactoringsHAC)
+                .addSolution("ARI", refactoringsARI)
+                .show();
     }
 
     @Override
