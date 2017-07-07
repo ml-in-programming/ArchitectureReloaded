@@ -48,6 +48,7 @@ public class ClassRefactoringPanel extends JPanel {
 
     private static final String SELECT_ALL_BUTTON_TEXT_KEY = "select.all.button";
     private static final String REFACTOR_BUTTON_TEXT_KEY = "refactor.button";
+    private static final String SPLITTER_PROPORTION_KEY = "refactoring.panel.splitter.proportion.key";
 
     private final Project project;
     private final AnalysisScope scope;
@@ -56,6 +57,8 @@ public class ClassRefactoringPanel extends JPanel {
     private final JBTable table = new JBTable();
     private final JavaCodePanel codePanel;
     private final JBLabel description = new JBLabel();
+    private final JButton selectAllButton = new JButton();
+    private final JButton doRefactorButton = new JButton();
 
     public ClassRefactoringPanel(Project project, Map<String, String> refactorings, AnalysisScope scope) {
         this.project = project;
@@ -67,7 +70,7 @@ public class ClassRefactoringPanel extends JPanel {
     }
 
     private void setupGUI() {
-        final JBSplitter splitter = new JBSplitter(false); // todo proportion key
+        final JBSplitter splitter = new JBSplitter(SPLITTER_PROPORTION_KEY, 0.5f);
         splitter.setFirstComponent(createTablePanel());
         splitter.setSecondComponent(createInfoPanel());
         add(splitter, BorderLayout.CENTER);
@@ -89,12 +92,10 @@ public class ClassRefactoringPanel extends JPanel {
         final JPanel buttonsPanel = new JBPanel<>();
         buttonsPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 
-        final JButton selectAllButton = new JButton();
         selectAllButton.setText(ArchitectureReloadedBundle.message(SELECT_ALL_BUTTON_TEXT_KEY));
         selectAllButton.addActionListener(e -> model.selectAll());
         buttonsPanel.add(selectAllButton);
 
-        final JButton doRefactorButton = new JButton();
         doRefactorButton.setText(ArchitectureReloadedBundle.message(REFACTOR_BUTTON_TEXT_KEY));
         doRefactorButton.addActionListener(e -> refactorSelected());
         buttonsPanel.add(doRefactorButton);
@@ -104,7 +105,7 @@ public class ClassRefactoringPanel extends JPanel {
     private JComponent createInfoPanel() {
         final JPanel infoPanel = new JPanel(new BorderLayout());
         final JLabel codeTitlePanel = new JLabel();
-        codeTitlePanel.setText("Code of element:");
+        codeTitlePanel.setText(ArchitectureReloadedBundle.message("code.of.element"));
         infoPanel.add(codeTitlePanel, BorderLayout.NORTH);
         final JScrollPane codePanelWrapper = ScrollPaneFactory.createScrollPane(codePanel);
         codePanelWrapper.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -115,11 +116,11 @@ public class ClassRefactoringPanel extends JPanel {
     }
 
     private void refactorSelected() {
-        final Map<String, String> movements = model.extractSelected();
+        doRefactorButton.setEnabled(false);
+        selectAllButton.setEnabled(false);
+        final Map<String, String> movements = model.getSelected();
         RefactoringUtil.moveRefactoring(movements, project, scope);
-        if (model.getRowCount() == 0) {
-            listeners.forEach(l -> l.onRefactoringFinished(this));
-        }
+        listeners.forEach(l -> l.onRefactoringFinished(this));
     }
 
     private void updateInfoPanel() {

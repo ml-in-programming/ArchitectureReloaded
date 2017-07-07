@@ -22,6 +22,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.table.AbstractTableModel;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Created by Артём on 05.07.2017.
@@ -30,10 +32,14 @@ public class RefactoringsTableModel extends AbstractTableModel {
 
     private static final String UNIT_COLUMN_TITLE_KEY = "unit.column.title";
     private static final String MOVE_TO_COLUMN_TITLE_KEY = "move.to.column.title";
+    private static final int UNIT_COLUMN_INDEX = 1;
+    private static final int MOVE_TO_COLUMN_INDEX = 2;
+    private static final int SELECTION_COLUMN_INDEX = 0;
 
-    private List<String> units = new ArrayList<>();
-    private List<String> movements = new ArrayList<>();
-    private boolean[] isSelected;
+
+    private final List<String> units = new ArrayList<>();
+    private final List<String> movements = new ArrayList<>();
+    private final boolean[] isSelected;
 
     RefactoringsTableModel(Map<String, String> refactorings) {
         for (Entry<String, String> refactoring : refactorings.entrySet()) {
@@ -48,23 +54,11 @@ public class RefactoringsTableModel extends AbstractTableModel {
         fireTableDataChanged();
     }
 
-    public Map<String, String> extractSelected() {
-        final List<String> notSelectedUnits = new ArrayList<>();
-        final List<String> notSelectedMovements = new ArrayList<>();
-        final Map<String, String> selected = new HashMap<>();
-        for (int i = 0; i < isSelected.length; i++) {
-            if (isSelected[i]) {
-                selected.put(units.get(i), movements.get(i));
-            } else {
-                notSelectedUnits.add(units.get(i));
-                notSelectedMovements.add(movements.get(i));
-            }
-        }
-        units = notSelectedUnits;
-        movements = notSelectedMovements;
-        isSelected = new boolean[notSelectedUnits.size()];
-        fireTableDataChanged();
-        return selected;
+    public Map<String, String> getSelected() {
+        return IntStream.range(0, isSelected.length)
+                .filter(i -> isSelected[i])
+                .boxed()
+                .collect(Collectors.toMap(units::get, movements::get));
     }
 
     @Override
@@ -75,11 +69,11 @@ public class RefactoringsTableModel extends AbstractTableModel {
     @Override
     public String getColumnName(int column) {
         switch (column) {
-            case 0:
+            case SELECTION_COLUMN_INDEX:
                 return "";
-            case 1:
+            case UNIT_COLUMN_INDEX:
                 return ArchitectureReloadedBundle.message(UNIT_COLUMN_TITLE_KEY);
-            case 2:
+            case MOVE_TO_COLUMN_INDEX:
                 return ArchitectureReloadedBundle.message(MOVE_TO_COLUMN_TITLE_KEY);
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + column);
@@ -87,12 +81,12 @@ public class RefactoringsTableModel extends AbstractTableModel {
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return columnIndex == 0;
+        return columnIndex == SELECTION_COLUMN_INDEX;
     }
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
-        return columnIndex == 0 ? Boolean.class : String.class;
+        return columnIndex == SELECTION_COLUMN_INDEX ? Boolean.class : String.class;
     }
 
     @Override
@@ -111,11 +105,11 @@ public class RefactoringsTableModel extends AbstractTableModel {
     @Nullable
     public Object getValueAt(int rowIndex, int columnIndex) {
         switch (columnIndex) {
-            case 0:
+            case SELECTION_COLUMN_INDEX:
                 return Boolean.valueOf(isSelected[rowIndex]);
-            case 1:
+            case UNIT_COLUMN_INDEX:
                 return units.get(rowIndex);
-            case 2:
+            case MOVE_TO_COLUMN_INDEX:
                 return movements.get(rowIndex);
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + columnIndex);
