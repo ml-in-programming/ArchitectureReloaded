@@ -45,16 +45,16 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
         final MetricsProfile metricsProfile = repository.getCurrentProfile();
         assert metricsProfile != null;
 
-        final RefactoringExecutionContext context =
-                new RefactoringExecutionContext(project, analysisScope, metricsProfile, true);
+        new RefactoringExecutionContext(project, analysisScope, metricsProfile, true
+                , AutomaticRefactoringAction::calculateRefactorings);
+    }
 
-        // TODO: call them from RefactoringExecutionContext.onFinish() as callbacks
+    private static void calculateRefactorings(RefactoringExecutionContext context) {
         final Map<String, String> refactoringsCCDA = context.calculateCCDA();
         final Map<String, String> refactoringsMRI = context.calculateMRI();
         final Map<String, String> refactoringsAKMeans = context.calculateAKMeans();
         final Map<String, String> refactoringsHAC = context.calculateHAC();
         final Map<String, String> refactoringsARI = context.calculateARI();
-
     }
 
     @Override

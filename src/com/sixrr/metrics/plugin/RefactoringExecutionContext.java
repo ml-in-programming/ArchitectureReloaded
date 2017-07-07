@@ -30,6 +30,7 @@ import com.sixrr.metrics.profile.MetricsProfile;
 import com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import vector.model.*;
 import vector.model.entity.ClassEntity;
 import vector.model.entity.Entity;
@@ -37,11 +38,13 @@ import vector.model.entity.FieldEntity;
 import vector.model.entity.MethodEntity;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
     @NotNull private final MetricsRunImpl metricsRun = new MetricsRunImpl();
     @NotNull private final MetricsProfile profile;
     @NotNull private final PropertiesFinder properties;
+    @Nullable private final Consumer<RefactoringExecutionContext> continuation;
     private final boolean enableUi;
     private final List<Entity> entities = new ArrayList<>();
     private int classCount = 0;
@@ -49,10 +52,12 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
     private int fieldsCount = 0;
 
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope
-            , @NotNull MetricsProfile profile, boolean enableUi) {
+            , @NotNull MetricsProfile profile, boolean enableUi
+            , @Nullable Consumer<RefactoringExecutionContext> continuation) {
         super(project, scope);
         this.profile = profile;
         this.enableUi = enableUi;
+        this.continuation = continuation;
 
         properties = new PropertiesFinder();
         scope.accept(properties.createVisitor(scope));
@@ -119,6 +124,10 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
         System.out.println("Methods: " + methodsCount);
         System.out.println("Properties: " + fieldsCount);
         System.out.println();
+
+        if (continuation != null) {
+            continuation.accept(this);
+        }
     }
 
     @NotNull
