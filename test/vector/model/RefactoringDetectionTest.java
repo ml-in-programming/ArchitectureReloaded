@@ -27,7 +27,7 @@ import com.sixrr.metrics.profile.MetricsProfileRepository;
 import java.io.IOException;
 import java.util.*;
 
-public class AKMeansTest extends LightCodeInsightFixtureTestCase {
+public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
     private Project project;
     private AnalysisScope analysisScope;
     private MetricsProfile profile;
@@ -50,9 +50,11 @@ public class AKMeansTest extends LightCodeInsightFixtureTestCase {
     }
 
     public void test() throws IOException {
-        final RefactoringExecutionContext context =
-                new RefactoringExecutionContext(project, analysisScope, profile, false);
+        new RefactoringExecutionContext(project, analysisScope, profile, false
+                , RefactoringDetectionTest::calculateRefactorings);
+    }
 
+    private static void calculateRefactorings(RefactoringExecutionContext context) {
         assertEquals(2, context.getClassCount());
         assertEquals(6, context.getMethodsCount());
         assertEquals(4, context.getFieldsCount());
