@@ -86,12 +86,13 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
 
         final MetricsResult classMetrics = metricsRun.getResultsForCategory(MetricCategory.Class);
         final MetricsResult methodMetrics = metricsRun.getResultsForCategory(MetricCategory.Method);
+        final Set<String> allClassNames = properties.getAllClassesNames();
 
         for (String obj : classMetrics.getMeasuredObjects()) {
             if (obj.equals("null")) {
                 continue;
             }
-            if (!properties.getAllClassesNames().contains(obj)) {
+            if (!allClassNames.contains(obj)) {
                 continue;
             }
             final Entity classEnt = new ClassEntity(obj, metricsRun, properties);
