@@ -18,9 +18,10 @@ package com.sixrr.metrics.utils;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.refactoring.makeStatic.MakeStaticHandler;
 import com.intellij.refactoring.move.MoveHandler;
 
@@ -41,19 +42,21 @@ public final class RefactoringUtil {
         final Map<String, List<String>> groupedMovements = refactorings.keySet().stream()
                 .collect(Collectors.groupingBy(refactorings::get, Collectors.toList()));
         for (Entry<String, List<String>> refactoring : groupedMovements.entrySet()) {
-            final List<PsiElement> members = refactoring.getValue().stream()
+            final List<PsiMember> members = refactoring.getValue().stream()
+                    .sequential()
                     .map(name -> findElement(name, scope))
-                    .map(element -> makeStatic(element, scope))
+                    .map(element -> makeStatic((PsiMember) element, scope))
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
             moveMembersRefactoring(members, refactoring.getKey(), project, scope);
         }
     }
 
-    private static void moveMembersRefactoring(Collection<PsiElement> elements, String targetClass, Project project,
+    private static void moveMembersRefactoring(Collection<PsiMember> elements, String targetClass, Project project,
                                                AnalysisScope scope) {
+        ApplicationManager.getApplication().assertReadAccessAllowed();
         final Map<PsiClass, List<PsiElement>> groupByCurrentClass = elements.stream()
-                .collect(Collectors.groupingBy(RefactoringUtil::containingClass, Collectors.toList()));
+                .collect(Collectors.groupingBy(PsiMember::getContainingClass, Collectors.toList()));
         for (Entry<PsiClass, List<PsiElement>> movement : groupByCurrentClass.entrySet()) {
             final PsiElement destiny = findElement(targetClass, scope);
             final PsiElement[] array = movement.getValue().stream().toArray(PsiElement[]::new);
@@ -61,15 +64,14 @@ public final class RefactoringUtil {
         }
     }
 
-    private static PsiClass containingClass(PsiElement element) {
-        return PsiTreeUtil.getParentOfType(element, PsiClass.class);
-    }
-
-    public static PsiElement makeStatic(PsiElement element, AnalysisScope scope) {
+    public static PsiMember makeStatic(PsiMember element, AnalysisScope scope) {
         if (!(element instanceof PsiMethod)) {
-            return element;
+            return isStatic(element)? element : null;
         }
         final PsiMethod method = (PsiMethod) element;
+        if (method.isConstructor()) {
+            return null;
+        }
         if (isStatic(method)) {
             return method;
         }
@@ -130,14 +132,16 @@ public final class RefactoringUtil {
     }
 
     public static String createDescription(String unit, String moveTo, AnalysisScope scope) {
-        final PsiElement element = findElement(unit, scope);
-        if (element instanceof PsiMethod) {
-            final PsiMethod method = (PsiMethod) element;
-            final String moveFrom = containingClass(method).getQualifiedName();
-            final String descriptionKey;
-            descriptionKey = (isStatic(method) ? "" : "make.static.and.") + "move.description";
-            return ArchitectureReloadedBundle.message(descriptionKey, method.getName(), moveFrom, moveTo);
-        }
-        return "Unsupported element";
+        return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
+            final PsiElement element = findElement(unit, scope);
+            if (element instanceof PsiMethod) {
+                final PsiMethod method = (PsiMethod) element;
+                final String moveFrom = method.getContainingClass().getQualifiedName();
+                final String descriptionKey;
+                descriptionKey = (isStatic(method) ? "" : "make.static.and.") + "move.description";
+                return ArchitectureReloadedBundle.message(descriptionKey, method.getName(), moveFrom, moveTo);
+            }
+            return "Unsupported element";
+        });
     }
 }

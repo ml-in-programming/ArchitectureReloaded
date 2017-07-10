@@ -18,6 +18,7 @@ package com.sixrr.metrics.ui.refactoringsdisplay;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.ui.EditorTextField;
@@ -119,7 +120,8 @@ public class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setEnabled(false);
         selectAllButton.setEnabled(false);
         final Map<String, String> movements = model.getSelected();
-        RefactoringUtil.moveRefactoring(movements, project, scope);
+        ApplicationManager.getApplication().runReadAction(() ->
+                    RefactoringUtil.moveRefactoring(movements, project, scope));
         listeners.forEach(l -> l.onRefactoringFinished(this));
     }
 

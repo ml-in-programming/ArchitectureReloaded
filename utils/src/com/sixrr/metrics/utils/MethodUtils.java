@@ -53,7 +53,7 @@ public final class MethodUtils {
         return containingClass != null && containingClass.isInterface();
     }
 
-    public static boolean isStatic(PsiMethod method) {
+    public static boolean isStatic(PsiModifierListOwner method) {
         return method.hasModifierProperty(PsiModifier.STATIC);
     }
 
