@@ -32,10 +32,10 @@ public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
     private AnalysisScope analysisScope;
     private MetricsProfile profile;
 
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-    }
+//    @Override
+//    public void setUp() throws Exception {
+//        super.setUp();
+//    }
 
     @Override
     protected String getTestDataPath() {

@@ -14,9 +14,9 @@
   ~  limitations under the License.
   -->
 
-<idea-plugin version="2" url="https://github.com/ml-in-programming/architectureReloaded">
-  <name>ArchitectureReloaded</name>
-  <id>ArchitectureReloaded</id>
+<idea-plugin url="https://github.com/ml-in-programming/architectureReloaded">
+  <name>MetricsReloaded</name>
+  <id>MetricsReloaded</id>
   <depends>com.intellij.modules.lang</depends>
   <description><![CDATA[
     Automated design defects detection plugin for IntelliJ IDEA. Finds possible refactorings for Java code
@@ -48,8 +48,8 @@
                     serviceImplementation="com.sixrr.metrics.ui.metricdisplay.MetricsToolWindowImpl"/>
     <exportable serviceInterface="com.sixrr.metrics.profile.MetricsProfileRepository"/>
   </extensions>
-  <extensions defaultExtensionNs="ArchitectureReloaded">
-    <metricProvider implementation="com.sixrr.stockmetrics.JavaMetricProvider"/>
+  <extensions defaultExtensionNs="MetricsReloaded">
+    <metricProvider implementation="com.sixrr.stockmetrics.DefaultMetricProvider"/>
   </extensions>
 
   <actions>
