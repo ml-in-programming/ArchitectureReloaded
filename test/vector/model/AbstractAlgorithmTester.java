@@ -161,6 +161,19 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
                 , this::calculateDontMoveOverriddenRefactorings);
     }
 
+    public void testCircularDependency() throws IOException {
+        final VirtualFile file1 = loadFile("ClassA.java");
+        final VirtualFile file2 = loadFile("ClassB.java");
+        final VirtualFile file3 = loadFile("ClassC.java");
+
+        final Project project = myFixture.getProject();
+        final AnalysisScope analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2, file3));
+        profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
+
+        new RefactoringExecutionContext(project, analysisScope, profile, false
+                , this::calculateCircularDependency);
+    }
+
     private void calculateMoveMethodRefactorings(RefactoringExecutionContext context) {
         assertEquals(2, context.getClassCount());
         assertEquals(6, context.getMethodsCount());
@@ -267,5 +280,24 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(0, refactorings.size());
+    }
+
+    private void calculateCircularDependency(RefactoringExecutionContext context) {
+        assertEquals(3, context.getClassCount());
+        assertEquals(3, context.getMethodsCount());
+        assertEquals(0, context.getFieldsCount());
+
+        final Map<String, String> refactorings = applyAlgorithm(context);
+        assertEquals(2, refactorings.size());
+        final String moveToClass;
+        if (!refactorings.containsKey("circularDependency.ClassA.fooA()")) {
+            moveToClass = "circularDependency.ClassA";
+        } else if (!refactorings.containsKey("circularDependency.ClassB.fooB()")) {
+            moveToClass = "circularDependency.ClassB";
+        } else {
+            moveToClass = "circularDependency.ClassC";
+        }
+        assertEquals(1L, refactorings.values().stream().distinct().count());
+        assertTrue(refactorings.containsValue(moveToClass));
     }
 }
