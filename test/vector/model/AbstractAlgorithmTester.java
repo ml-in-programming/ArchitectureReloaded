@@ -171,7 +171,19 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
 
         new RefactoringExecutionContext(project, analysisScope, profile, false
-                , this::calculateCircularDependency);
+                , this::calculateCircularDependencyRefactorings);
+    }
+
+    public void testDontMoveAbstract() throws IOException {
+        final VirtualFile file1 = loadFile("ClassA.java");
+        final VirtualFile file2 = loadFile("ClassB.java");
+
+        final Project project = myFixture.getProject();
+        final AnalysisScope analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2));
+        profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
+
+        new RefactoringExecutionContext(project, analysisScope, profile, false
+                , this::calculateDontMoveAbstractRefactorings);
     }
 
     private void calculateMoveMethodRefactorings(RefactoringExecutionContext context) {
@@ -282,7 +294,7 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         assertEquals(0, refactorings.size());
     }
 
-    private void calculateCircularDependency(RefactoringExecutionContext context) {
+    private void calculateCircularDependencyRefactorings(RefactoringExecutionContext context) {
         assertEquals(3, context.getClassCount());
         assertEquals(3, context.getMethodsCount());
         assertEquals(0, context.getFieldsCount());
@@ -299,5 +311,14 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         }
         assertEquals(1L, refactorings.values().stream().distinct().count());
         assertTrue(refactorings.containsValue(moveToClass));
+    }
+
+    private void calculateDontMoveAbstractRefactorings(RefactoringExecutionContext context) {
+        assertEquals(2, context.getClassCount());
+        assertEquals(3, context.getMethodsCount());
+        assertEquals(0, context.getFieldsCount());
+
+        final Map<String, String> refactorings = applyAlgorithm(context);
+        assertEquals(0, refactorings.size());
     }
 }
