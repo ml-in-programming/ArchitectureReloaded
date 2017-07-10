@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Map;
 
-public class AutomaticRefactoringAction extends BaseAnalysisAction{
+public class AutomaticRefactoringAction extends BaseAnalysisAction {
     public AutomaticRefactoringAction() {
         super(MetricsReloadedBundle.message("metrics.calculation"), MetricsReloadedBundle.message("metrics"));
     }
@@ -51,18 +51,38 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
     }
 
     private static void calculateRefactorings(RefactoringExecutionContext context) {
-        final Map<String, String> refactoringsCCDA = context.calculateCCDA();
-        final Map<String, String> refactoringsMRI = context.calculateMRI();
-        final Map<String, String> refactoringsAKMeans = context.calculateAKMeans();
-        final Map<String, String> refactoringsHAC = context.calculateHAC();
-        final Map<String, String> refactoringsARI = context.calculateARI();
-        new RefactoringDialog(context.getProject(), context.getScope())
-                .addSolution("CCDA", refactoringsCCDA)
-                .addSolution("MRI", refactoringsMRI)
-                .addSolution("AKMeans", refactoringsAKMeans)
-                .addSolution("HAC", refactoringsHAC)
-                .addSolution("ARI", refactoringsARI)
-                .show();
+        final RefactoringDialog dialog = new RefactoringDialog(context.getProject(), context.getScope());
+        try {
+            final Map<String, String> refactoringsCCDA = context.calculateCCDA();
+            dialog.addSolution("CCDA", refactoringsCCDA);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            final Map<String, String> refactoringsMRI = context.calculateMRI();
+            dialog.addSolution("MRI", refactoringsMRI);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            final Map<String, String> refactoringsAKMeans = context.calculateAKMeans();
+            dialog.addSolution("AKMeans", refactoringsAKMeans);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            final Map<String, String> refactoringsHAC = context.calculateHAC();
+            dialog.addSolution("HAC", refactoringsHAC);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            final Map<String, String> refactoringsARI = context.calculateARI();
+            dialog.addSolution("ARI", refactoringsARI);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        dialog.show();
     }
 
     @Override
