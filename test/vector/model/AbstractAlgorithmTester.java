@@ -125,6 +125,18 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
                 , this::calculateReferencesOnlyRefactorings);
     }
 
+    public void testCallFromNested() throws IOException {
+        final VirtualFile file1 = loadFile("ClassA.java");
+        final VirtualFile file2 = loadFile("ClassB.java");
+
+        final Project project = myFixture.getProject();
+        final AnalysisScope analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2));
+        profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
+
+        new RefactoringExecutionContext(project, analysisScope, profile, false
+                , this::calculateCallFromNestedRefactorings);
+    }
+
     private void calculateMoveMethodRefactorings(RefactoringExecutionContext context) {
         assertEquals(2, context.getClassCount());
         assertEquals(6, context.getMethodsCount());
@@ -201,5 +213,17 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         assertTrue(refactorings.containsKey("referencesOnly.ClassA.doSomething2()"));
         assertEquals("referencesOnly.ClassB", refactorings.get("referencesOnly.ClassA.doSomething1()"));
         assertEquals("referencesOnly.ClassB", refactorings.get("referencesOnly.ClassA.doSomething2()"));
+    }
+
+    private void calculateCallFromNestedRefactorings(RefactoringExecutionContext context) {
+        assertEquals(3, context.getClassCount());
+        assertEquals(3, context.getMethodsCount());
+        assertEquals(1, context.getFieldsCount());
+
+        final Map<String, String> refactorings = applyAlgorithm(context);
+        assertEquals(1, refactorings.size());
+        assertTrue(refactorings.containsKey("callFromNested.ClassB.methodB1()"));
+        assertOneOf(refactorings.get("callFromNested.ClassB.methodB1()"),
+                "callFromNested.ClassA", "callFromNested.ClassA.Nested");
     }
 }
