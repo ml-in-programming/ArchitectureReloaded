@@ -14,13 +14,13 @@
   ~  limitations under the License.
   -->
 
-<idea-plugin version="2" url="https://github.com/BasLeijdekkers/MetricsReloaded">
-  <name>MetricsReloaded</name>
-  <id>MetricsReloaded</id>
+<idea-plugin version="2" url="https://github.com/ml-in-programming/architectureReloaded">
+  <name>ArchitectureReloaded</name>
+  <id>ArchitectureReloaded</id>
   <depends>com.intellij.modules.lang</depends>
   <description><![CDATA[
-    Automated code metrics for IntelliJ IDEA and IntelliJ Platform IDEs.
-    Lines of Code and file count metrics for all languages supported by your IDE and many more metrics for Java.
+    Automated design defects detection plugin for IntelliJ IDEA. Finds possible refactorings for Java code
+    according to object-oriented metrics.
     <br><br>
 
     <h4>Getting started</h4>
@@ -29,17 +29,9 @@
     <p>Metrics can also be calculated from the command line for integration into build servers.
     Enter <code>idea metrics -h</code> for help. For this to work IntelliJ IDEA must NOT be running.
     ]]></description>
-  <vendor url="https://twitter.com/inspectorbas" email="basleijdekkers@gmail.com">Bas Leijdekkers</vendor>
-  <version>1.8</version>
-  <change-notes><![CDATA[
-  1.8<br>
-  - New Java metrics to count lambdas, anonymous classes and null checks<br>
-  - New tool window icon<br>
-  - Several package metrics now work correctly on non-java languages (Kotlin, Groovy...)<br>
-  - Fixed "Number of assert statements" metric<br>
-  - "Non-comment lines of code" no longer counts lines in text files<br>
-  - "Number of exceptions caught" metric now counts multi-catch exceptions correctly<br>
-  ]]></change-notes>
+  <!--<vendor url="https://twitter.com/inspectorbas" email="basleijdekkers@gmail.com">Bas Leijdekkers</vendor>-->
+  <version>0.1</version>
+  <change-notes></change-notes>
   <idea-version since-build="139"/>
 
   <depends optional="true" config-file="java-metrics.xml">com.intellij.modules.java</depends>
@@ -56,18 +48,15 @@
                     serviceImplementation="com.sixrr.metrics.ui.metricdisplay.MetricsToolWindowImpl"/>
     <exportable serviceInterface="com.sixrr.metrics.profile.MetricsProfileRepository"/>
   </extensions>
-  <extensions defaultExtensionNs="MetricsReloaded">
-    <metricProvider implementation="com.sixrr.stockmetrics.DefaultMetricProvider"/>
+  <extensions defaultExtensionNs="ArchitectureReloaded">
+    <metricProvider implementation="com.sixrr.stockmetrics.JavaMetricProvider"/>
   </extensions>
 
   <actions>
     <group>
-      <action id="Metrics.AutomaticRefactoringAction" class="com.sixrr.metrics.plugin.AutomaticRefactoringAction"
-              text="Automatic refactoring..."/>
-      <!--action id="Metrics.ViewOfflineMetricsResults"
-              class="com.sixrr.metrics.offline.ViewOfflineMetricsResultsAction"
-              text="View Offline Metrics Results...">
-      </action-->
+      <action id="Metrics.AutomaticRefactoringAction"
+              class="com.sixrr.metrics.plugin.AutomaticRefactoringAction"
+              text="Search for refactorings..."/>
       <add-to-group group-id="InspectCodeGroup" anchor="last"/>
     </group>
   </actions>

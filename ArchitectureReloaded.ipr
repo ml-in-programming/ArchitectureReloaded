@@ -55,7 +55,6 @@
     <option name="USE_PROJECT_LEVEL_SETTINGS" value="false" />
   </component>
   <component name="CompilerConfiguration">
-    <option name="DEFAULT_COMPILER" value="Javac" />
     <resourceExtensions>
       <entry name=".+\.(properties|xml|html|dtd|tld)" />
       <entry name=".+\.(gif|png|jpeg|jpg)" />
@@ -71,15 +70,10 @@
       <entry name="?*.dtd" />
       <entry name="?*.tld" />
     </wildcardResourcePatterns>
-    <annotationProcessing>
-      <profile default="true" name="Default" enabled="false">
-        <processorPath useClasspath="true" />
-      </profile>
-    </annotationProcessing>
   </component>
-  <component name="CopyrightManager" default="MetricsReloaded">
+  <component name="CopyrightManager" default="ArchitectureReloaded">
     <copyright>
-      <option name="myName" value="MetricsReloaded" />
+      <option name="myName" value="ArchitectureReloaded" />
       <option name="notice" value=" Copyright &amp;#36;today.year Machine Learning Methods in Software Engineering Research Group&#10;&#10; Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);&#10; you may not use this file except in compliance with the License.&#10; You may obtain a copy of the License at&#10;&#10; http://www.apache.org/licenses/LICENSE-2.0&#10;&#10; Unless required by applicable law or agreed to in writing, software&#10; distributed under the License is distributed on an &quot;AS IS&quot; BASIS,&#10; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#10; See the License for the specific language governing permissions and&#10; limitations under the License." />
     </copyright>
   </component>
@@ -96,9 +90,6 @@
   </component>
   <component name="Encoding" useUTFGuessing="true" native2AsciiForPropertiesFiles="false">
     <file url="PROJECT" charset="UTF-8" />
-  </component>
-  <component name="EntryPointsManager">
-    <entry_points version="2.0" />
   </component>
   <component name="IdProvider" IDEtalkID="B23F8AF7437CE2531646723B41A2300C" />
   <component name="InspectionProjectProfileManager">
@@ -288,8 +279,6 @@
         <option name="SUGGEST_PRIVATE_FOR_INNERS" value="false" />
       </inspection_tool>
     </profile>
-    <option name="PROJECT_PROFILE" value="Project Default" />
-    <option name="USE_PROJECT_PROFILE" value="true" />
     <version value="1.0" />
     <info color="ffff">
       <option name="myName" value="STYLE" />
@@ -474,11 +463,11 @@
     <option name="PREFERRED_PROJECT_CODE_STYLE" value="Default (1)" />
   </component>
   <component name="ProjectKey">
-    <option name="state" value="git@github.com:BasLeijdekkers/MetricsReloaded.git" />
+    <option name="state" value="git@github.com:ml-in-programming/ArchitectureReloaded.git" />
   </component>
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/MetricsReloaded.iml" filepath="$PROJECT_DIR$/MetricsReloaded.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ArchitectureReloaded.iml" filepath="$PROJECT_DIR$/ArchitectureReloaded.iml" />
       <module fileurl="file://$PROJECT_DIR$/openapi/openapi.iml" filepath="$PROJECT_DIR$/openapi/openapi.iml" />
       <module fileurl="file://$PROJECT_DIR$/stockmetrics/stockmetrics.iml" filepath="$PROJECT_DIR$/stockmetrics/stockmetrics.iml" />
       <module fileurl="file://$PROJECT_DIR$/utils/utils.iml" filepath="$PROJECT_DIR$/utils/utils.iml" />
@@ -489,8 +478,8 @@
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="false" project-jdk-name="IntelliJ IDEA Community Edition IC-171.4694.23" project-jdk-type="IDEA JDK" />
   <component name="ProjectRunConfigurationManager">
-    <configuration default="false" name="MetricsReloaded" type="#org.jetbrains.idea.devkit.run.PluginConfigurationType" factoryName="Plugin" singleton="true">
-      <module name="MetricsReloaded" />
+    <configuration default="false" name="ArchitectureReloaded" type="#org.jetbrains.idea.devkit.run.PluginConfigurationType" factoryName="Plugin" singleton="true">
+      <module name="ArchitectureReloaded" />
       <option name="VM_PARAMETERS" value="-XX:+UseCompressedOops -XX:MaxPermSize=250m -Xmx250m -Dcheck.psi.is.valid=true -Didea.is.internal=true -Didea.debug.mode=true -ea" />
       <option name="PROGRAM_PARAMETERS" value="" />
       <log_file path="$USER_HOME$/Library/Caches/IntelliJIdea14/plugins-sandbox/system/log/idea.log" checked="false" skipped="true" show_all="false" alias="IDEA LOG" />
