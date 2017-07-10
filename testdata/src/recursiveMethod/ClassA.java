@@ -1,4 +1,4 @@
-package moveRecursiveMethod;
+package recursiveMethod;
 
 public class ClassA {
     static int attributeA1;

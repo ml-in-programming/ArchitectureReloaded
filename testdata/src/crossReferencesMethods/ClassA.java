@@ -1,4 +1,4 @@
-package moveCrossReferencesMethods;
+package crossReferencesMethods;
 
 public class ClassA {
     static void methodA1() {

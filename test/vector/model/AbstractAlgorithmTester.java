@@ -19,12 +19,10 @@ package vector.model;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import com.sixrr.metrics.plugin.RefactoringExecutionContext;
 import com.sixrr.metrics.profile.MetricsProfile;
 import com.sixrr.metrics.profile.MetricsProfileRepository;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -91,7 +89,7 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
                 , this::calculateMoveTogetherRefactorings);
     }
 
-    public void testMoveRecursiveMethod() throws IOException {
+    public void testRecursiveMethod() throws IOException {
         final VirtualFile file1 = loadFile("ClassA.java");
         final VirtualFile file2 = loadFile("ClassB.java");
 
@@ -100,10 +98,10 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
 
         new RefactoringExecutionContext(project, analysisScope, profile, false
-                , this::calculateMoveRecursiveMethodRefactorings);
+                , this::calculateRecursiveMethodRefactorings);
     }
 
-    public void testMoveCrossReferencesMethods() throws IOException {
+    public void testCrossReferencesMethods() throws IOException {
         final VirtualFile file1 = loadFile("ClassA.java");
         final VirtualFile file2 = loadFile("ClassB.java");
 
@@ -113,6 +111,18 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         new RefactoringExecutionContext(project, analysisScope, profile, false
                 , this::calculateMoveCrossReferencesMethodsRefactorings);
+    }
+
+    public void testReferencesOnly() throws IOException {
+        final VirtualFile file1 = loadFile("ClassA.java");
+        final VirtualFile file2 = loadFile("ClassB.java");
+
+        final Project project = myFixture.getProject();
+        final AnalysisScope analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2));
+        profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
+
+        new RefactoringExecutionContext(project, analysisScope, profile, false
+                , this::calculateReferencesOnlyRefactorings);
     }
 
     private void calculateMoveMethodRefactorings(RefactoringExecutionContext context) {
@@ -152,15 +162,15 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         assertEquals("moveTogether.ClassA", refactorings.get("moveTogether.ClassB.methodB2()"));
     }
 
-    private void calculateMoveRecursiveMethodRefactorings(RefactoringExecutionContext context) {
+    private void calculateRecursiveMethodRefactorings(RefactoringExecutionContext context) {
         assertEquals(2, context.getClassCount());
         assertEquals(6, context.getMethodsCount());
         assertEquals(4, context.getFieldsCount());
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(1, refactorings.size());
-        assertTrue(refactorings.containsKey("moveRecursiveMethod.ClassA.methodA1()"));
-        assertEquals("moveRecursiveMethod.ClassB", refactorings.get("moveRecursiveMethod.ClassA.methodA1()"));
+        assertTrue(refactorings.containsKey("recursiveMethod.ClassA.methodA1()"));
+        assertEquals("recursiveMethod.ClassB", refactorings.get("recursiveMethod.ClassA.methodA1()"));
     }
 
     private void calculateMoveCrossReferencesMethodsRefactorings(RefactoringExecutionContext context) {
@@ -170,13 +180,26 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(1, refactorings.size());
-        if (refactorings.containsKey("moveCrossReferencesMethods.ClassA.methodA1()")) {
-            assertEquals("moveCrossReferencesMethods.ClassB",
-                    refactorings.get("moveCrossReferencesMethods.ClassA.methodA1()"));
+        if (refactorings.containsKey("crossReferencesMethods.ClassA.methodA1()")) {
+            assertEquals("crossReferencesMethods.ClassB",
+                    refactorings.get("crossReferencesMethods.ClassA.methodA1()"));
         } else {
-            assertTrue(refactorings.containsKey("moveCrossReferencesMethods.ClassB.methodB1()"));
-            assertEquals("moveCrossReferencesMethods.ClassA",
-                    refactorings.get("moveCrossReferencesMethods.ClassB.methodB1()"));
+            assertTrue(refactorings.containsKey("crossReferencesMethods.ClassB.methodB1()"));
+            assertEquals("crossReferencesMethods.ClassA",
+                    refactorings.get("crossReferencesMethods.ClassB.methodB1()"));
         }
+    }
+
+    private void calculateReferencesOnlyRefactorings(RefactoringExecutionContext context) {
+        assertEquals(2, context.getClassCount());
+        assertEquals(3, context.getMethodsCount());
+        assertEquals(0, context.getFieldsCount());
+
+        final Map<String, String> refactorings = applyAlgorithm(context);
+        assertEquals(2, refactorings.size());
+        assertTrue(refactorings.containsKey("referencesOnly.ClassA.doSomething1()"));
+        assertTrue(refactorings.containsKey("referencesOnly.ClassA.doSomething2()"));
+        assertEquals("referencesOnly.ClassB", refactorings.get("referencesOnly.ClassA.doSomething1()"));
+        assertEquals("referencesOnly.ClassB", refactorings.get("referencesOnly.ClassA.doSomething2()"));
     }
 }
