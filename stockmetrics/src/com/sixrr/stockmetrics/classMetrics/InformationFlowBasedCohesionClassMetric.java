@@ -14,26 +14,25 @@
  *  limitations under the License.
  */
 
-package com.sixrr.stockmetrics.methodMetrics;
+package com.sixrr.stockmetrics.classMetrics;
 
 import com.sixrr.metrics.MetricCalculator;
 import com.sixrr.metrics.MetricType;
+import com.sixrr.stockmetrics.classCalculators.InformationFlowBasedCohesionClassCalculator;
 import com.sixrr.stockmetrics.i18n.StockMetricsBundle;
-import com.sixrr.stockmetrics.methodCalculators.OperandsCountCalculator;
 import org.jetbrains.annotations.NotNull;
 
-public class OperadsCountMetric extends MethodMetric {
-
+public class InformationFlowBasedCohesionClassMetric extends ClassMetric {
     @NotNull
     @Override
     public String getDisplayName() {
-        return StockMetricsBundle.message("operands.count.method.metric.display.name");
+        return StockMetricsBundle.message("information.flow.based.cohesion.class.metric.display.name");
     }
 
     @NotNull
     @Override
     public String getAbbreviation() {
-        return StockMetricsBundle.message("operands.count.method.metric.abbreviation"); //TODO find correct abbreviation
+        return StockMetricsBundle.message("information.flow.based.cohesion.class.metric.abbreviation");
     }
 
     @NotNull
@@ -45,6 +44,6 @@ public class OperadsCountMetric extends MethodMetric {
     @NotNull
     @Override
     public MetricCalculator createCalculator() {
-        return new OperandsCountCalculator();
+        return new InformationFlowBasedCohesionClassCalculator();
     }
 }

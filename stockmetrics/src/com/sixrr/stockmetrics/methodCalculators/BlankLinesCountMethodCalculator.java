@@ -17,7 +17,6 @@
 package com.sixrr.stockmetrics.methodCalculators;
 
 import com.intellij.psi.*;
-import com.sixrr.stockmetrics.classCalculators.ClassCalculator;
 import com.sixrr.stockmetrics.utils.LineUtil;
 
 public class BlankLinesCountMethodCalculator extends MethodCalculator {
@@ -31,10 +30,7 @@ public class BlankLinesCountMethodCalculator extends MethodCalculator {
         @Override
         public void visitMethod(PsiMethod method) {
             super.visitMethod(method);
-            int lines = LineUtil.countLines(method);
-            int blankLines = method.getTextLength();
-            blankLines -= lines;
-            postMetric(method, (double) blankLines);
+            postMetric(method, LineUtil.countBlankLines(method));
         }
     }
 }

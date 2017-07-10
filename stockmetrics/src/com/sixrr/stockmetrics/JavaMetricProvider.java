@@ -39,7 +39,7 @@ public class JavaMetricProvider implements MetricProvider {
     @NotNull
     @Override
     public List<Metric> getMetrics() {
-        final List<Metric> metrics = new ArrayList<Metric>(255);
+        final List<Metric> metrics = new ArrayList<Metric>(284);
         initializeClassMetrics(metrics);
         initializeInterfaceMetrics(metrics);
         initializeMethodMetrics(metrics);
@@ -104,6 +104,15 @@ public class JavaMetricProvider implements MetricProvider {
         metrics.add(new TodoCommentCountClassMetric());
         metrics.add(new TrueCommentRatioClassMetric());
         metrics.add(new WeightedMethodComplexityMetric());
+        metrics.add(new InformationFlowBasedCohesionClassMetric());
+        metrics.add(new NumMethodsClassMetric());
+        metrics.add(new DataAbstractionCouplingClassMetric());
+        metrics.add(new TightClassCouplingMetric());
+        metrics.add(new LooseClassCouplingMetric());
+        metrics.add(new LackOfCohesionInMethods1ClassMetric());
+        metrics.add(new LackOfCohesionInMethods2ClassMetric());
+        metrics.add(new LackOfCohesionInMethods5ClassMetric());
+        metrics.add(new LocalityOfDataClassMetric());
         metrics.add(new FanInClassMetric());
         metrics.add(new FanOutClassMetric());
         metrics.add(new BlankLinesCountClassMetric());
@@ -189,7 +198,7 @@ public class JavaMetricProvider implements MetricProvider {
         metrics.add(new FanOutMethodMetric());
         metrics.add(new ConditionCountMetric());
         metrics.add(new DecisionCountMetric());
-        metrics.add(new OperadsCountMetric());
+        metrics.add(new OperandsCountMetric());
         metrics.add(new OperatorsCountMetric());
         metrics.add(new DistinctOperandsMetric());
         metrics.add(new DistinctOperatorsMetric());
@@ -345,11 +354,9 @@ public class JavaMetricProvider implements MetricProvider {
     @NotNull
     @Override
     public List<PrebuiltMetricProfile> getPrebuiltProfiles() {
-        final List<PrebuiltMetricProfile> out = new ArrayList<PrebuiltMetricProfile>(12);
+        final List<PrebuiltMetricProfile> out = new ArrayList<PrebuiltMetricProfile>(1);
         out.add(createRefactoringProfile());
         /*out.add(createChidamberKemererProfile());
-        final List<PrebuiltMetricProfile> out = new ArrayList<PrebuiltMetricProfile>(11);
-        out.add(createChidamberKemererProfile());
         out.add(createClassCountProfile());
         out.add(createCodeSizeProfile());
         out.add(createComplexityProfile());
@@ -359,6 +366,7 @@ public class JavaMetricProvider implements MetricProvider {
         out.add(createMartinProfile());
         out.add(createMoodProfile());
         out.add(createTestProfile());
+        out.add(createCohesionAndCouplingProfile());
         out.add(createFanProfile());
         */
         return out;
@@ -373,6 +381,27 @@ public class JavaMetricProvider implements MetricProvider {
         profile.addMetric(FanOutClassMetric.class);
         profile.addMetric(FanInMethodMetric.class);
         profile.addMetric(FanOutMethodMetric.class);
+        return profile;
+    }
+
+    private static PrebuiltMetricProfile createCohesionAndCouplingProfile() {
+        final PrebuiltMetricProfile profile =
+                new PrebuiltMetricProfile(StockMetricsBundle.message("cohesion.and.coupling.metrics.profile.name"));
+        profile.addMetric(FanInClassMetric.class);
+        profile.addMetric(CouplingBetweenObjectsClassMetric.class);
+        profile.addMetric(DataAbstractionCouplingClassMetric.class);
+        profile.addMetric(InformationFlowBasedCohesionClassMetric.class);
+        profile.addMetric(TightClassCouplingMetric.class);
+        profile.addMetric(LooseClassCouplingMetric.class);
+        profile.addMetric(LackOfCohesionInMethods1ClassMetric.class);
+        profile.addMetric(LackOfCohesionInMethods2ClassMetric.class);
+        profile.addMetric(LackOfCohesionOfMethodsClassMetric.class); // LCOM4
+        profile.addMetric(LackOfCohesionInMethods5ClassMetric.class);
+        profile.addMetric(LocalityOfDataClassMetric.class);
+        profile.addMetric(MessagePassingCouplingClassMetric.class);
+        profile.addMetric(NumAttributesAddedMetric.class);
+        profile.addMetric(NumMethodsClassMetric.class);
+        profile.addMetric(ResponseForClassMetric.class);
         return profile;
     }
 
