@@ -27,33 +27,6 @@
         </entry>
       </file>
       <file leaf-file-name="ClassA.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/referencesOnly/ClassA.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="66">
-              <caret line="3" column="30" lean-forward="false" selection-start-line="3" selection-start-column="18" selection-end-line="3" selection-end-column="30" />
-              <folding>
-                <element signature="e#88#89#0" expanded="true" />
-                <element signature="e#119#120#0" expanded="true" />
-                <element signature="e#163#164#0" expanded="true" />
-                <element signature="e#194#195#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ClassB.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/referencesOnly/ClassB.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="264">
-              <caret line="12" column="32" lean-forward="false" selection-start-line="12" selection-start-column="32" selection-end-line="12" selection-end-column="32" />
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ClassA.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/moveMethod/ClassA.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="132">
@@ -83,11 +56,34 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ClassB.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="ClassB.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/dontMoveConstructor/ClassB.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="396">
               <caret line="18" column="20" lean-forward="false" selection-start-line="18" selection-start-column="20" selection-end-line="18" selection-end-column="20" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ClassA.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/dontMoveOverridden/ClassA.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="176">
+              <caret line="8" column="24" lean-forward="true" selection-start-line="8" selection-start-column="24" selection-end-line="8" selection-end-column="24" />
+              <folding>
+                <element signature="e#174#175#0" expanded="true" />
+                <element signature="e#226#227#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ClassB.java" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/dontMoveOverridden/ClassB.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="308">
+              <caret line="14" column="17" lean-forward="false" selection-start-line="14" selection-start-column="17" selection-end-line="14" selection-end-column="17" />
               <folding />
             </state>
           </provider>
@@ -116,17 +112,14 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ClassB.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/crossReferencesMethods/ClassB.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="242">
-              <caret line="11" column="0" lean-forward="true" selection-start-line="11" selection-start-column="0" selection-end-line="11" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
     </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
   </component>
   <component name="GradleLocalSettings">
     <option name="externalProjectsViewState">
@@ -156,6 +149,8 @@
         <option value="$PROJECT_DIR$/src/callFromNested/ClassA.java" />
         <option value="$PROJECT_DIR$/src/dontMoveConstructor/ClassA.java" />
         <option value="$PROJECT_DIR$/src/dontMoveConstructor/ClassB.java" />
+        <option value="$PROJECT_DIR$/src/dontMoveOverridden/ClassA.java" />
+        <option value="$PROJECT_DIR$/src/dontMoveOverridden/ClassB.java" />
       </list>
     </option>
   </component>
@@ -292,6 +287,28 @@
               <option name="myItemId" value="src" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="moveField" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="testdata" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="testdata" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dontMoveOverridden" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
           </PATH>
           <PATH>
             <PATH_ELEMENT>
@@ -357,6 +374,7 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="dontMoveOverridden" />
       <recent name="dontMoveConstructor" />
       <recent name="callFromNested" />
     </key>
@@ -846,6 +864,46 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="396">
           <caret line="18" column="20" lean-forward="false" selection-start-line="18" selection-start-column="20" selection-end-line="18" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/dontMoveConstructor/dontMoveOverridden.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="110">
+          <caret line="5" column="31" lean-forward="true" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="31" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://C:/Program Files (x86)/Java/jdk1.8.0_102/src.zip!/java/lang/Integer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="272">
+          <caret line="958" column="22" lean-forward="false" selection-start-line="958" selection-start-column="22" selection-end-line="958" selection-end-column="22" />
+          <folding>
+            <element signature="e#35486#35487#0" expanded="false" />
+            <element signature="e#35532#35533#0" expanded="false" />
+            <element signature="e#35824#35825#0" expanded="false" />
+            <element signature="e#35852#35853#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/dontMoveOverridden/ClassA.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="176">
+          <caret line="8" column="24" lean-forward="true" selection-start-line="8" selection-start-column="24" selection-end-line="8" selection-end-column="24" />
+          <folding>
+            <element signature="e#174#175#0" expanded="true" />
+            <element signature="e#226#227#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/dontMoveOverridden/ClassB.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="308">
+          <caret line="14" column="17" lean-forward="false" selection-start-line="14" selection-start-column="17" selection-end-line="14" selection-end-column="17" />
           <folding />
         </state>
       </provider>
