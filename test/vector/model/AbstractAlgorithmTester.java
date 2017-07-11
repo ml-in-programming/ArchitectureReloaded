@@ -33,7 +33,7 @@ import java.util.Map;
  */
 public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTestCase {
 
-    private MetricsProfile profile; // todo
+    private MetricsProfile profile;
 
     public abstract Map<String, String> applyAlgorithm(RefactoringExecutionContext context);
 
@@ -47,15 +47,21 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         return myFixture.copyFileToProject(name, fullName);
     }
 
+    private MetricsProfile getProfile() {
+        if (profile == null) {
+            profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
+        }
+        return profile;
+    }
+
     public void testMoveMethod() throws IOException {
         final VirtualFile file1 = loadFile("ClassA.java");
         final VirtualFile file2 = loadFile("ClassB.java");
 
         final Project project = myFixture.getProject();
         final AnalysisScope analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2));
-        profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
 
-        new RefactoringExecutionContext(project, analysisScope, profile, false
+        new RefactoringExecutionContext(project, analysisScope, getProfile(), false
                 , this::calculateMoveMethodRefactorings);
     }
 
@@ -65,27 +71,19 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         final Project project = myFixture.getProject();
         final AnalysisScope analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2));
-        profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
 
-        new RefactoringExecutionContext(project, analysisScope, profile, false
+        new RefactoringExecutionContext(project, analysisScope, getProfile(), false
                 , this::calculateMoveFieldRefactorings);
     }
 
-    /**
-     * Two methods reference each other a lot of times,
-     * one o them is also referenced from another class.
-     * <p>
-     * Expected, that methods will be moved together
-     */
     public void testMoveTogether() throws IOException {
         final VirtualFile file1 = loadFile("ClassA.java");
         final VirtualFile file2 = loadFile("ClassB.java");
 
         final Project project = myFixture.getProject();
         final AnalysisScope analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2));
-        profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
 
-        new RefactoringExecutionContext(project, analysisScope, profile, false
+        new RefactoringExecutionContext(project, analysisScope, getProfile(), false
                 , this::calculateMoveTogetherRefactorings);
     }
 
@@ -95,9 +93,8 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         final Project project = myFixture.getProject();
         final AnalysisScope analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2));
-        profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
 
-        new RefactoringExecutionContext(project, analysisScope, profile, false
+        new RefactoringExecutionContext(project, analysisScope, getProfile(), false
                 , this::calculateRecursiveMethodRefactorings);
     }
 
@@ -107,9 +104,8 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         final Project project = myFixture.getProject();
         final AnalysisScope analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2));
-        profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
 
-        new RefactoringExecutionContext(project, analysisScope, profile, false
+        new RefactoringExecutionContext(project, analysisScope, getProfile(), false
                 , this::calculateMoveCrossReferencesMethodsRefactorings);
     }
 
@@ -119,9 +115,8 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         final Project project = myFixture.getProject();
         final AnalysisScope analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2));
-        profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
 
-        new RefactoringExecutionContext(project, analysisScope, profile, false
+        new RefactoringExecutionContext(project, analysisScope, getProfile(), false
                 , this::calculateReferencesOnlyRefactorings);
     }
 
@@ -131,9 +126,8 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         final Project project = myFixture.getProject();
         final AnalysisScope analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2));
-        profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
 
-        new RefactoringExecutionContext(project, analysisScope, profile, false
+        new RefactoringExecutionContext(project, analysisScope, getProfile(), false
                 , this::calculateCallFromNestedRefactorings);
     }
 
@@ -143,9 +137,8 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         final Project project = myFixture.getProject();
         final AnalysisScope analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2));
-        profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
 
-        new RefactoringExecutionContext(project, analysisScope, profile, false
+        new RefactoringExecutionContext(project, analysisScope, getProfile(), false
                 , this::calculateDontMoveConstructorRefactorings);
     }
 
@@ -155,9 +148,8 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         final Project project = myFixture.getProject();
         final AnalysisScope analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2));
-        profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
 
-        new RefactoringExecutionContext(project, analysisScope, profile, false
+        new RefactoringExecutionContext(project, analysisScope, getProfile(), false
                 , this::calculateDontMoveOverriddenRefactorings);
     }
 
@@ -168,9 +160,8 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         final Project project = myFixture.getProject();
         final AnalysisScope analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2, file3));
-        profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
 
-        new RefactoringExecutionContext(project, analysisScope, profile, false
+        new RefactoringExecutionContext(project, analysisScope, getProfile(), false
                 , this::calculateCircularDependencyRefactorings);
     }
 
@@ -180,9 +171,8 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         final Project project = myFixture.getProject();
         final AnalysisScope analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2));
-        profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
 
-        new RefactoringExecutionContext(project, analysisScope, profile, false
+        new RefactoringExecutionContext(project, analysisScope, getProfile(), false
                 , this::calculateDontMoveAbstractRefactorings);
     }
 
@@ -193,9 +183,8 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         final Project project = myFixture.getProject();
         final AnalysisScope analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2, file3));
-        profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
 
-        new RefactoringExecutionContext(project, analysisScope, profile, false
+        new RefactoringExecutionContext(project, analysisScope, getProfile(), false
                 , this::calculateTriangularDependenceRefactorings);
     }
 
