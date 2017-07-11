@@ -41,6 +41,7 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
+    <annotator language="JAVA" implementationClass="com.sixrr.metrics.plugin.RefactoringAnnotator"/>
     <appStarter implementation="com.sixrr.metrics.offline.MetricsCommandLine"/>
     <applicationService serviceImplementation="com.sixrr.metrics.config.MetricsReloadedConfig"/>
     <applicationService serviceImplementation="com.sixrr.metrics.profile.MetricsProfileRepository"/>

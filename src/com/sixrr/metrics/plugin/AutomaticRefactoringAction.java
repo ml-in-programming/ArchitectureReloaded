@@ -31,6 +31,12 @@ import javax.swing.*;
 import java.util.Map;
 
 public class AutomaticRefactoringAction extends BaseAnalysisAction{
+    private Map<String, String> refactoringsCCDA;
+    private Map<String, String> refactoringsMRI;
+    private Map<String, String> refactoringsAKMeans;
+    private Map<String, String> refactoringsHAC;
+    private Map<String, String> refactoringsARI;
+
     public AutomaticRefactoringAction() {
         super(MetricsReloadedBundle.message("metrics.calculation"), MetricsReloadedBundle.message("metrics"));
     }
@@ -46,15 +52,70 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
         assert metricsProfile != null;
 
         new RefactoringExecutionContext(project, analysisScope, metricsProfile, true
-                , AutomaticRefactoringAction::calculateRefactorings);
+                , this::calculateRefactorings);
     }
 
-    private static void calculateRefactorings(RefactoringExecutionContext context) {
-        final Map<String, String> refactoringsCCDA = context.calculateCCDA();
-        final Map<String, String> refactoringsMRI = context.calculateMRI();
-        final Map<String, String> refactoringsAKMeans = context.calculateAKMeans();
-        final Map<String, String> refactoringsHAC = context.calculateHAC();
-        final Map<String, String> refactoringsARI = context.calculateARI();
+    public void analyzeSynchronously(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
+        System.out.println(analysisScope.getDisplayName());
+        System.out.println(project.getBasePath());
+        System.out.println();
+
+        final MetricsProfileRepository repository = MetricsProfileRepository.getInstance();
+        final MetricsProfile metricsProfile = repository.getCurrentProfile();
+        assert metricsProfile != null;
+
+        final RefactoringExecutionContext context =
+                new RefactoringExecutionContext(project, analysisScope, metricsProfile);
+        calculateRefactorings(context);
+    }
+
+
+    private void calculateRefactorings(@NotNull RefactoringExecutionContext context) {
+        try {
+            refactoringsCCDA = context.calculateCCDA();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            refactoringsMRI = context.calculateMRI();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            refactoringsAKMeans = context.calculateAKMeans();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            refactoringsHAC = context.calculateHAC();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            refactoringsARI = context.calculateARI();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+     }
+
+    public Map<String, String> getRefactoringsARI() {
+        return refactoringsARI;
+    }
+
+    public Map<String, String> getRefactoringsCCDA() {
+        return refactoringsCCDA;
+    }
+
+    public Map<String, String> getRefactoringsMRI() {
+        return refactoringsMRI;
+    }
+
+    public Map<String, String> getRefactoringsAKMeans() {
+        return refactoringsAKMeans;
+    }
+
+    public Map<String, String> getRefactoringsHAC() {
+        return refactoringsHAC;
     }
 
     @Override

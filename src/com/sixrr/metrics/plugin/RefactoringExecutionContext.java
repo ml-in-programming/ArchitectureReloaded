@@ -21,6 +21,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.sixrr.metrics.MetricCategory;
+import com.sixrr.metrics.MetricsResultsHolder;
 import com.sixrr.metrics.config.MetricsReloadedConfig;
 import com.sixrr.metrics.metricModel.MetricsExecutionContextImpl;
 import com.sixrr.metrics.metricModel.MetricsResult;
@@ -37,7 +38,10 @@ import vector.model.entity.Entity;
 import vector.model.entity.FieldEntity;
 import vector.model.entity.MethodEntity;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
@@ -63,6 +67,24 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
         scope.accept(properties.createVisitor(scope));
 
         execute(profile, metricsRun);
+    }
+
+    public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope
+            , @NotNull MetricsProfile profile) {
+        super(project, scope);
+        this.profile = profile;
+        enableUi = false;
+        continuation = null;
+
+        properties = new PropertiesFinder();
+        scope.accept(properties.createVisitor(scope));
+
+        executeSynchronously(profile, metricsRun);
+    }
+
+    private void executeSynchronously(final MetricsProfile profile, final MetricsResultsHolder resultsHolder) {
+        calculateMetrics(profile, resultsHolder);
+        onFinish();
     }
 
     @Override
