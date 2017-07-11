@@ -1,7 +1,8 @@
 package triangularDependence;
 
 public class ClassB {
-        static void methodToMove() {
+
+    static void methodToMove() {
         ClassA.method();
         ClassA.method();
         ClassA.method();

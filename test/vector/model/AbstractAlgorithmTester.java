@@ -130,6 +130,11 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         runTest(this::checkTriangularDependenceRefactorings, analysisScope);
     }
 
+    public void testPriority() throws IOException {
+        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
+        runTest(this::checkPriorityRefactorings, analysisScope);
+    }
+
     private void checkMoveMethodRefactorings(RefactoringExecutionContext context) {
         checkStructure(context, 2, 6, 4);
 
@@ -254,5 +259,14 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
                 refactorings.get("triangularDependence.ClassB.methodToMove()"));
         assertEquals("triangularDependence.ClassA",
                 refactorings.get("triangularDependence.ClassC.methodToMove()"));
+    }
+
+    private void checkPriorityRefactorings(RefactoringExecutionContext context) {
+        checkStructure(context, 2, 9, 0);
+
+        final Map<String, String> refactorings = applyAlgorithm(context);
+        assertEquals(1, refactorings.size());
+        assertContainsElements(refactorings.keySet(), "priority.ClassA.methodA1()");
+        assertEquals("priority.ClassB", refactorings.get("priority.ClassA.methodA1()"));
     }
 }
