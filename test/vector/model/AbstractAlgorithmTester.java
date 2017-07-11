@@ -42,7 +42,7 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         return "testdata/src/" + getTestName(true);
     }
 
-    public VirtualFile loadFile(String name) {
+    private VirtualFile loadFile(String name) {
         final String fullName = getTestName(true) + "/" + name;
         return myFixture.copyFileToProject(name, fullName);
     }
@@ -217,8 +217,8 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(2, refactorings.size());
-        assertTrue(refactorings.containsKey("moveField.ClassA.attributeA1"));
-        assertTrue(refactorings.containsKey("moveField.ClassA.attributeA2"));
+        assertContainsElements(refactorings.keySet(), "moveField.ClassA.attributeA1");
+        assertContainsElements(refactorings.keySet(), "moveField.ClassA.attributeA2");
         assertEquals("moveField.ClassB", refactorings.get("moveField.ClassA.attributeA1"));
         assertEquals("moveField.ClassB", refactorings.get("moveField.ClassA.attributeA2"));
     }
@@ -230,8 +230,8 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(2, refactorings.size());
-        assertTrue(refactorings.containsKey("moveTogether.ClassB.methodB1()"));
-        assertTrue(refactorings.containsKey("moveTogether.ClassB.methodB2()"));
+        assertContainsElements(refactorings.keySet(), "moveTogether.ClassB.methodB1()");
+        assertContainsElements(refactorings.keySet(), "moveTogether.ClassB.methodB2()");
         assertEquals("moveTogether.ClassA", refactorings.get("moveTogether.ClassB.methodB1()"));
         assertEquals("moveTogether.ClassA", refactorings.get("moveTogether.ClassB.methodB2()"));
     }
@@ -243,7 +243,7 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(1, refactorings.size());
-        assertTrue(refactorings.containsKey("recursiveMethod.ClassA.methodA1()"));
+        assertContainsElements(refactorings.keySet(), "recursiveMethod.ClassA.methodA1()");
         assertEquals("recursiveMethod.ClassB", refactorings.get("recursiveMethod.ClassA.methodA1()"));
     }
 
@@ -258,7 +258,7 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
             assertEquals("crossReferencesMethods.ClassB",
                     refactorings.get("crossReferencesMethods.ClassA.methodA1()"));
         } else {
-            assertTrue(refactorings.containsKey("crossReferencesMethods.ClassB.methodB1()"));
+            assertContainsElements(refactorings.keySet(), "crossReferencesMethods.ClassB.methodB1()");
             assertEquals("crossReferencesMethods.ClassA",
                     refactorings.get("crossReferencesMethods.ClassB.methodB1()"));
         }
@@ -271,8 +271,8 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(2, refactorings.size());
-        assertTrue(refactorings.containsKey("referencesOnly.ClassA.doSomething1()"));
-        assertTrue(refactorings.containsKey("referencesOnly.ClassA.doSomething2()"));
+        assertContainsElements(refactorings.keySet(), "referencesOnly.ClassA.doSomething1()");
+        assertContainsElements(refactorings.keySet(), "referencesOnly.ClassA.doSomething2()");
         assertEquals("referencesOnly.ClassB", refactorings.get("referencesOnly.ClassA.doSomething1()"));
         assertEquals("referencesOnly.ClassB", refactorings.get("referencesOnly.ClassA.doSomething2()"));
     }
@@ -284,7 +284,7 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(1, refactorings.size());
-        assertTrue(refactorings.containsKey("callFromNested.ClassB.methodB1()"));
+        assertContainsElements(refactorings.keySet(), "callFromNested.ClassB.methodB1()");
         assertOneOf(refactorings.get("callFromNested.ClassB.methodB1()"),
                 "callFromNested.ClassA", "callFromNested.ClassA.Nested");
     }
@@ -322,8 +322,7 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         } else {
             moveToClass = "circularDependency.ClassC";
         }
-        assertEquals(1L, refactorings.values().stream().distinct().count());
-        assertTrue(refactorings.containsValue(moveToClass));
+        assertContainsElements(refactorings.values(), moveToClass, moveToClass);
     }
 
     private void calculateDontMoveAbstractRefactorings(RefactoringExecutionContext context) {
