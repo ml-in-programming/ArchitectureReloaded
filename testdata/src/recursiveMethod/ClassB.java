@@ -17,12 +17,15 @@ public class ClassB {
         attributeB2 = 0;
         methodB1();
         methodB1();
+        methodB1();
     }
 
     static void methodB3() {
         attributeB1 = 0;
         methodB1();
         methodB1();
+        methodB1();
+        methodB2();
         methodB2();
     }
 }

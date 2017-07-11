@@ -6,7 +6,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ClassB {
-    public void main(String[] args) {
+    public void mainF() {
         List<Object> list = new ArrayList<>().stream()
                 .map(ClassA::doSomething1)
                 .map(ClassA::doSomething1)
@@ -18,4 +18,6 @@ public class ClassB {
         myFunction = ClassA::doSomething2;
         myFunction = ClassA::doSomething2;
     }
+
+    static void foo() {}
 }

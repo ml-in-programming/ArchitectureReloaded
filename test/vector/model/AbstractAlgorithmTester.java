@@ -167,7 +167,7 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
     }
 
     private void checkRecursiveMethodRefactorings(RefactoringExecutionContext context) {
-        checkStructure(context, 2, 6, 4);
+        checkStructure(context, 2, 5, 2);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(1, refactorings.size());
@@ -191,14 +191,20 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
     }
 
     private void checkReferencesOnlyRefactorings(RefactoringExecutionContext context) {
-        checkStructure(context, 2, 3, 0);
+        checkStructure(context, 2, 4, 0);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
-        assertEquals(2, refactorings.size());
-        assertContainsElements(refactorings.keySet(), "referencesOnly.ClassA.doSomething1()");
-        assertContainsElements(refactorings.keySet(), "referencesOnly.ClassA.doSomething2()");
-        assertEquals("referencesOnly.ClassB", refactorings.get("referencesOnly.ClassA.doSomething1()"));
-        assertEquals("referencesOnly.ClassB", refactorings.get("referencesOnly.ClassA.doSomething2()"));
+        if (refactorings.containsKey("referencesOnly.ClassB.mainF()")) {
+            assertEquals(1, refactorings.size());
+            assertContainsElements(refactorings.keySet(), "referencesOnly.ClassB.mainF()");
+            assertEquals("referencesOnly.ClassA", refactorings.get("referencesOnly.ClassB.mainF()"));
+        } else {
+            assertEquals(2, refactorings.size());
+            assertContainsElements(refactorings.keySet(), "referencesOnly.ClassA.doSomething1()");
+            assertContainsElements(refactorings.keySet(), "referencesOnly.ClassA.doSomething2()");
+            assertEquals("referencesOnly.ClassB", refactorings.get("referencesOnly.ClassA.doSomething1()"));
+            assertEquals("referencesOnly.ClassB", refactorings.get("referencesOnly.ClassA.doSomething2()"));
+        }
     }
 
     private void checkCallFromNestedRefactorings(RefactoringExecutionContext context) {
@@ -249,7 +255,7 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
     }
 
     private void checkTriangularDependenceRefactorings(RefactoringExecutionContext context) {
-        checkStructure(context, 3, 6, 0);
+        checkStructure(context, 3, 8, 0);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(2, refactorings.size());

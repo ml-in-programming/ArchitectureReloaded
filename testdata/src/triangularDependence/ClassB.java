@@ -12,4 +12,6 @@ public class ClassB {
         ClassC.methodToMove();
         ClassC.methodToMove();
     }
+
+    static void foo() {}
 }
