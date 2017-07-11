@@ -30,9 +30,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-/**
- * Created by Артём on 10.07.2017.
- */
 public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTestCase {
 
     private MetricsProfile profile;
@@ -61,6 +58,12 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
                 .map(this::loadFile)
                 .collect(Collectors.toList());
         return new AnalysisScope(myFixture.getProject(), virtualFiles);
+    }
+
+    private static void checkStructure(RefactoringExecutionContext context, int classes, int methods, int fields) {
+        assertEquals(classes, context.getClassCount());
+        assertEquals(methods, context.getMethodsCount());
+        assertEquals(fields, context.getFieldsCount());
     }
 
     private void runTest(Consumer<RefactoringExecutionContext> checker, AnalysisScope scope) {
@@ -128,9 +131,7 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
     }
 
     private void checkMoveMethodRefactorings(RefactoringExecutionContext context) {
-        assertEquals(2, context.getClassCount());
-        assertEquals(6, context.getMethodsCount());
-        assertEquals(4, context.getFieldsCount());
+        checkStructure(context, 2, 6, 4);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(1, refactorings.size());
@@ -139,9 +140,7 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
     }
 
     private void checkMoveFieldRefactorings(RefactoringExecutionContext context) {
-        assertEquals(2, context.getClassCount());
-        assertEquals(11, context.getMethodsCount());
-        assertEquals(2, context.getFieldsCount());
+        checkStructure(context, 2, 11, 2);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(2, refactorings.size());
@@ -152,9 +151,7 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
     }
 
     private void checkMoveTogetherRefactorings(RefactoringExecutionContext context) {
-        assertEquals(2, context.getClassCount());
-        assertEquals(8, context.getMethodsCount());
-        assertEquals(4, context.getFieldsCount());
+        checkStructure(context, 2, 8, 4);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(2, refactorings.size());
@@ -165,9 +162,7 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
     }
 
     private void checkRecursiveMethodRefactorings(RefactoringExecutionContext context) {
-        assertEquals(2, context.getClassCount());
-        assertEquals(6, context.getMethodsCount());
-        assertEquals(4, context.getFieldsCount());
+        checkStructure(context, 2, 6, 4);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(1, refactorings.size());
@@ -176,9 +171,7 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
     }
 
     private void checkCrossReferencesMethodsRefactorings(RefactoringExecutionContext context) {
-        assertEquals(2, context.getClassCount());
-        assertEquals(2, context.getMethodsCount());
-        assertEquals(0, context.getFieldsCount());
+        checkStructure(context, 2, 2, 0);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(1, refactorings.size());
@@ -193,9 +186,7 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
     }
 
     private void checkReferencesOnlyRefactorings(RefactoringExecutionContext context) {
-        assertEquals(2, context.getClassCount());
-        assertEquals(3, context.getMethodsCount());
-        assertEquals(0, context.getFieldsCount());
+        checkStructure(context, 2, 3, 0);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(2, refactorings.size());
@@ -206,9 +197,7 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
     }
 
     private void checkCallFromNestedRefactorings(RefactoringExecutionContext context) {
-        assertEquals(3, context.getClassCount());
-        assertEquals(3, context.getMethodsCount());
-        assertEquals(1, context.getFieldsCount());
+        checkStructure(context, 3, 3, 1);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(1, refactorings.size());
@@ -218,27 +207,21 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
     }
 
     private void checkDontMoveConstructorRefactorings(RefactoringExecutionContext context) {
-        assertEquals(2, context.getClassCount());
-        assertEquals(3, context.getMethodsCount());
-        assertEquals(1, context.getFieldsCount());
+        checkStructure(context, 2, 3, 1);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(0, refactorings.size());
     }
 
     private void checkDontMoveOverriddenRefactorings(RefactoringExecutionContext context) {
-        assertEquals(2, context.getClassCount());
-        assertEquals(3, context.getMethodsCount());
-        assertEquals(1, context.getFieldsCount());
+        checkStructure(context, 2, 3, 1);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(0, refactorings.size());
     }
 
     private void checkCircularDependencyRefactorings(RefactoringExecutionContext context) {
-        assertEquals(3, context.getClassCount());
-        assertEquals(3, context.getMethodsCount());
-        assertEquals(0, context.getFieldsCount());
+        checkStructure(context, 3, 3, 0);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(2, refactorings.size());
@@ -254,18 +237,14 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
     }
 
     private void checkDontMoveAbstractRefactorings(RefactoringExecutionContext context) {
-        assertEquals(2, context.getClassCount());
-        assertEquals(3, context.getMethodsCount());
-        assertEquals(0, context.getFieldsCount());
+        checkStructure(context, 2, 3, 0);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(0, refactorings.size());
     }
 
     private void checkTriangularDependenceRefactorings(RefactoringExecutionContext context) {
-        assertEquals(3, context.getClassCount());
-        assertEquals(6, context.getMethodsCount());
-        assertEquals(0, context.getFieldsCount());
+        checkStructure(context, 3, 6, 0);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(2, refactorings.size());
