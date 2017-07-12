@@ -1,0 +1,60 @@
+<!--
+  ~  Copyright 2005-2016 Sixth and Red River Software, Bas Leijdekkers
+  ~  Copyright 2007 Machine Learning Methods in Software Engineering Group of JetBrains Research
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~  http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<idea-plugin url="https://github.com/ml-in-programming/architectureReloaded">
+  <name>ArchitectureReloaded</name>
+  <id>ArchitectureReloaded</id>
+  <depends>com.intellij.modules.lang</depends>
+  <description><![CDATA[
+    Automated design defects detection plugin for IntelliJ IDEA. Finds possible refactorings for Java code
+    according to object-oriented metrics.
+    <br><br>
+
+    <h4>Getting started</h4>
+    <p>Coming soon...</p>
+    ]]></description>
+  <version>0.1</version>
+  <change-notes></change-notes>
+  <idea-version since-build="139"/>
+
+  <depends optional="true" config-file="java-metrics.xml">com.intellij.modules.java</depends>
+
+  <extensionPoints>
+    <extensionPoint name="metricProvider" interface="com.sixrr.metrics.MetricProvider"/>
+  </extensionPoints>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <appStarter implementation="com.sixrr.metrics.offline.MetricsCommandLine"/>
+    <applicationService serviceImplementation="com.sixrr.metrics.config.MetricsReloadedConfig"/>
+    <applicationService serviceImplementation="com.sixrr.metrics.profile.MetricsProfileRepository"/>
+    <projectService serviceInterface="com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow"
+                    serviceImplementation="com.sixrr.metrics.ui.metricdisplay.MetricsToolWindowImpl"/>
+    <exportable serviceInterface="com.sixrr.metrics.profile.MetricsProfileRepository"/>
+  </extensions>
+  <extensions defaultExtensionNs="ArchitectureReloaded">
+    <metricProvider implementation="com.sixrr.stockmetrics.DefaultMetricProvider"/>
+  </extensions>
+
+  <actions>
+    <group>
+      <action id="Metrics.AutomaticRefactoringAction"
+              class="com.sixrr.metrics.plugin.AutomaticRefactoringAction"
+              text="Search for refactorings..."/>
+      <add-to-group group-id="InspectCodeGroup" anchor="last"/>
+    </group>
+  </actions>
+</idea-plugin>
