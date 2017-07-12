@@ -1,29 +1,29 @@
 /*
- * Copyright 2005-2017 Sixth and Red River Software, Bas Leijdekkers
+ * Copyright 2017 Machine Learning Methods in Software Engineering Group of JetBrains Research
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-package com.sixrr.metrics.utils;
+package org.ml_methods_group.utils;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.refactoring.makeStatic.MakeStaticHandler;
 import com.intellij.refactoring.move.MoveHandler;
+import com.sixrr.metrics.utils.MethodUtils;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -38,6 +38,7 @@ public final class RefactoringUtil {
     public static void moveRefactoring(Map<String, String> refactorings, Project project, AnalysisScope scope) {
         final Map<String, List<String>> groupedMovements = refactorings.keySet().stream()
                 .collect(Collectors.groupingBy(refactorings::get, Collectors.toList()));
+
         for (Entry<String, List<String>> refactoring : groupedMovements.entrySet()) {
             final List<PsiMember> members = refactoring.getValue().stream()
                     .sequential()
@@ -49,15 +50,19 @@ public final class RefactoringUtil {
         }
     }
 
-    private static void moveMembersRefactoring(Collection<PsiMember> elements, String targetClass, Project project,
+    private static void moveMembersRefactoring(Collection<PsiMember> elements,
+                                               String targetClass,
+                                               Project project,
                                                AnalysisScope scope) {
         ApplicationManager.getApplication().assertReadAccessAllowed();
+
         final Map<PsiClass, List<PsiElement>> groupByCurrentClass = elements.stream()
                 .collect(Collectors.groupingBy(PsiMember::getContainingClass, Collectors.toList()));
+
         for (Entry<PsiClass, List<PsiElement>> movement : groupByCurrentClass.entrySet()) {
-            final PsiElement destiny = findElement(targetClass, scope);
-            final PsiElement[] array = movement.getValue().stream().toArray(PsiElement[]::new);
-            MoveHandler.doMove(project, array, destiny, DataContext.EMPTY_CONTEXT, null);
+            final PsiElement destination = findElement(targetClass, scope);
+            final PsiElement[] elementsToMove = movement.getValue().toArray(new PsiElement[0]);
+            MoveHandler.doMove(project, elementsToMove, destination, DataContext.EMPTY_CONTEXT, null);
         }
     }
 
@@ -65,13 +70,16 @@ public final class RefactoringUtil {
         if (!(element instanceof PsiMethod)) {
             return isStatic(element)? element : null;
         }
+
         final PsiMethod method = (PsiMethod) element;
         if (method.isConstructor()) {
             return null;
         }
+
         if (isStatic(method)) {
             return method;
         }
+
         MakeStaticHandler.invoke(method);
         final List<PsiMethod> methods = findMethodByName(method.getName(), scope)
                 .stream()
@@ -83,6 +91,7 @@ public final class RefactoringUtil {
 
     public static PsiElement findElement(String humanReadableName, AnalysisScope scope) {
         final PsiElement[] resultHolder = new PsiElement[1];
+
         scope.accept(new JavaRecursiveElementVisitor() {
             @Override
             public void visitMethod(PsiMethod method) {
@@ -146,9 +155,11 @@ public final class RefactoringUtil {
         if (element instanceof PsiClass) {
             return ((PsiClass) element).getQualifiedName();
         }
+
         if (element instanceof PsiMethod) {
             return MethodUtils.calculateSignature((PsiMethod) element);
         }
+
         if (element instanceof PsiField) {
             final PsiField field = (PsiField) element;
             final PsiClass fieldClass = field.getContainingClass();
@@ -157,6 +168,7 @@ public final class RefactoringUtil {
             }
             return fieldClass.getQualifiedName() + "." + field.getName();
         }
+
         return null;
     }
 }

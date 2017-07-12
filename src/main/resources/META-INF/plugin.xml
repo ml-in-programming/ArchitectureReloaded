@@ -38,7 +38,7 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
-    <annotator language="JAVA" implementationClass="com.sixrr.metrics.plugin.RefactoringAnnotator"/>
+    <annotator language="JAVA" implementationClass="org.ml_methods_group.refactoring.RefactoringAnnotator"/>
     <appStarter implementation="com.sixrr.metrics.offline.MetricsCommandLine"/>
     <applicationService serviceImplementation="com.sixrr.metrics.config.MetricsReloadedConfig"/>
     <applicationService serviceImplementation="com.sixrr.metrics.profile.MetricsProfileRepository"/>
@@ -53,7 +53,7 @@
   <actions>
     <group>
       <action id="Metrics.AutomaticRefactoringAction"
-              class="com.sixrr.metrics.plugin.AutomaticRefactoringAction"
+              class="org.ml_methods_group.plugin.AutomaticRefactoringAction"
               text="Search for refactorings..."/>
       <add-to-group group-id="InspectCodeGroup" anchor="last"/>
     </group>

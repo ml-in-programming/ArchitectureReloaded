@@ -1,20 +1,20 @@
 /*
- *  Copyright 2017 Machine Learning Methods in Software Engineering Research Group
+ * Copyright 2017 Machine Learning Methods in Software Engineering Group of JetBrains Research
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-package com.sixrr.metrics.plugin;
+package org.ml_methods_group.plugin;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
@@ -26,11 +26,14 @@ import com.sixrr.metrics.ui.dialogs.ProfileSelectionPanel;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 
 import javax.swing.*;
+import java.util.Collections;
 import java.util.Map;
+import java.util.function.Supplier;
 
-public class AutomaticRefactoringAction extends BaseAnalysisAction{
+public class AutomaticRefactoringAction extends BaseAnalysisAction {
     private Map<String, String> refactoringsCCDA;
     private Map<String, String> refactoringsMRI;
     private Map<String, String> refactoringsAKMeans;
@@ -47,8 +50,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
         System.out.println(project.getBasePath());
         System.out.println();
 
-        final MetricsProfileRepository repository = MetricsProfileRepository.getInstance();
-        final MetricsProfile metricsProfile = repository.getCurrentProfile();
+        final MetricsProfile metricsProfile = MetricsProfileRepository.getInstance().getCurrentProfile();
         assert metricsProfile != null;
 
         new RefactoringExecutionContext(project, analysisScope, metricsProfile, true
@@ -60,8 +62,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
         System.out.println(project.getBasePath());
         System.out.println();
 
-        final MetricsProfileRepository repository = MetricsProfileRepository.getInstance();
-        final MetricsProfile metricsProfile = repository.getCurrentProfile();
+        final MetricsProfile metricsProfile = MetricsProfileRepository.getInstance().getCurrentProfile();
         assert metricsProfile != null;
 
         final RefactoringExecutionContext context =
@@ -71,32 +72,21 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction{
 
 
     private void calculateRefactorings(@NotNull RefactoringExecutionContext context) {
+        refactoringsCCDA = findRefactorings(context::calculateCCDA);
+        refactoringsMRI = findRefactorings(context::calculateMRI);
+        refactoringsAKMeans = findRefactorings(context::calculateAKMeans);
+        refactoringsHAC = findRefactorings(context::calculateHAC);
+        refactoringsARI = findRefactorings(context::calculateARI);
+    }
+
+    private static Map<String, String> findRefactorings(@NotNull Supplier<Map<String, String>> algorithm) {
         try {
-            refactoringsCCDA = context.calculateCCDA();
+            return algorithm.get();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        try {
-            refactoringsMRI = context.calculateMRI();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            refactoringsAKMeans = context.calculateAKMeans();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            refactoringsHAC = context.calculateHAC();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            refactoringsARI = context.calculateARI();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-     }
+        return Collections.emptyMap();
+    }
 
     public Map<String, String> getRefactoringsARI() {
         return refactoringsARI;

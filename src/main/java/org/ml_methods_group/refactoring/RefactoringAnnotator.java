@@ -1,22 +1,23 @@
 /*
- *  Copyright 2017 Machine Learning Methods in Software Engineering Research Group
+ * Copyright 2017 Machine Learning Methods in Software Engineering Group of JetBrains Research
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-package com.sixrr.metrics.plugin;
+package org.ml_methods_group.refactoring;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.project.Project;
@@ -24,7 +25,8 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.sixrr.metrics.profile.MetricsProfileRepository;
-import com.sixrr.metrics.utils.RefactoringUtil;
+import org.ml_methods_group.plugin.AutomaticRefactoringAction;
+import org.ml_methods_group.utils.RefactoringUtil;
 import com.sixrr.stockmetrics.i18n.StockMetricsBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +41,7 @@ public class RefactoringAnnotator implements Annotator {
         if (!(psiElement instanceof PsiFile)) {
             return;
         }
+
         final Project project = psiElement.getProject();
         MetricsProfileRepository.getInstance().
                 setSelectedProfile(StockMetricsBundle.message("refactoring.metrics.profile.name"));
@@ -60,15 +63,20 @@ public class RefactoringAnnotator implements Annotator {
         if (refactorings == null || refactorings.isEmpty()) {
             return;
         }
+
         holder.getCurrentAnnotationSession().getFile().accept(new JavaRecursiveElementWalkingVisitor() {
             @Override
             public void visitElement(PsiElement element) {
                 super.visitElement(element);
-                final String name = RefactoringUtil.getName(element);
-                if (refactorings.containsKey(name)) {
-                    holder.createWarningAnnotation(getAnnotationPart(element),
-                            String.format("Can be moved to %s (%s)", refactorings.get(name), algorithmName))
-                            .registerFix(new RefactorIntentionAction(algorithmName, name, refactorings.get(name), scope));
+                final String currentClassName = RefactoringUtil.getName(element);
+                if (refactorings.containsKey(currentClassName)) {
+                    final Annotation annotation = holder.createWarningAnnotation(
+                            getAnnotationPart(element),
+                            String.format("Can be moved to %s (%s)",
+                                    refactorings.get(currentClassName), algorithmName));
+
+                    annotation.registerFix(new RefactorIntentionAction(algorithmName,
+                            currentClassName, refactorings.get(currentClassName), scope));
                 }
             }
         });
