@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ArchitectureReloaded.iml" filepath="$PROJECT_DIR$/.idea/modules/ArchitectureReloaded.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ArchitectureReloaded.iml" filepath="$PROJECT_DIR$/ArchitectureReloaded.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/ArchitectureReloaded/ArchitectureReloaded-ArchitectureReloaded.iml" filepath="$PROJECT_DIR$/.idea/modules/ArchitectureReloaded/ArchitectureReloaded-ArchitectureReloaded.iml" group="ArchitectureReloaded" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/ArchitectureReloaded_main.iml" filepath="$PROJECT_DIR$/.idea/modules/ArchitectureReloaded_main.iml" group="ArchitectureReloaded" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/ArchitectureReloaded_test.iml" filepath="$PROJECT_DIR$/.idea/modules/ArchitectureReloaded_test.iml" group="ArchitectureReloaded" />
