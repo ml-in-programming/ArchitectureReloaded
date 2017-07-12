@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ArchitectureReloaded.iml" filepath="$PROJECT_DIR$/.idea/modules/ArchitectureReloaded.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ArchitectureReloaded/ArchitectureReloaded-ArchitectureReloaded.iml" filepath="$PROJECT_DIR$/.idea/modules/ArchitectureReloaded/ArchitectureReloaded-ArchitectureReloaded.iml" group="ArchitectureReloaded" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ArchitectureReloaded_main.iml" filepath="$PROJECT_DIR$/.idea/modules/ArchitectureReloaded_main.iml" group="ArchitectureReloaded" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ArchitectureReloaded_test.iml" filepath="$PROJECT_DIR$/.idea/modules/ArchitectureReloaded_test.iml" group="ArchitectureReloaded" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/openapi/openapi.iml" filepath="$PROJECT_DIR$/.idea/modules/openapi/openapi.iml" group="openapi" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/openapi/openapi_main.iml" filepath="$PROJECT_DIR$/.idea/modules/openapi/openapi_main.iml" group="openapi" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/openapi/openapi_test.iml" filepath="$PROJECT_DIR$/.idea/modules/openapi/openapi_test.iml" group="openapi" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/stockmetrics/stockmetrics.iml" filepath="$PROJECT_DIR$/.idea/modules/stockmetrics/stockmetrics.iml" group="stockmetrics" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/stockmetrics/stockmetrics_main.iml" filepath="$PROJECT_DIR$/.idea/modules/stockmetrics/stockmetrics_main.iml" group="stockmetrics" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/stockmetrics/stockmetrics_test.iml" filepath="$PROJECT_DIR$/.idea/modules/stockmetrics/stockmetrics_test.iml" group="stockmetrics" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/utils/utils.iml" filepath="$PROJECT_DIR$/.idea/modules/utils/utils.iml" group="utils" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/utils/utils_main.iml" filepath="$PROJECT_DIR$/.idea/modules/utils/utils_main.iml" group="utils" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/utils/utils_test.iml" filepath="$PROJECT_DIR$/.idea/modules/utils/utils_test.iml" group="utils" />
+    </modules>
+  </component>
+</project>

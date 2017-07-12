@@ -1,0 +1,26 @@
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+    maven {
+      url 'http://dl.bintray.com/jetbrains/intellij-plugin-service'
+    }
+
+  }
+  dependencies {
+    classpath "gradle.plugin.org.jetbrains:gradle-intellij-plugin:0.1.10"
+  }
+}
+
+apply plugin: 'org.jetbrains.intellij'
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+dependencies {
+  compile project(':openapi')
+  compile project(':utils')
+  compile project(':stockmetrics')
+  compile files('lib/args4j-2.32.jar', 'lib/jcommon-0.9.1.jar', 'lib/jfreechart-0.9.16.jar')
+}
