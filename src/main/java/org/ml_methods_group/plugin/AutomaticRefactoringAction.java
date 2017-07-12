@@ -27,6 +27,7 @@ import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
+import org.ml_methods_group.ui.RefactoringDialog;
 
 import javax.swing.*;
 import java.util.Collections;
@@ -54,7 +55,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         assert metricsProfile != null;
 
         new RefactoringExecutionContext(project, analysisScope, metricsProfile, true
-                , this::calculateRefactorings);
+                , this::showRefactoringsDialog);
     }
 
     public void analyzeSynchronously(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
@@ -77,6 +78,17 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         refactoringsAKMeans = findRefactorings(context::calculateAKMeans);
         refactoringsHAC = findRefactorings(context::calculateHAC);
         refactoringsARI = findRefactorings(context::calculateARI);
+    }
+
+    private void showRefactoringsDialog(@NotNull RefactoringExecutionContext context) {
+        calculateRefactorings(context);
+        new RefactoringDialog(context.getProject(), context.getScope())
+                .addSolution("CCDA", refactoringsCCDA)
+                .addSolution("MRI", refactoringsMRI)
+                .addSolution("AKMeans", refactoringsAKMeans)
+                .addSolution("HAC", refactoringsHAC)
+                .addSolution("ARI", refactoringsARI)
+                .show();
     }
 
     private static Map<String, String> findRefactorings(@NotNull Supplier<Map<String, String>> algorithm) {
