@@ -18,18 +18,13 @@ package org.ml_methods_group.refactoring;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.MessageType;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.MetricsResultsHolder;
-import com.sixrr.metrics.config.MetricsReloadedConfig;
 import com.sixrr.metrics.metricModel.MetricsExecutionContextImpl;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
 import com.sixrr.metrics.metricModel.TimeStamp;
 import com.sixrr.metrics.profile.MetricsProfile;
-import com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow;
-import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.*;
@@ -38,7 +33,10 @@ import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.FieldEntity;
 import org.ml_methods_group.algorithm.entity.MethodEntity;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
@@ -89,19 +87,6 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
         metricsRun.setProfileName(profile.getName());
         metricsRun.setContext(scope);
         metricsRun.setTimestamp(new TimeStamp());
-
-        // TODO: move UI out of here. E.g. into AutomaticRefactoringAction
-        if (enableUi) {
-            final boolean showOnlyWarnings = MetricsReloadedConfig.getInstance().isShowOnlyWarnings();
-            if(!metricsRun.hasWarnings(profile) && showOnlyWarnings) {
-                ToolWindowManager.getInstance(project).notifyByBalloon(MetricsToolWindow.METRICS_TOOL_WINDOW_ID,
-                        MessageType.INFO, MetricsReloadedBundle.message("no.metrics.warnings.found"));
-                return;
-            }
-
-            final MetricsToolWindow toolWindow = MetricsToolWindow.getInstance(project);
-            toolWindow.show(metricsRun, profile, scope, showOnlyWarnings);
-        }
 
         final MetricsResult classMetrics = metricsRun.getResultsForCategory(MetricCategory.Class);
         final MetricsResult methodMetrics = metricsRun.getResultsForCategory(MetricCategory.Method);
