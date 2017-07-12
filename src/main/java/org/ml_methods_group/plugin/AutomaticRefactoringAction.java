@@ -51,8 +51,8 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 .getProfileForName("Refactoring features");
         assert metricsProfile != null;
 
-        new RefactoringExecutionContext(project, analysisScope, metricsProfile, true
-                , this::showRefactoringsDialog);
+        new RefactoringExecutionContext(project, analysisScope, metricsProfile,
+                this::showRefactoringsDialog);
     }
 
     public void analyzeSynchronously(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {

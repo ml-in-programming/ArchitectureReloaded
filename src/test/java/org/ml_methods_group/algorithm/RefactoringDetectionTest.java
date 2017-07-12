@@ -50,8 +50,8 @@ public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
         analysisScope = new AnalysisScope(project, Arrays.asList(file1, file2));
         profile = MetricsProfileRepository.getInstance().getProfileForName("Refactoring features");
 
-        new RefactoringExecutionContext(project, analysisScope, profile, false
-                , RefactoringDetectionTest::calculateMoveMethodRefactorings);
+        new RefactoringExecutionContext(project, analysisScope, profile,
+                RefactoringDetectionTest::calculateMoveMethodRefactorings);
     }
 
     private static void calculateMoveMethodRefactorings(RefactoringExecutionContext context) {

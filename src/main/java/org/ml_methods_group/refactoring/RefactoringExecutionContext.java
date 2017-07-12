@@ -40,22 +40,23 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
-    @NotNull private final MetricsRunImpl metricsRun = new MetricsRunImpl();
-    @NotNull private final MetricsProfile profile;
-    @NotNull private final PropertiesFinder properties;
-    @Nullable private final Consumer<RefactoringExecutionContext> continuation;
-    private final boolean enableUi;
+    @NotNull
+    private final MetricsRunImpl metricsRun = new MetricsRunImpl();
+    @NotNull
+    private final MetricsProfile profile;
+    @NotNull
+    private final PropertiesFinder properties;
+    @Nullable
+    private final Consumer<RefactoringExecutionContext> continuation;
     private final List<Entity> entities = new ArrayList<>();
     private int classCount = 0;
     private int methodsCount = 0;
     private int fieldsCount = 0;
 
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope
-            , @NotNull MetricsProfile profile, boolean enableUi
-            , @Nullable Consumer<RefactoringExecutionContext> continuation) {
+            , @NotNull MetricsProfile profile, @Nullable Consumer<RefactoringExecutionContext> continuation) {
         super(project, scope);
         this.profile = profile;
-        this.enableUi = enableUi;
         this.continuation = continuation;
 
         properties = new PropertiesFinder();
@@ -68,7 +69,6 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
             , @NotNull MetricsProfile profile) {
         super(project, scope);
         this.profile = profile;
-        enableUi = false;
         continuation = null;
 
         properties = new PropertiesFinder();
