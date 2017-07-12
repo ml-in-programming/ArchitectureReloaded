@@ -24,7 +24,7 @@ import java.util.ResourceBundle;
 
 public final class StockMetricsBundle {
 
-    private static final String BUNDLE = "com.sixrr.stockmetrics.i18n.StockMetricsBundle";
+    private static final String BUNDLE = "StockMetricsBundle";
     private static Reference<ResourceBundle> INSTANCE;
 
     private StockMetricsBundle() {}

@@ -24,7 +24,7 @@ import java.util.ResourceBundle;
 
 public final class MetricsReloadedBundle {
 
-    public static final String BUNDLE = "com.sixrr.metrics.utils.MetricsReloadedBundle";
+    public static final String BUNDLE = "MetricsReloadedBundle";
     private static Reference<ResourceBundle> INSTANCE;
 
     private MetricsReloadedBundle() {}

@@ -17,7 +17,7 @@
         <clientProperties>
           <BorderFactoryClass class="java.lang.String" value="com.intellij.ui.IdeBorderFactory$PlainSmallWithoutIndent"/>
         </clientProperties>
-        <border type="none" title-resource-bundle="com/sixrr/metrics/utils/MetricsReloadedBundle" title-key="description"/>
+        <border type="none" title-resource-bundle="MetricsReloadedBundle" title-key="description"/>
         <children>
           <scrollpane id="f6141" class="com.intellij.ui.components.JBScrollPane">
             <constraints>
