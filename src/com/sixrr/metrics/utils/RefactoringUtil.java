@@ -145,7 +145,7 @@ public final class RefactoringUtil {
                                                   Function<? super PsiMethod, String> methodToString,
                                                   Function<? super PsiField, String> fieldToString,
                                                   AnalysisScope scope, String request) {
-        final PsiElement[] resultHolder = new PsiElement[0];
+        final PsiElement[] resultHolder = new PsiElement[1];
         scope.accept(new JavaRecursiveElementVisitor() {
             @Override
             public void visitMethod(PsiMethod method) {
