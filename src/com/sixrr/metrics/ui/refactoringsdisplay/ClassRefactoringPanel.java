@@ -18,9 +18,7 @@ package com.sixrr.metrics.ui.refactoringsdisplay;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.ide.highlighter.JavaFileType;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiElement;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.ScrollPaneFactory;
@@ -39,7 +37,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.sixrr.metrics.utils.RefactoringUtil.createDescription;
-import static com.sixrr.metrics.utils.RefactoringUtil.findElement;
+import static com.sixrr.metrics.utils.RefactoringUtil.getElementText;
 
 
 /**
@@ -120,25 +118,24 @@ public class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setEnabled(false);
         selectAllButton.setEnabled(false);
         final Map<String, String> movements = model.getSelected();
-        ApplicationManager.getApplication().runReadAction(() ->
-                    RefactoringUtil.moveRefactoring(movements, project, scope));
+        RefactoringUtil.moveRefactoring(movements, project, scope);
         listeners.forEach(l -> l.onRefactoringFinished(this));
     }
 
     private void updateInfoPanel() {
         final int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
-            codePanel.showElement(null);
+            codePanel.setText("");
             description.setText("");
             return;
         }
         final String elementName = model.getElement(selectedRow);
         final String movement = model.getMovement(selectedRow);
         new Thread(() -> {
-            final PsiElement element = findElement(elementName, scope);
+            final String code = getElementText(elementName, scope).orElse("");
             final String refactoringInfo = createDescription(elementName, movement, scope);
             SwingUtilities.invokeLater(() -> {
-                codePanel.showElement(element);
+                codePanel.setText(code);
                 description.setText(refactoringInfo);
             });
         }).start();
@@ -165,14 +162,6 @@ public class ClassRefactoringPanel extends JPanel {
             super.setText(text);
             if (getParent() != null) {
                 getParent().revalidate();
-            }
-        }
-
-        public void showElement(PsiElement element) {
-            if (element == null) {
-                setText("");
-            } else {
-                setText(element.getText());
             }
         }
     }
