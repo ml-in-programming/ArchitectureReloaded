@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.sixrr.metrics.utils.MethodUtils.calculateSignature;
@@ -40,6 +41,8 @@ import static com.sixrr.metrics.utils.MethodUtils.isStatic;
  * Created by Артём on 05.07.2017.
  */
 public final class RefactoringUtil {
+    private static final Function<Object, String> NULL_SUPPLIER = s -> null;
+
     private RefactoringUtil() {
     }
 
@@ -94,46 +97,15 @@ public final class RefactoringUtil {
     }
 
     private static Optional<PsiElement> findElement(String humanReadableName, AnalysisScope scope) {
-        final PsiElement[] resultHolder = new PsiElement[1];
-        scope.accept(new JavaRecursiveElementVisitor() {
-            @Override
-            public void visitMethod(PsiMethod method) {
-                super.visitMethod(method);
-                if (humanReadableName.equals(getHumanReadableName(method))) {
-                    resultHolder[0] = method;
-                }
-            }
-
-            @Override
-            public void visitClass(PsiClass aClass) {
-                super.visitClass(aClass);
-                if (humanReadableName.equals(getHumanReadableName(aClass))) {
-                    resultHolder[0] = aClass;
-                }
-            }
-
-            @Override
-            public void visitField(PsiField field) {
-                super.visitField(field);
-                if (humanReadableName.equals(getHumanReadableName(field))) {
-                    resultHolder[0] = field;
-                }
-            }
-        });
-        return Optional.ofNullable(resultHolder[0]);
+        return runSearch(RefactoringUtil::getHumanReadableName,
+                RefactoringUtil::getHumanReadableName,
+                RefactoringUtil::getHumanReadableName,
+                scope, humanReadableName);
     }
 
     private static Optional<PsiMethod> findMethodByName(String name, AnalysisScope scope) {
-        final PsiMethod[] resultHolder = new PsiMethod[1];
-        scope.accept(new JavaRecursiveElementVisitor() {
-            @Override
-            public void visitMethod(PsiMethod method) {
-                if (method.getName().equals(name)) {
-                    resultHolder[0] = method;
-                }
-            }
-        });
-        return Optional.ofNullable(resultHolder[0]);
+        return runSearch(NULL_SUPPLIER, PsiMethod::getName, NULL_SUPPLIER, scope, name)
+                .map(e -> (PsiMethod) e);
     }
 
     public static Optional<String> getElementText(String unit, AnalysisScope scope) {
@@ -161,11 +133,44 @@ public final class RefactoringUtil {
         if (element instanceof PsiMethod) {
             return calculateSignature((PsiMethod) element);
         } else if (element instanceof PsiClass) {
-            return ((PsiClass)element).getQualifiedName();
+            return ((PsiClass) element).getQualifiedName();
         } else if (element instanceof PsiField) {
             final PsiMember field = (PsiMember) element;
             return getHumanReadableName(field.getContainingClass()) + "." + field.getName();
         }
         return "???";
+    }
+
+    private static Optional<PsiElement> runSearch(Function<? super PsiClass, String> classToString,
+                                                  Function<? super PsiMethod, String> methodToString,
+                                                  Function<? super PsiField, String> fieldToString,
+                                                  AnalysisScope scope, String request) {
+        final PsiElement[] resultHolder = new PsiElement[0];
+        scope.accept(new JavaRecursiveElementVisitor() {
+            @Override
+            public void visitMethod(PsiMethod method) {
+                super.visitMethod(method);
+                if (request.equals(methodToString.apply(method))) {
+                    resultHolder[0] = method;
+                }
+            }
+
+            @Override
+            public void visitClass(PsiClass aClass) {
+                super.visitClass(aClass);
+                if (request.equals(classToString.apply(aClass))) {
+                    resultHolder[0] = aClass;
+                }
+            }
+
+            @Override
+            public void visitField(PsiField field) {
+                super.visitField(field);
+                if (request.equals(fieldToString.apply(field))) {
+                    resultHolder[0] = field;
+                }
+            }
+        });
+        return Optional.ofNullable(resultHolder[0]);
     }
 }
