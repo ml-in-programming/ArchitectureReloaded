@@ -25,7 +25,7 @@ import static org.junit.Assert.*;
 
 public class SetUtilTest {
     @Test
-    public void testHasIntersec() {
+    public void testHasIntersection() {
         assertFalse(SetUtil.haveIntersection(null, new HashSet<Integer>(Arrays.asList(1, 2, 3))));
         assertFalse(SetUtil.haveIntersection(new HashSet<Integer>(Arrays.asList(1, 2, 3)), null));
         assertTrue(SetUtil.haveIntersection(new HashSet<Integer>(Arrays.asList(1, 2, 3)), new HashSet<Integer>(Arrays.asList(3, 4, 5))));
@@ -34,7 +34,7 @@ public class SetUtilTest {
     }
 
     @Test
-    public void testSizeOfIntersec() {
+    public void testSizeOfIntersection() {
         assertEquals(0, SetUtil.sizeOfIntersec(null, new HashSet<Integer>(Arrays.asList(1, 2, 3))));
         assertEquals(0, SetUtil.sizeOfIntersec(new HashSet<Integer>(Arrays.asList(1, 2, 3)), null));
         assertEquals(1, SetUtil.sizeOfIntersec(
