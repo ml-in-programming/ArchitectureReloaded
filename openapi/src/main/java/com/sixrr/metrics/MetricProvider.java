@@ -30,7 +30,7 @@ import java.util.List;
 public interface MetricProvider {
 
     ExtensionPointName<MetricProvider> EXTENSION_POINT_NAME =
-            ExtensionPointName.create("MetricsReloaded.metricProvider");
+            ExtensionPointName.create("ArchitectureReloaded.metricProvider");
 
     /**
      * Returns the list of metrics provided by this provider.
