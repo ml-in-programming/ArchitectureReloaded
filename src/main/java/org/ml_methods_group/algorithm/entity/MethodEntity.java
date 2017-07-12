@@ -14,27 +14,24 @@
  * limitations under the License.
  */
 
-package org.ml_methods_group.algoritm.entity;
+package org.ml_methods_group.algorithm.entity;
 
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
-import org.ml_methods_group.algoritm.PropertiesFinder;
-import org.ml_methods_group.algoritm.RelevantProperties;
+import org.ml_methods_group.algorithm.PropertiesFinder;
 
 import java.util.Arrays;
 import java.util.HashSet;
 
-public class FieldEntity extends Entity {
-    public FieldEntity(String name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
+public class MethodEntity extends Entity {
+    public MethodEntity(String name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
         super(name, metricsRun, propertiesFinder);
-        final RelevantProperties rp = propertiesFinder.getProperties(name);
-        vector[2] = (double) rp.numberOfMethods();
     }
 
     @Override
     public MetricCategory getCategory() {
-        return MetricCategory.Package;
+        return MetricCategory.Method;
     }
 
     @Override
@@ -44,9 +41,12 @@ public class FieldEntity extends Entity {
             vector[i] = 0.0;
         }
 
+        final MetricCategory category = getCategory();
+        final MetricsResult results = metricsRun.getResultsForCategory(category);
         final MetricsResult classResults = metricsRun.getResultsForCategory(MetricCategory.Class);
+
         processEntity(getClassName(), MetricCategory.Class,  classResults, metricsRun, vector);
-        vector[3] = 0.0;
+        processEntity(getName(), category, results, metricsRun, vector);
 
         return vector;
     }
@@ -58,7 +58,8 @@ public class FieldEntity extends Entity {
 
     @Override
     public String getClassName() {
-        final String name = getName();
+        final String signature = getName();
+        final String name = signature.substring(0, signature.indexOf('('));
         return name.substring(0, name.lastIndexOf('.'));
     }
 }

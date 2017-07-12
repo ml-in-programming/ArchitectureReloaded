@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ml_methods_group.algoritm;
+package org.ml_methods_group.algorithm;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.project.Project;

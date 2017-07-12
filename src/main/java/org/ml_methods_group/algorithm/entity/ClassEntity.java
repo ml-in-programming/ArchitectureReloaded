@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.ml_methods_group.algoritm.entity;
+package org.ml_methods_group.algorithm.entity;
 
 import com.intellij.psi.PsiClass;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
-import org.ml_methods_group.algoritm.PSIUtil;
-import org.ml_methods_group.algoritm.PropertiesFinder;
+import org.ml_methods_group.algorithm.PSIUtil;
+import org.ml_methods_group.algorithm.PropertiesFinder;
 
 import java.util.Collections;
 import java.util.HashSet;

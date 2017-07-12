@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.ml_methods_group.algoritm;
+package org.ml_methods_group.algorithm;
 
 import com.sixrr.metrics.MetricCategory;
 import org.jetbrains.annotations.NotNull;
-import org.ml_methods_group.algoritm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.Entity;
 
 import java.util.*;
 

@@ -32,11 +32,11 @@ import com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.ml_methods_group.algoritm.*;
-import org.ml_methods_group.algoritm.entity.ClassEntity;
-import org.ml_methods_group.algoritm.entity.Entity;
-import org.ml_methods_group.algoritm.entity.FieldEntity;
-import org.ml_methods_group.algoritm.entity.MethodEntity;
+import org.ml_methods_group.algorithm.*;
+import org.ml_methods_group.algorithm.entity.ClassEntity;
+import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.FieldEntity;
+import org.ml_methods_group.algorithm.entity.MethodEntity;
 
 import java.util.*;
 import java.util.function.Consumer;

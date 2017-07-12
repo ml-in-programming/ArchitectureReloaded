@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ml_methods_group.algoritm;
+package org.ml_methods_group.algorithm;
 
 import java.util.*;
 
@@ -22,7 +22,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import org.jetbrains.annotations.Nullable;
-import org.ml_methods_group.algoritm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.Entity;
 
 public class MRI {
     private final List<Entity> entities;
