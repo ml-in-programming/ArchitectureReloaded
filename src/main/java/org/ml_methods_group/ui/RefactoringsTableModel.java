@@ -20,10 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
 import javax.swing.table.AbstractTableModel;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -42,6 +39,9 @@ public class RefactoringsTableModel extends AbstractTableModel {
 
     RefactoringsTableModel(Map<String, String> refactorings) {
         for (Entry<String, String> refactoring : refactorings.entrySet()) {
+            if (refactoring.getKey() == null || refactoring.getValue() == null) {
+                continue;
+            }
             units.add(refactoring.getKey());
             movements.add(refactoring.getValue());
         }
