@@ -9,11 +9,16 @@ buildscript {
   }
 }
 
-apply plugin: 'org.jetbrains.intellij'
-apply plugin: 'java'
-apply plugin: 'idea'
+allprojects {
+  apply plugin: 'java'
+  sourceCompatibility = 1.8
+  targetCompatibility = 1.8
 
-sourceCompatibility = 1.8
+  apply plugin: 'org.jetbrains.intellij'
+  intellij.version = 2017.1
+}
+
+apply plugin: 'idea'
 
 dependencies {
   compile project(':openapi')
