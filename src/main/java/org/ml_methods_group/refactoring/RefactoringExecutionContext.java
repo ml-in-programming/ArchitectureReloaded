@@ -40,21 +40,18 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
-    @NotNull
-    private final MetricsRunImpl metricsRun = new MetricsRunImpl();
-    @NotNull
-    private final MetricsProfile profile;
-    @NotNull
-    private final PropertiesFinder properties;
-    @Nullable
-    private final Consumer<RefactoringExecutionContext> continuation;
+    @NotNull private final MetricsRunImpl metricsRun = new MetricsRunImpl();
+    @NotNull private final MetricsProfile profile;
+    @NotNull private final PropertiesFinder properties;
+    @Nullable private final Consumer<RefactoringExecutionContext> continuation;
     private final List<Entity> entities = new ArrayList<>();
     private int classCount = 0;
     private int methodsCount = 0;
     private int fieldsCount = 0;
 
-    public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope
-            , @NotNull MetricsProfile profile, @Nullable Consumer<RefactoringExecutionContext> continuation) {
+    public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
+                                       @NotNull MetricsProfile profile,
+                                       @Nullable Consumer<RefactoringExecutionContext> continuation) {
         super(project, scope);
         this.profile = profile;
         this.continuation = continuation;

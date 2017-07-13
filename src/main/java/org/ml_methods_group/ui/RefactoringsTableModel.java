@@ -28,17 +28,13 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-/**
- * Created by Артём on 05.07.2017.
- */
 public class RefactoringsTableModel extends AbstractTableModel {
-
     private static final String UNIT_COLUMN_TITLE_KEY = "unit.column.title";
     private static final String MOVE_TO_COLUMN_TITLE_KEY = "move.to.column.title";
     private static final int UNIT_COLUMN_INDEX = 1;
     private static final int MOVE_TO_COLUMN_INDEX = 2;
     private static final int SELECTION_COLUMN_INDEX = 0;
-
+    private static final int COLUMNS_COUNT = 3;
 
     private final List<String> units = new ArrayList<>();
     private final List<String> movements = new ArrayList<>();
@@ -66,7 +62,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
 
     @Override
     public int getColumnCount() {
-        return 3;
+        return COLUMNS_COUNT;
     }
 
     @Override

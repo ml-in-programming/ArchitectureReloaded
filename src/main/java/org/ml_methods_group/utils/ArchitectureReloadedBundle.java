@@ -24,7 +24,6 @@ import java.lang.ref.Reference;
 import java.util.ResourceBundle;
 
 public final class ArchitectureReloadedBundle {
-
     private static final String BUNDLE = "ArchitectureReloadedBundle";
     private static Reference<ResourceBundle> INSTANCE;
 

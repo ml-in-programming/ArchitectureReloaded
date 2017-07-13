@@ -25,6 +25,7 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.RefactoringUtil;
@@ -39,19 +40,14 @@ import java.util.Map;
 import static org.ml_methods_group.utils.RefactoringUtil.createDescription;
 import static org.ml_methods_group.utils.RefactoringUtil.getElementText;
 
-
-/**
- * Created by Артём on 05.07.2017.
- */
-public class ClassRefactoringPanel extends JPanel {
-
+class ClassRefactoringPanel extends JPanel {
     private static final String SELECT_ALL_BUTTON_TEXT_KEY = "select.all.button";
     private static final String REFACTOR_BUTTON_TEXT_KEY = "refactor.button";
     private static final String SPLITTER_PROPORTION_KEY = "refactoring.panel.splitter.proportion.key";
 
-    private final Project project;
-    private final AnalysisScope scope;
-    private final RefactoringsTableModel model;
+    @NotNull private final Project project;
+    @NotNull private final AnalysisScope scope;
+    @NotNull private final RefactoringsTableModel model;
     private final Collection<OnRefactoringFinishedListener> listeners = new ArrayList<>();
     private final JBTable table = new JBTable();
     private final JavaCodePanel codePanel;
@@ -59,7 +55,8 @@ public class ClassRefactoringPanel extends JPanel {
     private final JButton selectAllButton = new JButton();
     private final JButton doRefactorButton = new JButton();
 
-    public ClassRefactoringPanel(Project project, Map<String, String> refactorings, AnalysisScope scope) {
+    ClassRefactoringPanel(@NotNull Project project, Map<String, String> refactorings,
+                          @NotNull AnalysisScope scope) {
         this.project = project;
         this.scope = scope;
         setLayout(new BorderLayout());
@@ -129,6 +126,7 @@ public class ClassRefactoringPanel extends JPanel {
             description.setText("");
             return;
         }
+
         final String elementName = model.getElement(selectedRow);
         final String movement = model.getMovement(selectedRow);
         new Thread(() -> {
@@ -141,7 +139,7 @@ public class ClassRefactoringPanel extends JPanel {
         }).start();
     }
 
-    public void addOnRefactoringFinishedListener(OnRefactoringFinishedListener listener) {
+    void addOnRefactoringFinishedListener(OnRefactoringFinishedListener listener) {
         listeners.add(listener);
     }
 

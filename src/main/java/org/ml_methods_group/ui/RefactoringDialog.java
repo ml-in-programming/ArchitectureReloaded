@@ -29,17 +29,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Map;
 
-
 public class RefactoringDialog extends DialogWrapper {
-
     private static final String DIMENSIONS_SERVICE_KEY = "ArchitectureReloaded.RefactoringDialog";
     private static final String DIALOG_TITLE_KEY = "refactoring.dialog.title";
     private static final Action[] EMPTY_ACTION_ARRAY = new Action[0];
     private final JBTabbedPane pane = new JBTabbedPane();
-    private final Project project;
-    private final AnalysisScope scope;
+    @NotNull private final Project project;
+    @NotNull private final AnalysisScope scope;
 
-    public RefactoringDialog(Project project, AnalysisScope scope) {
+    public RefactoringDialog(@NotNull Project project, @NotNull AnalysisScope scope) {
         super(project, false);
         this.project = project;
         this.scope = scope;
