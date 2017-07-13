@@ -18,14 +18,18 @@ package org.ml_methods_group.plugin;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
+import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.openapi.project.Project;
 import com.sixrr.metrics.profile.MetricsProfile;
 import com.sixrr.metrics.profile.MetricsProfileRepository;
+import com.sixrr.metrics.ui.dialogs.ProfileSelectionPanel;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.ui.RefactoringDialog;
 
+import javax.swing.*;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -48,7 +52,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         System.out.println();
 
         final MetricsProfile metricsProfile = MetricsProfileRepository.getInstance()
-                .getProfileForName("Refactoring features");
+                .getCurrentProfile();
         assert metricsProfile != null;
 
         new RefactoringExecutionContext(project, analysisScope, metricsProfile,
@@ -116,5 +120,11 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     public Map<String, String> getRefactoringsHAC() {
         return refactoringsHAC;
+    }
+
+    @Override
+    @Nullable
+    protected JComponent getAdditionalActionSettings(Project project, BaseAnalysisActionDialog dialog) {
+        return new ProfileSelectionPanel(project);
     }
 }
