@@ -19,83 +19,148 @@ package org.ml_methods_group.utils;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.refactoring.makeStatic.MakeStaticHandler;
 import com.intellij.refactoring.move.MoveHandler;
 import com.sixrr.metrics.utils.MethodUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.sixrr.metrics.utils.MethodUtils.calculateSignature;
 import static com.sixrr.metrics.utils.MethodUtils.isStatic;
 
 public final class RefactoringUtil {
+    private static final Function<Object, String> NULL_SUPPLIER = s -> null;
+
     private RefactoringUtil() {
     }
 
-    public static void moveRefactoring(Map<String, String> refactorings, Project project, AnalysisScope scope) {
-        final Map<String, List<String>> groupedMovements = refactorings.keySet().stream()
-                .collect(Collectors.groupingBy(refactorings::get, Collectors.toList()));
+    public static void moveRefactoring(@NotNull Map<String, String> refactorings,
+                                       @NotNull Project project,
+                                       @NotNull AnalysisScope scope) {
+        ApplicationManager.getApplication().runReadAction(() -> {
+            final Map<String, List<String>> groupedMovements = refactorings.keySet().stream()
+                    .collect(Collectors.groupingBy(refactorings::get, Collectors.toList()));
 
-        for (Entry<String, List<String>> refactoring : groupedMovements.entrySet()) {
-            final List<PsiMember> members = refactoring.getValue().stream()
-                    .sequential()
-                    .map(name -> findElement(name, scope))
-                    .map(element -> makeStatic((PsiMember) element, scope))
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-            moveMembersRefactoring(members, refactoring.getKey(), project, scope);
-        }
+            for (Entry<String, List<String>> refactoring : groupedMovements.entrySet()) {
+                final List<PsiMember> members = refactoring.getValue().stream()
+                        .sequential()
+                        .map(name -> findElement(name, scope))
+                        .filter(Optional::isPresent)
+                        .map(element -> makeStatic((PsiMember) element.get(), scope))
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .collect(Collectors.toList());
+                moveMembersRefactoring(members, refactoring.getKey(), project, scope);
+            }
+        });
     }
 
-    private static void moveMembersRefactoring(Collection<PsiMember> elements,
-                                               String targetClass,
-                                               Project project,
-                                               AnalysisScope scope) {
-        ApplicationManager.getApplication().assertReadAccessAllowed();
-
+    private static void moveMembersRefactoring(Collection<PsiMember> elements, String targetClass,
+                                               Project project, AnalysisScope scope) {
         final Map<PsiClass, List<PsiElement>> groupByCurrentClass = elements.stream()
                 .collect(Collectors.groupingBy(PsiMember::getContainingClass, Collectors.toList()));
 
         for (Entry<PsiClass, List<PsiElement>> movement : groupByCurrentClass.entrySet()) {
-            final PsiElement destination = findElement(targetClass, scope);
-            final PsiElement[] elementsToMove = movement.getValue().toArray(new PsiElement[0]);
-            MoveHandler.doMove(project, elementsToMove, destination, DataContext.EMPTY_CONTEXT, null);
+            final Optional<PsiElement> destination = findElement(targetClass, scope);
+            if (!destination.isPresent()) {
+                return;
+            }
+
+            final PsiElement[] array = movement.getValue().toArray(new PsiElement[0]);
+            TransactionGuard.getInstance().submitTransactionAndWait(() ->
+                    MoveHandler.doMove(project, array, destination.get(), DataContext.EMPTY_CONTEXT, null));
         }
     }
 
-    public static PsiMember makeStatic(PsiMember element, AnalysisScope scope) {
+    private static Optional<PsiMember> makeStatic(PsiMember element, AnalysisScope scope) {
         if (!(element instanceof PsiMethod)) {
-            return isStatic(element)? element : null;
+            return Optional.of(element).filter(MethodUtils::isStatic);
         }
 
         final PsiMethod method = (PsiMethod) element;
         if (method.isConstructor()) {
-            return null;
+            return Optional.empty();
         }
 
         if (isStatic(method)) {
-            return method;
+            return Optional.of(method);
         }
 
-        MakeStaticHandler.invoke(method);
-        final List<PsiMethod> methods = findMethodByName(method.getName(), scope)
-                .stream()
+        TransactionGuard.getInstance().submitTransactionAndWait(() -> MakeStaticHandler.invoke(method));
+        return findMethodByName(method.getName(), scope)
                 .filter(MethodUtils::isStatic)
                 .filter(m -> MethodUtils.parametersCount(m) >= MethodUtils.parametersCount(method))
-                .collect(Collectors.toList());
-        return methods.isEmpty() ? null : methods.get(0);
+                .map(m -> (PsiMember) m);
     }
 
-    public static PsiElement findElement(String humanReadableName, AnalysisScope scope) {
-        final PsiElement[] resultHolder = new PsiElement[1];
+    private static Optional<PsiElement> findElement(String humanReadableName, AnalysisScope scope) {
+        return runSearch(RefactoringUtil::getHumanReadableName,
+                RefactoringUtil::getHumanReadableName,
+                RefactoringUtil::getHumanReadableName,
+                scope, humanReadableName);
+    }
 
+    private static Optional<PsiMethod> findMethodByName(String name, AnalysisScope scope) {
+        return runSearch(NULL_SUPPLIER, PsiMethod::getName, NULL_SUPPLIER, scope, name)
+                .map(e -> (PsiMethod) e);
+    }
+
+    public static Optional<String> getElementText(String unit, AnalysisScope scope) {
+        return ApplicationManager.getApplication()
+                .runReadAction((Computable<Optional<String>>) () -> findElement(unit, scope).map(PsiElement::getText));
+    }
+
+    public static String createDescription(String unit, String moveTo, AnalysisScope scope) {
+        return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
+            final Optional<PsiElement> element = findElement(unit, scope);
+            if (!element.isPresent()) {
+                return "Element not found";
+            }
+
+            if (element.get() instanceof PsiMethod) {
+                final PsiMethod method = (PsiMethod) element.get();
+                final String moveFrom = getHumanReadableName(method.getContainingClass());
+                final String descriptionKey = (isStatic(method) ? "" : "make.static.and.") + "move.description";
+                return ArchitectureReloadedBundle.message(descriptionKey, method.getName(), moveFrom, moveTo);
+            }
+            return "Unsupported element";
+        });
+    }
+
+    public static String getHumanReadableName(@Nullable PsiElement element) {
+        if (element instanceof PsiMethod) {
+            return calculateSignature((PsiMethod) element);
+        } else if (element instanceof PsiClass) {
+            return ((PsiClass) element).getQualifiedName();
+        } else if (element instanceof PsiField) {
+            final PsiMember field = (PsiMember) element;
+            return getHumanReadableName(field.getContainingClass()) + "." + field.getName();
+        }
+        return "???";
+    }
+
+    private static Optional<PsiElement> runSearch(Function<? super PsiClass, String> classToString,
+                                                  Function<? super PsiMethod, String> methodToString,
+                                                  Function<? super PsiField, String> fieldToString,
+                                                  AnalysisScope scope, String request) {
+        final PsiElement[] resultHolder = new PsiElement[1];
         scope.accept(new JavaRecursiveElementVisitor() {
             @Override
             public void visitMethod(PsiMethod method) {
-                if (MethodUtils.calculateSignature(method).equals(humanReadableName)) {
+                super.visitMethod(method);
+                if (request.equals(methodToString.apply(method))) {
                     resultHolder[0] = method;
                 }
             }
@@ -103,7 +168,7 @@ public final class RefactoringUtil {
             @Override
             public void visitClass(PsiClass aClass) {
                 super.visitClass(aClass);
-                if (humanReadableName.equals(aClass.getQualifiedName())) {
+                if (request.equals(classToString.apply(aClass))) {
                     resultHolder[0] = aClass;
                 }
             }
@@ -111,64 +176,11 @@ public final class RefactoringUtil {
             @Override
             public void visitField(PsiField field) {
                 super.visitField(field);
-                final PsiClass containingClass = field.getContainingClass();
-                if (containingClass == null) {
-                    return;
-                }
-                final String fieldName = containingClass.getQualifiedName() + "." + field.getName();
-                if (humanReadableName.equals(fieldName)) {
+                if (request.equals(fieldToString.apply(field))) {
                     resultHolder[0] = field;
                 }
             }
         });
-        return resultHolder[0];
-    }
-
-    public static List<PsiMethod> findMethodByName(String name, AnalysisScope scope) {
-        final List<PsiMethod> resultCollector = new ArrayList<>();
-        scope.accept(new JavaRecursiveElementVisitor() {
-            @Override
-            public void visitMethod(PsiMethod method) {
-                if (method.getName().equals(name)) {
-                    resultCollector.add(method);
-                }
-            }
-        });
-        return resultCollector;
-    }
-
-//    public static String createDescription(String unit, String moveTo, AnalysisScope scope) {
-//        return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
-//            final PsiElement element = findElement(unit, scope);
-//            if (element instanceof PsiMethod) {
-//                final PsiMethod method = (PsiMethod) element;
-//                final String moveFrom = method.getContainingClass().getQualifiedName();
-//                final String descriptionKey;
-//                descriptionKey = (isStatic(method) ? "" : "make.static.and.") + "move.description";
-//                return ArchitectureReloadedBundle.message(descriptionKey, method.getName(), moveFrom, moveTo);
-//            }
-//            return "Unsupported element";
-//        });
-//    }
-
-    public static String getName(PsiElement element) {
-        if (element instanceof PsiClass) {
-            return ((PsiClass) element).getQualifiedName();
-        }
-
-        if (element instanceof PsiMethod) {
-            return MethodUtils.calculateSignature((PsiMethod) element);
-        }
-
-        if (element instanceof PsiField) {
-            final PsiField field = (PsiField) element;
-            final PsiClass fieldClass = field.getContainingClass();
-            if (fieldClass == null) {
-                return null;
-            }
-            return fieldClass.getQualifiedName() + "." + field.getName();
-        }
-
-        return null;
+        return Optional.ofNullable(resultHolder[0]);
     }
 }

@@ -68,7 +68,7 @@ public class RefactoringAnnotator implements Annotator {
             @Override
             public void visitElement(PsiElement element) {
                 super.visitElement(element);
-                final String currentClassName = RefactoringUtil.getName(element);
+                final String currentClassName = RefactoringUtil.getHumanReadableName(element);
                 if (refactorings.containsKey(currentClassName)) {
                     final Annotation annotation = holder.createWarningAnnotation(
                             getAnnotationPart(element),
