@@ -1,0 +1,10 @@
+language: java
+jdk:
+  - oraclejdk8
+
+os:
+  - linux
+dist: trusty
+
+notifications:
+   slack: se-spb:PszbuZP2YFs4mAY90xiTYldd
