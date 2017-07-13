@@ -32,7 +32,7 @@ public class ARITest extends AbstractAlgorithmTester {
 
         final Map<String, String> refactorings = context.calculateARI();
         assertEquals(1, refactorings.size());
-        assertEquals("moveMethod.ClassB.methodB1()", refactorings.keySet().toArray()[0]);
+        assertContainsElements(refactorings.keySet(), "moveMethod.ClassB.methodB1()");
         assertEquals("moveMethod.ClassA", refactorings.get("moveMethod.ClassB.methodB1()"));
     }
 
