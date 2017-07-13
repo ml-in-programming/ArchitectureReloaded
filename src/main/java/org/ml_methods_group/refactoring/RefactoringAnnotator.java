@@ -25,16 +25,20 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.sixrr.metrics.profile.MetricsProfileRepository;
-import org.ml_methods_group.plugin.AutomaticRefactoringAction;
-import org.ml_methods_group.utils.RefactoringUtil;
 import com.sixrr.stockmetrics.i18n.StockMetricsBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.ml_methods_group.plugin.AutomaticRefactoringAction;
+import org.ml_methods_group.utils.RefactoringUtil;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class RefactoringAnnotator implements Annotator {
-    private final AutomaticRefactoringAction action = new AutomaticRefactoringAction();
+    private static Set<String> files = new HashSet<>();
+    private static final AutomaticRefactoringAction action = new AutomaticRefactoringAction();
 
     @Override
     public synchronized void annotate(@NotNull PsiElement psiElement, @NotNull AnnotationHolder annotationHolder) {
@@ -47,7 +51,19 @@ public class RefactoringAnnotator implements Annotator {
                 setSelectedProfile(StockMetricsBundle.message("refactoring.metrics.profile.name"));
 
         final AnalysisScope scope = new AnalysisScope(project);
-        action.analyzeSynchronously(project, scope);
+        final Set<PsiFile> currentFiles = new HashSet<>();
+        scope.accept(new JavaElementVisitor() {
+            @Override
+            public void visitJavaFile(PsiJavaFile file) {
+                super.visitJavaFile(file);
+                currentFiles.add(file);
+            }
+        });
+        final Set<String> currentFilesText = currentFiles.stream().map(PsiFile::getText).collect(Collectors.toSet());
+        if (!files.equals(currentFilesText)) {
+            action.analyzeSynchronously(project, scope);
+            files = currentFilesText;
+        }
 
         doRefactoringAnnotations("CCDA", action.getRefactoringsCCDA(), annotationHolder, scope);
         doRefactoringAnnotations("MRI", action.getRefactoringsMRI(), annotationHolder, scope);
