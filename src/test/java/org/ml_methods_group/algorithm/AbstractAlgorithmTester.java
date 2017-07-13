@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTestCase {
@@ -66,76 +65,13 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         assertEquals(fields, context.getFieldsCount());
     }
 
-    private void runTest(Consumer<RefactoringExecutionContext> checker, AnalysisScope scope) {
-        new RefactoringExecutionContext(myFixture.getProject(), scope, getProfile(), false, checker);
+    private RefactoringExecutionContext createContext(AnalysisScope scope) {
+        return new RefactoringExecutionContext(myFixture.getProject(), scope, getProfile());
     }
 
     public void testMoveMethod() throws IOException {
         final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
-        runTest(this::checkMoveMethodRefactorings, analysisScope);
-    }
-
-    public void testMoveField() throws IOException {
-        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
-        runTest(this::checkMoveFieldRefactorings, analysisScope);
-    }
-
-    public void testMoveTogether() throws IOException {
-        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
-        runTest(this::checkMoveTogetherRefactorings, analysisScope);
-    }
-
-    public void testRecursiveMethod() throws IOException {
-        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
-        runTest(this::checkRecursiveMethodRefactorings, analysisScope);
-    }
-
-    public void testCrossReferencesMethods() throws IOException {
-        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
-        runTest(this::checkCrossReferencesMethodsRefactorings, analysisScope);
-    }
-
-    public void testReferencesOnly() throws IOException {
-        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
-        runTest(this::checkReferencesOnlyRefactorings, analysisScope);
-    }
-
-    public void testCallFromNested() throws IOException {
-        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
-        runTest(this::checkCallFromNestedRefactorings, analysisScope);
-    }
-
-    public void testDontMoveConstructor() throws IOException {
-        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
-        runTest(this::checkDontMoveConstructorRefactorings, analysisScope);
-    }
-
-    public void testDontMoveOverridden() throws IOException {
-        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
-        runTest(this::checkDontMoveOverriddenRefactorings, analysisScope);
-    }
-
-    public void testCircularDependency() throws IOException {
-        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java", "ClassC.java");
-        runTest(this::checkCircularDependencyRefactorings, analysisScope);
-    }
-
-    public void testDontMoveAbstract() throws IOException {
-        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
-        runTest(this::checkDontMoveAbstractRefactorings, analysisScope);
-    }
-
-    public void testTriangularDependence() throws IOException {
-        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java", "ClassC.java");
-        runTest(this::checkTriangularDependenceRefactorings, analysisScope);
-    }
-
-    public void testPriority() throws IOException {
-        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
-        runTest(this::checkPriorityRefactorings, analysisScope);
-    }
-
-    private void checkMoveMethodRefactorings(RefactoringExecutionContext context) {
+        RefactoringExecutionContext context = createContext(analysisScope);
         checkStructure(context, 2, 6, 4);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
@@ -144,7 +80,9 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         assertEquals("moveMethod.ClassA", refactorings.get("moveMethod.ClassB.methodB1()"));
     }
 
-    private void checkMoveFieldRefactorings(RefactoringExecutionContext context) {
+    public void testMoveField() throws IOException {
+        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
+        RefactoringExecutionContext context = createContext(analysisScope);
         checkStructure(context, 2, 11, 2);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
@@ -155,7 +93,9 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         assertEquals("moveField.ClassB", refactorings.get("moveField.ClassA.attributeA2"));
     }
 
-    private void checkMoveTogetherRefactorings(RefactoringExecutionContext context) {
+    public void testMoveTogether() throws IOException {
+        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
+        RefactoringExecutionContext context = createContext(analysisScope);
         checkStructure(context, 2, 8, 4);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
@@ -166,7 +106,9 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         assertEquals("moveTogether.ClassA", refactorings.get("moveTogether.ClassB.methodB2()"));
     }
 
-    private void checkRecursiveMethodRefactorings(RefactoringExecutionContext context) {
+    public void testRecursiveMethod() throws IOException {
+        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
+        RefactoringExecutionContext context = createContext(analysisScope);
         checkStructure(context, 2, 5, 2);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
@@ -175,7 +117,9 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         assertEquals("recursiveMethod.ClassB", refactorings.get("recursiveMethod.ClassA.methodA1()"));
     }
 
-    private void checkCrossReferencesMethodsRefactorings(RefactoringExecutionContext context) {
+    public void testCrossReferencesMethods() throws IOException {
+        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
+        RefactoringExecutionContext context = createContext(analysisScope);
         checkStructure(context, 2, 2, 0);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
@@ -190,7 +134,9 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         }
     }
 
-    private void checkReferencesOnlyRefactorings(RefactoringExecutionContext context) {
+    public void testReferencesOnly() throws IOException {
+        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
+        RefactoringExecutionContext context = createContext(analysisScope);
         checkStructure(context, 2, 4, 0);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
@@ -207,7 +153,9 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         }
     }
 
-    private void checkCallFromNestedRefactorings(RefactoringExecutionContext context) {
+    public void testCallFromNested() throws IOException {
+        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
+        RefactoringExecutionContext context = createContext(analysisScope);
         checkStructure(context, 3, 3, 1);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
@@ -217,21 +165,27 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
                 "callFromNested.ClassA", "callFromNested.ClassA.Nested");
     }
 
-    private void checkDontMoveConstructorRefactorings(RefactoringExecutionContext context) {
+    public void testDontMoveConstructor() throws IOException {
+        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
+        RefactoringExecutionContext context = createContext(analysisScope);
         checkStructure(context, 2, 3, 1);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(0, refactorings.size());
     }
 
-    private void checkDontMoveOverriddenRefactorings(RefactoringExecutionContext context) {
+    public void testDontMoveOverridden() throws IOException {
+        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
+        RefactoringExecutionContext context = createContext(analysisScope);
         checkStructure(context, 2, 3, 1);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(0, refactorings.size());
     }
 
-    private void checkCircularDependencyRefactorings(RefactoringExecutionContext context) {
+    public void testCircularDependency() throws IOException {
+        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java", "ClassC.java");
+        RefactoringExecutionContext context = createContext(analysisScope);
         checkStructure(context, 3, 3, 0);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
@@ -247,14 +201,18 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
         assertContainsElements(refactorings.values(), moveToClass, moveToClass);
     }
 
-    private void checkDontMoveAbstractRefactorings(RefactoringExecutionContext context) {
+    public void testDontMoveAbstract() throws IOException {
+        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
+        RefactoringExecutionContext context = createContext(analysisScope);
         checkStructure(context, 2, 3, 0);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
         assertEquals(0, refactorings.size());
     }
 
-    private void checkTriangularDependenceRefactorings(RefactoringExecutionContext context) {
+    public void testTriangularDependence() throws IOException {
+        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java", "ClassC.java");
+        RefactoringExecutionContext context = createContext(analysisScope);
         checkStructure(context, 3, 8, 0);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
@@ -267,7 +225,9 @@ public abstract class AbstractAlgorithmTester extends LightCodeInsightFixtureTes
                 refactorings.get("triangularDependence.ClassC.methodToMove()"));
     }
 
-    private void checkPriorityRefactorings(RefactoringExecutionContext context) {
+    public void testPriority() throws IOException {
+        final AnalysisScope analysisScope = createScope("ClassA.java", "ClassB.java");
+        RefactoringExecutionContext context = createContext(analysisScope);
         checkStructure(context, 2, 9, 0);
 
         final Map<String, String> refactorings = applyAlgorithm(context);
