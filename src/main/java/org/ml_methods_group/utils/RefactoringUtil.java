@@ -102,21 +102,6 @@ public final class RefactoringUtil {
                 .orElse(null);
     }
 
-    public static String createDescription(String unit, String moveTo, AnalysisScope scope) {
-        return PsiSearchUtil.findElement(unit, scope, e -> createDescription(e, moveTo))
-                .orElse("Element wasn't found");
-    }
-
-    private static String createDescription(PsiElement element, String moveTo) {
-        if (element instanceof PsiMethod) {
-            final PsiMethod method = (PsiMethod) element;
-            final String moveFrom = getHumanReadableName(method.getContainingClass());
-            final String descriptionKey = (isStatic(method) ? "" : "make.static.and.") + "move.description";
-            return ArchitectureReloadedBundle.message(descriptionKey, method.getName(), moveFrom, moveTo);
-        }
-        return "Unsupported element";
-    }
-
     private static boolean tryMoveInstanceMethod(String unit, String target, AnalysisScope scope) {
         return findElement(unit, scope, e -> e instanceof PsiMethod && !isStatic((PsiMethod) e)
                 && tryMoveInstanceMethod((PsiMethod) e, target)).orElse(false);

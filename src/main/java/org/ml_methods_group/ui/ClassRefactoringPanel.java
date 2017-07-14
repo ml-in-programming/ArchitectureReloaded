@@ -17,17 +17,14 @@
 package org.ml_methods_group.ui;
 
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.ide.util.EditorHelper;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.EditorTextField;
-import com.intellij.ui.JBSplitter;
 import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
+import org.ml_methods_group.utils.PsiSearchUtil;
 import org.ml_methods_group.utils.RefactoringUtil;
 
 import javax.swing.*;
@@ -36,9 +33,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
-
-import static org.ml_methods_group.utils.RefactoringUtil.createDescription;
-import static org.ml_methods_group.utils.PsiSearchUtil.getElementText;
 
 class ClassRefactoringPanel extends JPanel {
     private static final String SELECT_ALL_BUTTON_TEXT_KEY = "select.all.button";
@@ -50,8 +44,6 @@ class ClassRefactoringPanel extends JPanel {
     @NotNull private final RefactoringsTableModel model;
     private final Collection<OnRefactoringFinishedListener> listeners = new ArrayList<>();
     private final JBTable table = new JBTable();
-    private final JavaCodePanel codePanel;
-    private final JBLabel description = new JBLabel();
     private final JButton selectAllButton = new JButton();
     private final JButton doRefactorButton = new JButton();
 
@@ -60,16 +52,12 @@ class ClassRefactoringPanel extends JPanel {
         this.project = project;
         this.scope = scope;
         setLayout(new BorderLayout());
-        codePanel = new JavaCodePanel(project);
         model = new RefactoringsTableModel(refactorings);
         setupGUI();
     }
 
     private void setupGUI() {
-        final JBSplitter splitter = new JBSplitter(SPLITTER_PROPORTION_KEY, 0.5f);
-        splitter.setFirstComponent(createTablePanel());
-        splitter.setSecondComponent(createInfoPanel());
-        add(splitter, BorderLayout.CENTER);
+        add(createTablePanel(), BorderLayout.CENTER);
         add(createButtonsPanel(), BorderLayout.SOUTH);
     }
 
@@ -98,19 +86,6 @@ class ClassRefactoringPanel extends JPanel {
         return buttonsPanel;
     }
 
-    private JComponent createInfoPanel() {
-        final JPanel infoPanel = new JPanel(new BorderLayout());
-        final JLabel codeTitlePanel = new JLabel();
-        codeTitlePanel.setText(ArchitectureReloadedBundle.message("code.of.element"));
-        infoPanel.add(codeTitlePanel, BorderLayout.NORTH);
-        final JScrollPane codePanelWrapper = ScrollPaneFactory.createScrollPane(codePanel);
-        codePanelWrapper.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        infoPanel.add(codePanelWrapper, BorderLayout.CENTER);
-        infoPanel.add(description, BorderLayout.SOUTH);
-        description.setText("");
-        return infoPanel;
-    }
-
     private void refactorSelected() {
         doRefactorButton.setEnabled(false);
         selectAllButton.setEnabled(false);
@@ -122,23 +97,13 @@ class ClassRefactoringPanel extends JPanel {
     private void updateInfoPanel() {
         final int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
-            codePanel.setText("");
-            description.setText("");
             return;
         }
-
-        final String elementName = model.getElement(selectedRow);
-        final String movement = model.getMovement(selectedRow);
-        new Thread(() -> {
-            final String code = getElementText(elementName, scope).orElse("");
-            final String refactoringInfo = createDescription(elementName, movement, scope);
-            SwingUtilities.invokeLater(() -> {
-                codePanel.setText(code);
-                description.setText(refactoringInfo);
-            });
-        }).start();
+        PsiSearchUtil.findElement(model.getElement(selectedRow), scope)
+                .ifPresent(EditorHelper::openInEditor);
     }
 
+    // todo maybe tool window should be close after refactorings
     void addOnRefactoringFinishedListener(OnRefactoringFinishedListener listener) {
         listeners.add(listener);
     }
@@ -146,21 +111,5 @@ class ClassRefactoringPanel extends JPanel {
     @FunctionalInterface
     public interface OnRefactoringFinishedListener {
         void onRefactoringFinished(ClassRefactoringPanel panel);
-    }
-
-    private static class JavaCodePanel extends EditorTextField {
-        JavaCodePanel(Project project) {
-            super("", project, JavaFileType.INSTANCE);
-            setOneLineMode(false);
-            setViewerEnabled(false);
-        }
-
-        @Override
-        public void setText(@Nullable String text) {
-            super.setText(text);
-            if (getParent() != null) {
-                getParent().revalidate();
-            }
-        }
     }
 }

@@ -19,6 +19,7 @@ package org.ml_methods_group.plugin;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.sixrr.metrics.profile.MetricsProfile;
 import com.sixrr.metrics.profile.MetricsProfileRepository;
@@ -27,7 +28,7 @@ import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
-import org.ml_methods_group.ui.RefactoringDialog;
+import org.ml_methods_group.ui.RefactoringsToolWindow;
 
 import javax.swing.*;
 import java.util.Collections;
@@ -84,12 +85,13 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     private void showRefactoringsDialog(@NotNull RefactoringExecutionContext context) {
         calculateRefactorings(context);
-        new RefactoringDialog(context.getProject(), context.getScope())
-                .addSolution("CCDA", refactoringsCCDA)
-                .addSolution("MRI", refactoringsMRI)
-                .addSolution("AKMeans", refactoringsAKMeans)
-                .addSolution("HAC", refactoringsHAC)
-                .addSolution("ARI", refactoringsARI)
+        ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
+                .clear()
+                .addTab("CCDA", refactoringsCCDA, context.getScope())
+                .addTab("MRI", refactoringsMRI, context.getScope())
+                .addTab("AKMeans", refactoringsAKMeans, context.getScope())
+                .addTab("HAC", refactoringsHAC, context.getScope())
+                .addTab("ARI", refactoringsARI, context.getScope())
                 .show();
     }
 
