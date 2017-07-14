@@ -107,18 +107,46 @@ public final class RefactoringUtil {
                 && tryMoveInstanceMethod((PsiMethod) e, target)).orElse(false);
     }
 
-    private static boolean tryMoveInstanceMethod(@NotNull PsiMethod method, String target) {
+    private static PsiField[] getAvailableFields(PsiMethod method, String target) {
         PsiClass containingClass = method.getContainingClass();
         Stream<PsiParameter> parameters = Arrays.stream(method.getParameterList().getParameters());
         Stream<PsiField> fields = containingClass == null? Stream.empty() : Arrays.stream(containingClass.getFields());
-        PsiField[] available = Stream.concat(parameters, fields)
+        return Stream.concat(parameters, fields)
                 .filter(p -> target.equals(p.getType().getCanonicalText()))
                 .toArray(PsiField[]::new);
+    }
+
+    private static boolean tryMoveInstanceMethod(@NotNull PsiMethod method, String target) {
+        PsiField[] available = getAvailableFields(method, target);
         if (available.length == 0) {
             return false;
         }
         MoveInstanceMethodDialog dialog = new MoveInstanceMethodDialog(method, available);
         dialog.show();
         return dialog.isOK();
+    }
+
+    public static String getWarning(String unit, String target, AnalysisScope scope) {
+        return findElement(unit, scope, element -> getWarning(element, target)).orElse("");
+    }
+
+    private static String getWarning(PsiElement element, String target) {
+        if (element instanceof PsiMethod) {
+            PsiMethod method = (PsiMethod) element;
+            if (!isStatic(method) && getAvailableFields(method, target).length == 0) {
+                return "    Can't move " + getHumanReadableName(element) +
+                        " like instance method. It will be converted to static method first";
+            }
+            if (method.isConstructor()) {
+                return "    Sorry, can't move constructor";
+            }
+        } else if (element instanceof PsiField) {
+            if (!isStatic((PsiField) element)) {
+                return "    Sorry, can't move instance fields";
+            }
+        } else {
+            return "    Sorry, can't move such elements";
+        }
+        return "";
     }
 }

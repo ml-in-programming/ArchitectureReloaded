@@ -42,11 +42,13 @@ import static org.ml_methods_group.ui.RefactoringsTableModel.SELECTION_COLUMN_IN
 class ClassRefactoringPanel extends JPanel {
     private static final String SELECT_ALL_BUTTON_TEXT_KEY = "select.all.button";
     private static final String REFACTOR_BUTTON_TEXT_KEY = "refactor.button";
-    private static final String SPLITTER_PROPORTION_KEY = "refactoring.panel.splitter.proportion.key";
 
-    @NotNull private final Project project;
-    @NotNull private final AnalysisScope scope;
-    @NotNull private final RefactoringsTableModel model;
+    @NotNull
+    private final Project project;
+    @NotNull
+    private final AnalysisScope scope;
+    @NotNull
+    private final RefactoringsTableModel model;
     private final Collection<OnRefactoringFinishedListener> listeners = new ArrayList<>();
     private final JBTable table = new JBTable();
     private final JButton selectAllButton = new JButton();
@@ -72,8 +74,9 @@ class ClassRefactoringPanel extends JPanel {
         final TableColumn selectionColumn = table.getTableHeader().getColumnModel().getColumn(0);
         selectionColumn.setMaxWidth(30);
         selectionColumn.setMinWidth(30);
-        table.addMouseListener((ClickListener) this::onClick);
+        table.addMouseListener((DoubleClickListener) this::onDoubleClick);
         table.getSelectionModel().setSelectionMode(SINGLE_SELECTION);
+        table.getSelectionModel().addListSelectionListener(e -> onSelectionChanged());
         return ScrollPaneFactory.createScrollPane(table);
     }
 
@@ -91,7 +94,7 @@ class ClassRefactoringPanel extends JPanel {
         buttonsPanel.add(doRefactorButton);
         panel.add(buttonsPanel, BorderLayout.EAST);
 
-        panel.add(new JLabel("  \\\\todo some information here"), BorderLayout.WEST);
+        panel.add(info, BorderLayout.WEST);
         return panel;
     }
 
@@ -107,16 +110,24 @@ class ClassRefactoringPanel extends JPanel {
         selectAllButton.setEnabled(true);
     }
 
-    private void onClick(int clickCount) {
+    private void onDoubleClick() {
         final int selectedRow = table.getSelectedRow();
         final int selectedColumn = table.getSelectedColumn();
-        if (selectedRow == -1 || selectedColumn == -1) {
+        if (selectedRow == -1 || selectedColumn == -1 || selectedColumn == SELECTION_COLUMN_INDEX) {
             return;
         }
+        PsiSearchUtil.findElement(model.getUnitAt(selectedRow, selectedColumn), scope)
+                .ifPresent(EditorHelper::openInEditor);
+    }
 
-        if (clickCount > 1 && selectedColumn != SELECTION_COLUMN_INDEX) {
-            PsiSearchUtil.findElement(model.getUnitAt(selectedRow, selectedColumn), scope)
-                    .ifPresent(EditorHelper::openInEditor);
+    private void onSelectionChanged() {
+        final int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            info.setText("");
+        } else {
+            String unit = model.getUnitAt(selectedRow, 1);
+            String target = model.getUnitAt(selectedRow, 2);
+            info.setText(RefactoringUtil.getWarning(unit, target, scope));
         }
     }
 
@@ -131,11 +142,13 @@ class ClassRefactoringPanel extends JPanel {
     }
 
     @FunctionalInterface
-    private interface ClickListener extends MouseListener {
-        void onClick(int count);
+    private interface DoubleClickListener extends MouseListener {
+        void onDoubleClick();
 
         default void mouseClicked(MouseEvent e) {
-            onClick(e.getClickCount());
+            if (e.getClickCount() >= 2) {
+                onDoubleClick();
+            }
         }
 
         default void mousePressed(MouseEvent e) {}
