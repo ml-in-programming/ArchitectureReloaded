@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.sixrr.metrics.utils.MethodUtils.isStatic;
 import static org.ml_methods_group.utils.PsiSearchUtil.*;
@@ -122,17 +123,16 @@ public final class RefactoringUtil {
     }
 
     private static boolean tryMoveInstanceMethod(@NotNull PsiMethod method, String target) {
-        System.out.println("Try move instance method: " + method.getName());
-        System.out.println("Target: " + target);
-
-        PsiParameter[] parameters = Arrays.stream(method.getParameterList().getParameters())
-                .peek(e -> System.out.println(e.getType()))
-                .filter(p -> target.endsWith(p.getType().getCanonicalText()))
-                .toArray(PsiParameter[]::new);
-        if (parameters.length == 0) {
+        PsiClass containingClass = method.getContainingClass();
+        Stream<PsiParameter> parameters = Arrays.stream(method.getParameterList().getParameters());
+        Stream<PsiField> fields = containingClass == null? Stream.empty() : Arrays.stream(containingClass.getFields());
+        PsiField[] available = Stream.concat(parameters, fields)
+                .filter(p -> target.equals(p.getType().getCanonicalText()))
+                .toArray(PsiField[]::new);
+        if (available.length == 0) {
             return false;
         }
-        MoveInstanceMethodDialog dialog = new MoveInstanceMethodDialog(method, parameters);
+        MoveInstanceMethodDialog dialog = new MoveInstanceMethodDialog(method, available);
         dialog.show();
         return dialog.isOK();
     }
