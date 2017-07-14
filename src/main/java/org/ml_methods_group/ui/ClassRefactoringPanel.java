@@ -30,9 +30,14 @@ import org.ml_methods_group.utils.RefactoringUtil;
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+
+import static org.ml_methods_group.ui.RefactoringsTableModel.SELECTION_COLUMN_INDEX;
 
 class ClassRefactoringPanel extends JPanel {
     private static final String SELECT_ALL_BUTTON_TEXT_KEY = "select.all.button";
@@ -66,9 +71,7 @@ class ClassRefactoringPanel extends JPanel {
         final TableColumn selectionColumn = table.getTableHeader().getColumnModel().getColumn(0);
         selectionColumn.setMaxWidth(30);
         selectionColumn.setMinWidth(30);
-        final ListSelectionModel selectionModel = table.getSelectionModel();
-        selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        selectionModel.addListSelectionListener(e -> updateInfoPanel());
+        table.addMouseListener((DoubleClickListener) this::onDoubleClick);
         return ScrollPaneFactory.createScrollPane(table);
     }
 
@@ -94,12 +97,13 @@ class ClassRefactoringPanel extends JPanel {
         listeners.forEach(l -> l.onRefactoringFinished(this));
     }
 
-    private void updateInfoPanel() {
+    private void onDoubleClick() {
         final int selectedRow = table.getSelectedRow();
-        if (selectedRow == -1) {
+        final int selectedColumn = table.getSelectedColumn();
+        if (selectedRow == -1 || selectedColumn == -1 || selectedColumn == SELECTION_COLUMN_INDEX) {
             return;
         }
-        PsiSearchUtil.findElement(model.getElement(selectedRow), scope)
+        PsiSearchUtil.findElement(model.getUnitAt(selectedRow, selectedColumn), scope)
                 .ifPresent(EditorHelper::openInEditor);
     }
 
@@ -111,5 +115,21 @@ class ClassRefactoringPanel extends JPanel {
     @FunctionalInterface
     public interface OnRefactoringFinishedListener {
         void onRefactoringFinished(ClassRefactoringPanel panel);
+    }
+
+    @FunctionalInterface
+    private interface DoubleClickListener extends MouseListener {
+        void onDoubleClick();
+
+        default void mouseClicked(MouseEvent e) {
+            if (e.getClickCount() >= 2) {
+                onDoubleClick();
+            }
+        }
+
+        default void mousePressed(MouseEvent e) {}
+        default void mouseReleased(MouseEvent e) {}
+        default void mouseEntered(MouseEvent e) {}
+        default void mouseExited(MouseEvent e) {}
     }
 }

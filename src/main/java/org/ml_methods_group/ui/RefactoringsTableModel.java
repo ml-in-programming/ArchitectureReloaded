@@ -28,9 +28,9 @@ import java.util.stream.IntStream;
 public class RefactoringsTableModel extends AbstractTableModel {
     private static final String UNIT_COLUMN_TITLE_KEY = "unit.column.title";
     private static final String MOVE_TO_COLUMN_TITLE_KEY = "move.to.column.title";
-    private static final int UNIT_COLUMN_INDEX = 1;
-    private static final int MOVE_TO_COLUMN_INDEX = 2;
-    private static final int SELECTION_COLUMN_INDEX = 0;
+    public static final int SELECTION_COLUMN_INDEX = 0;
+    public static final int UNIT_COLUMN_INDEX = 1;
+    public static final int MOVE_TO_COLUMN_INDEX = 2;
     private static final int COLUMNS_COUNT = 3;
 
     private final List<String> units = new ArrayList<>();
@@ -114,11 +114,13 @@ public class RefactoringsTableModel extends AbstractTableModel {
         throw new IndexOutOfBoundsException("Unexpected column index: " + columnIndex);
     }
 
-    public String getElement(int row) {
-        return units.get(row);
-    }
-
-    public String getMovement(int row) {
-        return movements.get(row);
+    public String getUnitAt(int row, int column) {
+        switch (column) {
+            case UNIT_COLUMN_INDEX:
+                return units.get(row);
+            case MOVE_TO_COLUMN_INDEX:
+                return movements.get(row);
+        }
+        throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }
 }
