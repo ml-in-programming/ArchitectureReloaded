@@ -17,6 +17,8 @@
 package org.ml_methods_group.refactoring;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.openapi.application.AccessToken;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.MetricsResultsHolder;
@@ -62,21 +64,17 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
         execute(profile, metricsRun);
     }
 
-    public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope
-            , @NotNull MetricsProfile profile) {
-        super(project, scope);
-        this.profile = profile;
-        continuation = null;
-
-        properties = new PropertiesFinder();
-        scope.accept(properties.createVisitor(scope));
-
-        executeSynchronously(profile, metricsRun);
-    }
-
     private void executeSynchronously(final MetricsProfile profile, final MetricsResultsHolder resultsHolder) {
         calculateMetrics(profile, resultsHolder);
-        onFinish();
+        AccessToken token = null;
+        try {
+            token = ApplicationManager.getApplication().acquireReadActionLock();
+            onFinish();
+        } finally {
+            if (token != null) {
+                token.finish();
+            }
+        }
     }
 
     @Override

@@ -19,14 +19,14 @@ package org.ml_methods_group.refactoring;
 import com.intellij.AppTopics;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.ide.highlighter.JavaFileType;
-import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileDocumentManagerAdapter;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
@@ -41,25 +41,23 @@ public class RefactoringOnFileSaved implements ApplicationComponent {
         MessageBusConnection connection = bus.connect();
 
         connection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, new FileDocumentManagerAdapter() {
-                    @Override
-                    public void beforeDocumentSaving(@NotNull Document document) {
-                        super.beforeDocumentSaving(document);
+            @Override
+            public void beforeDocumentSaving(@NotNull Document document) {
+                super.beforeDocumentSaving(document);
 
-                        final VirtualFile savedFile = FileDocumentManager.getInstance().getFile(document);
-                        if (savedFile == null || !savedFile.getFileType().equals(JavaFileType.INSTANCE)) {
-                            return;
-                        }
+                final VirtualFile savedFile = FileDocumentManager.getInstance().getFile(document);
+                if (savedFile == null || !savedFile.getFileType().equals(JavaFileType.INSTANCE)) {
+                    return;
+                }
 
-                        // TODO need to be improved: run for all projects which contains this file
-                        final Project project = ProjectUtil.guessProjectForContentFile(savedFile);
-                        if (project == null) {
-                            PluginManager.getLogger().error("Got a null project from java file: " + savedFile.getCanonicalPath());
-                            return;
-                        }
-
-                        AutomaticRefactoringAction.getInstance(project).analyzeSynchronously(project, new AnalysisScope(project));
+                for (Project project : ProjectManager.getInstance().getOpenProjects()) {
+                    if (!project.isDefault() && project.isInitialized() && !project.isDisposed()
+                            && ProjectRootManager.getInstance(project).getFileIndex().isInContent(savedFile)) {
+                        AutomaticRefactoringAction.getInstance(project).analyzeBackground(project, new AnalysisScope(project));
                     }
-                });
+                }
+            }
+        });
     }
 
     @Override
