@@ -37,42 +37,48 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class RefactoringAnnotator implements Annotator {
-    private static Set<String> files = new HashSet<>();
-    private static final AutomaticRefactoringAction action = new AutomaticRefactoringAction();
+    private static Set<Integer> hashes = new HashSet<>();
+    public static final AutomaticRefactoringAction action = new AutomaticRefactoringAction();
 
     @Override
     public synchronized void annotate(@NotNull PsiElement psiElement, @NotNull AnnotationHolder annotationHolder) {
-        if (!(psiElement instanceof PsiFile)) {
-            return;
-        }
-
         final Project project = psiElement.getProject();
         MetricsProfileRepository.getInstance().
                 setSelectedProfile(StockMetricsBundle.message("refactoring.metrics.profile.name"));
 
         final AnalysisScope scope = new AnalysisScope(project);
-        final Set<PsiFile> currentFiles = new HashSet<>();
-        scope.accept(new JavaElementVisitor() {
-            @Override
-            public void visitJavaFile(PsiJavaFile file) {
-                super.visitJavaFile(file);
-                currentFiles.add(file);
-            }
-        });
-        final Set<String> currentFilesText = currentFiles.stream().map(PsiFile::getText).collect(Collectors.toSet());
-        if (!files.equals(currentFilesText)) {
-            action.analyzeSynchronously(project, scope);
-            files = currentFilesText;
-        }
 
-        doRefactoringAnnotations("CCDA", action.getRefactoringsCCDA(), annotationHolder, scope);
-        doRefactoringAnnotations("MRI", action.getRefactoringsMRI(), annotationHolder, scope);
-        doRefactoringAnnotations("AKMeans", action.getRefactoringsAKMeans(), annotationHolder, scope);
-        doRefactoringAnnotations("HAC", action.getRefactoringsHAC(), annotationHolder, scope);
-        doRefactoringAnnotations("ARI", action.getRefactoringsARI(), annotationHolder, scope);
+        if ((psiElement instanceof PsiFile)) {
+            final Set<PsiFile> currentFiles = new HashSet<>();
+            scope.accept(new JavaElementVisitor() {
+                @Override
+                public void visitJavaFile(PsiJavaFile file) {
+                    super.visitJavaFile(file);
+                    currentFiles.add(file);
+                }
+            });
+            final Set<Integer> currentFilesText = currentFiles.stream()
+                    .map(f -> f.getText().hashCode()).collect(Collectors.toSet());
+            if (!hashes.equals(currentFilesText)) {
+                action.analyzeSynchronously(project, scope);
+                hashes = currentFilesText;
+            }
+        }
+        setAnnotations(psiElement, annotationHolder, scope);
     }
 
-    private static void doRefactoringAnnotations(@NotNull String algorithmName,
+    private static void setAnnotations(@NotNull PsiElement element,
+                                       @NotNull AnnotationHolder annotationHolder,
+                                       @NotNull AnalysisScope scope) {
+        doRefactoringAnnotations(element, "CCDA", action.getRefactoringsCCDA(), annotationHolder, scope);
+        doRefactoringAnnotations(element, "MRI", action.getRefactoringsMRI(), annotationHolder, scope);
+        doRefactoringAnnotations(element, "AKMeans", action.getRefactoringsAKMeans(), annotationHolder, scope);
+        doRefactoringAnnotations(element, "HAC", action.getRefactoringsHAC(), annotationHolder, scope);
+        doRefactoringAnnotations(element, "ARI", action.getRefactoringsARI(), annotationHolder, scope);
+    }
+
+    private static void doRefactoringAnnotations(@NotNull PsiElement element,
+                                                 @NotNull String algorithmName,
                                                  final Map<String, String> refactorings,
                                                  @NotNull AnnotationHolder holder,
                                                  @NotNull AnalysisScope scope) {
@@ -80,22 +86,16 @@ public class RefactoringAnnotator implements Annotator {
             return;
         }
 
-        holder.getCurrentAnnotationSession().getFile().accept(new JavaRecursiveElementWalkingVisitor() {
-            @Override
-            public void visitElement(PsiElement element) {
-                super.visitElement(element);
-                final String currentClassName = RefactoringUtil.getHumanReadableName(element);
-                if (refactorings.containsKey(currentClassName)) {
-                    final Annotation annotation = holder.createWarningAnnotation(
-                            getAnnotationPart(element),
-                            String.format("Can be moved to %s (%s)",
-                                    refactorings.get(currentClassName), algorithmName));
+        final String name = RefactoringUtil.getHumanReadableName(element);
+        if (refactorings.containsKey(name)) {
+            final Annotation annotation = holder.createWarningAnnotation(
+                    getAnnotationPart(element),
+                    String.format("Can be moved to %s (%s)",
+                            refactorings.get(name), algorithmName));
 
-                    annotation.registerFix(new RefactorIntentionAction(algorithmName,
-                            currentClassName, refactorings.get(currentClassName), scope));
-                }
-            }
-        });
+            annotation.registerFix(new RefactorIntentionAction(algorithmName,
+                    name, refactorings.get(name), scope));
+        }
     }
 
     @NotNull
