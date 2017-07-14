@@ -30,13 +30,13 @@ import org.ml_methods_group.utils.RefactoringUtil;
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
+import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 import static org.ml_methods_group.ui.RefactoringsTableModel.SELECTION_COLUMN_INDEX;
 
 class ClassRefactoringPanel extends JPanel {
@@ -51,6 +51,7 @@ class ClassRefactoringPanel extends JPanel {
     private final JBTable table = new JBTable();
     private final JButton selectAllButton = new JButton();
     private final JButton doRefactorButton = new JButton();
+    private final JLabel info = new JLabel();
 
     ClassRefactoringPanel(@NotNull Project project, Map<String, String> refactorings,
                           @NotNull AnalysisScope scope) {
@@ -71,11 +72,13 @@ class ClassRefactoringPanel extends JPanel {
         final TableColumn selectionColumn = table.getTableHeader().getColumnModel().getColumn(0);
         selectionColumn.setMaxWidth(30);
         selectionColumn.setMinWidth(30);
-        table.addMouseListener((DoubleClickListener) this::onDoubleClick);
+        table.addMouseListener((ClickListener) this::onClick);
+        table.getSelectionModel().setSelectionMode(SINGLE_SELECTION);
         return ScrollPaneFactory.createScrollPane(table);
     }
 
     private JComponent createButtonsPanel() {
+        final JPanel panel = new JPanel(new BorderLayout());
         final JPanel buttonsPanel = new JBPanel<>();
         buttonsPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 
@@ -86,25 +89,35 @@ class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setText(ArchitectureReloadedBundle.message(REFACTOR_BUTTON_TEXT_KEY));
         doRefactorButton.addActionListener(e -> refactorSelected());
         buttonsPanel.add(doRefactorButton);
-        return buttonsPanel;
+        panel.add(buttonsPanel, BorderLayout.EAST);
+
+        panel.add(new JLabel("  \\\\todo some information here"), BorderLayout.WEST);
+        return panel;
     }
 
     private void refactorSelected() {
         doRefactorButton.setEnabled(false);
         selectAllButton.setEnabled(false);
+        table.setEnabled(false);
         final Map<String, String> movements = model.getSelected();
         RefactoringUtil.moveRefactoring(movements, project, scope);
         listeners.forEach(l -> l.onRefactoringFinished(this));
+        table.setEnabled(true);
+        doRefactorButton.setEnabled(true);
+        selectAllButton.setEnabled(true);
     }
 
-    private void onDoubleClick() {
+    private void onClick(int clickCount) {
         final int selectedRow = table.getSelectedRow();
         final int selectedColumn = table.getSelectedColumn();
-        if (selectedRow == -1 || selectedColumn == -1 || selectedColumn == SELECTION_COLUMN_INDEX) {
+        if (selectedRow == -1 || selectedColumn == -1) {
             return;
         }
-        PsiSearchUtil.findElement(model.getUnitAt(selectedRow, selectedColumn), scope)
-                .ifPresent(EditorHelper::openInEditor);
+
+        if (clickCount > 1 && selectedColumn != SELECTION_COLUMN_INDEX) {
+            PsiSearchUtil.findElement(model.getUnitAt(selectedRow, selectedColumn), scope)
+                    .ifPresent(EditorHelper::openInEditor);
+        }
     }
 
     // todo maybe tool window should be close after refactorings
@@ -118,13 +131,11 @@ class ClassRefactoringPanel extends JPanel {
     }
 
     @FunctionalInterface
-    private interface DoubleClickListener extends MouseListener {
-        void onDoubleClick();
+    private interface ClickListener extends MouseListener {
+        void onClick(int count);
 
         default void mouseClicked(MouseEvent e) {
-            if (e.getClickCount() >= 2) {
-                onDoubleClick();
-            }
+            onClick(e.getClickCount());
         }
 
         default void mousePressed(MouseEvent e) {}
