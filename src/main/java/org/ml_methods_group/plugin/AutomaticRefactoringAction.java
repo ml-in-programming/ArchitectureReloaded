@@ -19,11 +19,19 @@ package org.ml_methods_group.plugin;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
+import com.intellij.ide.plugins.PluginManager;
+import com.intellij.openapi.application.AccessToken;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectManagerListener;
 import com.sixrr.metrics.profile.MetricsProfile;
 import com.sixrr.metrics.profile.MetricsProfileRepository;
 import com.sixrr.metrics.ui.dialogs.ProfileSelectionPanel;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
+import com.sixrr.stockmetrics.i18n.StockMetricsBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
@@ -31,18 +39,49 @@ import org.ml_methods_group.ui.RefactoringDialog;
 
 import javax.swing.*;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
 public class AutomaticRefactoringAction extends BaseAnalysisAction {
+    private static final Map<Project, AutomaticRefactoringAction> factory = new HashMap<>();
     private Map<String, String> refactoringsCCDA;
     private Map<String, String> refactoringsMRI;
     private Map<String, String> refactoringsAKMeans;
     private Map<String, String> refactoringsHAC;
     private Map<String, String> refactoringsARI;
 
+    private static ProjectManagerListener listener = new ProjectManagerListener() {
+        @Override
+        public void projectOpened(Project project) {
+            getInstance(project).analyzeSynchronously(project, new AnalysisScope(project));
+        }
+
+        @Override
+        public void projectClosed(Project project) {
+            deleteInstance(project);
+        }
+    };
+
+    static {
+        ProjectManager.getInstance().addProjectManagerListener(listener);
+    }
+
     public AutomaticRefactoringAction() {
         super(MetricsReloadedBundle.message("metrics.calculation"), MetricsReloadedBundle.message("metrics"));
+    }
+
+    @NotNull
+    public static AutomaticRefactoringAction getInstance(@NotNull Project project) {
+        if (!factory.containsKey(project)) {
+            PluginManager.getLogger().info("Creating refactoring action for project " + project.getName());
+            factory.put(project, new AutomaticRefactoringAction());
+        }
+        return factory.get(project);
+    }
+
+    private static void deleteInstance(@NotNull Project project) {
+        factory.remove(project);
     }
 
     @Override
@@ -65,12 +104,29 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         System.out.println();
 
         final MetricsProfile metricsProfile = MetricsProfileRepository.getInstance()
-                .getProfileForName("Refactoring features");
+                .getProfileForName(StockMetricsBundle.message("refactoring.metrics.profile.name"));
         assert metricsProfile != null;
 
-        final RefactoringExecutionContext context =
-                new RefactoringExecutionContext(project, analysisScope, metricsProfile);
-        calculateRefactorings(context);
+        // TODO need to improve performance: now it blocks IDEA while calculating.
+        final Task.Backgroundable task = new Task.Backgroundable(project,
+                "Calculating Refactorings...", true) {
+
+            @Override
+            public void run(@NotNull final ProgressIndicator indicator) {
+                AccessToken token = null;
+                try {
+                    token = ApplicationManager.getApplication().acquireReadActionLock();
+                    final RefactoringExecutionContext context =
+                            new RefactoringExecutionContext(project, analysisScope, metricsProfile);
+                    calculateRefactorings(context);
+                } finally {
+                    if (token != null) {
+                        token.finish();
+                    }
+                }
+            }
+        };
+        task.queue();
     }
 
 

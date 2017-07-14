@@ -22,66 +22,42 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.PsiMember;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.sixrr.metrics.profile.MetricsProfileRepository;
-import com.sixrr.stockmetrics.i18n.StockMetricsBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.plugin.AutomaticRefactoringAction;
 import org.ml_methods_group.utils.RefactoringUtil;
 
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class RefactoringAnnotator implements Annotator {
-    private static Set<Integer> hashes = new HashSet<>();
-    public static final AutomaticRefactoringAction action = new AutomaticRefactoringAction();
-
     @Override
     public synchronized void annotate(@NotNull PsiElement psiElement, @NotNull AnnotationHolder annotationHolder) {
         final Project project = psiElement.getProject();
-        MetricsProfileRepository.getInstance().
-                setSelectedProfile(StockMetricsBundle.message("refactoring.metrics.profile.name"));
-
         final AnalysisScope scope = new AnalysisScope(project);
 
-        if ((psiElement instanceof PsiFile)) {
-            final Set<PsiFile> currentFiles = new HashSet<>();
-            scope.accept(new JavaElementVisitor() {
-                @Override
-                public void visitJavaFile(PsiJavaFile file) {
-                    super.visitJavaFile(file);
-                    currentFiles.add(file);
-                }
-            });
-            final Set<Integer> currentFilesText = currentFiles.stream()
-                    .map(f -> f.getText().hashCode()).collect(Collectors.toSet());
-            if (!hashes.equals(currentFilesText)) {
-                action.analyzeSynchronously(project, scope);
-                hashes = currentFilesText;
-            }
-        }
-        setAnnotations(psiElement, annotationHolder, scope);
+        setAnnotations(psiElement, AutomaticRefactoringAction.getInstance(project), annotationHolder, scope);
     }
 
     private static void setAnnotations(@NotNull PsiElement element,
+                                       @NotNull AutomaticRefactoringAction action,
                                        @NotNull AnnotationHolder annotationHolder,
                                        @NotNull AnalysisScope scope) {
-        doRefactoringAnnotations(element, "CCDA", action.getRefactoringsCCDA(), annotationHolder, scope);
-        doRefactoringAnnotations(element, "MRI", action.getRefactoringsMRI(), annotationHolder, scope);
-        doRefactoringAnnotations(element, "AKMeans", action.getRefactoringsAKMeans(), annotationHolder, scope);
-        doRefactoringAnnotations(element, "HAC", action.getRefactoringsHAC(), annotationHolder, scope);
-        doRefactoringAnnotations(element, "ARI", action.getRefactoringsARI(), annotationHolder, scope);
+        setAnnotations(element, "CCDA", action.getRefactoringsCCDA(), annotationHolder, scope);
+        setAnnotations(element, "MRI", action.getRefactoringsMRI(), annotationHolder, scope);
+        setAnnotations(element, "AKMeans", action.getRefactoringsAKMeans(), annotationHolder, scope);
+        setAnnotations(element, "HAC", action.getRefactoringsHAC(), annotationHolder, scope);
+        setAnnotations(element, "ARI", action.getRefactoringsARI(), annotationHolder, scope);
     }
 
-    private static void doRefactoringAnnotations(@NotNull PsiElement element,
-                                                 @NotNull String algorithmName,
-                                                 final Map<String, String> refactorings,
-                                                 @NotNull AnnotationHolder holder,
-                                                 @NotNull AnalysisScope scope) {
+    private static void setAnnotations(@NotNull PsiElement element,
+                                       @NotNull String algorithmName,
+                                       final Map<String, String> refactorings,
+                                       @NotNull AnnotationHolder holder,
+                                       @NotNull AnalysisScope scope) {
         if (refactorings == null || refactorings.isEmpty()) {
             return;
         }
