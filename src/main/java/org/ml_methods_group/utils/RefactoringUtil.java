@@ -25,6 +25,7 @@ import com.intellij.psi.*;
 import com.intellij.refactoring.makeStatic.MakeStaticHandler;
 import com.intellij.refactoring.move.MoveHandler;
 import com.intellij.refactoring.move.moveInstanceMethod.MoveInstanceMethodDialog;
+import com.intellij.refactoring.move.moveMembers.MoveMembersDialog;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -65,18 +66,17 @@ public final class RefactoringUtil {
 
     private static void moveMembersRefactoring(Collection<PsiMember> elements, String targetClass,
                                                Project project, AnalysisScope scope) {
-        final Map<PsiClass, List<PsiElement>> groupByCurrentClass = elements.stream()
-                .collect(Collectors.groupingBy(PsiMember::getContainingClass, Collectors.toList()));
+        final Map<PsiClass, Set<PsiMember>> groupByCurrentClass = elements.stream()
+                .collect(Collectors.groupingBy(PsiMember::getContainingClass, Collectors.toSet()));
 
-        for (Entry<PsiClass, List<PsiElement>> movement : groupByCurrentClass.entrySet()) {
-            final Optional<PsiElement> destination = findElement(targetClass, scope);
+        for (Entry<PsiClass, Set<PsiMember>> movement : groupByCurrentClass.entrySet()) {
+            final Optional<PsiClass> destination = findElement(targetClass, scope, PsiClass.class::cast);
             if (!destination.isPresent()) {
                 return;
             }
-
-            final PsiElement[] array = movement.getValue().toArray(new PsiElement[0]);
-            TransactionGuard.getInstance().submitTransactionAndWait(() ->
-                    MoveHandler.doMove(project, array, destination.get(), DataContext.EMPTY_CONTEXT, null));
+            MoveMembersDialog dialog = new MoveMembersDialog(project, movement.getKey(), destination.get(), movement.getValue(), null);
+            dialog.setTitle("Move Static Members");
+            TransactionGuard.getInstance().submitTransactionAndWait(dialog::show);
         }
     }
 
@@ -122,8 +122,9 @@ public final class RefactoringUtil {
             return false;
         }
         MoveInstanceMethodDialog dialog = new MoveInstanceMethodDialog(method, available);
+        dialog.setTitle("Move Instance Method " + getHumanReadableName(method));
         dialog.show();
-        return dialog.isOK();
+        return dialog.isOK(); // may be should always return true
     }
 
     public static String getWarning(String unit, String target, AnalysisScope scope) {
