@@ -22,20 +22,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.content.Content;
-import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
-import javax.swing.*;
-import java.util.List;
 import java.util.Map;
 
 public final class RefactoringsToolWindow implements Disposable {
 
-    private static final String WINDOW_ID = "Fault predictions window";
+    private static final String WINDOW_ID = "Suggested refactorings";
     private static final String TITLE_KEY = "refactorings.tool.window.title";
 
     private final Project project;

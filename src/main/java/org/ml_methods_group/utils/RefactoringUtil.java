@@ -75,7 +75,6 @@ public final class RefactoringUtil {
                 return;
             }
             MoveMembersDialog dialog = new MoveMembersDialog(project, movement.getKey(), destination.get(), movement.getValue(), null);
-            dialog.setTitle("Move Static Members");
             TransactionGuard.getInstance().submitTransactionAndWait(dialog::show);
         }
     }
@@ -112,6 +111,7 @@ public final class RefactoringUtil {
         Stream<PsiParameter> parameters = Arrays.stream(method.getParameterList().getParameters());
         Stream<PsiField> fields = containingClass == null? Stream.empty() : Arrays.stream(containingClass.getFields());
         return Stream.concat(parameters, fields)
+                .filter(Objects::nonNull)
                 .filter(p -> target.equals(p.getType().getCanonicalText()))
                 .toArray(PsiField[]::new);
     }
