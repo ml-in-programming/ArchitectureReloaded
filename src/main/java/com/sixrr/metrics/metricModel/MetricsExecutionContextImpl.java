@@ -17,6 +17,7 @@
 package com.sixrr.metrics.metricModel;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -78,12 +79,16 @@ public class MetricsExecutionContextImpl implements MetricsExecutionContext {
     public void calculateMetrics(MetricsProfile profile, final MetricsResultsHolder resultsHolder) {
         final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
         final List<MetricInstance> metrics = profile.getMetricInstances();
-        indicator.setText(MetricsReloadedBundle.message("initializing.progress.string"));
+        if (!ApplicationManager.getApplication().isUnitTestMode()) {
+            indicator.setText(MetricsReloadedBundle.message("initializing.progress.string"));
+        }
         final int numFiles = scope.getFileCount();
         final int numMetrics = metrics.size();
         final List<MetricCalculator> calculators = new ArrayList<MetricCalculator>(numMetrics);
         for (final MetricInstance metricInstance : metrics) {
-            indicator.checkCanceled();
+            if (!ApplicationManager.getApplication().isUnitTestMode()) {
+                indicator.checkCanceled();
+            }
             if (!metricInstance.isEnabled()) {
                 continue;
             }
@@ -114,19 +119,27 @@ public class MetricsExecutionContextImpl implements MetricsExecutionContext {
                     return;
                 }
                 final String fileName = file.getName();
-                indicator.setText(MetricsReloadedBundle.message("analyzing.progress.string", fileName));
+                if (!ApplicationManager.getApplication().isUnitTestMode()) {
+                    indicator.setText(MetricsReloadedBundle.message("analyzing.progress.string", fileName));
+                }
                 mainTraversalProgress++;
 
                 for (MetricCalculator calculator : calculators) {
                     calculator.processFile(file);
                 }
-                indicator.setFraction((double) mainTraversalProgress / (double) numFiles);
+                if (!ApplicationManager.getApplication().isUnitTestMode()) {
+                    indicator.setFraction((double) mainTraversalProgress / (double) numFiles);
+                }
             }
         });
 
-        indicator.setText(MetricsReloadedBundle.message("tabulating.results.progress.string"));
+        if (!ApplicationManager.getApplication().isUnitTestMode()) {
+            indicator.setText(MetricsReloadedBundle.message("tabulating.results.progress.string"));
+        }
         for (MetricCalculator calculator : calculators) {
-            indicator.checkCanceled();
+            if (!ApplicationManager.getApplication().isUnitTestMode()) {
+                indicator.checkCanceled();
+            }
             calculator.endMetricsRun();
         }
     }
