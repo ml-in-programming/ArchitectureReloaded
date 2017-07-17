@@ -38,7 +38,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import static org.ml_methods_group.utils.RefactoringUtil.createDescription;
-import static org.ml_methods_group.utils.RefactoringUtil.getElementText;
+import static org.ml_methods_group.utils.PsiSearchUtil.getElementText;
 
 class ClassRefactoringPanel extends JPanel {
     private static final String SELECT_ALL_BUTTON_TEXT_KEY = "select.all.button";

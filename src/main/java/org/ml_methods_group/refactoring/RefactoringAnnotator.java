@@ -26,6 +26,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.sixrr.metrics.profile.MetricsProfileRepository;
 import org.ml_methods_group.plugin.AutomaticRefactoringAction;
+import org.ml_methods_group.utils.PsiSearchUtil;
 import org.ml_methods_group.utils.RefactoringUtil;
 import com.sixrr.stockmetrics.i18n.StockMetricsBundle;
 import org.jetbrains.annotations.NotNull;
@@ -68,7 +69,7 @@ public class RefactoringAnnotator implements Annotator {
             @Override
             public void visitElement(PsiElement element) {
                 super.visitElement(element);
-                final String currentClassName = RefactoringUtil.getHumanReadableName(element);
+                final String currentClassName = PsiSearchUtil.getHumanReadableName(element);
                 if (refactorings.containsKey(currentClassName)) {
                     final Annotation annotation = holder.createWarningAnnotation(
                             getAnnotationPart(element),
