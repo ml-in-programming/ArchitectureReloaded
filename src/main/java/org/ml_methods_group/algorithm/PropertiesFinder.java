@@ -123,6 +123,9 @@ public class PropertiesFinder {
     private class FileVisitor extends JavaElementVisitor {
         @Override
         public void visitFile(final PsiFile file) {
+            if (!file.getName().endsWith(".class") && !file.getName().endsWith(".java"))
+                return;
+
             System.out.println("!#! " + file.getName());
 
             final PsiElementVisitor counter = new ClassCounter();
