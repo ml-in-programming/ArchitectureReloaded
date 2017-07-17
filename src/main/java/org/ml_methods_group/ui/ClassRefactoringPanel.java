@@ -20,6 +20,7 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.ide.util.EditorHelper;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
@@ -70,6 +71,7 @@ class ClassRefactoringPanel extends JPanel {
     }
 
     private JComponent createTablePanel() {
+        new TableSpeedSearch(table);
         table.setModel(model);
         final TableColumn selectionColumn = table.getTableHeader().getColumnModel().getColumn(0);
         selectionColumn.setMaxWidth(30);
