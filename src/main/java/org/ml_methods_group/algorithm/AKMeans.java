@@ -162,7 +162,7 @@ public class AKMeans {
     private double distToCommunity(Entity entity, String center) {
         double minD = 0.0;
         for (Entity point : communities.get(center)) {
-            final double d = entity.dist(point);
+            final double d = entity.distance(point);
             minD = Math.max(d, minD);
         }
 

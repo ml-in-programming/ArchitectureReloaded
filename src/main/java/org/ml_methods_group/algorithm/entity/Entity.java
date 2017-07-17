@@ -57,10 +57,14 @@ public abstract class Entity {
         psiEntity = propertiesFinder.getPsiElement(name);
     }
 
-    public double dist(Entity entity) {
+    private double square(double value) {
+        return value * value;
+    }
+
+    public double distance(Entity entity) {
         double ans = 0.0;
         for (int i = 0; i < DIMENSION; i++) {
-            ans += Math.pow(vector[i] - entity.vector[i], 2);
+            ans += square(vector[i] - entity.vector[i]);
         }
 
         final int rpIntersect = entity.relevantProperties.sizeOfIntersect(relevantProperties);
@@ -139,7 +143,7 @@ public abstract class Entity {
             , MetricsRun metricsRun, double[] vector) {
         for (Metric metric : metricsRun.getMetrics()) {
             if (metric.getCategory() == category) {
-                final int id = components.get(metric.getAbbreviation()).intValue();
+                final int id = components.get(metric.getAbbreviation());
                 if (results.getValueForMetric(metric, name) != null) {
                     vector[id] = results.getValueForMetric(metric, name);
                 }
