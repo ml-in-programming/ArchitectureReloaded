@@ -29,33 +29,6 @@ public class HAC {
     private long idGenerator = 0;
     private int newClassCount = 0;
 
-
-    private static class Triple implements Comparable<Triple> {
-        private final double distance;
-        private final Community first;
-        private final Community second;
-
-        Triple(double distance, Community first, Community second) {
-            this.distance = distance;
-            this.first = first;
-            this.second = second;
-        }
-
-        @Override
-        public int compareTo(@NotNull Triple other) {
-            if (other == this) {
-                return 0;
-            }
-            if (distance != other.distance) {
-                return Double.compare(distance, other.distance);
-            }
-            if (first != other.first) {
-                return first.compareTo(other.first);
-            }
-            return second.compareTo(other.second);
-        }
-    }
-
     public HAC(Collection<Entity> entityList) {
         entityList.stream()
                 .map(Community::new)
@@ -68,32 +41,22 @@ public class HAC {
                     break;
                 }
                 final double distance = representative.distance(getRepresentative(second));
-                final Triple triple = new Triple(distance, first, second);
-                first.usages.put(second, triple);
-                second.usages.put(first, triple);
-                heap.add(triple);
+                createAndInsertTriple(distance, first, second);
             }
         }
-    }
-
-    private Entity getRepresentative(Community community) {
-        if (community.entities.size() != 1) {
-            throw new IllegalArgumentException("Something went wrong! Singleton set expected");
-        }
-        return community.entities.iterator().next();
     }
 
     public Map<String, String> run() {
         final Map<String, String> refactorings = new HashMap<>();
 
         while (!heap.isEmpty()) {
-            final Triple min = heap.first();
-            if (min.distance > 1.0) {
+            final Triple minTriple = heap.first();
+            if (minTriple.distance > 1.0) {
                 break;
             }
-
-            final Community first = min.first;
-            final Community second = min.second;
+            invalidateTriple(minTriple);
+            final Community first = minTriple.first;
+            final Community second = minTriple.second;
             final Community mergedCommunity = mergeCommunities(first, second);
             System.out.println("Merge " + first + " and " + second + " to " + mergedCommunity);
         }
@@ -109,6 +72,15 @@ public class HAC {
         return refactorings;
     }
 
+    private Entity getRepresentative(Community community) {
+        if (community.entities.size() != 1) {
+            throw new IllegalArgumentException("Something went wrong! Singleton set expected");
+        }
+        return community.entities.iterator().next();
+    }
+
+    // todo doubtful code starts
+
     private String calculateClassName(Community community) {
         return community.entities.stream()
                 .collect(Collectors.groupingBy(Entity::getClassName, Collectors.counting()))
@@ -122,6 +94,8 @@ public class HAC {
         final String name = calculateClassName(community);
         return name.isEmpty() ? "NewClass" + newClassCount++ : name;
     }
+
+    // doubtful code ends
 
     private Community mergeCommunities(Community first, Community second) {
         final Set<Entity> merged = new HashSet<>();
@@ -140,29 +114,32 @@ public class HAC {
                 .orElse(first.name);
 
         final Community newCommunity = new Community(merged, newName);
-
         communities.remove(first);
         communities.remove(second);
-        heap.remove(first.usages.get(second));
 
         for (Community community : communities) {
-
             final Triple fromFirst = first.usages.get(community);
             final Triple fromSecond = second.usages.get(community);
             final double newDistance = Math.max(fromFirst.distance, fromSecond.distance);
-
-            final Triple fromNew = new Triple(newDistance, newCommunity, community);
-            community.usages.remove(first);
-            community.usages.remove(second);
-            community.usages.put(newCommunity, fromNew);
-            newCommunity.usages.put(community, fromNew);
-
-            heap.remove(fromFirst);
-            heap.remove(fromSecond);
-            heap.add(fromNew);
+            createAndInsertTriple(newDistance, newCommunity, community);
+            invalidateTriple(fromFirst);
+            invalidateTriple(fromSecond);
         }
         communities.add(newCommunity);
         return newCommunity;
+    }
+
+    private void createAndInsertTriple(double distance, Community first, Community second) {
+        final Triple triple = new Triple(distance, first, second);
+        second.usages.put(first, triple);
+        first.usages.put(second, triple);
+        heap.add(triple);
+    }
+
+    private void invalidateTriple(Triple triple) {
+        triple.first.usages.remove(triple.second, triple);
+        triple.second.usages.remove(triple.first, triple);
+        heap.remove(triple);
     }
 
     private class Community implements Comparable<Community> {
@@ -206,6 +183,32 @@ public class HAC {
         @Override
         public boolean equals(Object obj) {
             return obj instanceof Community && ((Community) obj).id == id;
+        }
+    }
+
+    private static class Triple implements Comparable<Triple> {
+        private final double distance;
+        private final Community first;
+        private final Community second;
+
+        Triple(double distance, Community first, Community second) {
+            this.distance = distance;
+            this.first = first;
+            this.second = second;
+        }
+
+        @Override
+        public int compareTo(@NotNull Triple other) {
+            if (other == this) {
+                return 0;
+            }
+            if (distance != other.distance) {
+                return Double.compare(distance, other.distance);
+            }
+            if (first != other.first) {
+                return first.compareTo(other.first);
+            }
+            return second.compareTo(other.second);
         }
     }
 }
