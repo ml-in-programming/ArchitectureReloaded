@@ -17,74 +17,73 @@
 package org.ml_methods_group.ui;
 
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.ide.util.EditorHelper;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.EditorTextField;
-import com.intellij.ui.JBSplitter;
 import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
+import org.ml_methods_group.utils.PsiSearchUtil;
 import org.ml_methods_group.utils.RefactoringUtil;
 
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
-import static org.ml_methods_group.utils.RefactoringUtil.createDescription;
-import static org.ml_methods_group.utils.PsiSearchUtil.getElementText;
+import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
+import static org.ml_methods_group.ui.RefactoringsTableModel.SELECTION_COLUMN_INDEX;
 
 class ClassRefactoringPanel extends JPanel {
     private static final String SELECT_ALL_BUTTON_TEXT_KEY = "select.all.button";
     private static final String REFACTOR_BUTTON_TEXT_KEY = "refactor.button";
-    private static final String SPLITTER_PROPORTION_KEY = "refactoring.panel.splitter.proportion.key";
 
-    @NotNull private final Project project;
-    @NotNull private final AnalysisScope scope;
-    @NotNull private final RefactoringsTableModel model;
+    @NotNull
+    private final Project project;
+    @NotNull
+    private final AnalysisScope scope;
+    @NotNull
+    private final RefactoringsTableModel model;
     private final Collection<OnRefactoringFinishedListener> listeners = new ArrayList<>();
     private final JBTable table = new JBTable();
-    private final JavaCodePanel codePanel;
-    private final JBLabel description = new JBLabel();
     private final JButton selectAllButton = new JButton();
     private final JButton doRefactorButton = new JButton();
+    private final JLabel info = new JLabel();
 
     ClassRefactoringPanel(@NotNull Project project, Map<String, String> refactorings,
                           @NotNull AnalysisScope scope) {
         this.project = project;
         this.scope = scope;
         setLayout(new BorderLayout());
-        codePanel = new JavaCodePanel(project);
         model = new RefactoringsTableModel(refactorings);
         setupGUI();
     }
 
     private void setupGUI() {
-        final JBSplitter splitter = new JBSplitter(SPLITTER_PROPORTION_KEY, 0.5f);
-        splitter.setFirstComponent(createTablePanel());
-        splitter.setSecondComponent(createInfoPanel());
-        add(splitter, BorderLayout.CENTER);
+        add(createTablePanel(), BorderLayout.CENTER);
         add(createButtonsPanel(), BorderLayout.SOUTH);
     }
 
     private JComponent createTablePanel() {
+        new TableSpeedSearch(table);
         table.setModel(model);
         final TableColumn selectionColumn = table.getTableHeader().getColumnModel().getColumn(0);
         selectionColumn.setMaxWidth(30);
         selectionColumn.setMinWidth(30);
-        final ListSelectionModel selectionModel = table.getSelectionModel();
-        selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        selectionModel.addListSelectionListener(e -> updateInfoPanel());
+        table.addMouseListener((DoubleClickListener) this::onDoubleClick);
+        table.getSelectionModel().setSelectionMode(SINGLE_SELECTION);
+        table.getSelectionModel().addListSelectionListener(e -> onSelectionChanged());
         return ScrollPaneFactory.createScrollPane(table);
     }
 
     private JComponent createButtonsPanel() {
+        final JPanel panel = new JPanel(new BorderLayout());
         final JPanel buttonsPanel = new JBPanel<>();
         buttonsPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 
@@ -95,50 +94,46 @@ class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setText(ArchitectureReloadedBundle.message(REFACTOR_BUTTON_TEXT_KEY));
         doRefactorButton.addActionListener(e -> refactorSelected());
         buttonsPanel.add(doRefactorButton);
-        return buttonsPanel;
-    }
+        panel.add(buttonsPanel, BorderLayout.EAST);
 
-    private JComponent createInfoPanel() {
-        final JPanel infoPanel = new JPanel(new BorderLayout());
-        final JLabel codeTitlePanel = new JLabel();
-        codeTitlePanel.setText(ArchitectureReloadedBundle.message("code.of.element"));
-        infoPanel.add(codeTitlePanel, BorderLayout.NORTH);
-        final JScrollPane codePanelWrapper = ScrollPaneFactory.createScrollPane(codePanel);
-        codePanelWrapper.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        infoPanel.add(codePanelWrapper, BorderLayout.CENTER);
-        infoPanel.add(description, BorderLayout.SOUTH);
-        description.setText("");
-        return infoPanel;
+        panel.add(info, BorderLayout.WEST);
+        return panel;
     }
 
     private void refactorSelected() {
         doRefactorButton.setEnabled(false);
         selectAllButton.setEnabled(false);
+        table.setEnabled(false);
         final Map<String, String> movements = model.getSelected();
         RefactoringUtil.moveRefactoring(movements, project, scope);
         listeners.forEach(l -> l.onRefactoringFinished(this));
+        table.setEnabled(true);
+        doRefactorButton.setEnabled(true);
+        selectAllButton.setEnabled(true);
     }
 
-    private void updateInfoPanel() {
+    private void onDoubleClick() {
         final int selectedRow = table.getSelectedRow();
-        if (selectedRow == -1) {
-            codePanel.setText("");
-            description.setText("");
+        final int selectedColumn = table.getSelectedColumn();
+        if (selectedRow == -1 || selectedColumn == -1 || selectedColumn == SELECTION_COLUMN_INDEX) {
             return;
         }
-
-        final String elementName = model.getElement(selectedRow);
-        final String movement = model.getMovement(selectedRow);
-        new Thread(() -> {
-            final String code = getElementText(elementName, scope).orElse("");
-            final String refactoringInfo = createDescription(elementName, movement, scope);
-            SwingUtilities.invokeLater(() -> {
-                codePanel.setText(code);
-                description.setText(refactoringInfo);
-            });
-        }).start();
+        PsiSearchUtil.findElement(model.getUnitAt(selectedRow, selectedColumn), scope)
+                .ifPresent(EditorHelper::openInEditor);
     }
 
+    private void onSelectionChanged() {
+        final int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            info.setText("");
+        } else {
+            String unit = model.getUnitAt(selectedRow, 1);
+            String target = model.getUnitAt(selectedRow, 2);
+            info.setText(RefactoringUtil.getWarning(unit, target, scope));
+        }
+    }
+
+    // todo maybe tool window should be close after refactorings
     void addOnRefactoringFinishedListener(OnRefactoringFinishedListener listener) {
         listeners.add(listener);
     }
@@ -148,19 +143,19 @@ class ClassRefactoringPanel extends JPanel {
         void onRefactoringFinished(ClassRefactoringPanel panel);
     }
 
-    private static class JavaCodePanel extends EditorTextField {
-        JavaCodePanel(Project project) {
-            super("", project, JavaFileType.INSTANCE);
-            setOneLineMode(false);
-            setViewerEnabled(false);
-        }
+    @FunctionalInterface
+    private interface DoubleClickListener extends MouseListener {
+        void onDoubleClick();
 
-        @Override
-        public void setText(@Nullable String text) {
-            super.setText(text);
-            if (getParent() != null) {
-                getParent().revalidate();
+        default void mouseClicked(MouseEvent e) {
+            if (e.getClickCount() >= 2) {
+                onDoubleClick();
             }
         }
+
+        default void mousePressed(MouseEvent e) {}
+        default void mouseReleased(MouseEvent e) {}
+        default void mouseEntered(MouseEvent e) {}
+        default void mouseExited(MouseEvent e) {}
     }
 }

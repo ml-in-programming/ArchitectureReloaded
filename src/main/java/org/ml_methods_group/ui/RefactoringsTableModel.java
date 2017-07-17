@@ -16,11 +16,17 @@
 
 package org.ml_methods_group.ui;
 
+import com.intellij.ui.BooleanTableCellRenderer;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
+import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -28,14 +34,15 @@ import java.util.stream.IntStream;
 public class RefactoringsTableModel extends AbstractTableModel {
     private static final String UNIT_COLUMN_TITLE_KEY = "unit.column.title";
     private static final String MOVE_TO_COLUMN_TITLE_KEY = "move.to.column.title";
-    private static final int UNIT_COLUMN_INDEX = 1;
-    private static final int MOVE_TO_COLUMN_INDEX = 2;
-    private static final int SELECTION_COLUMN_INDEX = 0;
+    public static final int SELECTION_COLUMN_INDEX = 0;
+    public static final int UNIT_COLUMN_INDEX = 1;
+    public static final int MOVE_TO_COLUMN_INDEX = 2;
     private static final int COLUMNS_COUNT = 3;
 
     private final List<String> units = new ArrayList<>();
     private final List<String> movements = new ArrayList<>();
     private final boolean[] isSelected;
+    private final boolean[] isEnabled;
 
     RefactoringsTableModel(Map<String, String> refactorings) {
         for (Entry<String, String> refactoring : refactorings.entrySet()) {
@@ -46,6 +53,8 @@ public class RefactoringsTableModel extends AbstractTableModel {
             movements.add(refactoring.getValue());
         }
         isSelected = new boolean[units.size()];
+        isEnabled = new boolean[units.size()];
+        Arrays.fill(isEnabled, true);
     }
 
     public void selectAll() {
@@ -54,10 +63,13 @@ public class RefactoringsTableModel extends AbstractTableModel {
     }
 
     public Map<String, String> getSelected() {
-        return IntStream.range(0, isSelected.length)
+        Map<String, String> result = IntStream.range(0, isSelected.length)
                 .filter(i -> isSelected[i])
+                .peek(i -> isEnabled[i] = false)
                 .boxed()
                 .collect(Collectors.toMap(units::get, movements::get));
+        fireTableDataChanged();
+        return result;
     }
 
     @Override
@@ -80,7 +92,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return columnIndex == SELECTION_COLUMN_INDEX;
+        return columnIndex == SELECTION_COLUMN_INDEX && isEnabled[rowIndex];
     }
 
     @Override
@@ -114,11 +126,13 @@ public class RefactoringsTableModel extends AbstractTableModel {
         throw new IndexOutOfBoundsException("Unexpected column index: " + columnIndex);
     }
 
-    public String getElement(int row) {
-        return units.get(row);
-    }
-
-    public String getMovement(int row) {
-        return movements.get(row);
+    public String getUnitAt(int row, int column) {
+        switch (column) {
+            case UNIT_COLUMN_INDEX:
+                return units.get(row);
+            case MOVE_TO_COLUMN_INDEX:
+                return movements.get(row);
+        }
+        throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }
 }
