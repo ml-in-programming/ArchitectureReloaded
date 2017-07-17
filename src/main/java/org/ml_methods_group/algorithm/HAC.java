@@ -26,7 +26,9 @@ import java.util.stream.Collectors;
 public class HAC {
     private final SortedSet<Triple> heap = new TreeSet<>();
     private final Set<Community> communities = new HashSet<>();
-    private long ID_GENERATOR = 0;
+    private long idGenerator = 0;
+    private int newClassCount = 0;
+
 
     private static class Triple implements Comparable<Triple> {
         private final double distance;
@@ -56,7 +58,7 @@ public class HAC {
 
     public HAC(Collection<Entity> entityList) {
         entityList.stream()
-                .map(entry -> new Community(Collections.singleton(entry), entry.getName()))
+                .map(Community::new)
                 .forEach(communities::add);
 
         for (Community first : communities) {
@@ -66,8 +68,6 @@ public class HAC {
                     break;
                 }
                 final double distance = representative.distance(getRepresentative(second));
-                if (distance != getRepresentative(second).distance(representative))
-                    System.out.println("Distances: " + distance + " vs " + getRepresentative(second).distance(representative));
                 final Triple triple = new Triple(distance, first, second);
                 first.usages.put(second, triple);
                 second.usages.put(first, triple);
@@ -84,7 +84,7 @@ public class HAC {
     }
 
     public Map<String, String> run() {
-        final Map<String, String> refactorings = new HashMap<String, String>();
+        final Map<String, String> refactorings = new HashMap<>();
 
         while (!heap.isEmpty()) {
             final Triple min = heap.first();
@@ -118,15 +118,12 @@ public class HAC {
                 .orElse("");
     }
 
-    private int newClassCount = 0;
-
     private String receiveClassName(Community community) {
         final String name = calculateClassName(community);
         return name.isEmpty() ? "NewClass" + newClassCount++ : name;
     }
 
     private Community mergeCommunities(Community first, Community second) {
-        System.out.println("merge " + first.name + ", " + second.name);
         final Set<Entity> merged = new HashSet<>();
         merged.addAll(first.entities);
         merged.addAll(second.entities);
@@ -178,7 +175,11 @@ public class HAC {
         Community(Set<Entity> entities, String name) {
             this.entities = entities;
             this.name = name;
-            id = ID_GENERATOR++;
+            id = idGenerator++;
+        }
+
+        Community(Entity entity) {
+            this(Collections.singleton(entity), entity.getName());
         }
 
         @Override
