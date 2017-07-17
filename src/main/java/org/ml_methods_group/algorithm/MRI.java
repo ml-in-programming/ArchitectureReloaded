@@ -68,7 +68,7 @@ public class MRI {
 
         for (Entity currentClass : entities) {
             if (currentClass.getCategory() == MetricCategory.Class) {
-                final double dist = entity.dist(currentClass);
+                final double dist = entity.distance(currentClass);
                 if (dist < minDist) {
                     minDist = dist;
                     candidateClass = currentClass;
@@ -120,7 +120,7 @@ public class MRI {
             final String name = String.format("%1$" + maxLength + "s", ent.getName());
             System.out.print(name);
             for (Entity entity : entities) {
-                final double dist = ent.dist(entity);
+                final double dist = ent.distance(entity);
                 String d = "";
                 d = dist == Double.MAX_VALUE
                         ? String.format("%1$" + maxLength + "s", "inf")

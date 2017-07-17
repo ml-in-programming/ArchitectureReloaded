@@ -74,7 +74,7 @@ public class ARI {
                     }
                 }
 
-                final double distance = method.dist(classEntity);
+                final double distance = method.distance(classEntity);
 
                 if (distance < minD) {
                     minD = distance;
