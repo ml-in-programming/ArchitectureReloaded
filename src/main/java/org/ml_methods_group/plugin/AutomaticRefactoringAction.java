@@ -24,6 +24,7 @@ import com.intellij.openapi.project.Project;
 import com.sixrr.metrics.profile.MetricsProfile;
 import com.sixrr.metrics.profile.MetricsProfileRepository;
 import com.sixrr.metrics.ui.dialogs.ProfileSelectionPanel;
+import com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -87,6 +88,8 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     private void showRefactoringsDialog(@NotNull RefactoringExecutionContext context) {
         calculateRefactorings(context, false);
+        ServiceManager.getService(context.getProject(), MetricsToolWindow.class)
+                .show(context.getMetricsRun(), context.getProfile(), context.getScope(), false);
         ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
                 .show(Collections.unmodifiableMap(refactorings), context.getScope());
     }

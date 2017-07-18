@@ -228,6 +228,16 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
         return fieldsCount;
     }
 
+    @NotNull
+    public MetricsRunImpl getMetricsRun() {
+        return metricsRun;
+    }
+
+    @NotNull
+    public MetricsProfile getProfile() {
+        return profile;
+    }
+
     public static String[] getAvailableAlgorithms() {
         return ALGORITHMS.clone();
     }
