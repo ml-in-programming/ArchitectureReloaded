@@ -27,10 +27,7 @@ import com.sixrr.metrics.profile.MetricsProfile;
 import com.sixrr.metrics.utils.StringToFractionMap;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class MetricsResultImpl implements MetricsResult {
     private final Map<Metric, StringToFractionMap> values = new HashMap<Metric, StringToFractionMap>(32);
@@ -203,5 +200,23 @@ public class MetricsResultImpl implements MetricsResult {
         }
         return out;
 
+    }
+
+    public MetricsResultImpl markRowsWithPrefix(List<String> rowNames, String prefix) {
+        final MetricsResultImpl out = new MetricsResultImpl();
+
+        for (String measuredObject : measuredObjects) {
+            for (Metric metric : metrics) {
+                final StringToFractionMap valuesForMetric = values.get(metric);
+                final double value = valuesForMetric.get(measuredObject);
+                out.postValue(metric, rowNames.contains(measuredObject) ? prefix + measuredObject : measuredObject, value, 1.0); //not quite right
+            }
+            final PsiElement elementForMeasuredObject = getElementForMeasuredObject(measuredObject);
+            if (elementForMeasuredObject != null) {
+                out.setElementForMeasuredObject(measuredObject, elementForMeasuredObject);
+            }
+        }
+
+        return out;
     }
 }
