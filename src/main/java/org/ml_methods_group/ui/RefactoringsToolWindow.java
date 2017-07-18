@@ -48,20 +48,18 @@ public final class RefactoringsToolWindow implements Disposable {
         myToolWindow.setAvailable(false, null);
     }
 
-    public RefactoringsToolWindow addTab(String algorithmName, @NotNull Map<String, String> refactorings, AnalysisScope scope) {
+    private void addTab(String algorithmName, @NotNull Map<String, String> refactorings, AnalysisScope scope) {
         final Content content = myToolWindow.getContentManager().getFactory()
                 .createContent(new ClassRefactoringPanel(project, refactorings, scope), algorithmName, true);
         myToolWindow.getContentManager().addContent(content);
-        return this;
     }
 
-    public RefactoringsToolWindow clear() {
+    public void show(Map<String, Map<String, String>> refactorings, AnalysisScope scope) {
         myToolWindow.getContentManager().removeAllContents(true);
         myToolWindow.setAvailable(false, null);
-        return this;
-    }
-
-    public void show() {
+        for (Map.Entry<String, Map<String, String>> entry : refactorings.entrySet()) {
+            addTab(entry.getKey(), entry.getValue(), scope);
+        }
         myToolWindow.setAvailable(true, null);
         myToolWindow.show(null);
     }
