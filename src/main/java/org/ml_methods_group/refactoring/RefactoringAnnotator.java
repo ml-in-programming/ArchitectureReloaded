@@ -29,7 +29,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.plugin.AutomaticRefactoringAction;
-import org.ml_methods_group.utils.RefactoringUtil;
+import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.Map;
 
@@ -62,7 +62,7 @@ public class RefactoringAnnotator implements Annotator {
             return;
         }
 
-        final String name = RefactoringUtil.getHumanReadableName(element);
+        final String name = PsiSearchUtil.getHumanReadableName(element);
         if (refactorings.containsKey(name)) {
             final Annotation annotation = holder.createWarningAnnotation(
                     getAnnotationPart(element),

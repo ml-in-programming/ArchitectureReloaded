@@ -82,7 +82,15 @@ public class CCDA {
 
             for (PsiField field : properties.getAllFields()) {
                 final PsiClass containingClass = field.getContainingClass();
-                assert containingClass != null;
+
+//                assert containingClass != null;
+                if (containingClass == null) {
+                    System.out.println("!!!!!!! containingClass is null for " + field.getName());
+                    // TODO: find out why are they null
+                    continue;
+                }
+
+
                 final String qualifiedFieldName = containingClass.getQualifiedName() + "." + field.getName();
                 addNode(qualifiedFieldName, entity, neighbors);
             }

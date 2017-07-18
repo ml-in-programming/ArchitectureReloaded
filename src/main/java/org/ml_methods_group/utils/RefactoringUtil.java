@@ -21,27 +21,23 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.refactoring.makeStatic.MakeStaticHandler;
 import com.intellij.refactoring.move.MoveHandler;
+import com.intellij.refactoring.move.moveInstanceMethod.MoveInstanceMethodDialog;
+import com.intellij.refactoring.move.moveMembers.MoveMembersDialog;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static com.sixrr.metrics.utils.MethodUtils.calculateSignature;
 import static com.sixrr.metrics.utils.MethodUtils.isStatic;
+import static org.ml_methods_group.utils.PsiSearchUtil.*;
 
 public final class RefactoringUtil {
-    private static final Function<Object, String> NULL_SUPPLIER = s -> null;
 
     private RefactoringUtil() {
     }
@@ -54,11 +50,12 @@ public final class RefactoringUtil {
                     .collect(Collectors.groupingBy(refactorings::get, Collectors.toList()));
 
             for (Entry<String, List<String>> refactoring : groupedMovements.entrySet()) {
+                String targetClass = refactoring.getKey();
                 final List<PsiMember> members = refactoring.getValue().stream()
                         .sequential()
-                        .map(name -> findElement(name, scope))
-                        .filter(Optional::isPresent)
-                        .map(element -> makeStatic((PsiMember) element.get(), scope))
+                        .filter(unit -> !tryMoveInstanceMethod(unit, targetClass, scope))
+                        .map(unit -> tryMakeStatic(unit, scope)) // no effect for already static members
+                        .map(o -> o.map(unit -> findElement(unit, scope, PsiMember.class::cast).orElse(null)))
                         .filter(Optional::isPresent)
                         .map(Optional::get)
                         .collect(Collectors.toList());
@@ -69,118 +66,88 @@ public final class RefactoringUtil {
 
     private static void moveMembersRefactoring(Collection<PsiMember> elements, String targetClass,
                                                Project project, AnalysisScope scope) {
-        final Map<PsiClass, List<PsiElement>> groupByCurrentClass = elements.stream()
-                .collect(Collectors.groupingBy(PsiMember::getContainingClass, Collectors.toList()));
+        final Map<PsiClass, Set<PsiMember>> groupByCurrentClass = elements.stream()
+                .collect(Collectors.groupingBy(PsiMember::getContainingClass, Collectors.toSet()));
 
-        for (Entry<PsiClass, List<PsiElement>> movement : groupByCurrentClass.entrySet()) {
-            final Optional<PsiElement> destination = findElement(targetClass, scope);
+        for (Entry<PsiClass, Set<PsiMember>> movement : groupByCurrentClass.entrySet()) {
+            final Optional<PsiClass> destination = findElement(targetClass, scope, PsiClass.class::cast);
             if (!destination.isPresent()) {
                 return;
             }
-
-            final PsiElement[] array = movement.getValue().toArray(new PsiElement[0]);
-            TransactionGuard.getInstance().submitTransactionAndWait(() ->
-                    MoveHandler.doMove(project, array, destination.get(), DataContext.EMPTY_CONTEXT, null));
+            MoveMembersDialog dialog = new MoveMembersDialog(project, movement.getKey(), destination.get(), movement.getValue(), null);
+            TransactionGuard.getInstance().submitTransactionAndWait(dialog::show);
         }
     }
 
-    private static Optional<PsiMember> makeStatic(PsiMember element, AnalysisScope scope) {
+    private static Optional<String> tryMakeStatic(String unit, AnalysisScope scope) {
+        return findElement(unit, scope, element -> tryMakeStatic((PsiMember) element, scope));
+    }
+
+    private static String tryMakeStatic(PsiMember element, AnalysisScope scope) {
+        if (isStatic(element)) {
+            return getHumanReadableName(element);
+        }
         if (!(element instanceof PsiMethod)) {
-            return Optional.of(element).filter(MethodUtils::isStatic);
+            return null;
         }
-
-        final PsiMethod method = (PsiMethod) element;
+        PsiMethod method = (PsiMethod) element;
         if (method.isConstructor()) {
-            return Optional.empty();
+            return null;
         }
-
-        if (isStatic(method)) {
-            return Optional.of(method);
-        }
-
         TransactionGuard.getInstance().submitTransactionAndWait(() -> MakeStaticHandler.invoke(method));
         return findMethodByName(method.getName(), scope)
                 .filter(MethodUtils::isStatic)
-                .filter(m -> MethodUtils.parametersCount(m) >= MethodUtils.parametersCount(method))
-                .map(m -> (PsiMember) m);
+                .map(PsiSearchUtil::getHumanReadableName)
+                .orElse(null);
     }
 
-    private static Optional<PsiElement> findElement(String humanReadableName, AnalysisScope scope) {
-        return runSearch(RefactoringUtil::getHumanReadableName,
-                RefactoringUtil::getHumanReadableName,
-                RefactoringUtil::getHumanReadableName,
-                scope, humanReadableName);
+    private static boolean tryMoveInstanceMethod(String unit, String target, AnalysisScope scope) {
+        return findElement(unit, scope, e -> e instanceof PsiMethod && !isStatic((PsiMethod) e)
+                && tryMoveInstanceMethod((PsiMethod) e, target)).orElse(false);
     }
 
-    private static Optional<PsiMethod> findMethodByName(String name, AnalysisScope scope) {
-        return runSearch(NULL_SUPPLIER, PsiMethod::getName, NULL_SUPPLIER, scope, name)
-                .map(e -> (PsiMethod) e);
+    private static PsiField[] getAvailableFields(PsiMethod method, String target) {
+        PsiClass containingClass = method.getContainingClass();
+        Stream<PsiParameter> parameters = Arrays.stream(method.getParameterList().getParameters());
+        Stream<PsiField> fields = containingClass == null? Stream.empty() : Arrays.stream(containingClass.getFields());
+        return Stream.concat(parameters, fields)
+                .filter(Objects::nonNull)
+                .filter(p -> target.equals(p.getType().getCanonicalText()))
+                .toArray(PsiField[]::new);
     }
 
-    public static Optional<String> getElementText(String unit, AnalysisScope scope) {
-        return ApplicationManager.getApplication()
-                .runReadAction((Computable<Optional<String>>) () -> findElement(unit, scope).map(PsiElement::getText));
-    }
-
-    public static String createDescription(String unit, String moveTo, AnalysisScope scope) {
-        return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
-            final Optional<PsiElement> element = findElement(unit, scope);
-            if (!element.isPresent()) {
-                return "Element not found";
-            }
-
-            if (element.get() instanceof PsiMethod) {
-                final PsiMethod method = (PsiMethod) element.get();
-                final String moveFrom = getHumanReadableName(method.getContainingClass());
-                final String descriptionKey = (isStatic(method) ? "" : "make.static.and.") + "move.description";
-                return ArchitectureReloadedBundle.message(descriptionKey, method.getName(), moveFrom, moveTo);
-            }
-            return "Unsupported element";
-        });
-    }
-
-    public static String getHumanReadableName(@Nullable PsiElement element) {
-        if (element instanceof PsiMethod) {
-            return calculateSignature((PsiMethod) element);
-        } else if (element instanceof PsiClass) {
-            return ((PsiClass) element).getQualifiedName();
-        } else if (element instanceof PsiField) {
-            final PsiMember field = (PsiMember) element;
-            return getHumanReadableName(field.getContainingClass()) + "." + field.getName();
+    private static boolean tryMoveInstanceMethod(@NotNull PsiMethod method, String target) {
+        PsiField[] available = getAvailableFields(method, target);
+        if (available.length == 0) {
+            return false;
         }
-        return "???";
+        MoveInstanceMethodDialog dialog = new MoveInstanceMethodDialog(method, available);
+        dialog.setTitle("Move Instance Method " + getHumanReadableName(method));
+        dialog.show();
+        return dialog.isOK(); // may be should always return true
     }
 
-    private static Optional<PsiElement> runSearch(Function<? super PsiClass, String> classToString,
-                                                  Function<? super PsiMethod, String> methodToString,
-                                                  Function<? super PsiField, String> fieldToString,
-                                                  AnalysisScope scope, String request) {
-        final PsiElement[] resultHolder = new PsiElement[1];
-        scope.accept(new JavaRecursiveElementVisitor() {
-            @Override
-            public void visitMethod(PsiMethod method) {
-                super.visitMethod(method);
-                if (request.equals(methodToString.apply(method))) {
-                    resultHolder[0] = method;
-                }
-            }
+    public static String getWarning(String unit, String target, AnalysisScope scope) {
+        return findElement(unit, scope, element -> getWarning(element, target)).orElse("");
+    }
 
-            @Override
-            public void visitClass(PsiClass aClass) {
-                super.visitClass(aClass);
-                if (request.equals(classToString.apply(aClass))) {
-                    resultHolder[0] = aClass;
-                }
+    private static String getWarning(PsiElement element, String target) {
+        if (element instanceof PsiMethod) {
+            PsiMethod method = (PsiMethod) element;
+            if (!isStatic(method) && getAvailableFields(method, target).length == 0) {
+                return "    Can't move " + getHumanReadableName(element) +
+                        " like instance method. It will be converted to static method first";
             }
-
-            @Override
-            public void visitField(PsiField field) {
-                super.visitField(field);
-                if (request.equals(fieldToString.apply(field))) {
-                    resultHolder[0] = field;
-                }
+            if (method.isConstructor()) {
+                return "    Sorry, can't move constructor";
             }
-        });
-        return Optional.ofNullable(resultHolder[0]);
+        } else if (element instanceof PsiField) {
+            if (!isStatic((PsiField) element)) {
+                return "    Sorry, can't move instance fields";
+            }
+        } else {
+            return "    Sorry, can't move such elements";
+        }
+        return "";
     }
 }

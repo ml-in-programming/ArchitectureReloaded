@@ -74,7 +74,7 @@ public class ARI {
                     }
                 }
 
-                final double distance = method.dist(classEntity);
+                final double distance = method.distance(classEntity);
 
                 if (distance < minD) {
                     minD = distance;
@@ -82,7 +82,13 @@ public class ARI {
                 }
             }
 
-            assert targetClass != null;
+//            assert targetClass != null;
+
+            if (targetClass == null) {
+                System.out.println("!!!!! targetClass is null for " + method.getName());
+                // TODO: find out why are they null
+                continue;
+            }
 
             if (communityIds.containsKey(targetClass)) {
                 putMethodOrField(method, targetClass);
