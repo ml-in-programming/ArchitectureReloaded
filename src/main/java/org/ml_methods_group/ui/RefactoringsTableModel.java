@@ -77,7 +77,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
         movements = IntStream.range(0, isSelected.length)
                 .filter(i -> !isSelected[i])
                 .boxed()
-                .map(units::get)
+                .map(movements::get)
                 .collect(Collectors.toList());
         isSelected = new boolean[units.size()];
         fireTableDataChanged();
