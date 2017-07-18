@@ -22,6 +22,7 @@ import com.intellij.ui.components.JBCheckBox;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.ml_methods_group.config.ArchitectureReloadedConfig;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
+import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;
 import java.awt.*;
@@ -35,7 +36,7 @@ public class AlgorithmsSelectionPanel extends JPanel {
         final ArchitectureReloadedConfig config = ArchitectureReloadedConfig.getInstance();
 
         final JComponent separator =
-                new TitledSeparator(MetricsReloadedBundle.message("metrics.profile"));
+                new TitledSeparator(ArchitectureReloadedBundle.message("algorithms.selection"));
 
         final GridBagConstraints constraints = new GridBagConstraints();
         constraints.insets.left = 0;
