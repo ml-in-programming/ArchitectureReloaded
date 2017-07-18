@@ -59,14 +59,14 @@ public final class RefactoringsToolWindow implements Disposable {
         myToolWindow.setAvailable(false, null);
     }
 
-    private void addTab(String algorithmName, @NotNull Map<String, String> refactorings, AnalysisScope scope) {
+    private void addTab(String tabName, @NotNull Map<String, String> refactorings) {
         final JComponent component = new ClassRefactoringPanel(project, refactorings, scope);
         final ActionToolbar toolbar = createToolbar();
         final JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.add(component, BorderLayout.CENTER);
         contentPanel.add(toolbar.getComponent(), BorderLayout.WEST);
         final Content content = myToolWindow.getContentManager().getFactory()
-                .createContent(contentPanel, algorithmName, true);
+                .createContent(contentPanel, tabName, true);
         myToolWindow.getContentManager().addContent(content);
     }
 
@@ -84,7 +84,7 @@ public final class RefactoringsToolWindow implements Disposable {
         myToolWindow.getContentManager().removeAllContents(true);
         myToolWindow.setAvailable(false, null);
         for (Map.Entry<String, Map<String, String>> entry : refactorings.entrySet()) {
-            addTab(entry.getKey(), entry.getValue(), scope);
+            addTab(entry.getKey(), entry.getValue());
         }
         myToolWindow.setAvailable(true, null);
         myToolWindow.show(null);
@@ -109,8 +109,8 @@ public final class RefactoringsToolWindow implements Disposable {
         }
         if (results != null) {
             final String tabName = algorithms.stream()
-                    .collect(Collectors.joining("&"));
-            addTab(tabName, results, scope);
+                    .collect(Collectors.joining(" & "));
+            addTab(tabName, results);
         }
     }
 
