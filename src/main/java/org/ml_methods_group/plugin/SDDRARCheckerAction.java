@@ -18,7 +18,6 @@ package org.ml_methods_group.plugin;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
-import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -28,15 +27,12 @@ import com.sixrr.metrics.metricModel.MetricsRunImpl;
 import com.sixrr.metrics.metricModel.TimeStamp;
 import com.sixrr.metrics.profile.MetricsProfile;
 import com.sixrr.metrics.profile.MetricsProfileRepository;
-import com.sixrr.metrics.ui.dialogs.ProfileSelectionPanel;
 import com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import com.sixrr.stockmetrics.i18n.StockMetricsBundle;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
-import javax.swing.*;
 import java.util.List;
 
 public class SDDRARCheckerAction extends BaseAnalysisAction {
@@ -72,11 +68,5 @@ public class SDDRARCheckerAction extends BaseAnalysisAction {
             }
         }.execute(profile, metricsRun);
 
-    }
-
-    @Override
-    @Nullable
-    protected JComponent getAdditionalActionSettings(Project project, BaseAnalysisActionDialog dialog) {
-        return new ProfileSelectionPanel(project);
     }
 }
