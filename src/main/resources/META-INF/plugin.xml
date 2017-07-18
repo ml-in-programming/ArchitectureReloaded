@@ -42,6 +42,7 @@
     <appStarter implementation="com.sixrr.metrics.offline.MetricsCommandLine"/>
     <applicationService serviceImplementation="com.sixrr.metrics.config.MetricsReloadedConfig"/>
     <applicationService serviceImplementation="com.sixrr.metrics.profile.MetricsProfileRepository"/>
+    <applicationService serviceImplementation="org.ml_methods_group.config.ArchitectureReloadedConfig"/>
     <projectService serviceImplementation="org.ml_methods_group.ui.RefactoringsToolWindow"/>
     <projectService serviceInterface="com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow"
                     serviceImplementation="com.sixrr.metrics.ui.metricdisplay.MetricsToolWindowImpl"/>
