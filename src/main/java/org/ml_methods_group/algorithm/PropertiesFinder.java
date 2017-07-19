@@ -139,6 +139,13 @@ public class PropertiesFinder {
             }
             PSIUtil.getAllSupers(method, allClasses)
                     .forEach(m -> getOrCreateProperties(m).addMethod(method));
+            Arrays.stream(method.getParameterList().getParameters())
+                    .map(PsiParameter::getType)
+                    .map(PsiType::getCanonicalText)
+                    .map(PropertiesFinder.this::elementForName)
+                    .filter(Objects::nonNull)
+                    .map(PsiClass.class::cast)
+                    .forEach(methodProperties::addClass);
             super.visitMethod(method);
             if (currentMethod == method) {
                 currentMethod = null;
