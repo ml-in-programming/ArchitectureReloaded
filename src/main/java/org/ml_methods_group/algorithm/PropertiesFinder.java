@@ -46,14 +46,10 @@ public class PropertiesFinder {
     private void runCalculations() {
         scope.accept(new UnitsFinder());
         scope.accept(new PropertiesCalculator());
-        for (Map.Entry<PsiElement, RelevantProperties> entry : properties.entrySet()) {
-            System.out.println("Properties for " + getHumanReadableName(entry.getKey()));
-            entry.getValue().printAll();
-        }
     }
 
     public RelevantProperties getProperties(PsiElement element) {
-        return getOrCreateProperties(element);
+        return properties.get(element);
     }
 
     public Set<String> getAllFields() {
@@ -74,8 +70,10 @@ public class PropertiesFinder {
 
         @Override
         public void visitFile(PsiFile file) {
-            System.out.println("!#! " + file.getName());
-            super.visitFile(file);
+            if (isSourceFile(file)) {
+                System.out.println("!#! " + file.getName());
+                super.visitFile(file);
+            }
         }
 
         @Override
@@ -92,6 +90,7 @@ public class PropertiesFinder {
             }
             allClasses.add(aClass);
             elementByName.put(getHumanReadableName(aClass), aClass);
+            properties.put(aClass, new RelevantProperties());
             super.visitClass(aClass);
         }
 
@@ -99,12 +98,14 @@ public class PropertiesFinder {
         public void visitField(PsiField field) {
             allFields.add(field);
             elementByName.put(getHumanReadableName(field), field);
+            properties.put(field, new RelevantProperties());
             super.visitField(field);
         }
 
         @Override
         public void visitMethod(PsiMethod method) {
             elementByName.put(getHumanReadableName(method), method);
+            properties.put(method, new RelevantProperties());
             super.visitMethod(method);
         }
     }
@@ -113,14 +114,25 @@ public class PropertiesFinder {
         private PsiMethod currentMethod;
 
         @Override
+        public void visitFile(PsiFile file) {
+            if (isSourceFile(file)) {
+                super.visitFile(file);
+            }
+        }
+
+        @Override
         public void visitClass(PsiClass aClass) {
-            final RelevantProperties classProperties = getOrCreateProperties(aClass);
+            final RelevantProperties classProperties = properties.get(aClass);
+            if (classProperties == null) {
+                super.visitClass(aClass);
+                return;
+            }
             classProperties.addClass(aClass);
             for (PsiClass superClass : PSIUtil.getAllSupers(aClass, allClasses)) {
                 if (superClass.isInterface()) {
                     classProperties.addClass(superClass);
                 } else {
-                    getOrCreateProperties(superClass).addClass(aClass);
+                    propertiesFor(superClass).ifPresent(p -> p.addClass(aClass));
                 }
             }
             Arrays.stream(aClass.getAllMethods()).forEach(classProperties::addMethod);
@@ -130,7 +142,11 @@ public class PropertiesFinder {
 
         @Override
         public void visitMethod(PsiMethod method) {
-            final RelevantProperties methodProperties = getOrCreateProperties(method);
+            final RelevantProperties methodProperties = properties.get(method);
+            if (methodProperties == null) {
+                super.visitMethod(method);
+                return;
+            }
             methodProperties.addMethod(method);
             Optional.ofNullable(method.getContainingClass())
                     .ifPresent(methodProperties::addClass);
@@ -138,7 +154,8 @@ public class PropertiesFinder {
                 currentMethod = method;
             }
             PSIUtil.getAllSupers(method, allClasses).stream()
-                    .map(PropertiesFinder.this::getOrCreateProperties)
+                    .filter(properties::containsKey)
+                    .map(properties::get)
                     .forEach(properties -> properties.addOverrideMethod(method));
             Arrays.stream(method.getParameterList().getParameters())
                     .map(PsiParameter::getType)
@@ -157,19 +174,25 @@ public class PropertiesFinder {
         public void visitReferenceExpression(PsiReferenceExpression expression) {
             PsiElement element = expression.resolve();
             if (currentMethod != null && element instanceof PsiField) {
-                getOrCreateProperties(currentMethod).addField((PsiField) element);
-                getOrCreateProperties(element).addMethod(currentMethod);
+                propertiesFor(currentMethod)
+                        .ifPresent(p -> p.addField((PsiField) element));
+                propertiesFor(element)
+                        .ifPresent(p -> p.addMethod(currentMethod));
             }
             super.visitReferenceExpression(expression);
         }
 
         @Override
         public void visitField(PsiField field) {
-            RelevantProperties properties = getOrCreateProperties(field);
-            properties.addField(field);
+            RelevantProperties fieldProperties = properties.get(field);
+            if (fieldProperties == null) {
+                super.visitField(field);
+                return;
+            }
+            fieldProperties.addField(field);
             final PsiClass containingClass = field.getContainingClass();
             if (containingClass != null) {
-                properties.addClass(containingClass);
+                fieldProperties.addClass(containingClass);
             }
             super.visitField(field);
         }
@@ -178,13 +201,18 @@ public class PropertiesFinder {
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
             PsiElement element = expression.getMethodExpression().resolve();
             if (currentMethod != null && element instanceof PsiMethod) {
-                getOrCreateProperties(currentMethod).addMethod((PsiMethod) element);
+                propertiesFor(currentMethod)
+                        .ifPresent(p -> p.addMethod((PsiMethod) element));
             }
             super.visitMethodCallExpression(expression);
         }
     }
 
-    private RelevantProperties getOrCreateProperties(PsiElement element) {
-        return properties.computeIfAbsent(element, x -> new RelevantProperties());
+    private Optional<RelevantProperties> propertiesFor(PsiElement element) {
+        return Optional.ofNullable(properties.get(element));
+    }
+
+    private boolean isSourceFile(PsiFile file) {
+        return file.getName().endsWith(".java");
     }
 }

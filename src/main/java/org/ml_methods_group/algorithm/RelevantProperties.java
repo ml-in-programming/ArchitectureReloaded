@@ -121,6 +121,12 @@ public class RelevantProperties {
         System.out.println();
 
         System.out.print("    ");
+        for (PsiMethod method : overrideMethods) {
+            System.out.print(MethodUtils.calculateSignature(method) + ' ');
+        }
+        System.out.println();
+
+        System.out.print("    ");
         for (PsiField field : fields) {
             System.out.print(field.getContainingClass().getQualifiedName() + "." + field.getName() + " ");
         }
