@@ -27,6 +27,7 @@ import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
 import org.ml_methods_group.algorithm.PropertiesFinder;
 import org.ml_methods_group.algorithm.RelevantProperties;
+import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.*;
 
@@ -50,11 +51,11 @@ public abstract class Entity {
         components = Collections.unmodifiableMap(comps);
     }
 
-    public Entity(String name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
-        this.name = name;
+    public Entity(PsiElement element, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
+        this.name = PsiSearchUtil.getHumanReadableName(element);
         vector = initializeVector(metricsRun);
-        relevantProperties = propertiesFinder.getProperties(this.name);
-        psiEntity = propertiesFinder.getPsiElement(name);
+        relevantProperties = propertiesFinder.getProperties(element);
+        psiEntity = element;
     }
 
     private double square(double value) {
