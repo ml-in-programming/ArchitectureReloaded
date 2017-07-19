@@ -137,8 +137,9 @@ public class PropertiesFinder {
             if (currentMethod == null) {
                 currentMethod = method;
             }
-            PSIUtil.getAllSupers(method, allClasses)
-                    .forEach(m -> getOrCreateProperties(m).addMethod(method));
+            PSIUtil.getAllSupers(method, allClasses).stream()
+                    .map(PropertiesFinder.this::getOrCreateProperties)
+                    .forEach(properties -> properties.addOverrideMethod(method));
             Arrays.stream(method.getParameterList().getParameters())
                     .map(PsiParameter::getType)
                     .map(PsiType::getCanonicalText)
