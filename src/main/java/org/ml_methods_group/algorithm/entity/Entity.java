@@ -20,6 +20,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
+import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.stockmetrics.classMetrics.DepthOfInheritanceMetric;
@@ -165,6 +166,14 @@ public abstract class Entity {
             return FIELD_ENTITY_CALCULATOR;
         }
         throw new UnsupportedOperationException("Such type of entity isn't supported: " + getClass());
+    }
+
+    public static Set<Class<? extends Metric>> getRequestedMetrics() {
+        final Set<Class<? extends Metric>> result = new HashSet<>();
+        result.addAll(CLASS_ENTITY_CALCULATOR.getRequestedMetrics());
+        result.addAll(METHOD_ENTITY_CALCULATOR.getRequestedMetrics());
+        result.addAll(FIELD_ENTITY_CALCULATOR.getRequestedMetrics());
+        return result;
     }
 
     abstract public MetricCategory getCategory();

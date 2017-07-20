@@ -25,6 +25,7 @@ import org.ml_methods_group.algorithm.RelevantProperties;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Function;
 
 import static com.sixrr.metrics.MetricCategory.Class;
@@ -35,22 +36,22 @@ public class VectorCalculator {
     private final Map<Integer, Double> constValues = new HashMap<>();
     private int dimension;
 
-    public VectorCalculator addMetricDependence(Class<? extends Metric> metric) {
+    VectorCalculator addMetricDependence(Class<? extends Metric> metric) {
         metricsDependencies.put(metric, dimension++);
         return this;
     }
 
-    public VectorCalculator addPropertyDependence(Function<RelevantProperties, ? extends Number> extractor) {
+    VectorCalculator addPropertyDependence(Function<RelevantProperties, ? extends Number> extractor) {
         propertiesDependencies.put(extractor, dimension++);
         return this;
     }
 
-    public VectorCalculator addConstValue(double value) {
+    VectorCalculator addConstValue(double value) {
         constValues.put(dimension++, value);
         return this;
     }
 
-    public double[] calculateVector(MetricsRun metricsRun, PropertiesFinder finder, Entity entity) {
+    double[] calculateVector(MetricsRun metricsRun, PropertiesFinder finder, Entity entity) {
         final double[] vector = new double[dimension];
         applyMetricsDependencies(metricsRun.getResultsForCategory(entity.getCategory()), entity.getName(), vector);
         if (entity.getCategory() != Class) {
@@ -65,8 +66,12 @@ public class VectorCalculator {
         return vector;
     }
 
-    public int getDimension() {
+    int getDimension() {
         return dimension;
+    }
+
+    Set<Class<? extends Metric>> getRequestedMetrics() {
+        return metricsDependencies.keySet();
     }
 
     private void applyMetricsDependencies(MetricsResult result, String unit, double[] vector) {

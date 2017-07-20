@@ -21,21 +21,25 @@ import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
-import com.sixrr.metrics.profile.MetricsProfile;
-import com.sixrr.metrics.profile.MetricsProfileRepository;
+import com.sixrr.metrics.Metric;
+import com.sixrr.metrics.profile.*;
 import com.sixrr.metrics.ui.dialogs.ProfileSelectionPanel;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.ui.RefactoringsToolWindow;
+import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class AutomaticRefactoringAction extends BaseAnalysisAction {
+    private static final String REFACTORING_PROFILE_KEY = "refactoring.metrics.profile.name";
+
     private Map<String, String> refactoringsCCDA;
     private Map<String, String> refactoringsMRI;
     private Map<String, String> refactoringsAKMeans;
@@ -55,7 +59,6 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         final MetricsProfile metricsProfile = MetricsProfileRepository.getInstance()
                 .getCurrentProfile();
         assert metricsProfile != null;
-
         new RefactoringExecutionContext(project, analysisScope, metricsProfile,
                 this::showRefactoringsDialog);
     }
@@ -65,8 +68,9 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         System.out.println(project.getBasePath());
         System.out.println();
 
+        checkRefactoringProfile();
         final MetricsProfile metricsProfile = MetricsProfileRepository.getInstance()
-                .getProfileForName("Refactoring features");
+                .getProfileForName(ArchitectureReloadedBundle.message(REFACTORING_PROFILE_KEY));
         assert metricsProfile != null;
 
         final RefactoringExecutionContext context =
@@ -93,6 +97,35 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 .addTab("HAC", refactoringsHAC, context.getScope())
                 .addTab("ARI", refactoringsARI, context.getScope())
                 .show();
+    }
+
+    private static void checkRefactoringProfile() {
+        final Set<Class<? extends Metric>> requestedSet = Entity.getRequestedMetrics();
+        final MetricsProfileRepository repository = MetricsProfileRepository.getInstance();
+        final String profileName = ArchitectureReloadedBundle.message(REFACTORING_PROFILE_KEY);
+        final MetricsProfile refactoringProfile = repository.getProfileForName(profileName);
+        if (refactoringProfile != null) {
+            Set<Class<? extends Metric>> currentSet = refactoringProfile.getMetricInstances()
+                    .stream()
+                    .map(MetricInstance::getMetric)
+                    .map(Metric::getClass)
+                    .collect(Collectors.toSet());
+            if (currentSet.equals(requestedSet)) {
+                return;
+            }
+            repository.deleteProfile(refactoringProfile);
+        }
+        List<MetricInstance> metrics = new ArrayList<>();
+        for (Class<? extends Metric> metricClass : requestedSet) {
+            try {
+                MetricInstance instance = new MetricInstanceImpl(metricClass.newInstance());
+                instance.setEnabled(true);
+                metrics.add(instance);
+            } catch (Exception e) {
+                System.out.println("Failed to create metric for name: " + metricClass.getCanonicalName());
+            }
+        }
+        repository.addProfile(new MetricsProfileImpl(profileName, metrics));
     }
 
     private static Map<String, String> findRefactorings(@NotNull Supplier<Map<String, String>> algorithm) {
@@ -127,6 +160,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
     @Override
     @Nullable
     protected JComponent getAdditionalActionSettings(Project project, BaseAnalysisActionDialog dialog) {
+        checkRefactoringProfile();
         return new ProfileSelectionPanel(project);
     }
 }
