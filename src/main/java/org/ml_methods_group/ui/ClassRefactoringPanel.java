@@ -33,8 +33,6 @@ import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Map;
 
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
@@ -51,7 +49,6 @@ class ClassRefactoringPanel extends JPanel {
     private final AnalysisScope scope;
     @NotNull
     private final RefactoringsTableModel model;
-    private final Collection<OnRefactoringFinishedListener> listeners = new ArrayList<>();
     private final JBTable table = new JBTable();
     private final JButton selectAllButton = new JButton();
     private final JButton deselectAllButton = new JButton();
@@ -75,6 +72,7 @@ class ClassRefactoringPanel extends JPanel {
     private JComponent createTablePanel() {
         new TableSpeedSearch(table);
         table.setModel(model);
+        model.setupRenderer(table);
         final TableColumn selectionColumn = table.getTableHeader().getColumnModel().getColumn(0);
         selectionColumn.setMaxWidth(30);
         selectionColumn.setMinWidth(30);
@@ -110,9 +108,8 @@ class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setEnabled(false);
         selectAllButton.setEnabled(false);
         table.setEnabled(false);
-        final Map<String, String> movements = model.getSelected();
+        final Map<String, String> movements = model.pullSelected();
         RefactoringUtil.moveRefactoring(movements, project, scope);
-        listeners.forEach(l -> l.onRefactoringFinished(this));
         table.setEnabled(true);
         doRefactorButton.setEnabled(true);
         selectAllButton.setEnabled(true);
@@ -137,16 +134,6 @@ class ClassRefactoringPanel extends JPanel {
             String target = model.getUnitAt(selectedRow, 2);
             info.setText(RefactoringUtil.getWarning(unit, target, scope));
         }
-    }
-
-    // todo maybe tool window should be close after refactorings
-    void addOnRefactoringFinishedListener(OnRefactoringFinishedListener listener) {
-        listeners.add(listener);
-    }
-
-    @FunctionalInterface
-    public interface OnRefactoringFinishedListener {
-        void onRefactoringFinished(ClassRefactoringPanel panel);
     }
 
     @FunctionalInterface
