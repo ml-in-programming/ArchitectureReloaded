@@ -17,7 +17,6 @@
 package com.sixrr.stockmetrics.classCalculators;
 
 import com.intellij.psi.*;
-import com.sixrr.metrics.utils.ClassUtils;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -34,7 +33,7 @@ public class ResponseForClassCalculator extends ClassCalculator {
 
         @Override
         public void visitClass(PsiClass aClass) {
-            if (ClassUtils.isAnonymous(aClass)) {
+            if (!isConcreteClass(aClass)) {
                 return;
             }
             super.visitClass(aClass);

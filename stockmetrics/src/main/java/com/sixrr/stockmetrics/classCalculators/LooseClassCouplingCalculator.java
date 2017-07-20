@@ -50,7 +50,11 @@ public class LooseClassCouplingCalculator extends ClassCalculator {
                 metric += n * (n - 1) / 2;
             }
 
-            postMetric(aClass, metric, allPairs);
+            if (allPairs > 0) {
+                postMetric(aClass, metric, allPairs);
+            } else {
+                postMetric(aClass, 1);
+            }
         }
     }
 }
