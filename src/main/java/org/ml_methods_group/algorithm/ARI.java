@@ -17,8 +17,9 @@
 package org.ml_methods_group.algorithm;
 
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
+import com.sixrr.metrics.utils.MethodUtils;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
 
@@ -48,13 +49,14 @@ public class ARI {
     public Map<String, String> run() {
         final Map<String, String> refactorings = new HashMap<>();
 
-        for (Entity method : methodsAndFields) {
+        for (Entity unit : methodsAndFields) {
             double minD = Double.MAX_VALUE;
             ClassEntity targetClass = null;
 
             for (final ClassEntity classEntity : classEntities) {
-                if (method.getCategory() == MetricCategory.Method) {
-                    final PsiClass classFrom = ((PsiMember) method.getPsiElement()).getContainingClass();
+                if (unit.getCategory() == MetricCategory.Method) {
+                    final PsiMethod method = (PsiMethod) unit.getPsiElement();
+                    final PsiClass classFrom = (method).getContainingClass();
                     final PsiClass classTo = (PsiClass) classEntity.getPsiElement();
 
                     final Set<PsiClass> supersTo = PSIUtil.getAllSupers(classTo, psiClasses);
@@ -67,14 +69,14 @@ public class ARI {
                     supersFrom.retainAll(supersTo);
                     final boolean isOverride = supersFrom.stream()
                             .flatMap(c -> Arrays.stream(c.getMethods()))
-                            .anyMatch(method::equals);
+                            .anyMatch(unit::equals);
 
-                    if (isOverride) {
+                    if (isOverride || method.isConstructor() || MethodUtils.isAbstract(method)) {
                         continue;
                     }
                 }
 
-                final double distance = method.distance(classEntity);
+                final double distance = unit.distance(classEntity);
 
                 if (distance < minD) {
                     minD = distance;
@@ -85,18 +87,18 @@ public class ARI {
 //            assert targetClass != null;
 
             if (targetClass == null) {
-                System.out.println("!!!!! targetClass is null for " + method.getName());
+                System.out.println("!!!!! targetClass is null for " + unit.getName());
                 // TODO: find out why are they null
                 continue;
             }
 
             if (communityIds.containsKey(targetClass)) {
-                putMethodOrField(method, targetClass);
+                putMethodOrField(unit, targetClass);
             } else {
-                createCommunity(method, targetClass);
+                createCommunity(unit, targetClass);
             }
 
-            System.out.println("Add " + method.getName() + " to " + targetClass.getName());
+            System.out.println("Add " + unit.getName() + " to " + targetClass.getName());
         }
 
         for (Entity entity : methodsAndFields) {
