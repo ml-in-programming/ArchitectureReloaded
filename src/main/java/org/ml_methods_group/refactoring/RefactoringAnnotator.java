@@ -49,12 +49,9 @@ public class RefactoringAnnotator implements Annotator {
 
         final AnalysisScope scope = new AnalysisScope(project);
         action.analyzeSynchronously(project, scope);
-
-        doRefactoringAnnotations("CCDA", action.getRefactoringsCCDA(), annotationHolder, scope);
-        doRefactoringAnnotations("MRI", action.getRefactoringsMRI(), annotationHolder, scope);
-        doRefactoringAnnotations("AKMeans", action.getRefactoringsAKMeans(), annotationHolder, scope);
-        doRefactoringAnnotations("HAC", action.getRefactoringsHAC(), annotationHolder, scope);
-        doRefactoringAnnotations("ARI", action.getRefactoringsARI(), annotationHolder, scope);
+        for (String algorithm : action.calculatedAlgorithms()) {
+            doRefactoringAnnotations(algorithm, action.getRefactoringsForName(algorithm), annotationHolder, scope);
+        }
     }
 
     private static void doRefactoringAnnotations(@NotNull String algorithmName,
