@@ -17,13 +17,11 @@
 package org.ml_methods_group.utils;
 
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.refactoring.makeStatic.MakeStaticHandler;
-import com.intellij.refactoring.move.MoveHandler;
 import com.intellij.refactoring.move.moveInstanceMethod.MoveInstanceMethodDialog;
 import com.intellij.refactoring.move.moveMembers.MoveMembersDialog;
 import com.sixrr.metrics.utils.MethodUtils;
@@ -106,25 +104,25 @@ public final class RefactoringUtil {
                 && tryMoveInstanceMethod((PsiMethod) e, target)).orElse(false);
     }
 
-    private static PsiField[] getAvailableFields(PsiMethod method, String target) {
-        PsiClass containingClass = method.getContainingClass();
-        Stream<PsiParameter> parameters = Arrays.stream(method.getParameterList().getParameters());
-        Stream<PsiField> fields = containingClass == null? Stream.empty() : Arrays.stream(containingClass.getFields());
+    private static PsiVariable[] getAvailableVariables(PsiMethod method, String target) {
+        final PsiClass psiClass = method.getContainingClass();
+        Stream<PsiVariable> parameters = Arrays.stream(method.getParameterList().getParameters());
+        Stream<PsiVariable> fields = psiClass == null? Stream.empty() : Arrays.stream(psiClass.getFields());
         return Stream.concat(parameters, fields)
                 .filter(Objects::nonNull)
                 .filter(p -> target.equals(p.getType().getCanonicalText()))
-                .toArray(PsiField[]::new);
+                .toArray(PsiVariable[]::new);
     }
 
     private static boolean tryMoveInstanceMethod(@NotNull PsiMethod method, String target) {
-        PsiField[] available = getAvailableFields(method, target);
+        PsiVariable[] available = getAvailableVariables(method, target);
         if (available.length == 0) {
             return false;
         }
         MoveInstanceMethodDialog dialog = new MoveInstanceMethodDialog(method, available);
         dialog.setTitle("Move Instance Method " + getHumanReadableName(method));
         dialog.show();
-        return dialog.isOK(); // may be should always return true
+        return true;
     }
 
     public static String getWarning(String unit, String target, AnalysisScope scope) {
@@ -134,7 +132,7 @@ public final class RefactoringUtil {
     private static String getWarning(PsiElement element, String target) {
         if (element instanceof PsiMethod) {
             PsiMethod method = (PsiMethod) element;
-            if (!isStatic(method) && getAvailableFields(method, target).length == 0) {
+            if (!isStatic(method) && getAvailableVariables(method, target).length == 0) {
                 return "    Can't move " + getHumanReadableName(element) +
                         " like instance method. It will be converted to static method first";
             }

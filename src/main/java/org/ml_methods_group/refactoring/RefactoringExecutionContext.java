@@ -44,10 +44,16 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
-    @NotNull private final MetricsRunImpl metricsRun = new MetricsRunImpl();
-    @NotNull private final MetricsProfile profile;
-    @NotNull private final PropertiesFinder properties;
-    @Nullable private final Consumer<RefactoringExecutionContext> continuation;
+    private static final String[] ALGORITHMS = {"ARI", "HAC", "CCDA", "MRI", "AKMeans"};
+
+    @NotNull
+    private final MetricsRunImpl metricsRun = new MetricsRunImpl();
+    @NotNull
+    private final MetricsProfile profile;
+    @NotNull
+    private final PropertiesFinder properties;
+    @Nullable
+    private final Consumer<RefactoringExecutionContext> continuation;
     private final List<Entity> entities = new ArrayList<>();
     private int classCount = 0;
     private int methodsCount = 0;
@@ -136,7 +142,7 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
     }
 
     @NotNull
-    public Map<String, String> calculateARI() {
+    private Map<String, String> calculateARI() {
         final ARI algorithm = new ARI(entities);
         System.out.println("\nStarting ARI...");
         final Map<String, String> refactorings = algorithm.run();
@@ -148,7 +154,7 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
     }
 
     @NotNull
-    public Map<String, String> calculateHAC() {
+    private Map<String, String> calculateHAC() {
         final HAC algorithm = new HAC(entities);
         System.out.println("\nStarting HAC...");
         final Map<String, String> refactorings = algorithm.run();
@@ -160,7 +166,7 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
     }
 
     @NotNull
-    public Map<String, String> calculateAKMeans() {
+    private Map<String, String> calculateAKMeans() {
         final AKMeans algorithm = new AKMeans(entities, 50);
         System.out.println("\nStarting AKMeans...");
         final Map<String, String> refactorings = algorithm.run();
@@ -172,7 +178,7 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
     }
 
     @NotNull
-    public Map<String, String> calculateMRI() {
+    private Map<String, String> calculateMRI() {
         final MRI algorithm = new MRI(entities, properties.getAllClasses());
         System.out.println("\nStarting MMRI...");
         final Map<String, String> refactorings = algorithm.run();
@@ -184,7 +190,7 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
     }
 
     @NotNull
-    public Map<String, String> calculateCCDA() {
+    private Map<String, String> calculateCCDA() {
         final CCDA algorithm = new CCDA(entities);
         System.out.println("Starting CCDA...");
         System.out.println(algorithm.calculateQualityIndex());
@@ -194,6 +200,24 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
             System.out.println(ent + " --> " + refactorings.get(ent));
         }
         return refactorings;
+    }
+
+    @NotNull
+    public Map<String, String> calculateAlgorithmForName(String algorithm) {
+        switch (algorithm) {
+            case "ARI":
+                return calculateARI();
+            case "HAC":
+                return calculateHAC();
+            case "CCDA":
+                return calculateCCDA();
+            case "MRI":
+                return calculateMRI();
+            case "AKMeans":
+                return calculateAKMeans();
+            default:
+                throw new IllegalArgumentException("Unknown algorithm: " + algorithm);
+        }
     }
 
     public int getClassCount() {
@@ -208,5 +232,17 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
         return fieldsCount;
     }
 
+    @NotNull
+    public MetricsRunImpl getMetricsRun() {
+        return metricsRun;
+    }
 
+    @NotNull
+    public MetricsProfile getProfile() {
+        return profile;
+    }
+
+    public static String[] getAvailableAlgorithms() {
+        return ALGORITHMS.clone();
+    }
 }

@@ -17,7 +17,9 @@
 package org.ml_methods_group.ui;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
@@ -26,7 +28,13 @@ import com.intellij.ui.content.Content;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
+import javax.swing.*;
+import java.awt.*;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 public final class RefactoringsToolWindow implements Disposable {
 
@@ -35,9 +43,12 @@ public final class RefactoringsToolWindow implements Disposable {
 
     private final Project project;
     private ToolWindow myToolWindow = null;
+    private Map<String, Map<String, String>> refactorings;
+    private AnalysisScope scope;
 
     private RefactoringsToolWindow(@NotNull Project project) {
         this.project = project;
+
         register();
     }
 
@@ -48,20 +59,33 @@ public final class RefactoringsToolWindow implements Disposable {
         myToolWindow.setAvailable(false, null);
     }
 
-    public RefactoringsToolWindow addTab(String algorithmName, @NotNull Map<String, String> refactorings, AnalysisScope scope) {
+    private void addTab(String tabName, @NotNull Map<String, String> refactorings) {
+        final JComponent component = new ClassRefactoringPanel(project, refactorings, scope);
+        final ActionToolbar toolbar = createToolbar();
+        final JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.add(component, BorderLayout.CENTER);
+        contentPanel.add(toolbar.getComponent(), BorderLayout.WEST);
         final Content content = myToolWindow.getContentManager().getFactory()
-                .createContent(new ClassRefactoringPanel(project, refactorings, scope), algorithmName, true);
+                .createContent(contentPanel, tabName, true);
         myToolWindow.getContentManager().addContent(content);
-        return this;
     }
 
-    public RefactoringsToolWindow clear() {
+    private ActionToolbar createToolbar() {
+        final DefaultActionGroup toolbarGroup = new DefaultActionGroup();
+        toolbarGroup.add(new IntersectAction());
+        toolbarGroup.add(new CloseAction());
+        return ActionManager.getInstance()
+                .createActionToolbar(WINDOW_ID, toolbarGroup, false);
+    }
+
+    public void show(Map<String, Map<String, String>> refactorings, AnalysisScope scope) {
+        this.refactorings = refactorings;
+        this.scope = scope;
         myToolWindow.getContentManager().removeAllContents(true);
         myToolWindow.setAvailable(false, null);
-        return this;
-    }
-
-    public void show() {
+        for (Map.Entry<String, Map<String, String>> entry : refactorings.entrySet()) {
+            addTab(entry.getKey(), entry.getValue());
+        }
         myToolWindow.setAvailable(true, null);
         myToolWindow.show(null);
     }
@@ -70,6 +94,58 @@ public final class RefactoringsToolWindow implements Disposable {
     public void dispose() {
         final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
         toolWindowManager.unregisterToolWindow(WINDOW_ID);
+        refactorings = null;
+        scope = null;
+    }
+
+    private void intersect(Set<String> algorithms) {
+        HashMap<String, String> results = null;
+        for (String algorithm : algorithms) {
+            final Map<String, String> result = refactorings.get(algorithm);
+            if (results == null) {
+                results = new HashMap<>(result);
+            }
+            results.entrySet().retainAll(result.entrySet());
+        }
+        if (results != null) {
+            final String tabName = algorithms.stream()
+                    .collect(Collectors.joining(" & "));
+            addTab(tabName, results);
+        }
+    }
+
+    private class IntersectAction extends AnAction {
+        IntersectAction() {
+            super(ArchitectureReloadedBundle.message("intersect.action.text"),
+                    ArchitectureReloadedBundle.message("intersect.action.description"),
+                    AllIcons.Actions.Edit);
+        }
+
+        @Override
+        public void actionPerformed(AnActionEvent e) {
+            if (refactorings != null) {
+                final IntersectionDialog dialog = new IntersectionDialog(project, refactorings.keySet());
+                dialog.show();
+                if (dialog.isOK()) {
+                    intersect(dialog.getSelected());
+                }
+            }
+        }
+    }
+
+    private class CloseAction extends AnAction {
+        CloseAction() {
+            super(ArchitectureReloadedBundle.message("close.action.text"),
+                    ArchitectureReloadedBundle.message("close.action.description"),
+                    AllIcons.Actions.Close);
+        }
+
+        @Override
+        public void actionPerformed(AnActionEvent e) {
+            myToolWindow.setAvailable(false, null);
+            refactorings = null;
+            scope = null;
+        }
     }
 }
 
