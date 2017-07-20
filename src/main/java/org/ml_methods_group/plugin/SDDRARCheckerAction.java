@@ -19,8 +19,6 @@ package org.ml_methods_group.plugin;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.MessageType;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.sixrr.metrics.config.MetricsReloadedConfig;
 import com.sixrr.metrics.metricModel.MetricsExecutionContextImpl;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
@@ -28,9 +26,9 @@ import com.sixrr.metrics.metricModel.TimeStamp;
 import com.sixrr.metrics.profile.MetricsProfile;
 import com.sixrr.metrics.profile.MetricsProfileRepository;
 import com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow;
-import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import com.sixrr.stockmetrics.i18n.StockMetricsBundle;
 import org.jetbrains.annotations.NotNull;
+import org.ml_methods_group.algorithm.sddrar.SDDRARFacade;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
 import java.util.List;
@@ -44,7 +42,7 @@ public class SDDRARCheckerAction extends BaseAnalysisAction {
     @Override
     protected void analyze(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
         final MetricsProfileRepository repository = MetricsProfileRepository.getInstance();
-        final MetricsProfile profile = repository.getProfileForName(StockMetricsBundle.message("sddrar.profile.name"));
+        final MetricsProfile profile = repository.getProfileForName(StockMetricsBundle.message("sddrar.temp.profile.name"));
         SDDRARFacade.selectInterestingMetrics(profile);
         final MetricsToolWindow toolWindow = MetricsToolWindow.getInstance(project);
         final MetricsRunImpl metricsRun = new MetricsRunImpl();
@@ -53,17 +51,12 @@ public class SDDRARCheckerAction extends BaseAnalysisAction {
             @Override
             public void onFinish() {
                 final boolean showOnlyWarnings = MetricsReloadedConfig.getInstance().isShowOnlyWarnings();
-                if(!metricsRun.hasWarnings(profile) && showOnlyWarnings) {
-                    ToolWindowManager.getInstance(project).notifyByBalloon(MetricsToolWindow.METRICS_TOOL_WINDOW_ID,
-                            MessageType.INFO, MetricsReloadedBundle.message("no.metrics.warnings.found"));
-                    return;
-                }
                 final String profileName = profile.getName();
                 metricsRun.setProfileName(profileName);
                 metricsRun.setContext(analysisScope);
                 metricsRun.setTimestamp(new TimeStamp());
                 List<String> faulty = SDDRARFacade.checkNewData(metricsRun);
-                metricsRun.markFaultyClasses(faulty);
+                metricsRun.leaveFaultyClasses(faulty);
                 toolWindow.show(metricsRun, profile, analysisScope, showOnlyWarnings);
             }
         }.execute(profile, metricsRun);

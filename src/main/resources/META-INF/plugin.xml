@@ -38,7 +38,7 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
-    <annotator language="JAVA" implementationClass="org.ml_methods_group.refactoring.RefactoringAnnotator"/>
+    <!--<annotator language="JAVA" implementationClass="org.ml_methods_group.refactoring.RefactoringAnnotator"/>-->
     <appStarter implementation="com.sixrr.metrics.offline.MetricsCommandLine"/>
     <applicationService serviceImplementation="com.sixrr.metrics.config.MetricsReloadedConfig"/>
     <applicationService serviceImplementation="com.sixrr.metrics.profile.MetricsProfileRepository"/>
@@ -55,8 +55,8 @@
       <action id="Metrics.AutomaticRefactoringAction"
               class="org.ml_methods_group.plugin.AutomaticRefactoringAction"
               text="Search for refactorings..."/>
-      <action id="Metrics.SDDRARLearnAction" class="org.ml_methods_group.plugin.SDDRARLearnAction"
-              text="Learn SDDRAR on current project..."/>
+      <action id="Metrics.SDDRARTrainAction" class="org.ml_methods_group.plugin.SDDRARTrainAction"
+              text="Train SDDRAR on current project..."/>
       <action id="Metrics.SDDRARCheckerAction" class="org.ml_methods_group.plugin.SDDRARCheckerAction"
               text="Analyze with SDDRAR..."/>
       <add-to-group group-id="InspectCodeGroup" anchor="last"/>

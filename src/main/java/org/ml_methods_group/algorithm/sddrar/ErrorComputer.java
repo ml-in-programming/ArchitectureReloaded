@@ -1,6 +1,6 @@
 package org.ml_methods_group.algorithm.sddrar;
 
-import com.simiyutin.au.sddrar.Rule;
+import org.ml_methods_group.algorithm.sddrar.rules.Rule;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 

@@ -356,7 +356,10 @@ public class JavaMetricProvider implements MetricProvider {
     public List<PrebuiltMetricProfile> getPrebuiltProfiles() {
         final List<PrebuiltMetricProfile> out = new ArrayList<PrebuiltMetricProfile>(1);
         out.add(createRefactoringProfile());
-        out.add(createSDDRARProfile());
+        out.add(createCohesionAndCouplingProfile());
+        out.add(createSDDRARTempProfile());
+        out.add(createBorisSDDRARProfile());
+        out.add(createMySDDRARProfile());
         /*out.add(createChidamberKemererProfile());
         out.add(createClassCountProfile());
         out.add(createCodeSizeProfile());
@@ -373,76 +376,79 @@ public class JavaMetricProvider implements MetricProvider {
         return out;
     }
 
-    private static PrebuiltMetricProfile createSDDRARProfile() {
+    // Profile for include custom metrics in sddrar algorithm.
+    private static PrebuiltMetricProfile createSDDRARTempProfile() {
         final PrebuiltMetricProfile profile =
-                new PrebuiltMetricProfile(StockMetricsBundle.message("sddrar.profile.name"));
+                new PrebuiltMetricProfile(StockMetricsBundle.message("sddrar.temp.profile.name"));
+        return profile;
+    }
 
-        //          metrics from paper
+    private static PrebuiltMetricProfile createBorisSDDRARProfile() {
+        final PrebuiltMetricProfile profile =
+                new PrebuiltMetricProfile("Boris SDDRAR profile");
 
-//        profile.addMetric(AfferentCouplingClassMetric.class);
-//        profile.addMetric(DataAbstractionCouplingClassMetric.class);
-//        profile.addMetric(InformationFlowBasedCohesionClassMetric.class);
-//        profile.addMetric(TightClassCouplingMetric.class);
-//        profile.addMetric(LooseClassCouplingMetric.class);
-//        profile.addMetric(LackOfCohesionInMethods1ClassMetric.class);
-//        profile.addMetric(LackOfCohesionInMethods2ClassMetric.class);
-//        profile.addMetric(LackOfCohesionInMethods5ClassMetric.class);
-//        profile.addMetric(LocalityOfDataClassMetric.class);
-//        profile.addMetric(MessagePassingCouplingClassMetric.class);
-//        profile.addMetric(NumMethodsClassMetric.class);
-
-        //
-
-        profile.addMetric(CouplingBetweenObjectsClassMetric.class);
-        profile.addMetric(LackOfCohesionOfMethodsClassMetric.class);
-        profile.addMetric(NumAttributesAddedMetric.class);
-        profile.addMetric(NumAttributesInheritedMetric.class);
-        profile.addMetric(NumAttributesInheritedMetric.class);
-        profile.addMetric(NumCommandsClassMetric.class);
         profile.addMetric(NumOperationsAddedMetric.class);
-        profile.addMetric(NumOperationsInheritedMetric.class);
-        profile.addMetric(ResponseForClassMetric.class);
-
-        ////////////////////////
-
-        profile.addMetric(NumConstructorsMetric.class);
-        profile.addMetric(AdjustedLevelOrderClassMetric.class);
+        profile.addMetric(NumTransitiveDependenciesClassMetric.class);
+        profile.addMetric(DepthOfInheritanceMetric.class);
+        profile.addMetric(CouplingBetweenObjectsClassMetric.class);
+        profile.addMetric(NumAttributesAddedMetric.class);
+        profile.addMetric(LackOfCohesionOfMethodsClassMetric.class);
+        profile.addMetric(NumCommandsClassMetric.class);
+        profile.addMetric(MaximumOperationComplexityMetric.class);
         profile.addMetric(LevelOrderClassMetric.class);
-        profile.addMetric(NumOperationsOverriddenMetric.class);
         profile.addMetric(AverageOperationParametersMetric.class);
-        profile.addMetric(AverageOperationComplexityMetric.class);
+        profile.addMetric(NumOperationsOverriddenMetric.class);
+        profile.addMetric(NumInterfacesImplementedMetric.class);
+        profile.addMetric(ClassSizeAttributesMetric.class);
         profile.addMetric(NumDependenciesClassMetric.class);
         profile.addMetric(NumDependentsClassMetric.class);
+        profile.addMetric(ClassSizeOperationsMetric.class);
+        profile.addMetric(AdjustedLevelOrderClassMetric.class);
+        profile.addMetric(HalsteadEffortClassMetric.class);
+        profile.addMetric(ClassSizeOperationsAttributesMetric.class);
+        profile.addMetric(NumOperationsInheritedMetric.class);
 
-        //
+        return profile;
+    }
+
+    private static PrebuiltMetricProfile createMySDDRARProfile() {
+        final PrebuiltMetricProfile profile =
+                new PrebuiltMetricProfile("My SDDRAR profile");
+
+        profile.addMetric(LackOfCohesionOfMethodsClassMetric.class);
+        profile.addMetric(LackOfCohesionInMethods1ClassMetric.class);
+        profile.addMetric(LackOfCohesionInMethods2ClassMetric.class);
+        profile.addMetric(LackOfCohesionInMethods5ClassMetric.class);
+        profile.addMetric(LocalityOfDataClassMetric.class);
+        profile.addMetric(NumDependentsClassMetric.class);
+        profile.addMetric(NumTransitiveDependenciesClassMetric.class);
+        profile.addMetric(NumTransitiveDependentsClassMetric.class);
+        profile.addMetric(NumAttributesAddedMetric.class);
+        profile.addMetric(NumMethodsClassMetric.class);
+        profile.addMetric(NumAttributesInheritedMetric.class);
+        profile.addMetric(NumOperationsAddedMetric.class);
+        profile.addMetric(NumOperationsInheritedMetric.class);
+        profile.addMetric(NumDependenciesClassMetric.class);
+        profile.addMetric(HalsteadEffortClassMetric.class);
         profile.addMetric(HalsteadBugsClassMetric.class);
         profile.addMetric(HalsteadDifficultyClassMetric.class);
-        profile.addMetric(HalsteadEffortClassMetric.class);
         profile.addMetric(HalsteadLengthClassMetric.class);
         profile.addMetric(HalsteadVocabularyClassMetric.class);
         profile.addMetric(HalsteadVolumeClassMetric.class);
-
-        //
         profile.addMetric(AverageOperationComplexityMetric.class);
-        profile.addMetric(AverageOperationParametersMetric.class);
-
-        profile.addMetric(DepthOfInheritanceMetric.class);
-        profile.addMetric(AverageOperationComplexityMetric.class);
-        profile.addMetric(LevelOrderClassMetric.class);
-        profile.addMetric(NumAttributesInheritedMetric.class);
-        profile.addMetric(ClassSizeOperationsMetric.class);
         profile.addMetric(ClassSizeOperationsAttributesMetric.class);
-        profile.addMetric(ClassSizeAttributesMetric.class);
-        profile.addMetric(HalsteadEffortClassMetric.class);
-        profile.addMetric(AverageOperationSizeMetric.class);
         profile.addMetric(AdjustedLevelOrderClassMetric.class);
         profile.addMetric(NumOperationsOverriddenMetric.class);
-        profile.addMetric(MaximumOperationSizeMetric.class);
         profile.addMetric(MaximumOperationComplexityMetric.class);
-        profile.addMetric(NumInterfacesImplementedMetric.class);
-        profile.addMetric(CommentLinesOfCodeClassMetric.class);
         profile.addMetric(CouplingBetweenObjectsClassMetric.class);
-        profile.addMetric(NumAttributesAddedMetric.class);
+        profile.addMetric(LevelOrderClassMetric.class);
+        profile.addMetric(NumCyclicDependenciesClassMetric.class);
+        profile.addMetric(ResponseForClassMetric.class);
+        profile.addMetric(InformationFlowBasedCohesionClassMetric.class);
+        profile.addMetric(LooseClassCouplingMetric.class);
+        profile.addMetric(TightClassCouplingMetric.class);
+        profile.addMetric(MessagePassingCouplingClassMetric.class);
+        profile.addMetric(WeightedMethodComplexityMetric.class);
 
         return profile;
     }

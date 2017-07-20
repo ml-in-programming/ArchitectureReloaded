@@ -392,4 +392,9 @@ public class MetricsRunImpl implements MetricsRun {
             setResultsForCategory(category, filteredResults);
         }
     }
+
+    public void leaveFaultyClasses(@NotNull final List<String> faulty) {
+        MetricsResult results = getResultsForCategory(MetricCategory.Class);
+        setResultsForCategory(MetricCategory.Class, results.filterObjects(faulty::contains));
+    }
 }

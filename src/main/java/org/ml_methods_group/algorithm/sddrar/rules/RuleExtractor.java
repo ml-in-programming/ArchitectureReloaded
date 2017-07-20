@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.simiyutin.au.sddrar;
+package org.ml_methods_group.algorithm.sddrar.rules;
 
 import org.ml_methods_group.algorithm.sddrar.DataSet;
 

@@ -1,6 +1,6 @@
 package org.ml_methods_group.algorithm.sddrar;
 
-import com.simiyutin.au.sddrar.RulePack;
+import org.ml_methods_group.algorithm.sddrar.rules.RulePack;
 
 import java.io.*;
 import java.util.List;
@@ -37,9 +37,13 @@ public class SDDRARioHandler {
 
     public static void dump(Object obj, String name) {
         try {
-            FileOutputStream fos = new FileOutputStream(DATA_FOLDER + name);
+            File file = new File(System.getProperty("user.home") + "/ArchitectureReloaded/sddrar_data/" + name);
+            file.getParentFile().mkdirs();
+            file.createNewFile();
+            FileOutputStream fos = new FileOutputStream(file, false);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(obj);
+            oos.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -52,6 +56,7 @@ public class SDDRARioHandler {
             InputStream is = SDDRARioHandler.class.getResourceAsStream(DATA_FOLDER + name);
             ObjectInputStream ois = new ObjectInputStream(is);
             T obj = (T) ois.readObject();
+            ois.close();
             return obj;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -60,7 +65,6 @@ public class SDDRARioHandler {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-
         return null;
     }
 }
