@@ -39,7 +39,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 
 public class AutomaticRefactoringAction extends BaseAnalysisAction {
     private Map<String, Map<String, String>> refactorings = new HashMap<>();
@@ -57,7 +56,6 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         final MetricsProfile metricsProfile = MetricsProfileRepository.getInstance()
                 .getCurrentProfile();
         assert metricsProfile != null;
-
         new RefactoringExecutionContext(project, analysisScope, metricsProfile,
                 this::showRefactoringsDialog);
     }
@@ -78,6 +76,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
 
     private void calculateRefactorings(@NotNull RefactoringExecutionContext context, boolean ignoreSelection) {
+        refactorings.clear();
         final Set<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
         for (String algorithm : RefactoringExecutionContext.getAvailableAlgorithms()) {
             if (ignoreSelection || selectedAlgorithms.contains(algorithm)) {
