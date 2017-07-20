@@ -18,12 +18,15 @@ package org.ml_methods_group.algorithm;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.utils.MethodUtils;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class RelevantProperties {
     private final Set<PsiMethod> methods = new HashSet<>();
@@ -72,15 +75,21 @@ public class RelevantProperties {
     }
 
     public Set<PsiField> getAllFields() {
-        return new HashSet<PsiField>(fields);
+        return new HashSet<>(fields);
+    }
+
+    public Set<PsiMember> getPrivateMembers() {
+        return Stream.concat(methods.stream(), fields.stream())
+                .filter(MethodUtils::isPrivate)
+                .collect(Collectors.toSet());
     }
 
     public Set<PsiMethod> getAllMethods() {
-        return new HashSet<PsiMethod>(methods);
+        return new HashSet<>(methods);
     }
 
     public Set<PsiClass> getAllClasses() {
-        return new HashSet<PsiClass>(classes);
+        return new HashSet<>(classes);
     }
 
     public int size() {

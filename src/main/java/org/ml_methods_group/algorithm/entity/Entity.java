@@ -16,10 +16,7 @@
 
 package org.ml_methods_group.algorithm.entity;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
+import com.intellij.psi.*;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsResult;
@@ -63,6 +60,12 @@ public abstract class Entity {
     }
 
     public double distance(Entity entity) {
+        Set<PsiMember> members = relevantProperties.getPrivateMembers();
+        members.retainAll(entity.getRelevantProperties().getPrivateMembers());
+        if (members.size() > 0) {
+            return 0;
+        }
+
         double ans = 0.0;
         for (int i = 0; i < DIMENSION; i++) {
             ans += square(vector[i] - entity.vector[i]);
