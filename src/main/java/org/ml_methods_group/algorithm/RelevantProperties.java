@@ -21,18 +21,20 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.utils.MethodUtils;
+import org.ml_methods_group.utils.CollectionsUtil;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.ml_methods_group.utils.CollectionsUtil.union;
 
 public class RelevantProperties {
     private final Set<PsiMethod> methods = new HashSet<>();
     private final Set<PsiClass> classes = new HashSet<>();
     private final Set<PsiField> fields = new HashSet<>();
-    private final Collection<PsiMethod> overrideMethods = new HashSet<>();
+    private final Set<PsiMember> privateMembers = new HashSet<>();
+    private final Set<PsiMethod> overrideMethods = new HashSet<>();
 
     public void removeMethod(PsiMethod method) {
         methods.remove(method);
@@ -48,6 +50,9 @@ public class RelevantProperties {
 
     public void addMethod(PsiMethod method) {
         methods.add(method);
+        if (MethodUtils.isPrivate(method)) {
+            privateMembers.add(method);
+        }
     }
 
     public void addClass(PsiClass aClass) {
@@ -56,14 +61,9 @@ public class RelevantProperties {
 
     public void addField(PsiField field) {
         fields.add(field);
-    }
-
-    public void retainMethods(Collection<PsiMethod> methodsSet) {
-        methods.retainAll(methodsSet);
-    }
-
-    public void retainClasses(Collection<PsiClass> classSet) {
-        classes.retainAll(classSet);
+        if (MethodUtils.isPrivate(field)) {
+            privateMembers.add(field);
+        }
     }
 
     public void addOverrideMethod(PsiMethod method) {
@@ -75,45 +75,36 @@ public class RelevantProperties {
     }
 
     public Set<PsiField> getAllFields() {
-        return new HashSet<>(fields);
+        return Collections.unmodifiableSet(fields);
     }
 
     public Set<PsiMember> getPrivateMembers() {
-        return Stream.concat(methods.stream(), fields.stream())
-                .filter(MethodUtils::isPrivate)
-                .collect(Collectors.toSet());
+        return Collections.unmodifiableSet(privateMembers);
     }
 
     public Set<PsiMethod> getAllMethods() {
-        return new HashSet<>(methods);
+        return Collections.unmodifiableSet(methods);
     }
 
     public Set<PsiClass> getAllClasses() {
-        return new HashSet<>(classes);
+        return Collections.unmodifiableSet(classes);
     }
 
     public int size() {
-        return classes.size() + fields.size() + methods.size();
+        return classes.size() + fields.size() + methods.size() + overrideMethods.size();
     }
 
     public int sizeOfIntersect(RelevantProperties properties) {
         int result = 0;
-        final Collection<PsiClass> commonClasses = new HashSet<>(classes);
-        commonClasses.retainAll(properties.classes);
-        result += commonClasses.size();
-
-        final Collection<PsiMethod> commonMethods = new HashSet<>(methods);
-        commonMethods.addAll(overrideMethods);
-        final Set<PsiMethod> rpMethods = properties.methods;
-        rpMethods.addAll(properties.overrideMethods);
-        commonMethods.retainAll(rpMethods);
-        result += commonMethods.size();
-
-        final Collection<PsiField> commonFields = new HashSet<>(fields);
-        commonFields.retainAll(properties.fields);
-        result += commonFields.size();
-
+        result += CollectionsUtil.fastSizeOfIntersect(fields, properties.fields);
+        result += CollectionsUtil.fastSizeOfIntersect(classes, properties.classes);
+        result += CollectionsUtil.sizeOfIntersect(union(methods, overrideMethods),
+                union(properties.methods, properties.overrideMethods));
         return result;
+    }
+
+    public boolean hasCommonPrivateMember(RelevantProperties properties) {
+        return CollectionsUtil.fastSizeOfIntersect(privateMembers, properties.privateMembers) > 0;
     }
 
     public void printAll() {

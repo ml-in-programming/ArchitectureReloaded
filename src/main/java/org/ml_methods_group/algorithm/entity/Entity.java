@@ -60,9 +60,7 @@ public abstract class Entity {
     }
 
     public double distance(Entity entity) {
-        Set<PsiMember> members = relevantProperties.getPrivateMembers();
-        members.retainAll(entity.getRelevantProperties().getPrivateMembers());
-        if (members.size() > 0) {
+        if (relevantProperties.hasCommonPrivateMember(entity.relevantProperties)) {
             return 0;
         }
 
@@ -100,7 +98,7 @@ public abstract class Entity {
     }
 
     public void moveToClass(PsiClass newClass) {
-        final Set<PsiClass> oldClasses = relevantProperties.getAllClasses();
+        final Set<PsiClass> oldClasses = new HashSet<>(relevantProperties.getAllClasses());
         for (PsiClass oldClass : oldClasses) {
             relevantProperties.removeClass(oldClass);
         }
