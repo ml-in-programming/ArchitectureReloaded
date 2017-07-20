@@ -34,12 +34,11 @@ import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.ui.AlgorithmsSelectionPanel;
 import org.ml_methods_group.ui.RefactoringsToolWindow;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
+import org.ml_methods_group.utils.MetricsProfilesUtil;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class AutomaticRefactoringAction extends BaseAnalysisAction {
     private static final String REFACTORING_PROFILE_KEY = "refactoring.metrics.profile.name";
@@ -98,31 +97,13 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     private static void checkRefactoringProfile() {
         final Set<Class<? extends Metric>> requestedSet = Entity.getRequestedMetrics();
-        final MetricsProfileRepository repository = MetricsProfileRepository.getInstance();
         final String profileName = ArchitectureReloadedBundle.message(REFACTORING_PROFILE_KEY);
-        final MetricsProfile refactoringProfile = repository.getProfileForName(profileName);
-        if (refactoringProfile != null) {
-            Set<Class<? extends Metric>> currentSet = refactoringProfile.getMetricInstances()
-                    .stream()
-                    .map(MetricInstance::getMetric)
-                    .map(Metric::getClass)
-                    .collect(Collectors.toSet());
-            if (currentSet.equals(requestedSet)) {
-                return;
-            }
-            repository.deleteProfile(refactoringProfile);
+        final MetricsProfileRepository repository = MetricsProfileRepository.getInstance();
+        if (MetricsProfilesUtil.checkMetricsList(profileName, requestedSet, repository)) {
+            return;
         }
-        List<MetricInstance> metrics = new ArrayList<>();
-        for (Class<? extends Metric> metricClass : requestedSet) {
-            try {
-                MetricInstance instance = new MetricInstanceImpl(metricClass.newInstance());
-                instance.setEnabled(true);
-                metrics.add(instance);
-            } catch (Exception e) {
-                System.out.println("Failed to create metric for name: " + metricClass.getCanonicalName());
-            }
-        }
-        repository.addProfile(new MetricsProfileImpl(profileName, metrics));
+        MetricsProfilesUtil.removeProfileForName(profileName, repository);
+        repository.addProfile(MetricsProfilesUtil.createProfile(profileName, requestedSet));
     }
 
     private static Map<String, String> findRefactorings(String algorithm, RefactoringExecutionContext context) {
