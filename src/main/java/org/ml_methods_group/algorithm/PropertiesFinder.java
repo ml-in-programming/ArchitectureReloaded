@@ -19,6 +19,7 @@ package org.ml_methods_group.algorithm;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.java.AnonymousClassElement;
+import com.sixrr.metrics.utils.MethodUtils;
 import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.*;
@@ -135,9 +136,17 @@ public class PropertiesFinder {
                     propertiesFor(superClass).ifPresent(p -> p.addClass(aClass));
                 }
             }
-            Arrays.stream(aClass.getAllMethods()).forEach(classProperties::addMethod);
-            Arrays.stream(aClass.getAllFields()).forEach(classProperties::addField);
+            Arrays.stream(aClass.getAllMethods())
+                    .filter(m -> isProperty(aClass, m))
+                    .forEach(classProperties::addMethod);
+            Arrays.stream(aClass.getAllFields())
+                    .filter(m -> isProperty(aClass, m))
+                    .forEach(classProperties::addField);
             super.visitClass(aClass);
+        }
+
+        private boolean isProperty(PsiClass aClass, PsiMember member) {
+            return aClass.equals(member.getContainingClass()) || !MethodUtils.isPrivate(member);
         }
 
         @Override
