@@ -87,6 +87,10 @@ class ClassRefactoringPanel extends JPanel {
         final JPanel buttonsPanel = new JBPanel<>();
         buttonsPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 
+        final JLabel infoLabel = new JLabel("Total: " + model.getRowCount());
+        infoLabel.setMinimumSize(new Dimension(100, 30));
+        buttonsPanel.add(infoLabel);
+
         selectAllButton.setText(ArchitectureReloadedBundle.message(SELECT_ALL_BUTTON_TEXT_KEY));
         selectAllButton.addActionListener(e -> model.selectAll());
         buttonsPanel.add(selectAllButton);
