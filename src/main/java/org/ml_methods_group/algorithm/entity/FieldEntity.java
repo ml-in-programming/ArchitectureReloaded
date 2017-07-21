@@ -17,43 +17,17 @@
 package org.ml_methods_group.algorithm.entity;
 
 import com.sixrr.metrics.MetricCategory;
-import com.sixrr.metrics.metricModel.MetricsResult;
-import com.sixrr.metrics.metricModel.MetricsRunImpl;
+import com.sixrr.metrics.metricModel.MetricsRun;
 import org.ml_methods_group.algorithm.PropertiesFinder;
-import org.ml_methods_group.algorithm.RelevantProperties;
-
-import java.util.Arrays;
-import java.util.HashSet;
 
 public class FieldEntity extends Entity {
-    public FieldEntity(String name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
+    public FieldEntity(String name, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
         super(name, metricsRun, propertiesFinder);
-        final RelevantProperties rp = propertiesFinder.getProperties(name);
-        vector[2] = (double) rp.numberOfMethods();
     }
 
     @Override
     public MetricCategory getCategory() {
         return MetricCategory.Package;
-    }
-
-    @Override
-    protected double[] initializeVector(MetricsRunImpl metricsRun) {
-        final double[] vector = new double[DIMENSION];
-        for (int i = 0; i < DIMENSION; i++) {
-            vector[i] = 0.0;
-        }
-
-        final MetricsResult classResults = metricsRun.getResultsForCategory(MetricCategory.Class);
-        processEntity(getClassName(), MetricCategory.Class,  classResults, metricsRun, vector);
-        vector[3] = 0.0;
-
-        return vector;
-    }
-
-    @Override
-    protected HashSet<String> findRelevantProperties() {
-        return new HashSet<>(Arrays.asList(getName(), getClassName()));
     }
 
     @Override

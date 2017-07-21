@@ -18,18 +18,14 @@ package org.ml_methods_group.algorithm.entity;
 
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
-import com.sixrr.metrics.metricModel.MetricsResult;
-import com.sixrr.metrics.metricModel.MetricsRunImpl;
+import com.sixrr.metrics.metricModel.MetricsRun;
 import org.ml_methods_group.algorithm.PSIUtil;
 import org.ml_methods_group.algorithm.PropertiesFinder;
-
-import java.util.Arrays;
-import java.util.HashSet;
 
 public class MethodEntity extends Entity {
     private final boolean isOverriding;
 
-    public MethodEntity(String name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
+    public MethodEntity(String name, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
         super(name, metricsRun, propertiesFinder);
         isOverriding = PSIUtil.isOverriding((PsiMethod) getPsiElement());
     }
@@ -37,28 +33,6 @@ public class MethodEntity extends Entity {
     @Override
     public MetricCategory getCategory() {
         return MetricCategory.Method;
-    }
-
-    @Override
-    protected double[] initializeVector(MetricsRunImpl metricsRun) {
-        final double[] vector = new double[DIMENSION];
-        for (int i = 0; i < DIMENSION; i++) {
-            vector[i] = 0.0;
-        }
-
-        final MetricCategory category = getCategory();
-        final MetricsResult results = metricsRun.getResultsForCategory(category);
-        final MetricsResult classResults = metricsRun.getResultsForCategory(MetricCategory.Class);
-
-        processEntity(getClassName(), MetricCategory.Class,  classResults, metricsRun, vector);
-        processEntity(getName(), category, results, metricsRun, vector);
-
-        return vector;
-    }
-
-    @Override
-    protected HashSet<String> findRelevantProperties() {
-        return new HashSet<>(Arrays.asList(getName(), getClassName()));
     }
 
     @Override
