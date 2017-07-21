@@ -24,10 +24,8 @@ import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -142,6 +140,14 @@ public class RefactoringsTableModel extends AbstractTableModel {
         throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }
 
+    public List<String> getUnits() {
+        return Collections.unmodifiableList(units);
+    }
+
+    public List<String> getMovements() {
+        return Collections.unmodifiableList(movements);
+    }
+
     void setupRenderer(JTable table) {
         table.setDefaultRenderer(Boolean.class, new BooleanTableCellRenderer() {
             private final JLabel EMPTY_LABEL = new JLabel();
@@ -174,5 +180,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
                 return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             }
         });
+
+
     }
 }

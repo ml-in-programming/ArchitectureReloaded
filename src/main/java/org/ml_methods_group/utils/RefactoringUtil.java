@@ -20,6 +20,7 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.refactoring.makeStatic.MakeStaticHandler;
 import com.intellij.refactoring.move.moveInstanceMethod.MoveInstanceMethodDialog;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -125,8 +127,21 @@ public final class RefactoringUtil {
         return true;
     }
 
-    public static String getWarning(String unit, String target, AnalysisScope scope) {
-        return findElement(unit, scope, element -> getWarning(element, target)).orElse("");
+    public static List<String> getWarnings(List<String> units, List<String> targets, AnalysisScope scope) {
+        final Set<String> allUnits = new HashSet<>(units);
+        final Map<String, PsiElement> psiElements = PsiSearchUtil.findAllElements(allUnits, scope, Function.identity());
+        List<String> warnings = new ArrayList<>();
+        for (int i = 0; i < units.size(); i++) {
+            final PsiElement element = psiElements.get(units.get(i));
+            final String target = targets.get(i);
+            String warning = "";
+            if (element != null) {
+                warning = ApplicationManager.getApplication()
+                        .runReadAction((Computable<String>) () -> getWarning(element,target));
+            }
+            warnings.add(warning);
+        }
+        return warnings;
     }
 
     private static String getWarning(PsiElement element, String target) {
