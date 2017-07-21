@@ -23,36 +23,44 @@ import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
+import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.profile.MetricsProfile;
 import com.sixrr.metrics.profile.MetricsProfileRepository;
 import com.sixrr.metrics.ui.dialogs.ProfileSelectionPanel;
+import com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.config.ArchitectureReloadedConfig;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
+import org.ml_methods_group.ui.AlgorithmsSelectionPanel;
 import org.ml_methods_group.ui.RefactoringsToolWindow;
+import org.ml_methods_group.utils.ArchitectureReloadedBundle;
+import org.ml_methods_group.utils.MetricsProfilesUtil;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class AutomaticRefactoringAction extends BaseAnalysisAction {
+    private static final String REFACTORING_PROFILE_KEY = "refactoring.metrics.profile.name";
+
+    private Map<String, Map<String, String>> refactorings = new HashMap<>();
+
     private static final Map<Project, AutomaticRefactoringAction> factory = new HashMap<>();
-    private Map<String, String> refactoringsCCDA;
-    private Map<String, String> refactoringsMRI;
-    private Map<String, String> refactoringsAKMeans;
-    private Map<String, String> refactoringsHAC;
-    private Map<String, String> refactoringsARI;
 
     private static ProjectManagerListener listener = new ProjectManagerListener() {
         @Override
@@ -102,12 +110,12 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         final MetricsProfile metricsProfile = MetricsProfileRepository.getInstance()
                 .getCurrentProfile();
         assert metricsProfile != null;
-
         new RefactoringExecutionContext(project, analysisScope, metricsProfile,
                 callback);
     }
 
     public void analyzeBackground(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
+        checkRefactoringProfile();
         final Task.Backgroundable task = new Task.Backgroundable(project,
         "Calculating Refactorings...", true) {
             @Override
@@ -116,7 +124,17 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                     new Task.Backgroundable(project, MetricsReloadedBundle.message("calculating.refactorings"), true) {
                         @Override
                         public void run(@NotNull ProgressIndicator indicator) {
-                            calculateRefactorings(context);
+                            AccessToken token = null;
+                            try {
+                                token = ApplicationManager.getApplication().acquireReadActionLock();
+                                calculateRefactorings(context, true);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            } finally {
+                                if (token != null) {
+                                    token.finish();
+                                }
+                            }
                         }
 
                         @Override
@@ -131,69 +149,68 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         task.queue();
     }
 
-    private void calculateRefactorings(@NotNull RefactoringExecutionContext context) {
-        final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
-        AccessToken token = null;
-        try {
-            token = ApplicationManager.getApplication().acquireReadActionLock();
-            refactoringsCCDA = findRefactorings(context::calculateCCDA);
-            refactoringsMRI = findRefactorings(context::calculateMRI);
-            refactoringsAKMeans = findRefactorings(context::calculateAKMeans);
-            refactoringsHAC = findRefactorings(context::calculateHAC);
-            refactoringsARI = findRefactorings(context::calculateARI);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (token != null) {
-                token.finish();
+    private void calculateRefactorings(@NotNull RefactoringExecutionContext context, boolean ignoreSelection) {
+        final Set<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
+        for (String algorithm : RefactoringExecutionContext.getAvailableAlgorithms()) {
+            if (ignoreSelection || selectedAlgorithms.contains(algorithm)) {
+                refactorings.put(algorithm, findRefactorings(algorithm, context));
             }
         }
     }
 
     private void showRefactoringsDialog(@NotNull RefactoringExecutionContext context) {
-        calculateRefactorings(context);
+        calculateRefactorings(context, false);
+        final Set<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
+        ServiceManager.getService(context.getProject(), MetricsToolWindow.class)
+                .show(context.getMetricsRun(), context.getProfile(), context.getScope(), false);
+        final Map<String, Map<String, String>> requestedRefactorings = refactorings.entrySet()
+                .stream()
+                .filter(e -> selectedAlgorithms.contains(e.getKey()))
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
         ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
-                .clear()
-                .addTab("CCDA", refactoringsCCDA, context.getScope())
-                .addTab("MRI", refactoringsMRI, context.getScope())
-                .addTab("AKMeans", refactoringsAKMeans, context.getScope())
-                .addTab("HAC", refactoringsHAC, context.getScope())
-                .addTab("ARI", refactoringsARI, context.getScope())
-                .show();
+                .show(requestedRefactorings, context.getScope());
     }
 
-    private static Map<String, String> findRefactorings(@NotNull Supplier<Map<String, String>> algorithm) {
+    private static void checkRefactoringProfile() {
+        final Set<Class<? extends Metric>> requestedSet = Entity.getRequestedMetrics();
+        final String profileName = ArchitectureReloadedBundle.message(REFACTORING_PROFILE_KEY);
+        final MetricsProfileRepository repository = MetricsProfileRepository.getInstance();
+        if (MetricsProfilesUtil.checkMetricsList(profileName, requestedSet, repository)) {
+            return;
+        }
+        MetricsProfilesUtil.removeProfileForName(profileName, repository);
+        repository.addProfile(MetricsProfilesUtil.createProfile(profileName, requestedSet));
+    }
+
+    private static Map<String, String> findRefactorings(String algorithm, RefactoringExecutionContext context) {
         try {
-            return algorithm.get();
+            return context.calculateAlgorithmForName(algorithm);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return Collections.emptyMap();
     }
 
-    public Map<String, String> getRefactoringsARI() {
-        return refactoringsARI;
+    @NotNull
+    public Set<String> calculatedAlgorithms() {
+        return refactorings.keySet();
     }
 
-    public Map<String, String> getRefactoringsCCDA() {
-        return refactoringsCCDA;
-    }
-
-    public Map<String, String> getRefactoringsMRI() {
-        return refactoringsMRI;
-    }
-
-    public Map<String, String> getRefactoringsAKMeans() {
-        return refactoringsAKMeans;
-    }
-
-    public Map<String, String> getRefactoringsHAC() {
-        return refactoringsHAC;
+    @NotNull
+    public Map<String, String> getRefactoringsForName(String algorithm) {
+        if (!refactorings.containsKey(algorithm)) {
+            throw new IllegalArgumentException("Uncalculated algorithm requested: " + algorithm);
+        }
+        return refactorings.get(algorithm);
     }
 
     @Override
     @Nullable
     protected JComponent getAdditionalActionSettings(Project project, BaseAnalysisActionDialog dialog) {
-        return new ProfileSelectionPanel(project);
+        checkRefactoringProfile();
+        final JPanel panel = new JPanel(new BorderLayout());
+        panel.add(new ProfileSelectionPanel(project), BorderLayout.SOUTH);
+        panel.add(new AlgorithmsSelectionPanel(), BorderLayout.NORTH);
+        return panel;
     }
 }

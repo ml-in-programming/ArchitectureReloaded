@@ -22,37 +22,55 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
-import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRun;
-import com.sixrr.metrics.metricModel.MetricsRunImpl;
+import com.sixrr.stockmetrics.classMetrics.DepthOfInheritanceMetric;
+import com.sixrr.stockmetrics.classMetrics.FanInClassMetric;
+import com.sixrr.stockmetrics.classMetrics.FanOutClassMetric;
+import com.sixrr.stockmetrics.classMetrics.NumChildrenMetric;
+import com.sixrr.stockmetrics.methodMetrics.FanInMethodMetric;
+import com.sixrr.stockmetrics.methodMetrics.FanOutMethodMetric;
 import org.ml_methods_group.algorithm.PropertiesFinder;
 import org.ml_methods_group.algorithm.RelevantProperties;
 
 import java.util.*;
 
 public abstract class Entity {
-    private final PsiElement psiEntity;
-    protected double[] vector;
-    private final RelevantProperties relevantProperties;
-    private final String name;
-    protected static final Map<String, Integer> components;
+    private static final VectorCalculator CLASS_ENTITY_CALCULATOR = new VectorCalculator()
+            .addMetricDependence(DepthOfInheritanceMetric.class)
+            .addMetricDependence(NumChildrenMetric.class)
+            .addMetricDependence(FanInClassMetric.class)
+            .addMetricDependence(FanOutClassMetric.class);
 
-    public static final int DIMENSION = 4;
+    private static final VectorCalculator METHOD_ENTITY_CALCULATOR = new VectorCalculator()
+            .addMetricDependence(DepthOfInheritanceMetric.class)
+            .addMetricDependence(NumChildrenMetric.class)
+            .addMetricDependence(FanInMethodMetric.class)
+            .addMetricDependence(FanOutMethodMetric.class);
+
+    private static final VectorCalculator FIELD_ENTITY_CALCULATOR = new VectorCalculator()
+            .addMetricDependence(DepthOfInheritanceMetric.class)
+            .addMetricDependence(NumChildrenMetric.class)
+            .addPropertyDependence(RelevantProperties::numberOfMethods)
+            .addConstValue(0);
+
+    private static final int DIMENSION = CLASS_ENTITY_CALCULATOR.getDimension();
 
     static {
-        final Map<String, Integer> comps = new HashMap<>();
-        comps.put("DIT", 0);
-        comps.put("NOC", 1);
-        comps.put("FIC", 2);
-        comps.put("FOC", 3);
-        comps.put("FIM", 2);
-        comps.put("FOM", 3);
-        components = Collections.unmodifiableMap(comps);
+        assert CLASS_ENTITY_CALCULATOR.getDimension() == DIMENSION;
+        assert METHOD_ENTITY_CALCULATOR.getDimension() == DIMENSION;
+        assert FIELD_ENTITY_CALCULATOR.getDimension() == DIMENSION;
     }
 
-    public Entity(String name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
+    private final PsiElement psiEntity;
+    private double[] vector;
+    private final RelevantProperties relevantProperties;
+    private final String name;
+
+
+
+    public Entity(String name, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
         this.name = name;
-        vector = initializeVector(metricsRun);
+        vector = getCalculatorForEntity().calculateVector(metricsRun, propertiesFinder, this);
         relevantProperties = propertiesFinder.getProperties(this.name);
         psiEntity = propertiesFinder.getPsiElement(name);
     }
@@ -139,20 +157,25 @@ public abstract class Entity {
         return psiEntity;
     }
 
-    protected static void processEntity(String name, MetricCategory category, MetricsResult results
-            , MetricsRun metricsRun, double[] vector) {
-        for (Metric metric : metricsRun.getMetrics()) {
-            if (metric.getCategory() == category) {
-                final int id = components.get(metric.getAbbreviation());
-                if (results.getValueForMetric(metric, name) != null) {
-                    vector[id] = results.getValueForMetric(metric, name);
-                }
-            }
+    private VectorCalculator getCalculatorForEntity() {
+        if (getClass() == ClassEntity.class) {
+            return CLASS_ENTITY_CALCULATOR;
+        } else if (getClass() == MethodEntity.class) {
+            return METHOD_ENTITY_CALCULATOR;
+        } else if (getClass() == FieldEntity.class) {
+            return FIELD_ENTITY_CALCULATOR;
         }
+        throw new UnsupportedOperationException("Such type of entity isn't supported: " + getClass());
     }
 
-    protected abstract double[] initializeVector(MetricsRunImpl metricsRun);
-    protected abstract HashSet<String> findRelevantProperties();
+    public static Set<Class<? extends Metric>> getRequestedMetrics() {
+        final Set<Class<? extends Metric>> result = new HashSet<>();
+        result.addAll(CLASS_ENTITY_CALCULATOR.getRequestedMetrics());
+        result.addAll(METHOD_ENTITY_CALCULATOR.getRequestedMetrics());
+        result.addAll(FIELD_ENTITY_CALCULATOR.getRequestedMetrics());
+        return result;
+    }
+
     abstract public MetricCategory getCategory();
     abstract public String getClassName();
 }

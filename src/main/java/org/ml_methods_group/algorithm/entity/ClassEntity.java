@@ -18,17 +18,14 @@ package org.ml_methods_group.algorithm.entity;
 
 import com.intellij.psi.PsiClass;
 import com.sixrr.metrics.MetricCategory;
-import com.sixrr.metrics.metricModel.MetricsResult;
-import com.sixrr.metrics.metricModel.MetricsRunImpl;
+import com.sixrr.metrics.metricModel.MetricsRun;
 import org.ml_methods_group.algorithm.PSIUtil;
 import org.ml_methods_group.algorithm.PropertiesFinder;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 public class ClassEntity extends Entity {
-    public ClassEntity(String name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
+    public ClassEntity(String name, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
         super(name, metricsRun, propertiesFinder);
     }
 
@@ -40,24 +37,6 @@ public class ClassEntity extends Entity {
     @Override
     public String getClassName() {
         return getName();
-    }
-
-    @Override
-    protected double[] initializeVector(MetricsRunImpl metricsRun) {
-        final double[] vector = new double[DIMENSION];
-        for (int i = 0; i < DIMENSION; i++) {
-            vector[i] = 0.0;
-        }
-        final MetricCategory category = getCategory();
-        final MetricsResult results = metricsRun.getResultsForCategory(category);
-        processEntity(getName(), category, results, metricsRun, vector);
-
-        return vector;
-    }
-
-    @Override
-    protected HashSet<String> findRelevantProperties() {
-        return new HashSet<>(Collections.singletonList(getName()));
     }
 
     public Set<PsiClass> getAllSupers(Set<PsiClass> existing) {

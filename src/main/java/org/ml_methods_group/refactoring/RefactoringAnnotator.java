@@ -39,18 +39,16 @@ public class RefactoringAnnotator implements Annotator {
         final Project project = psiElement.getProject();
         final AnalysisScope scope = new AnalysisScope(project);
 
-        setAnnotations(psiElement, AutomaticRefactoringAction.getInstance(project), annotationHolder, scope);
-    }
-
-    private static void setAnnotations(@NotNull PsiElement element,
-                                       @NotNull AutomaticRefactoringAction action,
-                                       @NotNull AnnotationHolder annotationHolder,
-                                       @NotNull AnalysisScope scope) {
-        setAnnotations(element, "CCDA", action.getRefactoringsCCDA(), annotationHolder, scope);
-        setAnnotations(element, "MRI", action.getRefactoringsMRI(), annotationHolder, scope);
-        setAnnotations(element, "AKMeans", action.getRefactoringsAKMeans(), annotationHolder, scope);
-        setAnnotations(element, "HAC", action.getRefactoringsHAC(), annotationHolder, scope);
-        setAnnotations(element, "ARI", action.getRefactoringsARI(), annotationHolder, scope);
+        for (String algorithm : RefactoringExecutionContext.getAvailableAlgorithms()) {
+            try {
+                setAnnotations(psiElement,
+                        algorithm,
+                        AutomaticRefactoringAction.getInstance(project).getRefactoringsForName(algorithm),
+                        annotationHolder, scope);
+            } catch (IllegalArgumentException e) {
+                //ignore
+            }
+        }
     }
 
     private static void setAnnotations(@NotNull PsiElement element,
