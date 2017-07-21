@@ -16,6 +16,7 @@
 
 package org.ml_methods_group.algorithm.entity;
 
+import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
@@ -25,8 +26,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 public class MethodEntity extends Entity {
-    public MethodEntity(String name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
-        super(name, metricsRun, propertiesFinder);
+    public MethodEntity(PsiMethod method, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
+        super(method, metricsRun, propertiesFinder);
     }
 
     @Override

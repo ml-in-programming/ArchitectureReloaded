@@ -17,82 +17,66 @@
 package org.ml_methods_group.algorithm;
 
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.java.AnonymousClassElement;
 import com.sixrr.metrics.utils.MethodUtils;
+import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
+
 public class PropertiesFinder {
-    private final Map<String, RelevantProperties> properties = new HashMap<>();
-    private final Map<String, HashSet<PsiMethod>> methods = new HashMap<>();
-    private final Map<String, HashSet<PsiField>> fields = new HashMap<>();
-    private final Map<String, HashSet<PsiClass>> parents = new HashMap<>();
-    private final Map<String, HashSet<PsiMethod>> superMethods = new HashMap<>();
-    private final Map<String, PsiClass> classByName = new HashMap<>();
-    private final Map<String, PsiMethod> methodByName = new HashMap<>();
-    private final Map<String, PsiField> fieldByName = new HashMap<>();
-    private final Stack<PsiMethod> methodStack = new Stack<>();
+    private final Map<PsiElement, RelevantProperties> properties = new HashMap<>();
     private final Set<PsiClass> allClasses = new HashSet<>();
+    private final Set<PsiField> allFields = new HashSet<>();
+    private final Map<String, PsiElement> elementByName = new HashMap<>();
+    private final AnalysisScope scope;
 
-    public PsiElementVisitor createVisitor(final AnalysisScope analysisScope) {
-        final PsiElementVisitor visitor = new FileClassesCounter();
-        ProgressManager.getInstance().runProcess(() -> analysisScope.accept(visitor), new EmptyProgressIndicator());
-        return new FileVisitor();
+    private PropertiesFinder(AnalysisScope scope) {
+        this.scope = scope;
     }
 
-    public boolean hasElement(String name) {
-        return properties.containsKey(name);
+    public static PropertiesFinder analyze(AnalysisScope scope) {
+        final PropertiesFinder finder = new PropertiesFinder(scope);
+        finder.runCalculations();
+        return finder;
     }
 
-    public RelevantProperties getProperties(String name) {
-        return properties.get(name);
+    private void runCalculations() {
+        scope.accept(new UnitsFinder());
+        scope.accept(new PropertiesCalculator());
+    }
+
+    public RelevantProperties getProperties(PsiElement element) {
+        return properties.get(element);
     }
 
     public Set<String> getAllFields() {
-        final Set<String> fields = new HashSet<>();
-        for (String entity : properties.keySet()) {
-            final RelevantProperties rp = properties.get(entity);
-            final Set<PsiField> fs = rp.getAllFields();
-            for (PsiField field : fs) {
-                final PsiClass containingClass = field.getContainingClass();
-                assert containingClass != null;
-                if (!properties.containsKey(containingClass.getQualifiedName())) {
-                    continue;
-                }
-                fields.add(field.getContainingClass().getQualifiedName() + "." + field.getName());
-            }
-        }
-
-        return fields;
+        return allFields.stream()
+                .map(PsiSearchUtil::getHumanReadableName)
+                .collect(Collectors.toSet());
     }
 
     public Set<PsiClass> getAllClasses() {
         return allClasses;
     }
 
-    public Set<String> getAllClassesNames() {
-        return allClasses.stream().map(PsiClass::getQualifiedName).collect(Collectors.toSet());
+    public PsiElement elementForName(String name) {
+        return elementByName.get(name);
     }
 
-    public PsiElement getPsiElement(String name) {
-        if (methodByName.containsKey(name)) {
-            return methodByName.get(name);
-        }
-        if (classByName.containsKey(name)) {
-            return classByName.get(name);
-        }
-        if (fieldByName.containsKey(name)) {
-            return fieldByName.get(name);
+    private class UnitsFinder extends JavaRecursiveElementVisitor {
+
+        @Override
+        public void visitFile(PsiFile file) {
+            if (isSourceFile(file)) {
+                System.out.println("!#! " + file.getName());
+                super.visitFile(file);
+            }
         }
 
-        return null;
-    }
-
-    private class ClassCounter extends JavaRecursiveElementVisitor {
         @Override
         public void visitClass(PsiClass aClass) {
             if (aClass.isEnum()) {
@@ -106,213 +90,138 @@ public class PropertiesFinder {
                 return;
             }
             allClasses.add(aClass);
+            elementByName.put(getHumanReadableName(aClass), aClass);
+            properties.put(aClass, new RelevantProperties());
             super.visitClass(aClass);
-        }
-    }
-
-    private class FileClassesCounter extends JavaElementVisitor {
-        @Override
-        public void visitFile(final PsiFile file) {
-            System.out.println("!#! " + file.getName());
-
-            final PsiElementVisitor counter = new ClassCounter();
-            ProgressManager.getInstance().runProcess(() -> file.accept(counter), new EmptyProgressIndicator());
-        }
-    }
-
-    private class FileVisitor extends JavaElementVisitor {
-        @Override
-        public void visitFile(final PsiFile file) {
-            if (!file.getName().endsWith(".class") && !file.getName().endsWith(".java"))
-                return;
-
-            System.out.println("!#! " + file.getName());
-
-            final PsiElementVisitor counter = new ClassCounter();
-            ProgressManager.getInstance().runProcess(() -> file.accept(counter), new EmptyProgressIndicator());
-
-            final PsiElementVisitor visitor = new EntityVisitor();
-            ProgressManager.getInstance().runProcess(() -> file.accept(visitor), new EmptyProgressIndicator());
-
-            processSuperClasses();
-            processSuperMethods();
-
-            for (String name : methods.keySet()) {
-                if (!methodByName.containsKey(name) && !fieldByName.containsKey(name)
-                        && !classByName.containsKey(name)) {
-                    continue;
-                }
-
-                for (PsiMethod method : methods.get(name)) {
-                    if (methodByName.containsValue(method)) {
-                        properties.get(name).addMethod(method);
-                    }
-                }
-            }
-
-            for (String name : fields.keySet()) {
-                for (PsiField field : fields.get(name)) {
-                    if (fieldByName.containsValue(field)) {
-                        properties.get(name).addField(field);
-                    }
-                }
-            }
-
-            for (String name : properties.keySet()) {
-                properties.get(name).retainClasses(classByName.values());
-                properties.get(name).retainMethods(methodByName.values());
-            }
-
-        }
-
-        private void processSuperMethods() {
-            for (String methodName : superMethods.keySet()) {
-                final PsiMethod method = methodByName.get(methodName);
-                for (PsiMethod parent : superMethods.get(methodName)) {
-                    final String parentName = MethodUtils.calculateSignature(parent);
-                    if (!properties.containsKey(parentName)) {
-                        continue;
-                    }
-                    properties.get(parentName).addOverrideMethod(method);
-                }
-            }
-        }
-
-        private void processSuperClasses() {
-            for (String className : parents.keySet()) {
-                final PsiClass psiClass = classByName.get(className);
-                for (PsiClass parent : parents.get(className)) {
-                    final String parentName = parent.getQualifiedName();
-                    if (!properties.containsKey(parentName)) {
-                        continue;
-                    }
-                    properties.get(parentName).addClass(psiClass);
-                }
-            }
-        }
-    }
-
-    private class EntityVisitor extends JavaRecursiveElementVisitor {
-        @Override
-        public void visitClass(PsiClass psiClass) {
-            if (psiClass.isEnum()) {
-                return;
-            }
-
-            if (psiClass instanceof AnonymousClassElement) {
-                return;
-            }
-
-            if (psiClass.getQualifiedName() == null) {
-                return;
-            }
-
-            final RelevantProperties props = new RelevantProperties();
-            final String fullName = psiClass.getQualifiedName();
-            classByName.put(fullName, psiClass);
-            props.addClass(psiClass);
-
-            super.visitClass(psiClass);
-
-            Arrays.stream(psiClass.getAllFields()).forEach(props::addField);
-            Arrays.stream(psiClass.getAllMethods()).forEach(props::addMethod);
-
-            final Set<PsiClass> supers = PSIUtil.getAllSupers(psiClass);
-            for (PsiClass sup : supers) {
-                if (sup.isInterface()) {
-                    props.addClass(sup);
-                } else {
-                    if (!parents.containsKey(fullName)) {
-                        parents.put(fullName, new HashSet<>());
-                    }
-
-                    parents.get(fullName).add(sup);
-                }
-            }
-
-            PropertiesFinder.this.properties.put(fullName, props);
-        }
-
-        @Override
-        public void visitReferenceExpression(PsiReferenceExpression expression) {
-            final PsiElement elem = expression.resolve();
-            if (!(elem instanceof PsiField)) {
-                return;
-            }
-
-            if (methodStack.empty()) {
-                return;
-            }
-
-            final PsiMethod method = methodStack.peek();
-            final PsiField field = (PsiField) elem;
-            final String fullMethodName = MethodUtils.calculateSignature(method);
-            final PsiClass containingClass = field.getContainingClass();
-            assert containingClass != null;
-
-            final String fullFieldName = containingClass.getQualifiedName() + "." + field.getName();
-            if (!fields.containsKey(fullMethodName)) {
-                fields.put(fullMethodName, new HashSet<>());
-            }
-            fields.get(fullMethodName).add(field);
-
-            if (!methods.containsKey(fullFieldName)) {
-                methods.put(fullFieldName, new HashSet<>());
-            }
-            methods.get(fullFieldName).add(method);
-        }
-
-        @Override
-        public void visitMethodCallExpression(PsiMethodCallExpression expression) {
-            if (methodStack.empty()) {
-                return;
-            }
-
-            final PsiMethod element = expression.resolveMethod();
-            final PsiMethod caller = methodStack.peek();
-            final String callerName = MethodUtils.calculateSignature(caller);
-            if (!methods.containsKey(callerName)) {
-                methods.put(callerName, new HashSet<>());
-            }
-            methods.get(callerName).add(element);
-        }
-
-        @Override
-        public void visitMethod(PsiMethod method) {
-            final PsiClass containingClass = method.getContainingClass();
-            if (containingClass == null || containingClass.isInterface()) {
-                return;
-            }
-
-            final String methodName = MethodUtils.calculateSignature(method);
-            methodByName.put(methodName, method);
-
-            final RelevantProperties props = new RelevantProperties();
-            props.addMethod(method);
-            props.addClass(containingClass);
-
-            properties.put(methodName, props);
-            methodStack.push(method);
-            super.visitMethod(method);
-            methodStack.pop();
-
-            superMethods.put(methodName, new HashSet<>(PSIUtil.getAllSupers(method, allClasses)));
         }
 
         @Override
         public void visitField(PsiField field) {
-            if (field.getContainingClass() == null) {
+            allFields.add(field);
+            elementByName.put(getHumanReadableName(field), field);
+            properties.put(field, new RelevantProperties());
+            super.visitField(field);
+        }
+
+        @Override
+        public void visitMethod(PsiMethod method) {
+            elementByName.put(getHumanReadableName(method), method);
+            properties.put(method, new RelevantProperties());
+            super.visitMethod(method);
+        }
+    }
+
+    private class PropertiesCalculator extends JavaRecursiveElementVisitor {
+        private PsiMethod currentMethod;
+
+        @Override
+        public void visitFile(PsiFile file) {
+            if (isSourceFile(file)) {
+                super.visitFile(file);
+            }
+        }
+
+        @Override
+        public void visitClass(PsiClass aClass) {
+            final RelevantProperties classProperties = properties.get(aClass);
+            if (classProperties == null) {
+                super.visitClass(aClass);
                 return;
             }
-
-            final String name = field.getContainingClass().getQualifiedName() + "." + field.getName();
-
-            if (!properties.containsKey(name)) {
-                properties.put(name, new RelevantProperties());
+            classProperties.addClass(aClass);
+            for (PsiClass superClass : PSIUtil.getAllSupers(aClass, allClasses)) {
+                if (superClass.isInterface()) {
+                    classProperties.addClass(superClass);
+                } else {
+                    propertiesFor(superClass).ifPresent(p -> p.addClass(aClass));
+                }
             }
-            properties.get(name).addClass(field.getContainingClass());
-            properties.get(name).addField(field);
-            fieldByName.put(name, field);
+            Arrays.stream(aClass.getAllMethods())
+                    .filter(m -> isProperty(aClass, m))
+                    .forEach(classProperties::addMethod);
+            Arrays.stream(aClass.getAllFields())
+                    .filter(m -> isProperty(aClass, m))
+                    .forEach(classProperties::addField);
+            super.visitClass(aClass);
         }
+
+        private boolean isProperty(PsiClass aClass, PsiMember member) {
+            return aClass.equals(member.getContainingClass()) || !MethodUtils.isPrivate(member);
+        }
+
+        @Override
+        public void visitMethod(PsiMethod method) {
+            final RelevantProperties methodProperties = properties.get(method);
+            if (methodProperties == null) {
+                super.visitMethod(method);
+                return;
+            }
+            methodProperties.addMethod(method);
+            Optional.ofNullable(method.getContainingClass())
+                    .ifPresent(methodProperties::addClass);
+            if (currentMethod == null) {
+                currentMethod = method;
+            }
+            PSIUtil.getAllSupers(method, allClasses).stream()
+                    .filter(properties::containsKey)
+                    .map(properties::get)
+                    .forEach(properties -> properties.addOverrideMethod(method));
+            Arrays.stream(method.getParameterList().getParameters())
+                    .map(PsiParameter::getType)
+                    .map(PsiType::getCanonicalText)
+                    .map(PropertiesFinder.this::elementForName)
+                    .filter(Objects::nonNull)
+                    .map(PsiClass.class::cast)
+                    .forEach(methodProperties::addClass);
+            super.visitMethod(method);
+            if (currentMethod == method) {
+                currentMethod = null;
+            }
+        }
+
+        @Override
+        public void visitReferenceExpression(PsiReferenceExpression expression) {
+            PsiElement element = expression.resolve();
+            if (currentMethod != null && element instanceof PsiField) {
+                propertiesFor(currentMethod)
+                        .ifPresent(p -> p.addField((PsiField) element));
+                propertiesFor(element)
+                        .ifPresent(p -> p.addMethod(currentMethod));
+            }
+            super.visitReferenceExpression(expression);
+        }
+
+        @Override
+        public void visitField(PsiField field) {
+            RelevantProperties fieldProperties = properties.get(field);
+            if (fieldProperties == null) {
+                super.visitField(field);
+                return;
+            }
+            fieldProperties.addField(field);
+            final PsiClass containingClass = field.getContainingClass();
+            if (containingClass != null) {
+                fieldProperties.addClass(containingClass);
+            }
+            super.visitField(field);
+        }
+
+        @Override
+        public void visitMethodCallExpression(PsiMethodCallExpression expression) {
+            PsiElement element = expression.getMethodExpression().resolve();
+            if (currentMethod != null && element instanceof PsiMethod) {
+                propertiesFor(currentMethod)
+                        .ifPresent(p -> p.addMethod((PsiMethod) element));
+            }
+            super.visitMethodCallExpression(expression);
+        }
+    }
+
+    private Optional<RelevantProperties> propertiesFor(PsiElement element) {
+        return Optional.ofNullable(properties.get(element));
+    }
+
+    private boolean isSourceFile(PsiFile file) {
+        return file.getName().endsWith(".java");
     }
 }

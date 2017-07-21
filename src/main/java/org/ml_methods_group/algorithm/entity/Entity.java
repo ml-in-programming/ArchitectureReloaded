@@ -16,10 +16,7 @@
 
 package org.ml_methods_group.algorithm.entity;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
+import com.intellij.psi.*;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsResult;
@@ -27,6 +24,7 @@ import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
 import org.ml_methods_group.algorithm.PropertiesFinder;
 import org.ml_methods_group.algorithm.RelevantProperties;
+import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.*;
 
@@ -50,11 +48,11 @@ public abstract class Entity {
         components = Collections.unmodifiableMap(comps);
     }
 
-    public Entity(String name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
-        this.name = name;
+    public Entity(PsiElement element, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
+        this.name = PsiSearchUtil.getHumanReadableName(element);
         vector = initializeVector(metricsRun);
-        relevantProperties = propertiesFinder.getProperties(this.name);
-        psiEntity = propertiesFinder.getPsiElement(name);
+        relevantProperties = propertiesFinder.getProperties(element);
+        psiEntity = element;
     }
 
     private double square(double value) {
@@ -62,6 +60,10 @@ public abstract class Entity {
     }
 
     public double distance(Entity entity) {
+        if (relevantProperties.hasCommonPrivateMember(entity.relevantProperties)) {
+            return 0;
+        }
+
         double ans = 0.0;
         for (int i = 0; i < DIMENSION; i++) {
             ans += square(vector[i] - entity.vector[i]);
@@ -96,7 +98,7 @@ public abstract class Entity {
     }
 
     public void moveToClass(PsiClass newClass) {
-        final Set<PsiClass> oldClasses = relevantProperties.getAllClasses();
+        final Set<PsiClass> oldClasses = new HashSet<>(relevantProperties.getAllClasses());
         for (PsiClass oldClass : oldClasses) {
             relevantProperties.removeClass(oldClass);
         }

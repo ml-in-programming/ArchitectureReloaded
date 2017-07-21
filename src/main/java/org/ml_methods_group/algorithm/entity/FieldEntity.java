@@ -16,6 +16,7 @@
 
 package org.ml_methods_group.algorithm.entity;
 
+import com.intellij.psi.PsiField;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
@@ -26,9 +27,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 public class FieldEntity extends Entity {
-    public FieldEntity(String name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
-        super(name, metricsRun, propertiesFinder);
-        final RelevantProperties rp = propertiesFinder.getProperties(name);
+    public FieldEntity(PsiField field, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
+        super(field, metricsRun, propertiesFinder);
+        final RelevantProperties rp = propertiesFinder.getProperties(field);
         vector[2] = (double) rp.numberOfMethods();
     }
 
