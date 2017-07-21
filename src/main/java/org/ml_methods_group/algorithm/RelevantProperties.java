@@ -16,18 +16,14 @@
 
 package org.ml_methods_group.algorithm;
 
+import com.google.common.collect.Sets;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.utils.MethodUtils;
-import org.ml_methods_group.utils.CollectionsUtil;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.ml_methods_group.utils.CollectionsUtil.union;
 
 public class RelevantProperties {
     private final Set<PsiMethod> methods = new HashSet<>();
@@ -78,10 +74,6 @@ public class RelevantProperties {
         return Collections.unmodifiableSet(fields);
     }
 
-    public Set<PsiMember> getPrivateMembers() {
-        return Collections.unmodifiableSet(privateMembers);
-    }
-
     public Set<PsiMethod> getAllMethods() {
         return Collections.unmodifiableSet(methods);
     }
@@ -96,15 +88,15 @@ public class RelevantProperties {
 
     public int sizeOfIntersect(RelevantProperties properties) {
         int result = 0;
-        result += CollectionsUtil.fastSizeOfIntersect(fields, properties.fields);
-        result += CollectionsUtil.fastSizeOfIntersect(classes, properties.classes);
-        result += CollectionsUtil.sizeOfIntersect(union(methods, overrideMethods),
-                union(properties.methods, properties.overrideMethods));
+        result += Sets.intersection(fields, properties.fields).size();
+        result += Sets.intersection(classes, properties.classes).size();
+        result += Sets.intersection(Sets.union(methods, overrideMethods),
+                Sets.union(properties.methods, properties.overrideMethods)).size();
         return result;
     }
 
     public boolean hasCommonPrivateMember(RelevantProperties properties) {
-        return CollectionsUtil.fastSizeOfIntersect(privateMembers, properties.privateMembers) > 0;
+        return !Sets.intersection(privateMembers, properties.privateMembers).isEmpty();
     }
 
     public void printAll() {
