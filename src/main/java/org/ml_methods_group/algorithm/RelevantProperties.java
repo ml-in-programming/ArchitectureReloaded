@@ -72,7 +72,7 @@ public class RelevantProperties {
     }
 
     public Set<PsiField> getAllFields() {
-        return new HashSet<PsiField>(fields);
+        return new HashSet<>(fields);
     }
 
     public Set<PsiMethod> getAllMethods() {

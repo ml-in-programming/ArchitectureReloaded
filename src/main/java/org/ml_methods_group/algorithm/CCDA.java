@@ -20,10 +20,12 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
-import com.sixrr.metrics.utils.MethodUtils;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.*;
+
+import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
 public class CCDA {
     private final Map<String, Integer> communityIds;
@@ -44,7 +46,7 @@ public class CCDA {
 
         for (Entity ent : entities) {
             if (ent.getCategory() == MetricCategory.Class) {
-                communityIds.put(ent.getName(), Integer.valueOf(communityIds.size() + 1));
+                communityIds.put(ent.getName(), communityIds.size() + 1);
                 idCommunity.add(ent.getName());
             }
         }
@@ -56,19 +58,8 @@ public class CCDA {
             }
         }
 
-        aCoefficients = new ArrayList<>(Collections.nCopies(idCommunity.size() + 1, Integer.valueOf(0)));
+        aCoefficients = new ArrayList<>(Collections.nCopies(idCommunity.size() + 1, 0));
         buildGraph();
-    }
-
-    public void applyRefactorings(Map<String, String> refactorings) {
-        for (String entity : refactorings.keySet()) {
-            final String com = refactorings.get(entity);
-            if (!communityIds.containsKey(com)) {
-                communityIds.put(com, Integer.valueOf(communityIds.size() + 1));
-                idCommunity.add(com);
-            }
-            communityIds.put(entity, communityIds.get(com));
-        }
     }
 
     private void buildGraph() {
@@ -78,7 +69,9 @@ public class CCDA {
             final Set<String> neighbors = graph.getOrDefault(entity.getName(), new HashSet<>());
             final Set<PsiMethod> methods = properties.getAllMethods();
 
-            methods.stream().map(MethodUtils::calculateSignature).forEach(name -> addNode(name, entity, neighbors));
+            methods.stream()
+                    .map(PsiSearchUtil::getHumanReadableName)
+                    .forEach(name -> addNode(name, entity, neighbors));
 
             for (PsiField field : properties.getAllFields()) {
                 final PsiClass containingClass = field.getContainingClass();
@@ -90,9 +83,7 @@ public class CCDA {
                     continue;
                 }
 
-
-                final String qualifiedFieldName = containingClass.getQualifiedName() + "." + field.getName();
-                addNode(qualifiedFieldName, entity, neighbors);
+                addNode(getHumanReadableName(field), entity, neighbors);
             }
 
             graph.put(entity.getName(), neighbors);
@@ -113,12 +104,8 @@ public class CCDA {
             return;
         }
         neighbors.add(entityName);
-
-        if (!graph.containsKey(entityName)) {
-            graph.put(entityName, new HashSet<>());
-        }
-
-        graph.get(entityName).add(entity.getName());
+        graph.computeIfAbsent(entityName, k -> new HashSet())
+                .add(entity.getName());
     }
 
     public Map<String, String> run() {
@@ -126,31 +113,32 @@ public class CCDA {
         quality = calculateQualityIndex();
         System.out.println(quality);
 
-        double dq = 1.0;
+        double delta = 1.0;
         System.out.println("Running...");
-        while (dq > eps) {
-            dq = 0.0;
+        while (delta > eps) {
+            delta = 0.0;
             Entity targetEntity = null;
             int community = -1;
 
             for (Entity entity : nodes) {
+                final int currentCommunityID = communityIds.get(entity.getName());
                 for (int i = 1; i <= idCommunity.size(); ++i) {
-                    if (i == communityIds.get(entity.getName()).intValue()) {
+                    if (i == currentCommunityID) {
                         continue;
                     }
-                    final double curdq = move(entity, i, true);
-                    if (curdq > dq) {
-                        dq = curdq;
+                    final double currentDelta = move(entity, i, true);
+                    if (currentDelta > delta) {
+                        delta = currentDelta;
                         targetEntity = entity;
                         community = i;
                     }
                 }
             }
 
-            if (dq > eps) {
+            if (delta > eps) {
                 refactorings.put(targetEntity.getName(), idCommunity.get(community - 1));
                 move(targetEntity, community, false);
-                communityIds.put(targetEntity.getName(), Integer.valueOf(community));
+                communityIds.put(targetEntity.getName(), community);
 
                 System.out.println("move " + targetEntity.getName() + " to " + idCommunity.get(community - 1));
                 System.out.println("quality index is now: " + quality);
@@ -163,35 +151,35 @@ public class CCDA {
 
     private double move(Entity ent, int to, boolean rollback) {
         final String name = ent.getName();
-        final int from = communityIds.get(name).intValue();
+        final int from = communityIds.get(name);
         double dq = 0.0;
-        dq += Math.pow(aCoefficients.get(from).doubleValue() * 1.0 / edges, 2.0);
-        dq += Math.pow(aCoefficients.get(to).doubleValue() * 1.0 / edges, 2.0);
+        dq += Math.pow(aCoefficients.get(from) * 1.0 / edges, 2.0);
+        dq += Math.pow(aCoefficients.get(to) * 1.0 / edges, 2.0);
 
         int aFrom = 0;
         int aTo = 0;
         int de = 0;
 
         for (String neighbor : graph.get(name)) {
-            if (communityIds.get(neighbor).intValue() == from) {
+            if (communityIds.get(neighbor) == from) {
                 de--;
             } else {
                 aFrom++;
             }
 
-            if (communityIds.get(neighbor).intValue() == to) {
+            if (communityIds.get(neighbor) == to) {
                 de++;
             } else {
                 aTo++;
             }
         }
 
-        aFrom = aCoefficients.get(from).intValue() - aFrom;
-        aTo = aCoefficients.get(to).intValue() + aTo;
+        aFrom = aCoefficients.get(from) - aFrom;
+        aTo = aCoefficients.get(to) + aTo;
 
         if (!rollback) {
-            aCoefficients.add(from, Integer.valueOf(aFrom));
-            aCoefficients.add(to, Integer.valueOf(aTo));
+            aCoefficients.add(from, aFrom);
+            aCoefficients.add(to, aTo);
         }
 
         dq += (double) de * 1.0 / edges;
@@ -241,7 +229,7 @@ public class CCDA {
 
             e /= 2;
             a += e;
-            aCoefficients.add(i, Integer.valueOf(a));
+            aCoefficients.add(i, a);
             qualityIndex += ((double) e * 1.0 / edges) - Math.pow((double) a * 1.0 / edges, 2.0);
         }
 
