@@ -86,4 +86,8 @@ public final class PSIUtil {
 
         return allSupers;
     }
+
+    public static boolean isOverriding(PsiMethod method) {
+        return method.findSuperMethods().length != 0;
+    }
 }

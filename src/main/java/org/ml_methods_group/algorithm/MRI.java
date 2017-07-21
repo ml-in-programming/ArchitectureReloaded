@@ -64,7 +64,7 @@ public class MRI {
     @Nullable
     private Entity getNearestClass(Entity entity) {
         Entity candidateClass = null;
-        double minDist = Double.MAX_VALUE;
+        double minDist = Double.POSITIVE_INFINITY;
 
         for (Entity currentClass : entities) {
             if (currentClass.getCategory() == MetricCategory.Class) {
@@ -122,7 +122,7 @@ public class MRI {
             for (Entity entity : entities) {
                 final double dist = ent.distance(entity);
                 String d = "";
-                d = dist == Double.MAX_VALUE
+                d = dist == Double.POSITIVE_INFINITY
                         ? String.format("%1$" + maxLength + "s", "inf")
                         : String.format("  %." + (maxLength - 4) + "f", Double.valueOf(dist));
                 System.out.print(d);

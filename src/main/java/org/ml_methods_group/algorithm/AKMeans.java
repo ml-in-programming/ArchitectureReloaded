@@ -119,12 +119,12 @@ public class AKMeans {
     }
 
     private String findNearestCommunity(Entity entity) {
-        double minD = Double.MAX_VALUE;
+        double minD = Double.POSITIVE_INFINITY;
         String id = "";
         for (String center : communities.keySet()) {
             double d = distToCommunity(entity, center);
             if (!canMove(entity, center)) {
-                d = Double.MAX_VALUE;
+                d = Double.POSITIVE_INFINITY;
             }
             if (d < minD) {
                 minD = d;

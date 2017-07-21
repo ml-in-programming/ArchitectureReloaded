@@ -69,7 +69,7 @@ public abstract class Entity {
 
         final int rpIntersect = entity.relevantProperties.sizeOfIntersect(relevantProperties);
         if (rpIntersect == 0) {
-            return Double.MAX_VALUE;
+            return Double.POSITIVE_INFINITY;
         }
         ans += 2.0 * (1 - rpIntersect /
                 (1.0 * relevantProperties.size() + entity.relevantProperties.size() - rpIntersect));

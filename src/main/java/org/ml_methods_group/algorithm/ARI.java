@@ -16,106 +16,101 @@
 
 package org.ml_methods_group.algorithm;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMember;
 import com.sixrr.metrics.MetricCategory;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.MethodEntity;
 
 import java.util.*;
+import java.util.concurrent.*;
 
 public class ARI {
-    private final Map<String, Set<Entity>> communities = new HashMap<>();
-    private final Map<Entity, String> communityIds = new HashMap<>();
-    private final List<Entity> methodsAndFields;
+    private final List<Entity> units;
     private final List<ClassEntity> classEntities;
-    private final Set<PsiClass> psiClasses;
 
     public ARI(Iterable<Entity> entityList) {
-        methodsAndFields = new ArrayList<>();
+        units = new ArrayList<>();
         classEntities = new ArrayList<>();
-        psiClasses = new HashSet<>();
         for (Entity entity : entityList) {
             if (entity.getCategory() == MetricCategory.Class) {
                 classEntities.add((ClassEntity) entity);
-                psiClasses.add((PsiClass) entity.getPsiElement());
             } else {
-                methodsAndFields.add(entity);
+                units.add(entity);
             }
         }
     }
 
     public Map<String, String> run() {
+        final int preferredThreadsCount = Math.min(Runtime.getRuntime().availableProcessors() + 1,
+                units.size());
+        ExecutorService executor = Executors.newCachedThreadPool();
+        int blockSize = (units.size() - 1) / preferredThreadsCount + 1; // round up
+        List<Future<Map<String, String>>> futures = new ArrayList<>();
+        final int unitsCount = units.size();
+        for (int blockStart = 0; blockStart < unitsCount; blockStart += blockSize) {
+            final int blockEnd = Math.min(blockStart + blockSize, unitsCount);
+            final Worker worker = new Worker(units.subList(blockStart, blockEnd));
+            futures.add(executor.submit(worker));
+        }
         final Map<String, String> refactorings = new HashMap<>();
-
-        for (Entity method : methodsAndFields) {
-            double minD = Double.MAX_VALUE;
-            ClassEntity targetClass = null;
-
-            for (final ClassEntity classEntity : classEntities) {
-                if (method.getCategory() == MetricCategory.Method) {
-                    final PsiClass classFrom = ((PsiMember) method.getPsiElement()).getContainingClass();
-                    final PsiClass classTo = (PsiClass) classEntity.getPsiElement();
-
-                    final Set<PsiClass> supersTo = PSIUtil.getAllSupers(classTo, psiClasses);
-                    final Set<PsiClass> supersFrom = PSIUtil.getAllSupers(classFrom, psiClasses);
-
-                    if (supersTo.contains(classFrom) || supersFrom.contains(classTo)) {
-                        continue;
-                    }
-
-                    supersFrom.retainAll(supersTo);
-                    final boolean isOverride = supersFrom.stream()
-                            .flatMap(c -> Arrays.stream(c.getMethods()))
-                            .anyMatch(method::equals);
-
-                    if (isOverride) {
-                        continue;
-                    }
+        for (Future<Map<String, String>> future : futures) {
+            Map<String, String> currentResult = null;
+            do {
+                try {
+                    currentResult = future.get();
+                } catch (InterruptedException ignored) {
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                    currentResult = Collections.emptyMap();
                 }
-
-                final double distance = method.distance(classEntity);
-
-                if (distance < minD) {
-                    minD = distance;
-                    targetClass = classEntity;
-                }
-            }
-
-//            assert targetClass != null;
-
-            if (targetClass == null) {
-                System.out.println("!!!!! targetClass is null for " + method.getName());
-                // TODO: find out why are they null
-                continue;
-            }
-
-            if (communityIds.containsKey(targetClass)) {
-                putMethodOrField(method, targetClass);
-            } else {
-                createCommunity(method, targetClass);
-            }
-
-            System.out.println("Add " + method.getName() + " to " + targetClass.getName());
+            } while (currentResult == null);
+            refactorings.putAll(currentResult);
         }
-
-        for (Entity entity : methodsAndFields) {
-            if (!entity.getClassName().equals(communityIds.get(entity))) {
-                refactorings.put(entity.getName(), communityIds.get(entity));
-            }
-        }
-
+        executor.shutdown();
         return refactorings;
     }
 
-    private void createCommunity(Entity method, Entity cl) {
-        communityIds.put(cl, cl.getName());
-        communityIds.put(method, cl.getName());
-        communities.put(cl.getName(), new HashSet<>(Arrays.asList(method, cl)));
-    }
+    private class Worker implements Callable<Map<String, String>> {
+        private final List<Entity> units;
 
-    private void putMethodOrField(Entity method, Entity cl) {
-        communityIds.put(method, cl.getName());
-        communities.get(cl.getName()).add(method);
+        private Worker(List<Entity> units) {
+            this.units = units;
+        }
+
+        @Override
+        public Map<String, String> call() throws Exception {
+            final Map<String, String> refactorings = new HashMap<>();
+            for (Entity unit : units) {
+                double minDistance = Double.POSITIVE_INFINITY;
+                ClassEntity targetClass = null;
+
+                for (final ClassEntity classEntity : classEntities) {
+                    if (unit.getCategory() == MetricCategory.Method) {
+                        // todo check that its enough
+                        if (((MethodEntity) unit).isOverriding()) {
+                            continue;
+                        }
+                    }
+
+                    final double distance = unit.distance(classEntity);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        targetClass = classEntity;
+                    }
+                }
+
+                if (targetClass == null) {
+                    System.out.println("!!!!! targetClass is null for " + unit.getName());
+                    continue;
+                }
+
+                final String targetClassName = targetClass.getName();
+                if (!targetClassName.equals(unit.getClassName())) {
+                    refactorings.put(unit.getName(), targetClassName);
+                    System.out.println("Move " + unit.getName() + " to " + targetClassName);
+                }
+            }
+            return refactorings;
+        }
     }
 }

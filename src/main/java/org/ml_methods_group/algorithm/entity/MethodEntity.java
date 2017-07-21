@@ -16,17 +16,22 @@
 
 package org.ml_methods_group.algorithm.entity;
 
+import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
+import org.ml_methods_group.algorithm.PSIUtil;
 import org.ml_methods_group.algorithm.PropertiesFinder;
 
 import java.util.Arrays;
 import java.util.HashSet;
 
 public class MethodEntity extends Entity {
+    private final boolean isOverriding;
+
     public MethodEntity(String name, MetricsRunImpl metricsRun, PropertiesFinder propertiesFinder) {
         super(name, metricsRun, propertiesFinder);
+        isOverriding = PSIUtil.isOverriding((PsiMethod) getPsiElement());
     }
 
     @Override
@@ -61,5 +66,9 @@ public class MethodEntity extends Entity {
         final String signature = getName();
         final String name = signature.substring(0, signature.indexOf('('));
         return name.substring(0, name.lastIndexOf('.'));
+    }
+
+    public boolean isOverriding() {
+        return isOverriding;
     }
 }
