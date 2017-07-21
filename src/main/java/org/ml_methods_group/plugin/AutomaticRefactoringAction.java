@@ -39,6 +39,8 @@ import org.ml_methods_group.utils.MetricsProfilesUtil;
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 public class AutomaticRefactoringAction extends BaseAnalysisAction {
     private static final String REFACTORING_PROFILE_KEY = "refactoring.metrics.profile.name";
