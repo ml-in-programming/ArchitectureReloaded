@@ -37,6 +37,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
@@ -141,7 +144,9 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
     private Map<String, String> calculateARI() {
         final ARI algorithm = new ARI(entities);
         System.out.println("\nStarting ARI...");
-        final Map<String, String> refactorings = algorithm.run();
+        final int processorsCount = Runtime.getRuntime().availableProcessors();
+        ExecutorService service = Executors.newFixedThreadPool(processorsCount);
+        final Map<String, String> refactorings = algorithm.run(service, processorsCount);
         System.out.println("Finished ARI");
         for (String method : refactorings.keySet()) {
             System.out.println(method + " --> " + refactorings.get(method));

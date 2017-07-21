@@ -40,10 +40,8 @@ public class ARI {
         }
     }
 
-    public Map<String, String> run() {
-        final int preferredThreadsCount = Math.min(Runtime.getRuntime().availableProcessors() + 1,
-                units.size());
-        ExecutorService executor = Executors.newCachedThreadPool();
+    public Map<String, String> run(ExecutorService executor, int threadsAvailable) {
+        final int preferredThreadsCount = Math.min(threadsAvailable, units.size());
         int blockSize = (units.size() - 1) / preferredThreadsCount + 1; // round up
         List<Future<Map<String, String>>> futures = new ArrayList<>();
         final int unitsCount = units.size();

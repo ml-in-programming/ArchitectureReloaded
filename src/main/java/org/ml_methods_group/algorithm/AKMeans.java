@@ -20,6 +20,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.MethodEntity;
 
 import java.util.*;
 
@@ -92,7 +93,7 @@ public class AKMeans {
 
     private String receiveClassName(String center) {
         String name = "";
-        Integer maxClassCount = Integer.valueOf(0);
+        Integer maxClassCount = 0;
         final Map<String, Integer> classCounts = new HashMap<>();
         for (Entity entity : communities.get(center)) {
             final String className = entity.getClassName();
@@ -100,7 +101,7 @@ public class AKMeans {
                 classCounts.put(className, 0);
             }
 
-            classCounts.put(className, Integer.valueOf(classCounts.get(className) + 1));
+            classCounts.put(className, classCounts.get(className) + 1);
         }
 
         for (String className : classCounts.keySet()) {
@@ -151,7 +152,7 @@ public class AKMeans {
 
             final Set<PsiMethod> supers = PSIUtil.getAllSupers(component, allClasses);
             supers.retainAll(PSIUtil.getAllSupers(method));
-            if (!supers.isEmpty()) {
+            if (((MethodEntity) e).isOverriding()) {
                 return false;
             }
         }
