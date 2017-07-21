@@ -38,7 +38,9 @@ import java.awt.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class AutomaticRefactoringAction extends BaseAnalysisAction {
     private Map<String, Map<String, String>> refactorings = new HashMap<>();
@@ -76,7 +78,6 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
 
     private void calculateRefactorings(@NotNull RefactoringExecutionContext context, boolean ignoreSelection) {
-        refactorings.clear();
         final Set<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
         for (String algorithm : RefactoringExecutionContext.getAvailableAlgorithms()) {
             if (ignoreSelection || selectedAlgorithms.contains(algorithm)) {
@@ -87,10 +88,15 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     private void showRefactoringsDialog(@NotNull RefactoringExecutionContext context) {
         calculateRefactorings(context, false);
+        final Set<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
         ServiceManager.getService(context.getProject(), MetricsToolWindow.class)
                 .show(context.getMetricsRun(), context.getProfile(), context.getScope(), false);
+        final Map<String, Map<String, String>> requestedRefactorings = refactorings.entrySet()
+                .stream()
+                .filter(e -> selectedAlgorithms.contains(e.getKey()))
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
         ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
-                .show(Collections.unmodifiableMap(refactorings), context.getScope());
+                .show(requestedRefactorings, context.getScope());
     }
 
     private static Map<String, String> findRefactorings(String algorithm, RefactoringExecutionContext context) {
