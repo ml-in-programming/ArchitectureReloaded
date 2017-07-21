@@ -89,10 +89,15 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     private void showRefactoringsDialog(@NotNull RefactoringExecutionContext context) {
         calculateRefactorings(context, false);
+        final Set<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
         ServiceManager.getService(context.getProject(), MetricsToolWindow.class)
                 .show(context.getMetricsRun(), context.getProfile(), context.getScope(), false);
+        final Map<String, Map<String, String>> requestedRefactorings = refactorings.entrySet()
+                .stream()
+                .filter(e -> selectedAlgorithms.contains(e.getKey()))
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
         ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
-                .show(Collections.unmodifiableMap(refactorings), context.getScope());
+                .show(requestedRefactorings, context.getScope());
     }
 
     private static void checkRefactoringProfile() {
