@@ -38,8 +38,8 @@ public class CCDA extends Algorithm {
     private double edges;
     private static final double eps = 5e-4;
 
-    public CCDA() {
-        super("CCDA", false);
+    public CCDA() { // 195, 21 secs on folder
+        super("CCDA", true);
 
     }
 
@@ -50,21 +50,16 @@ public class CCDA extends Algorithm {
         nodes.clear();
         aCoefficients.clear();
         quality = 0.0;
-
-        for (Entity ent : entities) {
-            if (ent.getCategory() == MetricCategory.Class) {
-                communityIds.put(ent.getName(), communityIds.size() + 1);
-                idCommunity.add(ent.getName());
-            }
-        }
-
-        for (Entity ent : entities) {
-            if (ent.getCategory() != MetricCategory.Class && communityIds.containsKey(ent.getClassName())) {
-                nodes.add(ent);
-                communityIds.put(ent.getName(), communityIds.get(ent.getClassName()));
-            }
-        }
-
+        entities.stream()
+                .filter(entity -> entity.getCategory() == MetricCategory.Class)
+                .peek(entity -> communityIds.put(entity.getName(), communityIds.size() + 1))
+                .map(Entity::getName)
+                .forEach(idCommunity::add);
+        entities.stream()
+                .filter(entity -> entity.getCategory() != MetricCategory.Class)
+                .filter(entity -> communityIds.containsKey(entity.getClassName()))
+                .peek(entity -> communityIds.put(entity.getName(), communityIds.get(entity.getClassName())))
+                .forEach(nodes::add);
         aCoefficients.addAll(Collections.nCopies(idCommunity.size() + 1, 0));
         buildGraph();
     }
@@ -83,7 +78,6 @@ public class CCDA extends Algorithm {
             for (PsiField field : properties.getAllFields()) {
                 final PsiClass containingClass = field.getContainingClass();
 
-//                assert containingClass != null;
                 if (containingClass == null) {
                     System.out.println("!!!!!!! containingClass is null for " + field.getName());
                     // TODO: find out why are they null
@@ -121,40 +115,48 @@ public class CCDA extends Algorithm {
         quality = calculateQualityIndex();
         System.out.println(quality);
 
-        double delta = 1.0;
         System.out.println("Running...");
-        while (delta > eps) {
-            delta = 0.0;
-            Entity targetEntity = null;
-            int community = -1;
-
-            for (Entity entity : nodes) {
-                final int currentCommunityID = communityIds.get(entity.getName());
-                for (int i = 1; i <= idCommunity.size(); ++i) {
-                    if (i == currentCommunityID) {
-                        continue;
-                    }
-                    final double currentDelta = move(entity, i, true);
-                    if (currentDelta > delta) {
-                        delta = currentDelta;
-                        targetEntity = entity;
-                        community = i;
-                    }
-                }
+        while (true) {
+            final Holder optimum = runParallel(nodes, context, Holder::new, this::attempt, this::max);
+            if (optimum.delta <= eps) {
+                break;
             }
+            refactorings.put(optimum.targetEntity.getName(), idCommunity.get(optimum.community - 1));
+            move(optimum.targetEntity, optimum.community, false);
+            communityIds.put(optimum.targetEntity.getName(), optimum.community);
 
-            if (delta > eps) {
-                refactorings.put(targetEntity.getName(), idCommunity.get(community - 1));
-                move(targetEntity, community, false);
-                communityIds.put(targetEntity.getName(), community);
-
-                System.out.println("move " + targetEntity.getName() + " to " + idCommunity.get(community - 1));
-                System.out.println("quality index is now: " + quality);
-                System.out.println();
-            }
+            System.out.println("move " + optimum.targetEntity.getName() + " to " + idCommunity.get(optimum.community - 1));
+            System.out.println("quality index is now: " + quality);
+            System.out.println();
         }
 
         return refactorings;
+    }
+
+    private Holder attempt(Entity entity, Holder optimum) {
+        final int currentCommunityID = communityIds.get(entity.getName());
+        for (int i = 1; i <= idCommunity.size(); ++i) {
+            if (i == currentCommunityID) {
+                continue;
+            }
+            final double delta = move(entity, i, true);
+            if (delta >= optimum.delta) {
+                optimum.delta = delta;
+                optimum.targetEntity = entity;
+                optimum.community = i;
+            }
+        }
+        return optimum;
+    }
+
+    private class Holder {
+        private double delta = 0;
+        private Entity targetEntity;
+        private int community = -1;
+    }
+
+    private Holder max(Holder first, Holder second) {
+        return first.delta >= second.delta ? first : second;
     }
 
     private double move(Entity ent, int to, boolean rollback) {
