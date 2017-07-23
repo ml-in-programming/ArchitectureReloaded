@@ -24,16 +24,18 @@ import com.sixrr.metrics.MetricCategory;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.Entity;
 
-public class MRI {
+public class MRI extends Algorithm {
     private final List<Entity> entities;
     private final Set<PsiClass> allClasses;
 
     public MRI(List<Entity> entityList, Set<PsiClass> existingClasses) {
+        super("MRI", false);
         entities = entityList;
         allClasses = existingClasses;
     }
 
-    public Map<String, String> run() {
+    @Override
+    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
         final Map<String, String> refactorings = new HashMap<>();
 
         for (Entity currentEntity : entities) {

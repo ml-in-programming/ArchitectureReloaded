@@ -23,13 +23,14 @@ import org.ml_methods_group.algorithm.entity.Entity;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class HAC {
+public class HAC extends Algorithm {
     private final SortedSet<Triple> heap = new TreeSet<>();
     private final Set<Community> communities = new HashSet<>();
     private long idGenerator = 0;
     private int newClassCount = 0;
 
     public HAC(Collection<Entity> entityList) {
+        super("HAC", false);
         entityList.stream()
                 .map(Community::new)
                 .forEach(communities::add);
@@ -46,7 +47,7 @@ public class HAC {
         }
     }
 
-    public Map<String, String> run() {
+    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
         final Map<String, String> refactorings = new HashMap<>();
 
         while (!heap.isEmpty()) {

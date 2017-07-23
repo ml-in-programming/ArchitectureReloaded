@@ -27,7 +27,7 @@ import java.util.*;
 
 import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
-public class CCDA {
+public class CCDA extends Algorithm {
     private final Map<String, Integer> communityIds;
     private final List<String> idCommunity;
     private final List<Integer> aCoefficients;
@@ -39,6 +39,7 @@ public class CCDA {
     private static final double eps = 5e-4;
 
     public CCDA(Iterable<Entity> entities) {
+        super("CCDA", false);
         communityIds = new HashMap<>();
         idCommunity = new ArrayList<>();
         nodes = new ArrayList<>();
@@ -108,7 +109,8 @@ public class CCDA {
                 .add(entity.getName());
     }
 
-    public Map<String, String> run() {
+    @Override
+    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
         final Map<String, String> refactorings = new HashMap<>();
         quality = calculateQualityIndex();
         System.out.println(quality);

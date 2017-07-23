@@ -21,14 +21,17 @@ import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.MethodEntity;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class ARI {
+public class ARI extends Algorithm {
     private final List<Entity> units;
     private final List<ClassEntity> classEntities;
 
     public ARI(Iterable<Entity> entityList) {
+        super("ARI", true);
         units = new ArrayList<>();
         classEntities = new ArrayList<>();
         for (Entity entity : entityList) {
@@ -40,75 +43,41 @@ public class ARI {
         }
     }
 
-    public Map<String, String> run(ExecutorService executor, int threadsAvailable) {
-        final int preferredThreadsCount = Math.min(threadsAvailable, units.size());
-        int blockSize = (units.size() - 1) / preferredThreadsCount + 1; // round up
-        List<Future<Map<String, String>>> futures = new ArrayList<>();
-        final int unitsCount = units.size();
-        for (int blockStart = 0; blockStart < unitsCount; blockStart += blockSize) {
-            final int blockEnd = Math.min(blockStart + blockSize, unitsCount);
-            final Worker worker = new Worker(units.subList(blockStart, blockEnd));
-            futures.add(executor.submit(worker));
-        }
-        final Map<String, String> refactorings = new HashMap<>();
-        for (Future<Map<String, String>> future : futures) {
-            Map<String, String> currentResult = null;
-            do {
-                try {
-                    currentResult = future.get();
-                } catch (InterruptedException ignored) {
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                    currentResult = Collections.emptyMap();
-                }
-            } while (currentResult == null);
-            refactorings.putAll(currentResult);
-        }
-        executor.shutdown();
-        return refactorings;
+    @Override
+    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+        return runParallel(units, context, HashMap<String, String>::new, this::findRefactoring, this::combineMaps);
     }
 
-    private class Worker implements Callable<Map<String, String>> {
-        private final List<Entity> units;
+    private <K, V> Map<K, V> combineMaps(Map<K, V> first, Map<K, V> second) {
+        first.putAll(second);
+        return first;
+    }
 
-        private Worker(List<Entity> units) {
-            this.units = units;
+    private Map<String, String> findRefactoring(Entity entity, Map<String, String> accumulator) {
+        if (entity.getCategory() == MetricCategory.Method && ((MethodEntity) entity).isOverriding()) {
+            return accumulator;
         }
+        double minDistance = Double.POSITIVE_INFINITY;
+        ClassEntity targetClass = null;
 
-        @Override
-        public Map<String, String> call() throws Exception {
-            final Map<String, String> refactorings = new HashMap<>();
-            for (Entity unit : units) {
-                double minDistance = Double.POSITIVE_INFINITY;
-                ClassEntity targetClass = null;
+        for (final ClassEntity classEntity : classEntities) {
 
-                for (final ClassEntity classEntity : classEntities) {
-                    if (unit.getCategory() == MetricCategory.Method) {
-                        // todo check that its enough
-                        if (((MethodEntity) unit).isOverriding()) {
-                            continue;
-                        }
-                    }
-
-                    final double distance = unit.distance(classEntity);
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        targetClass = classEntity;
-                    }
-                }
-
-                if (targetClass == null) {
-                    System.out.println("!!!!! targetClass is null for " + unit.getName());
-                    continue;
-                }
-
-                final String targetClassName = targetClass.getName();
-                if (!targetClassName.equals(unit.getClassName())) {
-                    refactorings.put(unit.getName(), targetClassName);
-                    System.out.println("Move " + unit.getName() + " to " + targetClassName);
-                }
+            final double distance = entity.distance(classEntity);
+            if (distance < minDistance) {
+                minDistance = distance;
+                targetClass = classEntity;
             }
-            return refactorings;
         }
+
+        if (targetClass == null) {
+            System.out.println("Warning (ARI): targetClass is null for " + entity.getName());
+            return accumulator;
+        }
+
+        final String targetClassName = targetClass.getName();
+        if (!targetClassName.equals(entity.getClassName())) {
+            accumulator.put(entity.getName(), targetClassName);
+        }
+        return accumulator;
     }
 }

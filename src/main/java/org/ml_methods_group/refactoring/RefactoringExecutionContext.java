@@ -141,70 +141,75 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
     }
 
     @NotNull
-    private Map<String, String> calculateARI() {
+    private AlgorithmResult calculateARI() {
         final ARI algorithm = new ARI(entities);
         System.out.println("\nStarting ARI...");
         final int processorsCount = Runtime.getRuntime().availableProcessors();
         ExecutorService service = Executors.newFixedThreadPool(processorsCount);
-        final Map<String, String> refactorings = algorithm.run(service, processorsCount);
+        final AlgorithmResult result = algorithm.execute(service);
         System.out.println("Finished ARI");
+        final Map<String, String> refactorings = result.getRefactorings();
         for (String method : refactorings.keySet()) {
             System.out.println(method + " --> " + refactorings.get(method));
         }
-        return refactorings;
+        return algorithm.execute(service);
     }
 
     @NotNull
-    private Map<String, String> calculateHAC() {
+    private AlgorithmResult calculateHAC() {
         final HAC algorithm = new HAC(entities);
         System.out.println("\nStarting HAC...");
-        final Map<String, String> refactorings = algorithm.run();
+        final AlgorithmResult result = algorithm.execute(null);
+        final Map<String, String> refactorings = result.getRefactorings();
         System.out.println("Finished HAC");
         for (String method : refactorings.keySet()) {
             System.out.println(method + " --> " + refactorings.get(method));
         }
-        return refactorings;
+        return result;
     }
 
     @NotNull
-    private Map<String, String> calculateAKMeans() {
+    private AlgorithmResult calculateAKMeans() {
         final AKMeans algorithm = new AKMeans(entities, 50);
         System.out.println("\nStarting AKMeans...");
-        final Map<String, String> refactorings = algorithm.run();
+        final AlgorithmResult result = algorithm.execute(null);
+        final Map<String, String> refactorings = result.getRefactorings();
         System.out.println("Finished AKMeans");
         for (String method : refactorings.keySet()) {
             System.out.println(method + " --> " + refactorings.get(method));
         }
-        return refactorings;
+        return result;
     }
 
     @NotNull
-    private Map<String, String> calculateMRI() {
+    private AlgorithmResult calculateMRI() {
         final MRI algorithm = new MRI(entities, properties.getAllClasses());
         System.out.println("\nStarting MMRI...");
-        final Map<String, String> refactorings = algorithm.run();
+        final AlgorithmResult result = algorithm.execute(null);
+        final Map<String, String> refactorings = result.getRefactorings();
         System.out.println("Finished MMRI");
         for (String method : refactorings.keySet()) {
             System.out.println(method + " --> " + refactorings.get(method));
         }
-        return refactorings;
+        return result;
     }
 
     @NotNull
-    private Map<String, String> calculateCCDA() {
+    private AlgorithmResult calculateCCDA() {
         final CCDA algorithm = new CCDA(entities);
         System.out.println("Starting CCDA...");
         System.out.println(algorithm.calculateQualityIndex());
-        final Map<String, String> refactorings = algorithm.run();
+        final AlgorithmResult result = algorithm.execute(null);
+        final Map<String, String> refactorings = result.getRefactorings();
         System.out.println("Finished CCDA\n");
         for (String ent : refactorings.keySet()) {
             System.out.println(ent + " --> " + refactorings.get(ent));
         }
-        return refactorings;
+        return result;
     }
 
     @NotNull
-    public Map<String, String> calculateAlgorithmForName(String algorithm) {
+    public AlgorithmResult calculateAlgorithmForName(String algorithm) {
         switch (algorithm) {
             case "ARI":
                 return calculateARI();

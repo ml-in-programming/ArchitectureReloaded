@@ -24,8 +24,9 @@ import org.ml_methods_group.algorithm.entity.MethodEntity;
 
 import java.util.*;
 
-public class AKMeans {
+public class AKMeans extends Algorithm {
     public AKMeans(Iterable<Entity> entityList, int steps) {
+        super("AKMeans", false);
         this.steps = steps;
         for (Entity e : entityList) {
             if (e.getCategory() != MetricCategory.Class) {
@@ -48,7 +49,8 @@ public class AKMeans {
         }
     }
 
-    public Map<String, String> run() {
+    @Override
+    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
         final Map<String, String> refactorings = new HashMap<>();
         initializeCenters();
 

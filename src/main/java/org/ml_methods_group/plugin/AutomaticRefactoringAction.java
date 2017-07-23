@@ -115,7 +115,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     private static Map<String, String> findRefactorings(String algorithm, RefactoringExecutionContext context) {
         try {
-            return context.calculateAlgorithmForName(algorithm);
+            return context.calculateAlgorithmForName(algorithm).getRefactorings();
         } catch (Exception e) {
             e.printStackTrace();
         }
