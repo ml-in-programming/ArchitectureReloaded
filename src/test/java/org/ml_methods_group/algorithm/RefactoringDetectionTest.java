@@ -62,12 +62,14 @@ public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
         assertEquals(6, context.getMethodsCount());
         assertEquals(4, context.getFieldsCount());
 
-        final Map<String, String> refactoringsCCDA = context.calculateAlgorithmForName("CCDA");
+        final Map<String, String> refactoringsCCDA = context.calculateAlgorithmForName("CCDA")
+                .getRefactorings();
         assertEquals(1, refactoringsCCDA.size());
         assertEquals("ClassB.methodB1()", refactoringsCCDA.keySet().toArray()[0]);
         assertEquals("ClassA", refactoringsCCDA.get("ClassB.methodB1()"));
 
-        final Map<String, String> refactoringsMRI = context.calculateAlgorithmForName("MRI");
+        final Map<String, String> refactoringsMRI = context.calculateAlgorithmForName("MRI")
+                .getRefactorings();
         assertEquals(1, refactoringsMRI.size());
         assertEquals("ClassB.methodB1()", refactoringsMRI.keySet().toArray()[0]);
         assertEquals("ClassA", refactoringsMRI.get("ClassB.methodB1()"));
@@ -88,7 +90,8 @@ public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
 //
 //        assertEquals(new HashSet(Collections.singletonList("ClassB.methodB1()")), common);
 
-        final Map<String, String> refactoringsAKMeans = context.calculateAlgorithmForName("AKMeans");
+        final Map<String, String> refactoringsAKMeans = context.calculateAlgorithmForName("AKMeans")
+                .getRefactorings();
 
 //        Set<String> refactoringsARIEC = new HashSet<>(refactoringsAKMeans.keySet());
 //        refactoringsARIEC.retainAll(refactoringsMRI.keySet());
@@ -106,13 +109,15 @@ public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
         // TODO: make AKMeans more deterministic somehow and get some assertions here
 //        assertEquals(new HashSet(Collections.singletonList("ClassB.methodB1()")), refactoringsARIEC);
 
-        final Map<String, String> refactoringsHAC = context.calculateAlgorithmForName("HAC");
+        final Map<String, String> refactoringsHAC = context.calculateAlgorithmForName("HAC")
+                .getRefactorings();
 
         final Map<String, String> expectedHAC = new HashMap<>();
         expectedHAC.put("ClassB.methodB1()", "ClassA");
         assertEquals(expectedHAC, refactoringsHAC);
 
-        final Map<String, String> refactoringsARI =context.calculateAlgorithmForName("ARI");
+        final Map<String, String> refactoringsARI =context.calculateAlgorithmForName("ARI")
+                .getRefactorings();
         assertEquals(expectedHAC, refactoringsARI);
     }
 }

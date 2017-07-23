@@ -19,7 +19,6 @@ package org.ml_methods_group.algorithm;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -45,12 +44,17 @@ public abstract class Algorithm {
     public final AlgorithmResult execute(ExecutorService service) {
         final long startTime = System.currentTimeMillis();
         final ExecutionContext context = new ExecutionContext(isParallelExecution ? requireNonNull(service) : null);
-        final Map<String, String> refactorings = calculateRefactorings(context);
+        final Map<String, String> refactorings;
+        try {
+            refactorings = calculateRefactorings(context);
+        } catch (Exception e) {
+            return new AlgorithmResult(name, e);
+        }
         final long totalTime = System.currentTimeMillis() - startTime;
         return new AlgorithmResult(refactorings, name, totalTime, context.usedThreads);
     }
 
-    protected abstract Map<String, String> calculateRefactorings(ExecutionContext context);
+    protected abstract Map<String, String> calculateRefactorings(ExecutionContext context) throws Exception;
 
     protected final <A, V> A runParallel(List<V> values, ExecutionContext context, Supplier<A> accumulatorFactory,
                                             BiFunction<V, A, A> processor, BinaryOperator<A> combiner) {

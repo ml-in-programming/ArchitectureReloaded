@@ -28,6 +28,7 @@ import com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.ml_methods_group.algorithm.AlgorithmResult;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.config.ArchitectureReloadedConfig;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
@@ -39,13 +40,14 @@ import org.ml_methods_group.utils.MetricsProfilesUtil;
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 public class AutomaticRefactoringAction extends BaseAnalysisAction {
     private static final String REFACTORING_PROFILE_KEY = "refactoring.metrics.profile.name";
 
-    private Map<String, Map<String, String>> refactorings = new HashMap<>();
+    private Map<String, AlgorithmResult> refactorings = new HashMap<>();
 
     public AutomaticRefactoringAction() {
         super(MetricsReloadedBundle.message("metrics.calculation"), MetricsReloadedBundle.message("metrics"));
@@ -84,7 +86,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         final Set<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
         for (String algorithm : RefactoringExecutionContext.getAvailableAlgorithms()) {
             if (ignoreSelection || selectedAlgorithms.contains(algorithm)) {
-                refactorings.put(algorithm, findRefactorings(algorithm, context));
+                refactorings.put(algorithm, context.calculateAlgorithmForName(algorithm));
             }
         }
     }
@@ -94,12 +96,12 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         final Set<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
         ServiceManager.getService(context.getProject(), MetricsToolWindow.class)
                 .show(context.getMetricsRun(), context.getProfile(), context.getScope(), false);
-        final Map<String, Map<String, String>> requestedRefactorings = refactorings.entrySet()
+        final List<AlgorithmResult> results = refactorings.values()
                 .stream()
-                .filter(e -> selectedAlgorithms.contains(e.getKey()))
-                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+                .filter(e -> selectedAlgorithms.contains(e.getAlgorithmName()))
+                .collect(Collectors.toList());
         ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
-                .show(requestedRefactorings, context.getScope());
+                .show(results, context.getScope());
     }
 
     private static void checkRefactoringProfile() {
@@ -113,14 +115,6 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         repository.addProfile(MetricsProfilesUtil.createProfile(profileName, requestedSet));
     }
 
-    private static Map<String, String> findRefactorings(String algorithm, RefactoringExecutionContext context) {
-        try {
-            return context.calculateAlgorithmForName(algorithm).getRefactorings();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return Collections.emptyMap();
-    }
 
     @NotNull
     public Set<String> calculatedAlgorithms() {
@@ -132,7 +126,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         if (!refactorings.containsKey(algorithm)) {
             throw new IllegalArgumentException("Uncalculated algorithm requested: " + algorithm);
         }
-        return refactorings.get(algorithm);
+        return refactorings.get(algorithm).getRefactorings();
     }
 
     @Override

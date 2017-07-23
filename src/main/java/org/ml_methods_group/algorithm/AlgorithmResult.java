@@ -16,6 +16,9 @@
 
 package org.ml_methods_group.algorithm;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collections;
 import java.util.Map;
 
@@ -24,12 +27,23 @@ public class AlgorithmResult {
     private final String algorithmName;
     private final long executionTime;
     private final int threadUsed;
+    private final Exception exception;
 
-    public AlgorithmResult(Map<String, String> refactorings, String algorithmName, long executionTime, int threadUsed) {
+    AlgorithmResult(@NotNull Map<String, String> refactorings, String algorithmName, long executionTime,
+                    int threadUsed) {
         this.refactorings = refactorings;
         this.algorithmName = algorithmName;
         this.executionTime = executionTime;
         this.threadUsed = threadUsed;
+        this.exception = null;
+    }
+
+    AlgorithmResult(String algorithmName, @NotNull Exception exception) {
+        this.refactorings = Collections.emptyMap();
+        this.algorithmName = algorithmName;
+        this.executionTime = 0;
+        this.threadUsed = 0;
+        this.exception = exception;
     }
 
     public Map<String, String> getRefactorings() {
@@ -46,5 +60,14 @@ public class AlgorithmResult {
 
     public int getThreadUsed() {
         return threadUsed;
+    }
+
+    @Nullable
+    public Exception getException() {
+        return exception;
+    }
+
+    public boolean isSuccess() {
+        return exception == null;
     }
 }
