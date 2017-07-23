@@ -33,16 +33,15 @@ import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.FieldEntity;
 import org.ml_methods_group.algorithm.entity.MethodEntity;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
-    private static final String[] ALGORITHMS = {"ARI", "HAC", "CCDA", "MRI", "AKMeans"};
+    private static final List<Class<? extends Algorithm>> ALGORITHMS = Arrays.asList(ARI.class, AKMeans.class,
+            CCDA.class, HAC.class, MRI.class);
 
     @NotNull
     private final MetricsRunImpl metricsRun = new MetricsRunImpl();
@@ -53,6 +52,8 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
     @Nullable
     private final Consumer<RefactoringExecutionContext> continuation;
     private final List<Entity> entities = new ArrayList<>();
+    @NotNull
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
     private int classCount = 0;
     private int methodsCount = 0;
     private int fieldsCount = 0;
@@ -139,67 +140,21 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
         }
     }
 
-    @NotNull
-    private AlgorithmResult calculateARI() {
-        final ARI algorithm = new ARI();
-        System.out.println("\nStarting ARI...");
-        final int processorsCount = Runtime.getRuntime().availableProcessors();
-        ExecutorService service = Executors.newFixedThreadPool(processorsCount);
-        final AlgorithmResult result = algorithm.execute(entities, service);
-        System.out.println("Finished ARI");
-        final Map<String, String> refactorings = result.getRefactorings();
-        for (String method : refactorings.keySet()) {
-            System.out.println(method + " --> " + refactorings.get(method));
+    private static Algorithm createInstance(Class<? extends Algorithm> algorithmClass) {
+        try {
+            return algorithmClass.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create instance of algorithm", e);
         }
-        return result;
     }
 
     @NotNull
-    private AlgorithmResult calculateHAC() {
-        final HAC algorithm = new HAC();
-        System.out.println("\nStarting HAC...");
-        final AlgorithmResult result = algorithm.execute(entities, null);
+    private AlgorithmResult calculate(Class<? extends Algorithm> algorithmClass) {
+        final Algorithm algorithm = createInstance(algorithmClass);
+        System.out.println("Starting " + algorithmClass.getSimpleName() + "...");
+        final AlgorithmResult result = algorithm.execute(entities, executorService);
         final Map<String, String> refactorings = result.getRefactorings();
-        System.out.println("Finished HAC");
-        for (String method : refactorings.keySet()) {
-            System.out.println(method + " --> " + refactorings.get(method));
-        }
-        return result;
-    }
-
-    @NotNull
-    private AlgorithmResult calculateAKMeans() {
-        final AKMeans algorithm = new AKMeans(50);
-        System.out.println("\nStarting AKMeans...");
-        final AlgorithmResult result = algorithm.execute(entities, null);
-        final Map<String, String> refactorings = result.getRefactorings();
-        System.out.println("Finished AKMeans");
-        for (String method : refactorings.keySet()) {
-            System.out.println(method + " --> " + refactorings.get(method));
-        }
-        return result;
-    }
-
-    @NotNull
-    private AlgorithmResult calculateMRI() {
-        final MRI algorithm = new MRI();
-        System.out.println("\nStarting MMRI...");
-        final AlgorithmResult result = algorithm.execute(entities, null);
-        final Map<String, String> refactorings = result.getRefactorings();
-        System.out.println("Finished MMRI");
-        for (String method : refactorings.keySet()) {
-            System.out.println(method + " --> " + refactorings.get(method));
-        }
-        return result;
-    }
-
-    @NotNull
-    private AlgorithmResult calculateCCDA() {
-        final CCDA algorithm = new CCDA();
-        System.out.println("Starting CCDA...");
-        final AlgorithmResult result = algorithm.execute(entities, null);
-        final Map<String, String> refactorings = result.getRefactorings();
-        System.out.println("Finished CCDA\n");
+        System.out.println("Finished " + algorithmClass.getSimpleName() + "\n");
         for (String ent : refactorings.keySet()) {
             System.out.println(ent + " --> " + refactorings.get(ent));
         }
@@ -208,20 +163,12 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
 
     @NotNull
     public AlgorithmResult calculateAlgorithmForName(String algorithm) {
-        switch (algorithm) {
-            case "ARI":
-                return calculateARI();
-            case "HAC":
-                return calculateHAC();
-            case "CCDA":
-                return calculateCCDA();
-            case "MRI":
-                return calculateMRI();
-            case "AKMeans":
-                return calculateAKMeans();
-            default:
-                throw new IllegalArgumentException("Unknown algorithm: " + algorithm);
+        for (Class<? extends Algorithm> algorithmClass : ALGORITHMS) {
+            if (algorithm.equals(algorithmClass.getSimpleName())) {
+                return calculate(algorithmClass);
+            }
         }
+        throw new IllegalArgumentException("Unknown algorithm: " + algorithm);
     }
 
     public int getClassCount() {
@@ -247,6 +194,8 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
     }
 
     public static String[] getAvailableAlgorithms() {
-        return ALGORITHMS.clone();
+        return ALGORITHMS.stream()
+                .map(Class::getSimpleName)
+                .toArray(String[]::new);
     }
 }
