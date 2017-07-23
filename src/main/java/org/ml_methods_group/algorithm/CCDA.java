@@ -38,13 +38,13 @@ public class CCDA extends Algorithm {
     private double edges;
     private static final double eps = 5e-4;
 
-    protected CCDA() {
+    public CCDA() {
         super("CCDA", false);
 
     }
 
     @Override
-    public void setData(Collection<Entity> entities) {
+    protected void setData(Collection<Entity> entities) {
         communityIds.clear();
         idCommunity.clear();
         nodes.clear();
