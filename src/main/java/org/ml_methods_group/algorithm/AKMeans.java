@@ -25,10 +25,32 @@ import org.ml_methods_group.algorithm.entity.MethodEntity;
 import java.util.*;
 
 public class AKMeans extends Algorithm {
-    public AKMeans(Iterable<Entity> entityList, int steps) {
+    private final List<Entity> points = new ArrayList<>();
+    private final Map<String, Set<Entity>> communities = new HashMap<>();
+    private final Map<Entity, String> communityIds = new HashMap<>();
+    private final Set<PsiClass> allClasses = new HashSet<>();
+    private final int steps;
+    private int numberOfClasses = 0;
+    private int newClassCount = 0;
+
+    public AKMeans(int steps) {
         super("AKMeans", false);
         this.steps = steps;
-        for (Entity e : entityList) {
+    }
+
+    public AKMeans() {
+        this(50);
+    }
+
+    @Override
+    protected void setData(Collection<Entity> entities) {
+        points.clear();
+        communities.clear();
+        communityIds.clear();
+        allClasses.clear();
+        newClassCount = 0;
+        numberOfClasses = 0;
+        for (Entity e : entities) {
             if (e.getCategory() != MetricCategory.Class) {
                 points.add(e);
                 communityIds.put(e, "");
@@ -176,12 +198,4 @@ public class AKMeans extends Algorithm {
         communities.get(id).add(entity);
         communityIds.put(entity, id);
     }
-
-    private final List<Entity> points = new ArrayList<>();
-    private final Map<String, Set<Entity>> communities = new HashMap<>();
-    private final Map<Entity, String> communityIds = new HashMap<>();
-    private final Set<PsiClass> allClasses = new HashSet<>();
-    private int numberOfClasses = 0;
-    private int steps = 0;
-    private int newClassCount = 0;
 }

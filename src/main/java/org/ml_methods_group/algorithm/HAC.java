@@ -29,9 +29,17 @@ public class HAC extends Algorithm {
     private long idGenerator = 0;
     private int newClassCount = 0;
 
-    public HAC(Collection<Entity> entityList) {
+    public HAC() {
         super("HAC", false);
-        entityList.stream()
+    }
+
+    @Override
+    protected void setData(Collection<Entity> entities) {
+        heap.clear();
+        communities.clear();
+        idGenerator = 0;
+        newClassCount = 0;
+        entities.stream()
                 .map(Community::new)
                 .forEach(communities::add);
 

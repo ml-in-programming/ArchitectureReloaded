@@ -28,21 +28,27 @@ import java.util.*;
 import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
 public class CCDA extends Algorithm {
-    private final Map<String, Integer> communityIds;
-    private final List<String> idCommunity;
-    private final List<Integer> aCoefficients;
-    private Map<String, Set<String>> graph;
-    private final List<Entity> nodes;
+    private final Map<String, Integer> communityIds = new HashMap<>();
+    private final List<String> idCommunity = new ArrayList<>();
+    private final List<Integer> aCoefficients = new ArrayList<>();
+    private final List<Entity> nodes = new ArrayList<>();
+    private final Map<String, Set<String>> graph = new HashMap<>();
 
     private double quality;
     private double edges;
     private static final double eps = 5e-4;
 
-    public CCDA(Iterable<Entity> entities) {
+    protected CCDA() {
         super("CCDA", false);
-        communityIds = new HashMap<>();
-        idCommunity = new ArrayList<>();
-        nodes = new ArrayList<>();
+
+    }
+
+    @Override
+    public void setData(Collection<Entity> entities) {
+        communityIds.clear();
+        idCommunity.clear();
+        nodes.clear();
+        aCoefficients.clear();
         quality = 0.0;
 
         for (Entity ent : entities) {
@@ -59,12 +65,12 @@ public class CCDA extends Algorithm {
             }
         }
 
-        aCoefficients = new ArrayList<>(Collections.nCopies(idCommunity.size() + 1, 0));
+        aCoefficients.addAll(Collections.nCopies(idCommunity.size() + 1, 0));
         buildGraph();
     }
 
     private void buildGraph() {
-        graph = new HashMap<>();
+        graph.clear();
         for (Entity entity : nodes) {
             final RelevantProperties properties = entity.getRelevantProperties();
             final Set<String> neighbors = graph.getOrDefault(entity.getName(), new HashSet<>());
@@ -195,7 +201,7 @@ public class CCDA extends Algorithm {
         return dq;
     }
 
-    public double calculateQualityIndex() {
+    private double calculateQualityIndex() {
         System.out.println("Calculating Q...");
         double qualityIndex = 0.0;
 

@@ -16,7 +16,10 @@
 
 package org.ml_methods_group.algorithm;
 
+import org.ml_methods_group.algorithm.entity.Entity;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -41,11 +44,12 @@ public abstract class Algorithm {
         preferredThreadsCount = Runtime.getRuntime().availableProcessors();
     }
 
-    public final AlgorithmResult execute(ExecutorService service) {
+    public final AlgorithmResult execute(Collection<Entity> entities, ExecutorService service) {
         final long startTime = System.currentTimeMillis();
         final ExecutionContext context = new ExecutionContext(isParallelExecution ? requireNonNull(service) : null);
         final Map<String, String> refactorings;
         try {
+            setData(entities);
             refactorings = calculateRefactorings(context);
         } catch (Exception e) {
             return new AlgorithmResult(name, e);
@@ -53,6 +57,8 @@ public abstract class Algorithm {
         final long totalTime = System.currentTimeMillis() - startTime;
         return new AlgorithmResult(refactorings, name, totalTime, context.usedThreads);
     }
+
+    protected abstract void setData(Collection<Entity> entities);
 
     protected abstract Map<String, String> calculateRefactorings(ExecutionContext context) throws Exception;
 

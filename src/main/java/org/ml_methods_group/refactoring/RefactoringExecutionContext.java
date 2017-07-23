@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -142,24 +141,24 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
 
     @NotNull
     private AlgorithmResult calculateARI() {
-        final ARI algorithm = new ARI(entities);
+        final ARI algorithm = new ARI();
         System.out.println("\nStarting ARI...");
         final int processorsCount = Runtime.getRuntime().availableProcessors();
         ExecutorService service = Executors.newFixedThreadPool(processorsCount);
-        final AlgorithmResult result = algorithm.execute(service);
+        final AlgorithmResult result = algorithm.execute(entities, service);
         System.out.println("Finished ARI");
         final Map<String, String> refactorings = result.getRefactorings();
         for (String method : refactorings.keySet()) {
             System.out.println(method + " --> " + refactorings.get(method));
         }
-        return algorithm.execute(service);
+        return result;
     }
 
     @NotNull
     private AlgorithmResult calculateHAC() {
-        final HAC algorithm = new HAC(entities);
+        final HAC algorithm = new HAC();
         System.out.println("\nStarting HAC...");
-        final AlgorithmResult result = algorithm.execute(null);
+        final AlgorithmResult result = algorithm.execute(entities, null);
         final Map<String, String> refactorings = result.getRefactorings();
         System.out.println("Finished HAC");
         for (String method : refactorings.keySet()) {
@@ -170,9 +169,9 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
 
     @NotNull
     private AlgorithmResult calculateAKMeans() {
-        final AKMeans algorithm = new AKMeans(entities, 50);
+        final AKMeans algorithm = new AKMeans(50);
         System.out.println("\nStarting AKMeans...");
-        final AlgorithmResult result = algorithm.execute(null);
+        final AlgorithmResult result = algorithm.execute(entities, null);
         final Map<String, String> refactorings = result.getRefactorings();
         System.out.println("Finished AKMeans");
         for (String method : refactorings.keySet()) {
@@ -183,9 +182,9 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
 
     @NotNull
     private AlgorithmResult calculateMRI() {
-        final MRI algorithm = new MRI(entities, properties.getAllClasses());
+        final MRI algorithm = new MRI();
         System.out.println("\nStarting MMRI...");
-        final AlgorithmResult result = algorithm.execute(null);
+        final AlgorithmResult result = algorithm.execute(entities, null);
         final Map<String, String> refactorings = result.getRefactorings();
         System.out.println("Finished MMRI");
         for (String method : refactorings.keySet()) {
@@ -196,10 +195,9 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
 
     @NotNull
     private AlgorithmResult calculateCCDA() {
-        final CCDA algorithm = new CCDA(entities);
+        final CCDA algorithm = new CCDA();
         System.out.println("Starting CCDA...");
-        System.out.println(algorithm.calculateQualityIndex());
-        final AlgorithmResult result = algorithm.execute(null);
+        final AlgorithmResult result = algorithm.execute(entities, null);
         final Map<String, String> refactorings = result.getRefactorings();
         System.out.println("Finished CCDA\n");
         for (String ent : refactorings.keySet()) {

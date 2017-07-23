@@ -21,20 +21,21 @@ import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.MethodEntity;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ARI extends Algorithm {
-    private final List<Entity> units;
-    private final List<ClassEntity> classEntities;
+    private final List<Entity> units = new ArrayList<>();
+    private final List<ClassEntity> classEntities = new ArrayList<>();
 
-    public ARI(Iterable<Entity> entityList) {
+    public ARI() {
         super("ARI", true);
-        units = new ArrayList<>();
-        classEntities = new ArrayList<>();
-        for (Entity entity : entityList) {
+    }
+
+    @Override
+    protected void setData(Collection<Entity> entities) {
+        units.clear();
+        classEntities.clear();
+        for (Entity entity : entities) {
             if (entity.getCategory() == MetricCategory.Class) {
                 classEntities.add((ClassEntity) entity);
             } else {

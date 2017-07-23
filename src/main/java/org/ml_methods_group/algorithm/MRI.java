@@ -23,15 +23,19 @@ import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.MethodEntity;
 
 public class MRI extends Algorithm {
-    private final List<Entity> entities;
-    private final Set<PsiClass> allClasses;
+    private final List<Entity> entities = new ArrayList<>();
 
-    public MRI(List<Entity> entityList, Set<PsiClass> existingClasses) {
+    public MRI() {
         super("MRI", false);
-        entities = entityList;
-        allClasses = existingClasses;
+    }
+
+    @Override
+    protected void setData(Collection<Entity> entities) {
+        this.entities.clear();
+        this.entities.addAll(entities);
     }
 
     @Override
@@ -81,24 +85,7 @@ public class MRI extends Algorithm {
     }
 
     private void processMethod(Map<String, String> refactorings, Entity currentEntity, Entity nearestClass) {
-        final PsiMethod method = (PsiMethod) currentEntity.getPsiElement();
-        final PsiClass classToMoveFrom = method.getContainingClass();
-        final PsiClass classToMoveTo = (PsiClass) nearestClass.getPsiElement();
-
-        final Set<PsiClass> supersTo = PSIUtil.getAllSupers(classToMoveTo, allClasses);
-        final Set<PsiClass> supersFrom = PSIUtil.getAllSupers(classToMoveFrom, allClasses);
-
-        if (supersTo.contains(classToMoveFrom) || supersFrom.contains(classToMoveTo)) {
-            return;
-        }
-
-        supersFrom.retainAll(supersTo);
-
-        final boolean isOverride = supersFrom.stream()
-                .flatMap(c -> Arrays.stream(c.getMethods()))
-                .anyMatch(method::equals);
-
-        if (!isOverride) {
+        if (!((MethodEntity) currentEntity).isOverriding()) {
             refactorings.put(currentEntity.getName(), nearestClass.getClassName());
             currentEntity.moveToClass((PsiClass) nearestClass.getPsiElement());
             nearestClass.removeFromClass((PsiMethod) currentEntity.getPsiElement());
