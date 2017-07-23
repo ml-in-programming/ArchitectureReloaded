@@ -38,7 +38,7 @@ public class CCDA extends Algorithm {
     private double edges;
     private static final double eps = 5e-4;
 
-    public CCDA() { // 195, 21 secs on folder
+    public CCDA() {
         super("CCDA", true);
 
     }
