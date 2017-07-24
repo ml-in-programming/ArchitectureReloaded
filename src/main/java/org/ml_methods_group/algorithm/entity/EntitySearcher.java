@@ -14,60 +14,65 @@
  * limitations under the License.
  */
 
-package org.ml_methods_group.algorithm;
+package org.ml_methods_group.algorithm.entity;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.java.AnonymousClassElement;
+import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.utils.MethodUtils;
-import org.ml_methods_group.utils.PsiSearchUtil;
+import org.ml_methods_group.algorithm.PSIUtil;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
 public class PropertiesFinder {
-    private final Map<PsiElement, RelevantProperties> properties = new HashMap<>();
-    private final Set<PsiClass> allClasses = new HashSet<>();
-    private final Set<PsiField> allFields = new HashSet<>();
-    private final Map<String, PsiElement> elementByName = new HashMap<>();
+    private final Map<String, PsiClass> classForName = new HashMap<>();
+    private final Map<PsiElement, Entity> entities = new HashMap<>();
     private final AnalysisScope scope;
+    private final long startTime;
 
     private PropertiesFinder(AnalysisScope scope) {
         this.scope = scope;
+        startTime = System.currentTimeMillis();
     }
 
-    public static PropertiesFinder analyze(AnalysisScope scope) {
+    public static EntitySearchResult analyze(AnalysisScope scope, MetricsRun metricsRun) {
         final PropertiesFinder finder = new PropertiesFinder(scope);
-        finder.runCalculations();
-        return finder;
+        return finder.runCalculations(metricsRun);
     }
 
-    private void runCalculations() {
+    private EntitySearchResult runCalculations(MetricsRun metricsRun) {
         scope.accept(new UnitsFinder());
         scope.accept(new PropertiesCalculator());
-        System.out.println("Size = " + properties.size());
-        System.out.println("Size2 = " + elementByName.size());
+        return prepareResult(metricsRun);
     }
 
-    public RelevantProperties getProperties(PsiElement element) {
-        return properties.get(element);
-    }
-
-    public Set<String> getAllFields() {
-        return allFields.stream()
-                .map(PsiSearchUtil::getHumanReadableName)
-                .collect(Collectors.toSet());
-    }
-
-    public Set<PsiClass> getAllClasses() {
-        return allClasses;
-    }
-
-    public PsiElement elementForName(String name) {
-        PsiElement element = elementByName.get(name);
-        return elementByName.get(name);
+    private EntitySearchResult prepareResult(MetricsRun metricsRun) {
+        final Set<ClassEntity> classes = new HashSet<>();
+        final Set<MethodEntity> methods = new HashSet<>();
+        final Set<FieldEntity> fields = new HashSet<>();
+        for (Entity entity : entities.values()) {
+            try {
+                entity.calculateVector(metricsRun);
+            } catch (Exception e) {
+                System.out.println("Failed to calculate vector for " + entity.getName());
+                continue;
+            }
+            switch (entity.getCategory()) {
+                case Class:
+                    classes.add((ClassEntity) entity);
+                    break;
+                case Method:
+                    methods.add((MethodEntity) entity);
+                    break;
+                default:
+                    fields.add((FieldEntity) entity);
+                    break;
+            }
+        }
+        return new EntitySearchResult(classes, methods, fields, System.currentTimeMillis() - startTime);
     }
 
     private class UnitsFinder extends JavaRecursiveElementVisitor {
@@ -82,6 +87,7 @@ public class PropertiesFinder {
 
         @Override
         public void visitClass(PsiClass aClass) {
+            classForName.put(getHumanReadableName(aClass), aClass);
             if (aClass.isEnum()) {
                 return;
             }
@@ -92,24 +98,19 @@ public class PropertiesFinder {
             if (aClass.getQualifiedName() == null) {
                 return;
             }
-            allClasses.add(aClass);
-            elementByName.put(getHumanReadableName(aClass), aClass);
-            properties.put(aClass, new RelevantProperties());
+            entities.put(aClass, new ClassEntity(aClass));
             super.visitClass(aClass);
         }
 
         @Override
         public void visitField(PsiField field) {
-            allFields.add(field);
-            elementByName.put(getHumanReadableName(field), field);
-            properties.put(field, new RelevantProperties());
+            entities.put(field, new FieldEntity(field));
             super.visitField(field);
         }
 
         @Override
         public void visitMethod(PsiMethod method) {
-            elementByName.put(getHumanReadableName(method), method);
-            properties.put(method, new RelevantProperties());
+            entities.put(method, new MethodEntity(method));
             super.visitMethod(method);
         }
     }
@@ -126,13 +127,15 @@ public class PropertiesFinder {
 
         @Override
         public void visitClass(PsiClass aClass) {
-            final RelevantProperties classProperties = properties.get(aClass);
-            if (classProperties == null) {
+            final Entity entity = entities.get(aClass);
+            if (entity == null) {
                 super.visitClass(aClass);
                 return;
+
             }
+            final RelevantProperties classProperties = entity.getProperties();
             classProperties.addClass(aClass);
-            for (PsiClass superClass : PSIUtil.getAllSupers(aClass, allClasses)) {
+            for (PsiClass superClass : PSIUtil.getAllSupers(aClass)) {
                 if (superClass.isInterface()) {
                     classProperties.addClass(superClass);
                 } else {
@@ -154,27 +157,29 @@ public class PropertiesFinder {
 
         @Override
         public void visitMethod(PsiMethod method) {
-            final RelevantProperties methodProperties = properties.get(method);
-            if (methodProperties == null) {
+            final Entity entity = entities.get(method);
+            if (entity == null) {
                 super.visitMethod(method);
                 return;
+
             }
+            final RelevantProperties methodProperties = entity.getProperties();
             methodProperties.addMethod(method);
             Optional.ofNullable(method.getContainingClass())
                     .ifPresent(methodProperties::addClass);
             if (currentMethod == null) {
                 currentMethod = method;
             }
-            PSIUtil.getAllSupers(method, allClasses).stream()
-                    .filter(properties::containsKey)
-                    .map(properties::get)
+            PSIUtil.getAllSupers(method).stream()
+                    .map(entities::get)
+                    .filter(Objects::nonNull)
+                    .map(Entity::getProperties)
                     .forEach(properties -> properties.addOverrideMethod(method));
             Arrays.stream(method.getParameterList().getParameters())
                     .map(PsiParameter::getType)
                     .map(PsiType::getCanonicalText)
-                    .map(PropertiesFinder.this::elementForName)
+                    .map(classForName::get)
                     .filter(Objects::nonNull)
-                    .map(PsiClass.class::cast)
                     .forEach(methodProperties::addClass);
             super.visitMethod(method);
             if (currentMethod == method) {
@@ -196,11 +201,13 @@ public class PropertiesFinder {
 
         @Override
         public void visitField(PsiField field) {
-            RelevantProperties fieldProperties = properties.get(field);
-            if (fieldProperties == null) {
+            final Entity entity = entities.get(field);
+            if (entity == null) {
                 super.visitField(field);
                 return;
+
             }
+            RelevantProperties fieldProperties = entity.getProperties();
             fieldProperties.addField(field);
             final PsiClass containingClass = field.getContainingClass();
             if (containingClass != null) {
@@ -221,7 +228,8 @@ public class PropertiesFinder {
     }
 
     private Optional<RelevantProperties> propertiesFor(PsiElement element) {
-        return Optional.ofNullable(properties.get(element));
+        return Optional.ofNullable(entities.get(element))
+                .map(Entity::getProperties);
     }
 
     private boolean isSourceFile(PsiFile file) {
