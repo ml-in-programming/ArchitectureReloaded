@@ -68,7 +68,7 @@ public abstract class Entity {
         this.name = PsiSearchUtil.getHumanReadableName(element);
         psiEntity = element;
         relevantProperties = propertiesFinder.getProperties(element);
-        vector = getCalculatorForEntity().calculateVector(metricsRun, propertiesFinder, this);
+        vector = getCalculatorForEntity().calculateVector(metricsRun, this);
     }
 
     private double square(double value) {
@@ -151,6 +151,10 @@ public abstract class Entity {
 
     public PsiElement getPsiElement() {
         return psiEntity;
+    }
+
+    public RelevantProperties getProperties() {
+        return relevantProperties;
     }
 
     private VectorCalculator getCalculatorForEntity() {
