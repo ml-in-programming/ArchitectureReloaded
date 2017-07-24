@@ -47,13 +47,13 @@ public class ExecutionInfoDialog extends DialogWrapper {
     @Nullable
     @Override
     protected JComponent createCenterPanel() {
-        final JPanel content = new JPanel(new BorderLayout());
+        final JPanel content = new JPanel(new GridLayout(2, 1));
         JPanel algorithmsInfo = new JPanel(new FlowLayout(FlowLayout.LEADING));
         results.stream()
                 .map(this::createInfoPanel)
                 .forEach(algorithmsInfo::add);
-        content.add(createInfoPanel(searchResult), BorderLayout.CENTER);
-        content.add(algorithmsInfo, BorderLayout.SOUTH);
+        content.add(createInfoPanel(searchResult));
+        content.add(algorithmsInfo);
         return ScrollPaneFactory.createScrollPane(content);
     }
 

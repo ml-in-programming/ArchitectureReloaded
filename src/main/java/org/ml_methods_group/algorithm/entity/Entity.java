@@ -57,7 +57,6 @@ public abstract class Entity {
         assert FIELD_ENTITY_CALCULATOR.getDimension() == DIMENSION;
     }
 
-    private final PsiElement psiEntity;
     private final RelevantProperties relevantProperties;
     private final String name;
     private double[] vector;
@@ -65,7 +64,6 @@ public abstract class Entity {
 
     public Entity(PsiElement element) {
         this.name = PsiSearchUtil.getHumanReadableName(element);
-        psiEntity = element;
         relevantProperties = new RelevantProperties();
     }
 
@@ -115,20 +113,12 @@ public abstract class Entity {
         }
     }
 
-    public void moveToClass(PsiClass newClass) {
-        final Set<PsiClass> oldClasses = new HashSet<>(relevantProperties.getAllClasses());
-        for (PsiClass oldClass : oldClasses) {
-            relevantProperties.removeClass(oldClass);
-        }
-        relevantProperties.addClass(newClass);
+    public void moveToClass(String newClass) {
+        relevantProperties.moveTo(newClass);
     }
 
-    public void removeFromClass(PsiMethod method) {
+    public void removeFromClass(String method) {
         relevantProperties.removeMethod(method);
-    }
-
-    public void removeFromClass(PsiField field) {
-        relevantProperties.removeField(field);
     }
 
     public RelevantProperties getRelevantProperties() {
@@ -149,12 +139,6 @@ public abstract class Entity {
         System.out.println();
 
         relevantProperties.printAll();
-    }
-
-    // Using psi elements may be cause of access problems
-    @Deprecated
-    public PsiElement getPsiElement() {
-        return psiEntity;
     }
 
     public RelevantProperties getProperties() {

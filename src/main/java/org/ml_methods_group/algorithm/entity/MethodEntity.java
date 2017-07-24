@@ -26,7 +26,7 @@ public class MethodEntity extends Entity {
 
     MethodEntity(PsiMethod method) {
         super(method);
-        isMovable = !PSIUtil.isOverriding((PsiMethod) getPsiElement()) &&
+        isMovable = !PSIUtil.isOverriding(method) &&
                 !MethodUtils.isAbstract(method) && !method.isConstructor();
     }
 

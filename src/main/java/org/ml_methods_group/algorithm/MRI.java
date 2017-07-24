@@ -16,7 +16,6 @@
 
 package org.ml_methods_group.algorithm;
 
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import org.jetbrains.annotations.Nullable;
@@ -94,8 +93,8 @@ public class MRI extends Algorithm {
     private void processMethod(Map<String, String> refactorings, Entity method, Entity nearestClass) {
         if (method.isMovable()) {
             refactorings.put(method.getName(), nearestClass.getClassName());
-            method.moveToClass((PsiClass) nearestClass.getPsiElement());
-            nearestClass.removeFromClass((PsiMethod) method.getPsiElement());
+            method.moveToClass(nearestClass.getName());
+            nearestClass.removeFromClass(method.getName());
         }
     }
 

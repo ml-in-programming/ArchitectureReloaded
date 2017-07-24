@@ -70,22 +70,12 @@ public class CCDA extends Algorithm {
         for (Entity entity : nodes) {
             final RelevantProperties properties = entity.getRelevantProperties();
             final Set<String> neighbors = graph.getOrDefault(entity.getName(), new HashSet<>());
-            final Set<PsiMethod> methods = properties.getAllMethods();
+            final Set<String> methods = properties.getAllMethods();
 
-            methods.stream()
-                    .map(PsiSearchUtil::getHumanReadableName)
-                    .forEach(name -> addNode(name, entity, neighbors));
+            methods.forEach(name -> addNode(name, entity, neighbors));
 
-            for (PsiField field : properties.getAllFields()) {
-                final PsiClass containingClass = field.getContainingClass();
-
-                if (containingClass == null) {
-                    System.out.println("!!!!!!! containingClass is null for " + field.getName());
-                    // TODO: find out why are they null
-                    continue;
-                }
-
-                addNode(getHumanReadableName(field), entity, neighbors);
+            for (String field : properties.getAllFields()) {
+                addNode(field, entity, neighbors);
             }
 
             graph.put(entity.getName(), neighbors);

@@ -22,63 +22,64 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.utils.MethodUtils;
+import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.*;
 
-public class RelevantProperties {
-    private final Set<PsiMethod> methods = new HashSet<>();
-    private final Set<PsiClass> classes = new HashSet<>();
-    private final Set<PsiField> fields = new HashSet<>();
-    private final Set<PsiMember> privateMembers = new HashSet<>();
-    private final Set<PsiMethod> overrideMethods = new HashSet<>();
+import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
-    public void removeMethod(PsiMethod method) {
+public class RelevantProperties {
+    private final Set<String> methods = new HashSet<>();
+    private final Set<String> classes = new HashSet<>();
+    private final Set<String> fields = new HashSet<>();
+    private final Set<String> privateMembers = new HashSet<>();
+    private final Set<String> overrideMethods = new HashSet<>();
+
+    @Deprecated
+    public void removeMethod(String method) {
         methods.remove(method);
     }
 
-    public void removeField(PsiField field) {
+    @Deprecated
+    public void removeField(String field) {
         fields.remove(field);
     }
 
-    public void removeClass(PsiClass aClass) {
-        classes.remove(aClass);
-    }
-
     public void addMethod(PsiMethod method) {
-        methods.add(method);
+        methods.add(getHumanReadableName(method));
         if (MethodUtils.isPrivate(method)) {
-            privateMembers.add(method);
+            privateMembers.add(getHumanReadableName(method));
         }
     }
 
     public void addClass(PsiClass aClass) {
-        classes.add(aClass);
+        classes.add(getHumanReadableName(aClass));
     }
 
     public void addField(PsiField field) {
-        fields.add(field);
+        fields.add(getHumanReadableName(field));
         if (MethodUtils.isPrivate(field)) {
-            privateMembers.add(field);
+            privateMembers.add(getHumanReadableName(field));
         }
     }
 
     public void addOverrideMethod(PsiMethod method) {
-        overrideMethods.add(method);
+        overrideMethods.add(getHumanReadableName(method));
     }
 
     public int numberOfMethods() {
         return methods.size();
     }
 
-    public Set<PsiField> getAllFields() {
+    public Set<String> getAllFields() {
         return Collections.unmodifiableSet(fields);
     }
 
-    public Set<PsiMethod> getAllMethods() {
+    public Set<String> getAllMethods() {
         return Collections.unmodifiableSet(methods);
     }
 
-    public Set<PsiClass> getAllClasses() {
+    public Set<String> getAllClasses() {
         return Collections.unmodifiableSet(classes);
     }
 
@@ -99,28 +100,34 @@ public class RelevantProperties {
         return !Sets.intersection(privateMembers, properties.privateMembers).isEmpty();
     }
 
+    @Deprecated
+    public void moveTo(String targetClass) {
+        classes.clear();
+        classes.add(targetClass);
+    }
+
     public void printAll() {
         System.out.print("    ");
-        for (PsiClass aClass : classes) {
-            System.out.print(aClass.getQualifiedName() + " ");
+        for (String aClass : classes) {
+            System.out.print(aClass + " ");
         }
         System.out.println();
 
         System.out.print("    ");
-        for (PsiMethod method : methods) {
-            System.out.print(MethodUtils.calculateSignature(method) + ' ');
+        for (String method : methods) {
+            System.out.print(method + ' ');
         }
         System.out.println();
 
         System.out.print("    ");
-        for (PsiMethod method : overrideMethods) {
-            System.out.print(MethodUtils.calculateSignature(method) + ' ');
+        for (String method : overrideMethods) {
+            System.out.print(method + ' ');
         }
         System.out.println();
 
         System.out.print("    ");
-        for (PsiField field : fields) {
-            System.out.print(field.getContainingClass().getQualifiedName() + "." + field.getName() + " ");
+        for (String field : fields) {
+            System.out.print(field + " ");
         }
         System.out.println();
     }

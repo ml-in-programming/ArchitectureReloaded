@@ -55,6 +55,7 @@ public class HAC extends Algorithm {
                 final double distance = representative.distance(getRepresentative(second));
                 createAndInsertTriple(distance, first, second);
             }
+            System.out.println("Distances calculated for " + first.name);
         }
     }
 
