@@ -22,64 +22,54 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.PsiMember;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.sixrr.metrics.profile.MetricsProfileRepository;
-import org.ml_methods_group.plugin.AutomaticRefactoringAction;
-import org.ml_methods_group.utils.RefactoringUtil;
-import com.sixrr.stockmetrics.i18n.StockMetricsBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.ml_methods_group.plugin.AutomaticRefactoringAction;
+import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.Map;
 
 public class RefactoringAnnotator implements Annotator {
-    private final AutomaticRefactoringAction action = new AutomaticRefactoringAction();
-
     @Override
     public synchronized void annotate(@NotNull PsiElement psiElement, @NotNull AnnotationHolder annotationHolder) {
-        if (!(psiElement instanceof PsiFile)) {
-            return;
-        }
-
         final Project project = psiElement.getProject();
-        MetricsProfileRepository.getInstance().
-                setSelectedProfile(StockMetricsBundle.message("refactoring.metrics.profile.name"));
-
         final AnalysisScope scope = new AnalysisScope(project);
-        action.analyzeSynchronously(project, scope);
 
-        doRefactoringAnnotations("CCDA", action.getRefactoringsCCDA(), annotationHolder, scope);
-        doRefactoringAnnotations("MRI", action.getRefactoringsMRI(), annotationHolder, scope);
-        doRefactoringAnnotations("AKMeans", action.getRefactoringsAKMeans(), annotationHolder, scope);
-        doRefactoringAnnotations("HAC", action.getRefactoringsHAC(), annotationHolder, scope);
-        doRefactoringAnnotations("ARI", action.getRefactoringsARI(), annotationHolder, scope);
+        for (String algorithm : RefactoringExecutionContext.getAvailableAlgorithms()) {
+            try {
+                setAnnotations(psiElement,
+                        algorithm,
+                        AutomaticRefactoringAction.getInstance(project).getRefactoringsForName(algorithm),
+                        annotationHolder, scope);
+            } catch (IllegalArgumentException e) {
+                //ignore
+            }
+        }
     }
 
-    private static void doRefactoringAnnotations(@NotNull String algorithmName,
-                                                 final Map<String, String> refactorings,
-                                                 @NotNull AnnotationHolder holder,
-                                                 @NotNull AnalysisScope scope) {
+    private static void setAnnotations(@NotNull PsiElement element,
+                                       @NotNull String algorithmName,
+                                       final Map<String, String> refactorings,
+                                       @NotNull AnnotationHolder holder,
+                                       @NotNull AnalysisScope scope) {
         if (refactorings == null || refactorings.isEmpty()) {
             return;
         }
 
-        holder.getCurrentAnnotationSession().getFile().accept(new JavaRecursiveElementWalkingVisitor() {
-            @Override
-            public void visitElement(PsiElement element) {
-                super.visitElement(element);
-                final String currentClassName = RefactoringUtil.getHumanReadableName(element);
-                if (refactorings.containsKey(currentClassName)) {
-                    final Annotation annotation = holder.createWarningAnnotation(
-                            getAnnotationPart(element),
-                            String.format("Can be moved to %s (%s)",
-                                    refactorings.get(currentClassName), algorithmName));
+        final String name = PsiSearchUtil.getHumanReadableName(element);
+        if (refactorings.containsKey(name)) {
+            final Annotation annotation = holder.createWarningAnnotation(
+                    getAnnotationPart(element),
+                    String.format("Can be moved to %s (%s)",
+                            refactorings.get(name), algorithmName));
 
-                    annotation.registerFix(new RefactorIntentionAction(algorithmName,
-                            currentClassName, refactorings.get(currentClassName), scope));
-                }
-            }
-        });
+            annotation.registerFix(new RefactorIntentionAction(algorithmName,
+                    name, refactorings.get(name), scope));
+        }
     }
 
     @NotNull

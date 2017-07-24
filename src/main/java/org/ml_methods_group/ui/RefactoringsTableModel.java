@@ -16,11 +16,18 @@
 
 package org.ml_methods_group.ui;
 
+import com.intellij.ui.BooleanTableCellRenderer;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
+import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
-import java.util.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -28,14 +35,15 @@ import java.util.stream.IntStream;
 public class RefactoringsTableModel extends AbstractTableModel {
     private static final String UNIT_COLUMN_TITLE_KEY = "unit.column.title";
     private static final String MOVE_TO_COLUMN_TITLE_KEY = "move.to.column.title";
-    private static final int UNIT_COLUMN_INDEX = 1;
-    private static final int MOVE_TO_COLUMN_INDEX = 2;
-    private static final int SELECTION_COLUMN_INDEX = 0;
+    static final int SELECTION_COLUMN_INDEX = 0;
+    static final int UNIT_COLUMN_INDEX = 1;
+    static final int MOVE_TO_COLUMN_INDEX = 2;
     private static final int COLUMNS_COUNT = 3;
 
     private final List<String> units = new ArrayList<>();
     private final List<String> movements = new ArrayList<>();
     private final boolean[] isSelected;
+    private final boolean[] isActive;
 
     RefactoringsTableModel(Map<String, String> refactorings) {
         for (Entry<String, String> refactoring : refactorings.entrySet()) {
@@ -46,6 +54,8 @@ public class RefactoringsTableModel extends AbstractTableModel {
             movements.add(refactoring.getValue());
         }
         isSelected = new boolean[units.size()];
+        isActive = new boolean[units.size()];
+        Arrays.fill(isActive, true);
     }
 
     public void selectAll() {
@@ -53,11 +63,19 @@ public class RefactoringsTableModel extends AbstractTableModel {
         fireTableDataChanged();
     }
 
-    public Map<String, String> getSelected() {
-        return IntStream.range(0, isSelected.length)
-                .filter(i -> isSelected[i])
+    public void deselectAll() {
+        Arrays.fill(isSelected, false);
+        fireTableDataChanged();
+    }
+
+    Map<String, String> pullSelected() {
+        final Map<String, String> result = IntStream.range(0, isSelected.length)
+                .filter(i -> isSelected[i] && isActive[i])
+                .peek(i -> isActive[i] = false)
                 .boxed()
                 .collect(Collectors.toMap(units::get, movements::get));
+        fireTableDataChanged();
+        return result;
     }
 
     @Override
@@ -80,7 +98,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return columnIndex == SELECTION_COLUMN_INDEX;
+        return columnIndex == SELECTION_COLUMN_INDEX && isActive[rowIndex];
     }
 
     @Override
@@ -114,11 +132,47 @@ public class RefactoringsTableModel extends AbstractTableModel {
         throw new IndexOutOfBoundsException("Unexpected column index: " + columnIndex);
     }
 
-    public String getElement(int row) {
-        return units.get(row);
+    String getUnitAt(int row, int column) {
+        switch (column) {
+            case UNIT_COLUMN_INDEX:
+                return units.get(row);
+            case MOVE_TO_COLUMN_INDEX:
+                return movements.get(row);
+        }
+        throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }
 
-    public String getMovement(int row) {
-        return movements.get(row);
+    void setupRenderer(JTable table) {
+        table.setDefaultRenderer(Boolean.class, new BooleanTableCellRenderer() {
+            private final JLabel EMPTY_LABEL = new JLabel();
+
+            {
+                EMPTY_LABEL.setBackground(Color.LIGHT_GRAY);
+                EMPTY_LABEL.setOpaque(true);
+            }
+
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSel, boolean hasFocus,
+                                                           int row, int column) {
+                if (isActive[row]) {
+                    return super.getTableCellRendererComponent(table, value, isSel, hasFocus, row, column);
+                } else {
+                    return EMPTY_LABEL;
+                }
+            }
+        });
+        table.setDefaultRenderer(String.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                                                           boolean hasFocus, int row, int column) {
+                if (!isActive[row]) {
+                    setBackground(Color.LIGHT_GRAY);
+                } else {
+                    setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+                }
+                setEnabled(isActive[row]);
+                return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            }
+        });
     }
 }
