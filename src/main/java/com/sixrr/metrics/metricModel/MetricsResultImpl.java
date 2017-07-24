@@ -204,41 +204,18 @@ public class MetricsResultImpl implements MetricsResult {
 
     }
 
-    public MetricsResultImpl markRowsWithPrefix(List<String> rowNames, String prefix) {
-        final MetricsResultImpl out = new MetricsResultImpl();
-
-        for (String measuredObject : measuredObjects) {
-            for (Metric metric : metrics) {
-                final StringToFractionMap valuesForMetric = values.get(metric);
-                final double value = valuesForMetric.get(measuredObject);
-                out.postValue(metric, rowNames.contains(measuredObject) ? prefix + measuredObject : measuredObject, value, 1.0); //not quite right
-            }
-            final PsiElement elementForMeasuredObject = getElementForMeasuredObject(measuredObject);
-            if (elementForMeasuredObject != null) {
-                out.setElementForMeasuredObject(measuredObject, elementForMeasuredObject);
-            }
-        }
-
-        return out;
-    }
-
     @Override
     public MetricsResult filterObjects(@NotNull final Predicate<String> filter) {
         final MetricsResultImpl out = new MetricsResultImpl();
-        for (String measuredObject : measuredObjects) {
-            if (!filter.test(measuredObject)) {
-                continue;
-            }
-            for (Metric metric : metrics) {
-                final StringToFractionMap valuesForMetric = values.get(metric);
-                final double value = valuesForMetric.get(measuredObject);
-                out.postValue(metric, measuredObject, value, 1.0); //not quite right
-            }
-            final PsiElement elementForMeasuredObject = getElementForMeasuredObject(measuredObject);
-            if (elementForMeasuredObject != null) {
-                out.setElementForMeasuredObject(measuredObject, elementForMeasuredObject);
-            }
-        }
+        measuredObjects.stream()
+                .filter(filter)
+                .forEachOrdered(obj -> {
+                    metrics.forEach(m -> out.postValue(m, obj, getValueForMetric(m, obj)));
+                    final PsiElement elementForMeasuredObject = getElementForMeasuredObject(obj);
+                    if (elementForMeasuredObject != null) {
+                        out.setElementForMeasuredObject(obj, elementForMeasuredObject);
+                    }
+                });
         return out;
     }
 }

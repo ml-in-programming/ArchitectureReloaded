@@ -34,7 +34,7 @@ public class RuleExtractor {
         Set<Rule> candidates = findRulesOfSizeTwo(dataSet);
         System.out.println(String.format("candidates size  = %s", candidates.size()));
         Set<Rule> newRules = filterByConfidence(candidates, minConfidence, dataSet);
-        Set<Rule> resultRules = newRules;
+        final Set<Rule> resultRules = newRules;
         System.out.println(String.format("result rules size = %s", resultRules.size()));
 
         int k = 3;
@@ -72,7 +72,7 @@ public class RuleExtractor {
     }
 
     private static void addToRulesMap(Map<Rule, Set<Rule>> rules, Rule newRule, Rule rule1, Rule rule2) {
-        Set<Rule> producers = new HashSet<>();
+        final Set<Rule> producers = new HashSet<>();
         producers.add(rule1);
         producers.add(rule2);
         if (rules.containsKey(newRule)) {
@@ -82,7 +82,7 @@ public class RuleExtractor {
     }
 
     private static Map<Rule, Set<Rule>> genCandidates(Set<Rule> shorterRules) {
-        Map<Rule, Set<Rule>> rules = new HashMap<>();
+        final Map<Rule, Set<Rule>> rules = new HashMap<>();
         for (Rule rule1 : shorterRules) {
             for (Rule rule2 : shorterRules) {
                 if (!rule1.equals(rule2)) {
@@ -175,14 +175,8 @@ public class RuleExtractor {
 
     public static double getConfidence(Rule rule, DataSet dataSet) {
         int numberOfEntities = dataSet.getEntityNames().size();
-        int numberOfSuccesses = 0;
-        for (double[] entity : dataSet.getMatrix().getData()) {
-            if (rule.check(entity)) {
-                ++numberOfSuccesses;
-            }
-        }
+        int numberOfSuccesses = (int) Arrays.stream(dataSet.getMatrix().getData()).filter(rule::check).count();
 
-        double confidence = (double) numberOfSuccesses / numberOfEntities;
-        return confidence;
+        return (double) numberOfSuccesses / numberOfEntities;
     }
 }

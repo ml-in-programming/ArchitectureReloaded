@@ -21,9 +21,6 @@ import org.ml_methods_group.algorithm.sddrar.DataSet;
 import java.io.Serializable;
 import java.util.*;
 
-/**
- * Created by boris on 23.05.17.
- */
 public class RulePack implements Serializable {
     private static final long serialVersionUID = -7177265391350068971L;
     private Set<Rule> rules;
@@ -36,19 +33,19 @@ public class RulePack implements Serializable {
 
     public Set<Rule> fitRulesToDataSet(DataSet dataSet) {
 
-        Map<String, Integer> newIndices = new HashMap<>();
+        final Map<String, Integer> newIndices = new HashMap<>();
         for (int i = 0; i < dataSet.getFeatureNames().size(); i++) {
             newIndices.put(dataSet.getFeatureNames().get(i), i);
         }
 
-        Set<Rule> resultRules = new HashSet<>();
+        final Set<Rule> resultRules = new HashSet<>();
         for (Rule rule : rules) {
-            List<Rule.Node> body = new ArrayList<>();
+            final List<Rule.Node> body = new ArrayList<>();
             for (Rule.Node node : rule.getBody()) {
                 if (node.getType() != Rule.Type.VALUE) {
                     body.add(new Rule.Node(node));
                 } else {
-                    Integer newIndex = newIndices.get(featureNames.get(node.getValue()));
+                    final Integer newIndex = newIndices.get(featureNames.get(node.getValue()));
                     body.add(new Rule.Node(newIndex));
                 }
             }

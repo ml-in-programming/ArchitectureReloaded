@@ -16,11 +16,15 @@
 
 package org.ml_methods_group.algorithm.sddrar;
 
-import org.ml_methods_group.algorithm.sddrar.rules.Rule;
+import com.intellij.openapi.util.Pair;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+import org.ml_methods_group.algorithm.sddrar.rules.Rule;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -42,7 +46,6 @@ public class ErrorComputer {
         if (!potentiallyFaulty.isEmpty()) {
             double avg = new Mean().evaluate(potentiallyFaulty.stream().mapToDouble(errors::get).toArray());
             faulty = potentiallyFaulty.stream().filter(e -> errors.get(e) > avg).collect(Collectors.toList());
-
         } else {
             double[] nonZeroErrors = errors.stream().mapToDouble(e -> e).filter(e -> e > 0).toArray();
             double avg = new Mean().evaluate(nonZeroErrors);
@@ -54,48 +57,26 @@ public class ErrorComputer {
         return faulty;
     }
 
-    static List<Double> getPercentageOfErrors(List<Integer> errors, int numberOfRules) {
-        List<Double> pe = new ArrayList<>();
-        for (int error : errors) {
-            pe.add((double) error / numberOfRules);
-        }
-        return pe;
+    private static List<Double> getPercentageOfErrors(List<Integer> errors, int numberOfRules) {
+        return errors.stream().map(e -> e.doubleValue() / numberOfRules).collect(Collectors.toList());
     }
 
 
 
-    static List<Integer> getNumberOfErrors(DataSet dataSet, Set<Rule> rules) {
-
-        List<Integer> errors = new ArrayList<>();
-
-        for (double[] entity: dataSet.getMatrix().getData()) {
-            int errorsForEntity = 0;
-            for (Rule rule : rules) {
-                if (!rule.check(entity)) {
-                    errorsForEntity++;
-                }
-            }
-            errors.add(errorsForEntity);
-        }
-
-        return errors;
+    private static List<Integer> getNumberOfErrors(DataSet dataSet, Set<Rule> rules) {
+        return Arrays.stream(dataSet.getMatrix().getData())
+                .map(e -> (int) rules.stream().filter(r -> !r.check(e)).count())
+                .collect(Collectors.toList());
     }
 
     public static Map<String, Set<Rule>> getFailedRulesForEachEntity(DataSet dataSet, Set<Rule> rules) {
-        Map<String, Set<Rule>> result = new HashMap<>();
-
-        for (int i = 0; i < dataSet.getMatrix().getRowDimension(); i++) {
-            result.put(dataSet.getEntityNames().get(i), new HashSet<>());
-        }
-
-        for (int i = 0; i < dataSet.getMatrix().getRowDimension(); i++) {
-            for (Rule rule : rules) {
-                if (!rule.check(dataSet.getMatrix().getRow(i))) {
-                    result.get(dataSet.getEntityNames().get(i)).add(rule);
-                }
-            }
-        }
-
-        return result;
+        return IntStream.range(0, dataSet.getMatrix().getRowDimension())
+                .mapToObj(i -> new Pair<>(i, dataSet.getEntityNames().get(i)))
+                .collect(Collectors.toMap(
+                        p -> p.getSecond(),
+                        p -> rules.stream()
+                                .filter(r -> !r.check(dataSet.getMatrix().getRow(p.getFirst())))
+                                .collect(Collectors.toSet())
+                ));
     }
 }

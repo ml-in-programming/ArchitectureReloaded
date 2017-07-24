@@ -33,7 +33,7 @@ public class Rule implements Serializable {
         EQ("="),
         VALUE("");
 
-        String value;
+        final String value;
 
         Type(String value) {
             this.value = value;
@@ -48,11 +48,11 @@ public class Rule implements Serializable {
     public static class Node implements Serializable {
         private static final long serialVersionUID = 2483135937390934040L;
         private Type type;
-        private int value;
+        private final int value;
 
         Node(int value) {
             this.value = value;
-            this.type = Type.VALUE;
+            type = Type.VALUE;
         }
 
         Node(Type type) {
@@ -61,8 +61,8 @@ public class Rule implements Serializable {
         }
 
         Node(Node other) {
-            this.value = other.value;
-            this.type = other.type;
+            value = other.value;
+            type = other.type;
         }
 
         public static Node valueOf(String token) {
@@ -100,10 +100,9 @@ public class Rule implements Serializable {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Node node = (Node) o;
+            final Node node = (Node) o;
 
-            if (value != node.value) return false;
-            return type == node.type;
+            return value == node.value && type == node.type;
         }
 
         @Override
@@ -124,9 +123,9 @@ public class Rule implements Serializable {
 
 
     public static Rule valueOf(String string) {
-        String[] tokens = string.split(" ");
-        List<Node> ruleBody = new ArrayList<>();
-        for (String token : tokens) {
+        final String[] tokens = string.split(" ");
+        final List<Node> ruleBody = new ArrayList<>();
+        for (final String token : tokens) {
             ruleBody.add(Node.valueOf(token));
         }
         Rule rule = new Rule();
@@ -145,15 +144,15 @@ public class Rule implements Serializable {
 
     public void setBody(List<Node> body) {
         this.body = body;
-        this.reversedBody = cloneNodes(body);
-        this.reversedBody = this.reversedBody.stream().map(Node::inverseType).collect(Collectors.toList());
-        Collections.reverse(this.reversedBody);
+        reversedBody = cloneNodes(body);
+        reversedBody = reversedBody.stream().map(Node::inverseType).collect(Collectors.toList());
+        Collections.reverse(reversedBody);
     }
 
 
     public Rule cutLeft() {
-        Rule newRule = new Rule();
-        List<Node> newNodes = new ArrayList<>();
+        final Rule newRule = new Rule();
+        final List<Node> newNodes = new ArrayList<>();
         for (int i = 2; i < body.size(); i++) {
             newNodes.add(body.get(i));
         }
@@ -162,8 +161,8 @@ public class Rule implements Serializable {
     }
 
     public Rule cutRight() {
-        Rule newRule = new Rule();
-        List<Node> newNodes = new ArrayList<>();
+        final Rule newRule = new Rule();
+        final List<Node> newNodes = new ArrayList<>();
         for (int i = 0; i < body.size() - 2; i++) {
             newNodes.add(body.get(i));
         }
@@ -172,15 +171,15 @@ public class Rule implements Serializable {
     }
 
     public Rule reversed() {
-        Rule newRule = this.clone();
+        final Rule newRule = clone();
         newRule.body.stream().map(Node::inverseType).collect(Collectors.toList());
         Collections.reverse(newRule.body);
         return newRule;
     }
 
     public Rule appendRight(Rule rule) {
-        Rule newRule = new Rule();
-        List<Node> newNodes = new ArrayList<>(body.size() + rule.getBody().size());
+        final Rule newRule = new Rule();
+        final List<Node> newNodes = new ArrayList<>(body.size() + rule.getBody().size());
         newNodes.addAll(body);
         newNodes.addAll(rule.getBody());
         newRule.setBody(newNodes);
@@ -188,8 +187,8 @@ public class Rule implements Serializable {
     }
 
     public Rule appendLeft(Rule rule) {
-        Rule newRule = new Rule();
-        List<Node> newNodes = new ArrayList<>(body.size() + rule.getBody().size());
+        final Rule newRule = new Rule();
+        final List<Node> newNodes = new ArrayList<>(body.size() + rule.getBody().size());
         newNodes.addAll(rule.getBody());
         newNodes.addAll(body);
         newRule.setBody(newNodes);
@@ -197,8 +196,8 @@ public class Rule implements Serializable {
     }
 
     public Rule left() {
-        Rule newRule = new Rule();
-        List<Node> newNodes = new ArrayList<>();
+        final Rule newRule = new Rule();
+        final List<Node> newNodes = new ArrayList<>();
         newNodes.add(body.get(0));
         newNodes.add(body.get(1));
         newRule.setBody(newNodes);
@@ -206,8 +205,8 @@ public class Rule implements Serializable {
     }
 
     public Rule right() {
-        Rule newRule = new Rule();
-        List<Node> newNodes = new ArrayList<>();
+        final Rule newRule = new Rule();
+        final List<Node> newNodes = new ArrayList<>();
         newNodes.add(body.get(body.size() - 2));
         newNodes.add(body.get(body.size() - 1));
         newRule.setBody(newNodes);
@@ -215,21 +214,13 @@ public class Rule implements Serializable {
     }
 
     public Rule clone() {
-        Rule clone = new Rule();
-        List<Node> nodes = new ArrayList<>();
-        for (Node n : body) {
-            nodes.add(new Node(n));
-        }
-        clone.setBody(nodes);
+        final Rule clone = new Rule();
+        clone.setBody(cloneNodes(body));
         return clone;
     }
 
     private List<Node> cloneNodes(List<Node> toClone) {
-        List<Node> nodes = new ArrayList<>();
-        for (Node n : toClone) {
-            nodes.add(new Node(n));
-        }
-        return nodes;
+        return toClone.stream().map(Node::new).collect(Collectors.toList());
     }
 
     public int firstAttribute() {
@@ -262,7 +253,7 @@ public class Rule implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Rule rule = (Rule) o;
+        final Rule rule = (Rule) o;
 
         return body != null ? body.equals(rule.body) || reversedBody.equals(rule.body) : rule.body == null;
     }
@@ -281,8 +272,8 @@ public class Rule implements Serializable {
 
     public String toVerboseString(DataSet dataSet) {
 
-        StringBuilder sb = new StringBuilder();
-        List<String> featureNames = dataSet.getFeatureNames();
+        final StringBuilder sb = new StringBuilder();
+        final List<String> featureNames = dataSet.getFeatureNames();
 
         for (Node node : body) {
             if (node.getType() == Type.VALUE) {

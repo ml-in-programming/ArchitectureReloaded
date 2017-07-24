@@ -354,29 +354,15 @@ public class JavaMetricProvider implements MetricProvider {
     @NotNull
     @Override
     public List<PrebuiltMetricProfile> getPrebuiltProfiles() {
-        final List<PrebuiltMetricProfile> out = new ArrayList<PrebuiltMetricProfile>(1);
+        final List<PrebuiltMetricProfile> out = new ArrayList<PrebuiltMetricProfile>(5);
         out.add(createRefactoringProfile());
         out.add(createCohesionAndCouplingProfile());
         out.add(createSDDRARTempProfile());
         out.add(createBorisSDDRARProfile());
         out.add(createMySDDRARProfile());
-        /*out.add(createChidamberKemererProfile());
-        out.add(createClassCountProfile());
-        out.add(createCodeSizeProfile());
-        out.add(createComplexityProfile());
-        out.add(createDependencyProfile());
-        out.add(createFileCountProfile());
-        out.add(createJavadocProfile());
-        out.add(createMartinProfile());
-        out.add(createMoodProfile());
-        out.add(createTestProfile());
-        out.add(createCohesionAndCouplingProfile());
-        out.add(createFanProfile());
-        */
         return out;
     }
 
-    // Profile for include custom metrics in sddrar algorithm.
     private static PrebuiltMetricProfile createSDDRARTempProfile() {
         final PrebuiltMetricProfile profile =
                 new PrebuiltMetricProfile(StockMetricsBundle.message("sddrar.temp.profile.name"));

@@ -381,18 +381,6 @@ public class MetricsRunImpl implements MetricsRun {
         return false;
     }
 
-    public void markFaultyClasses(List<String> faulty) {
-        final Set<MetricCategory> categories = metricResults.keySet();
-        for (MetricCategory category : categories) {
-            if (category != MetricCategory.Class) {
-                continue;
-            }
-            MetricsResultImpl results = (MetricsResultImpl) getResultsForCategory(category);
-            final MetricsResult filteredResults = results.markRowsWithPrefix(faulty, "<faulty>");
-            setResultsForCategory(category, filteredResults);
-        }
-    }
-
     public void leaveFaultyClasses(@NotNull final List<String> faulty) {
         MetricsResult results = getResultsForCategory(MetricCategory.Class);
         setResultsForCategory(MetricCategory.Class, results.filterObjects(faulty::contains));

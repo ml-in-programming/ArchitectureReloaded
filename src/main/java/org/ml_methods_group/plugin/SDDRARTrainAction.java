@@ -55,7 +55,7 @@ public class SDDRARTrainAction extends BaseAnalysisAction {
                 metricsRun.setProfileName(profileName);
                 metricsRun.setContext(scope);
                 metricsRun.setTimestamp(new TimeStamp());
-                SDDRARFacade.trainAndPersistModel(profile, metricsRun);
+                SDDRARFacade.trainAndPersistModel(metricsRun);
                 toolWindow.show(metricsRun, profile, scope, showOnlyWarnings);
             }
         }.execute(profile, metricsRun);
