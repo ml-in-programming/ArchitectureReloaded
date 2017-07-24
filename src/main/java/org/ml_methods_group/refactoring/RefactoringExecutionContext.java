@@ -19,7 +19,6 @@ package org.ml_methods_group.refactoring;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.project.Project;
 import com.sixrr.metrics.MetricCategory;
-import com.sixrr.metrics.MetricsResultsHolder;
 import com.sixrr.metrics.metricModel.MetricsExecutionContextImpl;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
@@ -66,23 +65,6 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
         scope.accept(properties.createVisitor(scope));
 
         execute(profile, metricsRun);
-    }
-
-    public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope
-            , @NotNull MetricsProfile profile) {
-        super(project, scope);
-        this.profile = profile;
-        continuation = null;
-
-        properties = new PropertiesFinder();
-        scope.accept(properties.createVisitor(scope));
-
-        executeSynchronously(profile, metricsRun);
-    }
-
-    private void executeSynchronously(final MetricsProfile profile, final MetricsResultsHolder resultsHolder) {
-        calculateMetrics(profile, resultsHolder);
-        onFinish();
     }
 
     @Override

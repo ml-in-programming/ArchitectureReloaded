@@ -38,7 +38,7 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
-    <!--<annotator language="JAVA" implementationClass="org.ml_methods_group.refactoring.RefactoringAnnotator"/>-->
+    <annotator language="JAVA" implementationClass="org.ml_methods_group.refactoring.RefactoringAnnotator"/>
     <appStarter implementation="com.sixrr.metrics.offline.MetricsCommandLine"/>
     <applicationService serviceImplementation="com.sixrr.metrics.config.MetricsReloadedConfig"/>
     <applicationService serviceImplementation="com.sixrr.metrics.profile.MetricsProfileRepository"/>
@@ -51,6 +51,12 @@
   <extensions defaultExtensionNs="ArchitectureReloaded">
     <metricProvider implementation="com.sixrr.stockmetrics.DefaultMetricProvider"/>
   </extensions>
+
+  <application-components>
+    <component>
+      <implementation-class>org.ml_methods_group.refactoring.RefactoringOnFileSaved</implementation-class>
+    </component>
+  </application-components>
 
   <actions>
     <group>

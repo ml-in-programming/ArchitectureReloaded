@@ -19,10 +19,19 @@ package org.ml_methods_group.plugin;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
+import com.intellij.ide.plugins.PluginManager;
+import com.intellij.openapi.application.AccessToken;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectManagerListener;
 import com.sixrr.metrics.Metric;
-import com.sixrr.metrics.profile.*;
+import com.sixrr.metrics.profile.MetricsProfile;
+import com.sixrr.metrics.profile.MetricsProfileRepository;
 import com.sixrr.metrics.ui.dialogs.ProfileSelectionPanel;
 import com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
@@ -38,8 +47,12 @@ import org.ml_methods_group.utils.MetricsProfilesUtil;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class AutomaticRefactoringAction extends BaseAnalysisAction {
@@ -47,12 +60,49 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     private Map<String, Map<String, String>> refactorings = new HashMap<>();
 
+    private static final Map<Project, AutomaticRefactoringAction> factory = new HashMap<>();
+
+    private static ProjectManagerListener listener = new ProjectManagerListener() {
+        @Override
+        public void projectOpened(Project project) {
+            getInstance(project).analyzeBackground(project, new AnalysisScope(project));
+        }
+
+        @Override
+        public void projectClosed(Project project) {
+            deleteInstance(project);
+        }
+    };
+
+    static {
+        ProjectManager.getInstance().addProjectManagerListener(listener);
+    }
+
     public AutomaticRefactoringAction() {
         super(MetricsReloadedBundle.message("metrics.calculation"), MetricsReloadedBundle.message("metrics"));
     }
 
+    @NotNull
+    public static AutomaticRefactoringAction getInstance(@NotNull Project project) {
+        if (!factory.containsKey(project)) {
+            PluginManager.getLogger().info("Creating refactoring action for project " + project.getName());
+            factory.put(project, new AutomaticRefactoringAction());
+        }
+        return factory.get(project);
+    }
+
+    private static void deleteInstance(@NotNull Project project) {
+        factory.remove(project);
+    }
+
     @Override
     protected void analyze(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
+        analyze(project, analysisScope, this::showRefactoringsDialog);
+    }
+
+    private void analyze(@NotNull final Project project,
+                         @NotNull final AnalysisScope analysisScope,
+                         @Nullable Consumer<RefactoringExecutionContext> callback) {
         System.out.println(analysisScope.getDisplayName());
         System.out.println(project.getBasePath());
         System.out.println();
@@ -61,24 +111,43 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 .getCurrentProfile();
         assert metricsProfile != null;
         new RefactoringExecutionContext(project, analysisScope, metricsProfile,
-                this::showRefactoringsDialog);
+                callback);
     }
 
-    public void analyzeSynchronously(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
-        System.out.println(analysisScope.getDisplayName());
-        System.out.println(project.getBasePath());
-        System.out.println();
-
+    public void analyzeBackground(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
         checkRefactoringProfile();
-        final MetricsProfile metricsProfile = MetricsProfileRepository.getInstance()
-                .getProfileForName(ArchitectureReloadedBundle.message(REFACTORING_PROFILE_KEY));
-        assert metricsProfile != null;
+        final Task.Backgroundable task = new Task.Backgroundable(project,
+        "Calculating Refactorings...", true) {
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+                analyze(project, analysisScope, context -> {
+                    new Task.Backgroundable(project, MetricsReloadedBundle.message("calculating.refactorings"), true) {
+                        @Override
+                        public void run(@NotNull ProgressIndicator indicator) {
+                            AccessToken token = null;
+                            try {
+                                token = ApplicationManager.getApplication().acquireReadActionLock();
+                                calculateRefactorings(context, true);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            } finally {
+                                if (token != null) {
+                                    token.finish();
+                                }
+                            }
+                        }
 
-        final RefactoringExecutionContext context =
-                new RefactoringExecutionContext(project, analysisScope, metricsProfile);
-        calculateRefactorings(context, true);
+                        @Override
+                        public void onFinished() {
+                            super.onFinished();
+                            DaemonCodeAnalyzer.getInstance(project).restart();
+                        }
+                    }.queue();
+                });
+            }
+        };
+        task.queue();
     }
-
 
     private void calculateRefactorings(@NotNull RefactoringExecutionContext context, boolean ignoreSelection) {
         final Set<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
