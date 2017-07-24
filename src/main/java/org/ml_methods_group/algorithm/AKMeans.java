@@ -16,19 +16,18 @@
 
 package org.ml_methods_group.algorithm;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.MethodEntity;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class AKMeans extends Algorithm {
     private final List<Entity> points = new ArrayList<>();
     private final Map<String, Set<Entity>> communities = new HashMap<>();
     private final Map<Entity, String> communityIds = new HashMap<>();
-    private final Set<PsiClass> allClasses = new HashSet<>();
     private final int steps;
     private int numberOfClasses = 0;
     private int newClassCount = 0;
@@ -43,22 +42,16 @@ public class AKMeans extends Algorithm {
     }
 
     @Override
-    protected void setData(Collection<Entity> entities) {
+    protected void setData(EntitySearchResult entities) {
         points.clear();
         communities.clear();
         communityIds.clear();
-        allClasses.clear();
         newClassCount = 0;
-        numberOfClasses = 0;
-        for (Entity e : entities) {
-            if (e.getCategory() != MetricCategory.Class) {
-                points.add(e);
-                communityIds.put(e, "");
-            } else {
-                numberOfClasses++;
-                allClasses.add((PsiClass) e.getPsiElement());
-            }
-        }
+        numberOfClasses = entities.getClasses().size();
+        Stream.of(entities.getMethods(), entities.getFields())
+                .flatMap(List::stream)
+                .peek(points::add)
+                .forEach(e -> communityIds.put(e, ""));
     }
 
     private void initializeCenters() {
@@ -161,27 +154,7 @@ public class AKMeans extends Algorithm {
     }
 
     private boolean canMove(Entity entity, String center) {
-        if (entity.getCategory() != MetricCategory.Method) {
-            return true;
-        }
-
-        final PsiMethod method = (PsiMethod) entity.getPsiElement();
-        final Set<Entity> cluster = communities.get(center);
-        for (Entity e : cluster) {
-            if (e.getCategory() != MetricCategory.Method) {
-                continue;
-            }
-
-            final PsiMethod component = (PsiMethod) e.getPsiElement();
-
-            final Set<PsiMethod> supers = PSIUtil.getAllSupers(component, allClasses);
-            supers.retainAll(PSIUtil.getAllSupers(method));
-            if (((MethodEntity) e).isOverriding()) {
-                return false;
-            }
-        }
-
-        return true;
+        return entity.isMovable() || entity.getClassName().equals(center);
     }
 
     private double distToCommunity(Entity entity, String center) {

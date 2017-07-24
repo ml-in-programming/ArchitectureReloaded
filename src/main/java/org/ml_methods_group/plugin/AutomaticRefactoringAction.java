@@ -22,7 +22,8 @@ import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.sixrr.metrics.Metric;
-import com.sixrr.metrics.profile.*;
+import com.sixrr.metrics.profile.MetricsProfile;
+import com.sixrr.metrics.profile.MetricsProfileRepository;
 import com.sixrr.metrics.ui.dialogs.ProfileSelectionPanel;
 import com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
@@ -41,13 +42,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 public class AutomaticRefactoringAction extends BaseAnalysisAction {
     private static final String REFACTORING_PROFILE_KEY = "refactoring.metrics.profile.name";
 
-    private Map<String, AlgorithmResult> refactorings = new HashMap<>();
+    private Map<String, AlgorithmResult> results = new HashMap<>();
 
     public AutomaticRefactoringAction() {
         super(MetricsReloadedBundle.message("metrics.calculation"), MetricsReloadedBundle.message("metrics"));
@@ -62,8 +62,9 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         final MetricsProfile metricsProfile = MetricsProfileRepository.getInstance()
                 .getCurrentProfile();
         assert metricsProfile != null;
-        new RefactoringExecutionContext(project, analysisScope, metricsProfile,
-                this::showRefactoringsDialog);
+        final Collection<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
+        new RefactoringExecutionContext(project, analysisScope, metricsProfile, selectedAlgorithms, this::showDialogs)
+                .executeAsync();
     }
 
     public void analyzeSynchronously(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
@@ -77,31 +78,27 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         assert metricsProfile != null;
 
         final RefactoringExecutionContext context =
-                new RefactoringExecutionContext(project, analysisScope, metricsProfile);
-        calculateRefactorings(context, true);
+                new RefactoringExecutionContext(project, analysisScope, metricsProfile, this::updateResults);
+        context.executeSynchronously();
     }
 
-
-    private void calculateRefactorings(@NotNull RefactoringExecutionContext context, boolean ignoreSelection) {
-        final Set<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
-        for (String algorithm : RefactoringExecutionContext.getAvailableAlgorithms()) {
-            if (ignoreSelection || selectedAlgorithms.contains(algorithm)) {
-                refactorings.put(algorithm, context.calculateAlgorithmForName(algorithm));
-            }
+    private void updateResults(@NotNull RefactoringExecutionContext context) {
+        for (AlgorithmResult result : context.getAlgorithmResults()) {
+            results.put(result.getAlgorithmName(), result);
         }
     }
 
-    private void showRefactoringsDialog(@NotNull RefactoringExecutionContext context) {
-        calculateRefactorings(context, false);
+    private void showDialogs(@NotNull RefactoringExecutionContext context) {
+        updateResults(context);
         final Set<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
+        final List<AlgorithmResult> algorithmResult = selectedAlgorithms.stream()
+                .map(results::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
         ServiceManager.getService(context.getProject(), MetricsToolWindow.class)
                 .show(context.getMetricsRun(), context.getProfile(), context.getScope(), false);
-        final List<AlgorithmResult> results = refactorings.values()
-                .stream()
-                .filter(e -> selectedAlgorithms.contains(e.getAlgorithmName()))
-                .collect(Collectors.toList());
         ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
-                .show(results, context.getScope());
+                .show(algorithmResult, context.getEntitySearchResult(), context.getScope());
     }
 
     private static void checkRefactoringProfile() {
@@ -115,18 +112,17 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         repository.addProfile(MetricsProfilesUtil.createProfile(profileName, requestedSet));
     }
 
-
     @NotNull
     public Set<String> calculatedAlgorithms() {
-        return refactorings.keySet();
+        return results.keySet();
     }
 
     @NotNull
     public Map<String, String> getRefactoringsForName(String algorithm) {
-        if (!refactorings.containsKey(algorithm)) {
+        if (!results.containsKey(algorithm)) {
             throw new IllegalArgumentException("Uncalculated algorithm requested: " + algorithm);
         }
-        return refactorings.get(algorithm).getRefactorings();
+        return results.get(algorithm).getRefactorings();
     }
 
     @Override

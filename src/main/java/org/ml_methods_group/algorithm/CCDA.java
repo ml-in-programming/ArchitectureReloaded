@@ -19,11 +19,13 @@ package org.ml_methods_group.algorithm;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
-import com.sixrr.metrics.MetricCategory;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.EntitySearchResult;
+import org.ml_methods_group.algorithm.entity.RelevantProperties;
 import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
@@ -44,19 +46,18 @@ public class CCDA extends Algorithm {
     }
 
     @Override
-    protected void setData(Collection<Entity> entities) {
+    protected void setData(EntitySearchResult entities) {
         communityIds.clear();
         idCommunity.clear();
         nodes.clear();
         aCoefficients.clear();
         quality = 0.0;
-        entities.stream()
-                .filter(entity -> entity.getCategory() == MetricCategory.Class)
+        entities.getClasses().stream()
                 .peek(entity -> communityIds.put(entity.getName(), communityIds.size() + 1))
                 .map(Entity::getName)
                 .forEach(idCommunity::add);
-        entities.stream()
-                .filter(entity -> entity.getCategory() != MetricCategory.Class)
+        Stream.of(entities.getFields(), entities.getMethods())
+                .flatMap(List::stream)
                 .filter(entity -> communityIds.containsKey(entity.getClassName()))
                 .peek(entity -> communityIds.put(entity.getName(), communityIds.get(entity.getClassName())))
                 .forEach(nodes::add);

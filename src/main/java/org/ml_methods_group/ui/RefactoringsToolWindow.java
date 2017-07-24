@@ -28,6 +28,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.AlgorithmResult;
+import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;
@@ -46,6 +47,7 @@ public final class RefactoringsToolWindow implements Disposable {
     private final Project project;
     private ToolWindow myToolWindow = null;
     private List<AlgorithmResult> results;
+    private EntitySearchResult searchResult;
     private AnalysisScope scope;
 
     private RefactoringsToolWindow(@NotNull Project project) {
@@ -81,9 +83,10 @@ public final class RefactoringsToolWindow implements Disposable {
                 .createActionToolbar(WINDOW_ID, toolbarGroup, false);
     }
 
-    public void show(List<AlgorithmResult> results, AnalysisScope scope) {
+    public void show(List<AlgorithmResult> results, EntitySearchResult searchResult, AnalysisScope scope) {
         this.results = results;
         this.scope = scope;
+        this.searchResult = searchResult;
         myToolWindow.getContentManager().removeAllContents(true);
         myToolWindow.setAvailable(false, null);
         for (AlgorithmResult result : results) {
@@ -99,6 +102,7 @@ public final class RefactoringsToolWindow implements Disposable {
         toolWindowManager.unregisterToolWindow(WINDOW_ID);
         results = null;
         scope = null;
+        searchResult = null;
     }
 
     private void intersect(Set<String> algorithms) {
@@ -151,8 +155,8 @@ public final class RefactoringsToolWindow implements Disposable {
 
         @Override
         public void actionPerformed(AnActionEvent e) {
-            if (results != null) {
-                final DialogWrapper dialog = new ExecutionInfoDialog(project, results);
+            if (results != null && searchResult != null) {
+                final DialogWrapper dialog = new ExecutionInfoDialog(project, searchResult, results);
                 dialog.show();
             }
         }

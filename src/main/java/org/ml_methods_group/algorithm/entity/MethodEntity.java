@@ -19,15 +19,15 @@ package org.ml_methods_group.algorithm.entity;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsRun;
+import com.sixrr.metrics.utils.MethodUtils;
 import org.ml_methods_group.algorithm.PSIUtil;
-import org.ml_methods_group.algorithm.PropertiesFinder;
 
 public class MethodEntity extends Entity {
-    private final boolean isOverriding;
 
-    public MethodEntity(PsiMethod method, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
-        super(method, metricsRun, propertiesFinder);
-        isOverriding = PSIUtil.isOverriding((PsiMethod) getPsiElement());
+    MethodEntity(PsiMethod method) {
+        super(method);
+        isMovable = !PSIUtil.isOverriding((PsiMethod) getPsiElement()) &&
+                !MethodUtils.isAbstract(method) && !method.isConstructor();
     }
 
     @Override
@@ -40,9 +40,5 @@ public class MethodEntity extends Entity {
         final String signature = getName();
         final String name = signature.substring(0, signature.indexOf('('));
         return name.substring(0, name.lastIndexOf('.'));
-    }
-
-    public boolean isOverriding() {
-        return isOverriding;
     }
 }

@@ -19,6 +19,7 @@ package org.ml_methods_group.algorithm;
 import com.sixrr.metrics.MetricCategory;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.MethodEntity;
 
 import java.util.*;
@@ -32,16 +33,12 @@ public class ARI extends Algorithm {
     }
 
     @Override
-    protected void setData(Collection<Entity> entities) {
+    protected void setData(EntitySearchResult entities) {
         units.clear();
         classEntities.clear();
-        for (Entity entity : entities) {
-            if (entity.getCategory() == MetricCategory.Class) {
-                classEntities.add((ClassEntity) entity);
-            } else {
-                units.add(entity);
-            }
-        }
+        classEntities.addAll(entities.getClasses());
+        units.addAll(entities.getMethods());
+        units.addAll(entities.getFields());
     }
 
     @Override
@@ -56,7 +53,7 @@ public class ARI extends Algorithm {
 
     // todo check, that method isn't abstract or constructor
     private Map<String, String> findRefactoring(Entity entity, Map<String, String> accumulator) {
-        if (entity.getCategory() == MetricCategory.Method && ((MethodEntity) entity).isOverriding()) {
+        if (!entity.isMovable()) {
             return accumulator;
         }
         double minDistance = Double.POSITIVE_INFINITY;

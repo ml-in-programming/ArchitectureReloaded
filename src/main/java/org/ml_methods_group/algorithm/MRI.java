@@ -16,15 +16,20 @@
 
 package org.ml_methods_group.algorithm;
 
-import java.util.*;
-
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.Entity;
-import org.ml_methods_group.algorithm.entity.MethodEntity;
+import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+// It changes entities
+@Deprecated
 public class MRI extends Algorithm {
     private final List<Entity> entities = new ArrayList<>();
 
@@ -33,9 +38,11 @@ public class MRI extends Algorithm {
     }
 
     @Override
-    protected void setData(Collection<Entity> entities) {
+    protected void setData(EntitySearchResult entities) {
         this.entities.clear();
-        this.entities.addAll(entities);
+        this.entities.addAll(entities.getClasses());
+        this.entities.addAll(entities.getMethods());
+        this.entities.addAll(entities.getFields());
     }
 
     @Override
@@ -84,11 +91,11 @@ public class MRI extends Algorithm {
         return candidateClass;
     }
 
-    private void processMethod(Map<String, String> refactorings, Entity currentEntity, Entity nearestClass) {
-        if (!((MethodEntity) currentEntity).isOverriding()) {
-            refactorings.put(currentEntity.getName(), nearestClass.getClassName());
-            currentEntity.moveToClass((PsiClass) nearestClass.getPsiElement());
-            nearestClass.removeFromClass((PsiMethod) currentEntity.getPsiElement());
+    private void processMethod(Map<String, String> refactorings, Entity method, Entity nearestClass) {
+        if (method.isMovable()) {
+            refactorings.put(method.getName(), nearestClass.getClassName());
+            method.moveToClass((PsiClass) nearestClass.getPsiElement());
+            nearestClass.removeFromClass((PsiMethod) method.getPsiElement());
         }
     }
 
@@ -113,7 +120,7 @@ public class MRI extends Algorithm {
                 String d = "";
                 d = dist == Double.POSITIVE_INFINITY
                         ? String.format("%1$" + maxLength + "s", "inf")
-                        : String.format("  %." + (maxLength - 4) + "f", Double.valueOf(dist));
+                        : String.format("  %." + (maxLength - 4) + "f", dist);
                 System.out.print(d);
             }
             System.out.println();

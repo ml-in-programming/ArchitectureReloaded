@@ -23,6 +23,7 @@ import com.intellij.ui.TitledSeparator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.AlgorithmResult;
+import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;
@@ -31,10 +32,12 @@ import java.util.List;
 
 public class ExecutionInfoDialog extends DialogWrapper {
     private final List<AlgorithmResult> results;
+    private final EntitySearchResult searchResult;
 
-    ExecutionInfoDialog(Project project, List<AlgorithmResult> results) {
+    ExecutionInfoDialog(Project project, EntitySearchResult searchResult, List<AlgorithmResult> results) {
         super(project, false);
         this.results = results;
+        this.searchResult = searchResult;
         setModal(true);
         setTitle(ArchitectureReloadedBundle.message("execution.info.dialog.title"));
         init();
@@ -44,10 +47,13 @@ public class ExecutionInfoDialog extends DialogWrapper {
     @Nullable
     @Override
     protected JComponent createCenterPanel() {
-        JPanel content = new JPanel(new FlowLayout(FlowLayout.LEADING));
+        final JPanel content = new JPanel(new BorderLayout());
+        JPanel algorithmsInfo = new JPanel(new FlowLayout(FlowLayout.LEADING));
         results.stream()
                 .map(this::createInfoPanel)
-                .forEach(content::add);
+                .forEach(algorithmsInfo::add);
+        content.add(createInfoPanel(searchResult), BorderLayout.CENTER);
+        content.add(algorithmsInfo, BorderLayout.SOUTH);
         return ScrollPaneFactory.createScrollPane(content);
     }
 
@@ -73,6 +79,35 @@ public class ExecutionInfoDialog extends DialogWrapper {
         panel.add(new JLabel("Threads used: " + result.getThreadUsed()), constraints);
         constraints.gridy++;
         panel.add(new JLabel("Refactorings found: " + result.getRefactorings().size()), constraints);
+        return panel;
+    }
+
+    private JPanel createInfoPanel(EntitySearchResult result) {
+        final JPanel panel = new JPanel(new GridBagLayout());
+
+        final GridBagConstraints constraints = new GridBagConstraints();
+        constraints.insets.left = 0;
+        constraints.insets.bottom = 8;
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.weightx = 1.0;
+        constraints.weighty = 0.0;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.NORTHWEST;
+
+        panel.add(new TitledSeparator("Entities preprocessing"), constraints);
+
+        constraints.insets.left = 12;
+        constraints.gridy++;
+        panel.add(new JLabel("Preprocessing time: " + (result.getSearchTime()) / 1000 + " secs"), constraints);
+        constraints.gridy++;
+        panel.add(new JLabel("Classes found: " + result.getClasses().size()), constraints);
+        constraints.gridy++;
+        panel.add(new JLabel("Methods found: " + result.getMethods().size()), constraints);
+        constraints.gridy++;
+        panel.add(new JLabel("Fields found: " + result.getFields().size()), constraints);
+        constraints.gridy++;
+        panel.add(new JLabel("Total number of properties: " + result.getPropertiesCount()), constraints);
         return panel;
     }
 

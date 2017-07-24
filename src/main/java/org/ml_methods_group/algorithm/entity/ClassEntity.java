@@ -20,13 +20,12 @@ import com.intellij.psi.PsiClass;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.ml_methods_group.algorithm.PSIUtil;
-import org.ml_methods_group.algorithm.PropertiesFinder;
 
 import java.util.Set;
 
 public class ClassEntity extends Entity {
-    public ClassEntity(PsiClass psiClass, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
-        super(psiClass, metricsRun, propertiesFinder);
+    ClassEntity(PsiClass psiClass) {
+        super(psiClass);
     }
 
     @Override
@@ -37,9 +36,5 @@ public class ClassEntity extends Entity {
     @Override
     public String getClassName() {
         return getName();
-    }
-
-    public Set<PsiClass> getAllSupers(Set<PsiClass> existing) {
-        return PSIUtil.getAllSupers((PsiClass) getPsiElement(), existing);
     }
 }

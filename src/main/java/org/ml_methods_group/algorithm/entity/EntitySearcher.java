@@ -19,6 +19,7 @@ package org.ml_methods_group.algorithm.entity;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.java.AnonymousClassElement;
+import com.intellij.util.containers.ArrayListSet;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.ml_methods_group.algorithm.PSIUtil;
@@ -27,19 +28,19 @@ import java.util.*;
 
 import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
-public class PropertiesFinder {
+public class EntitySearcher {
     private final Map<String, PsiClass> classForName = new HashMap<>();
     private final Map<PsiElement, Entity> entities = new HashMap<>();
     private final AnalysisScope scope;
     private final long startTime;
 
-    private PropertiesFinder(AnalysisScope scope) {
+    private EntitySearcher(AnalysisScope scope) {
         this.scope = scope;
         startTime = System.currentTimeMillis();
     }
 
     public static EntitySearchResult analyze(AnalysisScope scope, MetricsRun metricsRun) {
-        final PropertiesFinder finder = new PropertiesFinder(scope);
+        final EntitySearcher finder = new EntitySearcher(scope);
         return finder.runCalculations(metricsRun);
     }
 
@@ -50,9 +51,10 @@ public class PropertiesFinder {
     }
 
     private EntitySearchResult prepareResult(MetricsRun metricsRun) {
-        final Set<ClassEntity> classes = new HashSet<>();
-        final Set<MethodEntity> methods = new HashSet<>();
-        final Set<FieldEntity> fields = new HashSet<>();
+        final List<ClassEntity> classes = new ArrayList<>();
+        final List<MethodEntity> methods = new ArrayList<>();
+        final List<FieldEntity> fields = new ArrayList<>();
+        final List<Entity> validEntities = new ArrayList<>();
         for (Entity entity : entities.values()) {
             try {
                 entity.calculateVector(metricsRun);
@@ -60,6 +62,7 @@ public class PropertiesFinder {
                 System.out.println("Failed to calculate vector for " + entity.getName());
                 continue;
             }
+            validEntities.add(entity);
             switch (entity.getCategory()) {
                 case Class:
                     classes.add((ClassEntity) entity);
@@ -72,6 +75,7 @@ public class PropertiesFinder {
                     break;
             }
         }
+        Entity.normalize(validEntities);
         return new EntitySearchResult(classes, methods, fields, System.currentTimeMillis() - startTime);
     }
 

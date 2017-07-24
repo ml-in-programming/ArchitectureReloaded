@@ -19,7 +19,6 @@ package org.ml_methods_group.algorithm.entity;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRun;
-import org.ml_methods_group.algorithm.RelevantProperties;
 
 import java.util.HashMap;
 import java.util.Map;

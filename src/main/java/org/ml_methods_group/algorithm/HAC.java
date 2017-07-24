@@ -19,9 +19,11 @@ package org.ml_methods_group.algorithm;
 import com.sixrr.metrics.MetricCategory;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class HAC extends Algorithm {
     private final SortedSet<Triple> heap = new TreeSet<>();
@@ -34,12 +36,13 @@ public class HAC extends Algorithm {
     }
 
     @Override
-    protected void setData(Collection<Entity> entities) {
+    protected void setData(EntitySearchResult entities) {
         heap.clear();
         communities.clear();
         idGenerator = 0;
         newClassCount = 0;
-        entities.stream()
+        Stream.of(entities.getClasses(), entities.getMethods(), entities.getFields())
+                .flatMap(List::stream)
                 .map(Community::new)
                 .forEach(communities::add);
 

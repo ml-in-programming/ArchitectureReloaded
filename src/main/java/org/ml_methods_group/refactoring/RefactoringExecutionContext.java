@@ -17,126 +17,113 @@
 package org.ml_methods_group.refactoring;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
-import com.sixrr.metrics.MetricCategory;
-import com.sixrr.metrics.MetricsResultsHolder;
+import com.intellij.openapi.util.Computable;
 import com.sixrr.metrics.metricModel.MetricsExecutionContextImpl;
-import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
 import com.sixrr.metrics.metricModel.TimeStamp;
 import com.sixrr.metrics.profile.MetricsProfile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.*;
-import org.ml_methods_group.algorithm.entity.ClassEntity;
-import org.ml_methods_group.algorithm.entity.Entity;
-import org.ml_methods_group.algorithm.entity.FieldEntity;
-import org.ml_methods_group.algorithm.entity.MethodEntity;
+import org.ml_methods_group.algorithm.entity.EntitySearchResult;
+import org.ml_methods_group.algorithm.entity.EntitySearcher;
 
 import java.util.*;
-import java.util.concurrent.Executor;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
-public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
+public class RefactoringExecutionContext {
     private static final List<Class<? extends Algorithm>> ALGORITHMS = Arrays.asList(ARI.class, AKMeans.class,
             CCDA.class, HAC.class, MRI.class);
 
     @NotNull
     private final MetricsRunImpl metricsRun = new MetricsRunImpl();
+    private final Project project;
+    private final AnalysisScope scope;
     @NotNull
     private final MetricsProfile profile;
-    @NotNull
-    private final PropertiesFinder properties;
+    private EntitySearchResult entitySearchResult;
+    private final MetricsExecutionContextImpl metricsExecutionContext;
     @Nullable
     private final Consumer<RefactoringExecutionContext> continuation;
-    private final List<Entity> entities = new ArrayList<>();
     @NotNull
     private final ExecutorService executorService = Executors.newCachedThreadPool();
-    private int classCount = 0;
-    private int methodsCount = 0;
-    private int fieldsCount = 0;
+    private final List<AlgorithmResult> algorithmsResults = new ArrayList<>();
+    @NotNull
+    private final Collection<String> requestedAlgorithms;
 
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
                                        @NotNull MetricsProfile profile,
                                        @Nullable Consumer<RefactoringExecutionContext> continuation) {
-        super(project, scope);
+        this(project, scope, profile, Arrays.asList(getAvailableAlgorithms()), continuation);
+    }
+
+    public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
+                                       @NotNull MetricsProfile profile,
+                                       @NotNull Collection<String> requestedAlgorithms,
+                                       @Nullable Consumer<RefactoringExecutionContext> continuation) {
+        this.project = project;
+        this.scope = scope;
         this.profile = profile;
         this.continuation = continuation;
-        properties = PropertiesFinder.analyze(scope);
-
-        execute(profile, metricsRun);
+        this.requestedAlgorithms = requestedAlgorithms;
+        metricsExecutionContext = new MetricsExecutionContextImpl(project, scope);
     }
 
-    public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope
-            , @NotNull MetricsProfile profile) {
-        super(project, scope);
-        this.profile = profile;
-        continuation = null;
-        properties = PropertiesFinder.analyze(scope);
+    public void executeAsync() {
+        Task.Modal task = new Task.Modal(project, "Search For Refactorings", true) {
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+                execute();
+            }
 
-        executeSynchronously(profile, metricsRun);
+            @Override
+            public void onSuccess() {
+                RefactoringExecutionContext.this.onFinish();
+            }
+        };
+        task.queue();
     }
 
-    private void executeSynchronously(final MetricsProfile profile, final MetricsResultsHolder resultsHolder) {
-        calculateMetrics(profile, resultsHolder);
+    public void executeSynchronously() {
+        execute();
         onFinish();
     }
 
-    @Override
-    public void onFinish() {
+    private void execute() {
+        metricsExecutionContext.calculateMetrics(profile, metricsRun);
         metricsRun.setProfileName(profile.getName());
         metricsRun.setContext(scope);
         metricsRun.setTimestamp(new TimeStamp());
-
-        final MetricsResult classMetrics = metricsRun.getResultsForCategory(MetricCategory.Class);
-        final MetricsResult methodMetrics = metricsRun.getResultsForCategory(MetricCategory.Method);
-
-        for (String unit : classMetrics.getMeasuredObjects()) {
-            if (unit.equals("null")) {
-                continue;
-            }
-            PsiElement element = properties.elementForName(unit);
-            if (element instanceof PsiClass) {
-                final Entity classEnt = new ClassEntity((PsiClass) element, metricsRun, properties);
-                entities.add(classEnt);
-            }
+        final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
+        final int tasks = requestedAlgorithms.size() + 1;
+        int completedTasks = 0;
+        indicator.setText("Generate entities");
+        indicator.setFraction(completedTasks / tasks);
+        entitySearchResult = ApplicationManager.getApplication()
+                .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
+        completedTasks++;
+        for (String algorithm : requestedAlgorithms) {
+            indicator.setText("Run algorithm " + algorithm);
+            indicator.setFraction((double) completedTasks / tasks);
+            calculateAlgorithmForName(algorithm);
+            completedTasks++;
         }
-        for (String unit : methodMetrics.getMeasuredObjects()) {
-            if (unit.substring(0, unit.indexOf('.')).equals("null")) {
-                continue;
-            }
-            PsiElement element = properties.elementForName(unit);
-            if (element instanceof PsiMethod) {
-                final Entity methodEnt = new MethodEntity((PsiMethod) element, metricsRun, properties);
-                entities.add(methodEnt);
-            }
-        }
+    }
 
-        // TODO: move fields processing to MetricsRunImpl
-        final Set<String> fields = properties.getAllFields();
-        for (String unit : fields) {
-            PsiElement element = properties.elementForName(unit);
-            if (element instanceof PsiField) {
-                final Entity fieldEnt = new FieldEntity((PsiField) element, metricsRun, properties);
-                entities.add(fieldEnt);
-            }
-        }
 
-        Entity.normalize(entities);
-
-        classCount = classMetrics.getMeasuredObjects().length;
-        methodsCount = methodMetrics.getMeasuredObjects().length;
-        fieldsCount = fields.size();
-
-        System.out.println("Classes: " + classCount);
-        System.out.println("Methods: " + methodsCount);
-        System.out.println("Properties: " + fieldsCount);
+    private void onFinish() {
+        System.out.println("Classes: " + getClassCount());
+        System.out.println("Methods: " + getMethodsCount());
+        System.out.println("Fields: " + getFieldsCount());
+        System.out.println("Total properties: " + entitySearchResult.getPropertiesCount());
         System.out.println();
 
         if (continuation != null) {
@@ -152,39 +139,55 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
         }
     }
 
-    @NotNull
-    private AlgorithmResult calculate(Class<? extends Algorithm> algorithmClass) {
+    private void calculate(Class<? extends Algorithm> algorithmClass) {
         final Algorithm algorithm = createInstance(algorithmClass);
         System.out.println("Starting " + algorithmClass.getSimpleName() + "...");
-        final AlgorithmResult result = algorithm.execute(entities, executorService);
+        final AlgorithmResult result = algorithm.execute(entitySearchResult, executorService);
         final Map<String, String> refactorings = result.getRefactorings();
         System.out.println("Finished " + algorithmClass.getSimpleName() + "\n");
         for (String ent : refactorings.keySet()) {
             System.out.println(ent + " --> " + refactorings.get(ent));
         }
-        return result;
+        algorithmsResults.add(result);
     }
 
-    @NotNull
-    public AlgorithmResult calculateAlgorithmForName(String algorithm) {
+    private void calculateAlgorithmForName(String algorithm) {
         for (Class<? extends Algorithm> algorithmClass : ALGORITHMS) {
             if (algorithm.equals(algorithmClass.getSimpleName())) {
-                return calculate(algorithmClass);
+                ApplicationManager.getApplication()
+                        .runReadAction(() -> calculate(algorithmClass));
+                return;
             }
         }
         throw new IllegalArgumentException("Unknown algorithm: " + algorithm);
     }
 
+    public List<AlgorithmResult> getAlgorithmResults() {
+        return new ArrayList<>(algorithmsResults);
+    }
+
+    public EntitySearchResult getEntitySearchResult() {
+        return entitySearchResult;
+    }
+
     public int getClassCount() {
-        return classCount;
+        return entitySearchResult.getClasses().size();
     }
 
     public int getMethodsCount() {
-        return methodsCount;
+        return entitySearchResult.getMethods().size();
     }
 
     public int getFieldsCount() {
-        return fieldsCount;
+        return entitySearchResult.getFields().size();
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public AnalysisScope getScope() {
+        return scope;
     }
 
     @NotNull

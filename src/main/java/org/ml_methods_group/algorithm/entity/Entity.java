@@ -26,8 +26,6 @@ import com.sixrr.stockmetrics.classMetrics.FanOutClassMetric;
 import com.sixrr.stockmetrics.classMetrics.NumChildrenMetric;
 import com.sixrr.stockmetrics.methodMetrics.FanInMethodMetric;
 import com.sixrr.stockmetrics.methodMetrics.FanOutMethodMetric;
-import org.ml_methods_group.algorithm.PropertiesFinder;
-import org.ml_methods_group.algorithm.RelevantProperties;
 import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.*;
@@ -60,14 +58,18 @@ public abstract class Entity {
     }
 
     private final PsiElement psiEntity;
-    private double[] vector;
     private final RelevantProperties relevantProperties;
     private final String name;
+    private double[] vector;
+    protected boolean isMovable = true;
 
-    public Entity(PsiElement element, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
+    public Entity(PsiElement element) {
         this.name = PsiSearchUtil.getHumanReadableName(element);
         psiEntity = element;
-        relevantProperties = propertiesFinder.getProperties(element);
+        relevantProperties = new RelevantProperties();
+    }
+
+    void calculateVector(MetricsRun metricsRun) {
         vector = getCalculatorForEntity().calculateVector(metricsRun, this);
     }
 
@@ -96,7 +98,7 @@ public abstract class Entity {
         return Math.sqrt(ans);
     }
 
-    public static void normalize(Iterable<Entity> entities) {
+    static void normalize(Iterable<? extends Entity> entities) {
         for (int i = 0; i < DIMENSION; i++) {
             double mx = 0.0;
             for (Entity entity : entities) {
@@ -149,6 +151,8 @@ public abstract class Entity {
         relevantProperties.printAll();
     }
 
+    // Using psi elements may be cause of access problems
+    @Deprecated
     public PsiElement getPsiElement() {
         return psiEntity;
     }
@@ -174,6 +178,10 @@ public abstract class Entity {
         result.addAll(METHOD_ENTITY_CALCULATOR.getRequestedMetrics());
         result.addAll(FIELD_ENTITY_CALCULATOR.getRequestedMetrics());
         return result;
+    }
+
+    public boolean isMovable() {
+        return isMovable;
     }
 
     abstract public MetricCategory getCategory();

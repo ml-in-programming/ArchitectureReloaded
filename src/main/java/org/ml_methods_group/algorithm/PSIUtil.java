@@ -18,6 +18,7 @@ package org.ml_methods_group.algorithm;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
 
 import java.util.HashSet;
 import java.util.Set;

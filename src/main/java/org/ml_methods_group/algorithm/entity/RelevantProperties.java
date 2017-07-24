@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ml_methods_group.algorithm;
+package org.ml_methods_group.algorithm.entity;
 
 import com.google.common.collect.Sets;
 import com.intellij.psi.PsiClass;

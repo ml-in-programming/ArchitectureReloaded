@@ -19,11 +19,12 @@ package org.ml_methods_group.algorithm.entity;
 import com.intellij.psi.PsiField;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsRun;
-import org.ml_methods_group.algorithm.PropertiesFinder;
+import com.sixrr.metrics.utils.MethodUtils;
 
 public class FieldEntity extends Entity {
-    public FieldEntity(PsiField field, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
-        super(field, metricsRun, propertiesFinder);
+    FieldEntity(PsiField field) {
+        super(field);
+        isMovable = MethodUtils.isStatic(field);
     }
 
     @Override
