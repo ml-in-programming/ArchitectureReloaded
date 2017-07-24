@@ -38,6 +38,7 @@ public class ExecutionInfoDialog extends DialogWrapper {
         super(project, false);
         this.results = results;
         this.searchResult = searchResult;
+        setResizable(false);
         setModal(true);
         setTitle(ArchitectureReloadedBundle.message("execution.info.dialog.title"));
         init();
@@ -47,14 +48,14 @@ public class ExecutionInfoDialog extends DialogWrapper {
     @Nullable
     @Override
     protected JComponent createCenterPanel() {
-        final JPanel content = new JPanel(new GridLayout(2, 1));
+        final JPanel content = new JPanel(new BorderLayout());
         JPanel algorithmsInfo = new JPanel(new FlowLayout(FlowLayout.LEADING));
         results.stream()
                 .map(this::createInfoPanel)
                 .forEach(algorithmsInfo::add);
-        content.add(createInfoPanel(searchResult));
-        content.add(algorithmsInfo);
-        return ScrollPaneFactory.createScrollPane(content);
+        content.add(createInfoPanel(searchResult), BorderLayout.NORTH);
+        content.add(algorithmsInfo, BorderLayout.SOUTH);
+        return content;
     }
 
     private JPanel createInfoPanel(AlgorithmResult result) {
