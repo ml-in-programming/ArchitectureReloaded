@@ -16,13 +16,14 @@
 
 package org.ml_methods_group.algorithm.entity;
 
+import com.intellij.psi.PsiField;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.ml_methods_group.algorithm.PropertiesFinder;
 
 public class FieldEntity extends Entity {
-    public FieldEntity(String name, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
-        super(name, metricsRun, propertiesFinder);
+    public FieldEntity(PsiField field, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
+        super(field, metricsRun, propertiesFinder);
     }
 
     @Override

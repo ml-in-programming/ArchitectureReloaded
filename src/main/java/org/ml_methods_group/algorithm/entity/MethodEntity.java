@@ -25,8 +25,8 @@ import org.ml_methods_group.algorithm.PropertiesFinder;
 public class MethodEntity extends Entity {
     private final boolean isOverriding;
 
-    public MethodEntity(String name, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
-        super(name, metricsRun, propertiesFinder);
+    public MethodEntity(PsiMethod method, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
+        super(method, metricsRun, propertiesFinder);
         isOverriding = PSIUtil.isOverriding((PsiMethod) getPsiElement());
     }
 

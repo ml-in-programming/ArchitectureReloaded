@@ -25,8 +25,8 @@ import org.ml_methods_group.algorithm.PropertiesFinder;
 import java.util.Set;
 
 public class ClassEntity extends Entity {
-    public ClassEntity(String name, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
-        super(name, metricsRun, propertiesFinder);
+    public ClassEntity(PsiClass psiClass, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
+        super(psiClass, metricsRun, propertiesFinder);
     }
 
     @Override

@@ -54,13 +54,13 @@ public class ARI extends Algorithm {
         return first;
     }
 
+    // todo check, that method isn't abstract or constructor
     private Map<String, String> findRefactoring(Entity entity, Map<String, String> accumulator) {
         if (entity.getCategory() == MetricCategory.Method && ((MethodEntity) entity).isOverriding()) {
             return accumulator;
         }
         double minDistance = Double.POSITIVE_INFINITY;
         ClassEntity targetClass = null;
-
         for (final ClassEntity classEntity : classEntities) {
 
             final double distance = entity.distance(classEntity);

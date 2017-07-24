@@ -52,13 +52,15 @@ public class VectorCalculator {
     }
 
     double[] calculateVector(MetricsRun metricsRun, PropertiesFinder finder, Entity entity) {
+        System.out.println("Calculate for " + entity.getName());
+        System.out.println("Properties: " + finder.getProperties(entity.getPsiElement()));
         final double[] vector = new double[dimension];
         applyMetricsDependencies(metricsRun.getResultsForCategory(entity.getCategory()), entity.getName(), vector);
         if (entity.getCategory() != Class) {
             applyMetricsDependencies(metricsRun.getResultsForCategory(Class), entity.getClassName(), vector);
         }
         if (!propertiesDependencies.isEmpty()) {
-            applyPropertiesDependencies(finder.getProperties(entity.getName()), vector);
+            applyPropertiesDependencies(finder.getProperties(entity.getPsiElement()), vector);
         }
         for (Entry<Integer, Double> entry : constValues.entrySet()) {
             vector[entry.getKey()] = entry.getValue();

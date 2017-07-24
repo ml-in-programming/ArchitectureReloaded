@@ -58,8 +58,12 @@ public final class MethodUtils {
         return containingClass != null && containingClass.isInterface();
     }
 
-    public static boolean isStatic(PsiModifierListOwner method) {
-        return method.hasModifierProperty(PsiModifier.STATIC);
+    public static boolean isStatic(PsiModifierListOwner unit) {
+        return unit.hasModifierProperty(PsiModifier.STATIC);
+    }
+
+    public static boolean isPrivate(PsiModifierListOwner unit) {
+        return unit.hasModifierProperty(PsiModifier.PRIVATE);
     }
 
     public static int parametersCount(PsiMethod method) {

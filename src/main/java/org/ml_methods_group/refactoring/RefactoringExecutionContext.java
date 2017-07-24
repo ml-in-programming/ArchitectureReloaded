@@ -18,6 +18,10 @@ package org.ml_methods_group.refactoring;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.MetricsResultsHolder;
 import com.sixrr.metrics.metricModel.MetricsExecutionContextImpl;
@@ -64,9 +68,7 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
         super(project, scope);
         this.profile = profile;
         this.continuation = continuation;
-
-        properties = new PropertiesFinder();
-        scope.accept(properties.createVisitor(scope));
+        properties = PropertiesFinder.analyze(scope);
 
         execute(profile, metricsRun);
     }
@@ -76,9 +78,7 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
         super(project, scope);
         this.profile = profile;
         continuation = null;
-
-        properties = new PropertiesFinder();
-        scope.accept(properties.createVisitor(scope));
+        properties = PropertiesFinder.analyze(scope);
 
         executeSynchronously(profile, metricsRun);
     }
@@ -97,31 +97,35 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
         final MetricsResult classMetrics = metricsRun.getResultsForCategory(MetricCategory.Class);
         final MetricsResult methodMetrics = metricsRun.getResultsForCategory(MetricCategory.Method);
 
-        for (String obj : classMetrics.getMeasuredObjects()) {
-            if (obj.equals("null")) {
+        for (String unit : classMetrics.getMeasuredObjects()) {
+            if (unit.equals("null")) {
                 continue;
             }
-            if (!properties.getAllClassesNames().contains(obj)) {
-                continue;
+            PsiElement element = properties.elementForName(unit);
+            if (element instanceof PsiClass) {
+                final Entity classEnt = new ClassEntity((PsiClass) element, metricsRun, properties);
+                entities.add(classEnt);
             }
-            final Entity classEnt = new ClassEntity(obj, metricsRun, properties);
-            entities.add(classEnt);
         }
-        for (String obj : methodMetrics.getMeasuredObjects()) {
-            if (obj.substring(0, obj.indexOf('.')).equals("null")) {
+        for (String unit : methodMetrics.getMeasuredObjects()) {
+            if (unit.substring(0, unit.indexOf('.')).equals("null")) {
                 continue;
             }
-            if (properties.hasElement(obj)) {
-                final Entity methodEnt = new MethodEntity(obj, metricsRun, properties);
+            PsiElement element = properties.elementForName(unit);
+            if (element instanceof PsiMethod) {
+                final Entity methodEnt = new MethodEntity((PsiMethod) element, metricsRun, properties);
                 entities.add(methodEnt);
             }
         }
 
         // TODO: move fields processing to MetricsRunImpl
         final Set<String> fields = properties.getAllFields();
-        for (String field : fields) {
-            final Entity fieldEnt = new FieldEntity(field, metricsRun, properties);
-            entities.add(fieldEnt);
+        for (String unit : fields) {
+            PsiElement element = properties.elementForName(unit);
+            if (element instanceof PsiField) {
+                final Entity fieldEnt = new FieldEntity((PsiField) element, metricsRun, properties);
+                entities.add(fieldEnt);
+            }
         }
 
         Entity.normalize(entities);

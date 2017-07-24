@@ -16,10 +16,7 @@
 
 package org.ml_methods_group.algorithm.entity;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
+import com.intellij.psi.*;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsRun;
@@ -31,6 +28,7 @@ import com.sixrr.stockmetrics.methodMetrics.FanInMethodMetric;
 import com.sixrr.stockmetrics.methodMetrics.FanOutMethodMetric;
 import org.ml_methods_group.algorithm.PropertiesFinder;
 import org.ml_methods_group.algorithm.RelevantProperties;
+import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.*;
 
@@ -66,13 +64,11 @@ public abstract class Entity {
     private final RelevantProperties relevantProperties;
     private final String name;
 
-
-
-    public Entity(String name, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
-        this.name = name;
+    public Entity(PsiElement element, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
+        this.name = PsiSearchUtil.getHumanReadableName(element);
+        psiEntity = element;
+        relevantProperties = propertiesFinder.getProperties(element);
         vector = getCalculatorForEntity().calculateVector(metricsRun, propertiesFinder, this);
-        relevantProperties = propertiesFinder.getProperties(this.name);
-        psiEntity = propertiesFinder.getPsiElement(name);
     }
 
     private double square(double value) {
@@ -80,6 +76,10 @@ public abstract class Entity {
     }
 
     public double distance(Entity entity) {
+        if (relevantProperties.hasCommonPrivateMember(entity.relevantProperties)) {
+            return 0;
+        }
+
         double ans = 0.0;
         for (int i = 0; i < DIMENSION; i++) {
             ans += square(vector[i] - entity.vector[i]);
@@ -114,7 +114,7 @@ public abstract class Entity {
     }
 
     public void moveToClass(PsiClass newClass) {
-        final Set<PsiClass> oldClasses = relevantProperties.getAllClasses();
+        final Set<PsiClass> oldClasses = new HashSet<>(relevantProperties.getAllClasses());
         for (PsiClass oldClass : oldClasses) {
             relevantProperties.removeClass(oldClass);
         }
@@ -131,10 +131,6 @@ public abstract class Entity {
 
     public RelevantProperties getRelevantProperties() {
         return relevantProperties;
-    }
-
-    public double[] getVector() {
-        return vector;
     }
 
     public String getName() {

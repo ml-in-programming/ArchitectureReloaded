@@ -16,20 +16,21 @@
 
 package org.ml_methods_group.algorithm;
 
+import com.google.common.collect.Sets;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.utils.MethodUtils;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class RelevantProperties {
     private final Set<PsiMethod> methods = new HashSet<>();
     private final Set<PsiClass> classes = new HashSet<>();
     private final Set<PsiField> fields = new HashSet<>();
-    private final Collection<PsiMethod> overrideMethods = new HashSet<>();
+    private final Set<PsiMember> privateMembers = new HashSet<>();
+    private final Set<PsiMethod> overrideMethods = new HashSet<>();
 
     public void removeMethod(PsiMethod method) {
         methods.remove(method);
@@ -45,6 +46,9 @@ public class RelevantProperties {
 
     public void addMethod(PsiMethod method) {
         methods.add(method);
+        if (MethodUtils.isPrivate(method)) {
+            privateMembers.add(method);
+        }
     }
 
     public void addClass(PsiClass aClass) {
@@ -53,14 +57,9 @@ public class RelevantProperties {
 
     public void addField(PsiField field) {
         fields.add(field);
-    }
-
-    public void retainMethods(Collection<PsiMethod> methodsSet) {
-        methods.retainAll(methodsSet);
-    }
-
-    public void retainClasses(Collection<PsiClass> classSet) {
-        classes.retainAll(classSet);
+        if (MethodUtils.isPrivate(field)) {
+            privateMembers.add(field);
+        }
     }
 
     public void addOverrideMethod(PsiMethod method) {
@@ -72,39 +71,32 @@ public class RelevantProperties {
     }
 
     public Set<PsiField> getAllFields() {
-        return new HashSet<>(fields);
+        return Collections.unmodifiableSet(fields);
     }
 
     public Set<PsiMethod> getAllMethods() {
-        return new HashSet<PsiMethod>(methods);
+        return Collections.unmodifiableSet(methods);
     }
 
     public Set<PsiClass> getAllClasses() {
-        return new HashSet<PsiClass>(classes);
+        return Collections.unmodifiableSet(classes);
     }
 
     public int size() {
-        return classes.size() + fields.size() + methods.size();
+        return classes.size() + fields.size() + methods.size() + overrideMethods.size();
     }
 
     public int sizeOfIntersect(RelevantProperties properties) {
         int result = 0;
-        final Collection<PsiClass> commonClasses = new HashSet<>(classes);
-        commonClasses.retainAll(properties.classes);
-        result += commonClasses.size();
-
-        final Collection<PsiMethod> commonMethods = new HashSet<>(methods);
-        commonMethods.addAll(overrideMethods);
-        final Set<PsiMethod> rpMethods = properties.methods;
-        rpMethods.addAll(properties.overrideMethods);
-        commonMethods.retainAll(rpMethods);
-        result += commonMethods.size();
-
-        final Collection<PsiField> commonFields = new HashSet<>(fields);
-        commonFields.retainAll(properties.fields);
-        result += commonFields.size();
-
+        result += Sets.intersection(fields, properties.fields).size();
+        result += Sets.intersection(classes, properties.classes).size();
+        result += Sets.intersection(Sets.union(methods, overrideMethods),
+                Sets.union(properties.methods, properties.overrideMethods)).size();
         return result;
+    }
+
+    public boolean hasCommonPrivateMember(RelevantProperties properties) {
+        return !Sets.intersection(privateMembers, properties.privateMembers).isEmpty();
     }
 
     public void printAll() {
@@ -116,6 +108,12 @@ public class RelevantProperties {
 
         System.out.print("    ");
         for (PsiMethod method : methods) {
+            System.out.print(MethodUtils.calculateSignature(method) + ' ');
+        }
+        System.out.println();
+
+        System.out.print("    ");
+        for (PsiMethod method : overrideMethods) {
             System.out.print(MethodUtils.calculateSignature(method) + ' ');
         }
         System.out.println();
