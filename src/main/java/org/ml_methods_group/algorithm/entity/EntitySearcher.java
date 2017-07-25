@@ -135,7 +135,6 @@ public class EntitySearcher {
             if (entity == null) {
                 super.visitClass(aClass);
                 return;
-
             }
             final RelevantProperties classProperties = entity.getProperties();
             classProperties.addClass(aClass);

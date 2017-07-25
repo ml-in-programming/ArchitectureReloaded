@@ -44,7 +44,7 @@ import com.sixrr.stockmetrics.metricModel.BaseMetric;
 
 public abstract class BaseMetricsCalculator implements MetricCalculator {
 
-    private static final Key<DependencyMapImpl> dependencyMapKey = new Key<DependencyMapImpl>("dependencyMap");
+    private static final Key<DependencyMapImpl> dependencyMapKey = new Key<>("dependencyMap");
 
     protected Metric metric = null;
     protected MetricsResultsHolder resultsHolder = null;
