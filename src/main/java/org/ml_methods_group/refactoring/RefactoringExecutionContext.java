@@ -105,14 +105,18 @@ public class RefactoringExecutionContext {
         final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
         final int tasks = requestedAlgorithms.size() + 1;
         int completedTasks = 0;
-        indicator.setText("Generate entities");
-        indicator.setFraction(completedTasks / tasks);
+        if (!ApplicationManager.getApplication().isUnitTestMode()) {
+            indicator.setText("Generate entities");
+            indicator.setFraction(completedTasks / tasks);
+        }
         entitySearchResult = ApplicationManager.getApplication()
                 .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
         completedTasks++;
         for (String algorithm : requestedAlgorithms) {
-            indicator.setText("Run algorithm " + algorithm);
-            indicator.setFraction((double) completedTasks / tasks);
+            if (!ApplicationManager.getApplication().isUnitTestMode()) {
+                indicator.setText("Run algorithm " + algorithm);
+                indicator.setFraction((double) completedTasks / tasks);
+            }
             calculateAlgorithmForName(algorithm);
             completedTasks++;
         }
@@ -164,6 +168,12 @@ public class RefactoringExecutionContext {
 
     public List<AlgorithmResult> getAlgorithmResults() {
         return new ArrayList<>(algorithmsResults);
+    }
+
+    public AlgorithmResult getResultForName(String algorithmName) {
+        return algorithmsResults.stream()
+                .filter(result -> algorithmName.equals(result.getAlgorithmName()))
+                .findAny().orElse(null);
     }
 
     public EntitySearchResult getEntitySearchResult() {
