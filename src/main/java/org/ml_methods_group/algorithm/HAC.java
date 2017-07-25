@@ -83,6 +83,7 @@ public class HAC extends Algorithm {
                 }
             }
         }
+        Triple.clearPool();
         return refactorings;
     }
 
@@ -147,7 +148,7 @@ public class HAC extends Algorithm {
         if (distance > 1.0) {
             return;
         }
-        final Triple triple = new Triple(distance, first, second);
+        final Triple triple = Triple.createTriple(distance, first, second);
         triples.put(getTripleID(first, second), triple);
         heap.add(triple);
     }
@@ -159,6 +160,7 @@ public class HAC extends Algorithm {
         final long tripleID = getTripleID(triple.first, triple.second);
         triples.remove(tripleID);
         heap.remove(triple);
+        triple.release();
     }
 
     private Community singletonCommunity(Entity entity) {
@@ -194,14 +196,26 @@ public class HAC extends Algorithm {
     }
 
     private static class Triple implements Comparable<Triple> {
-        private final double distance;
-        private final Community first;
-        private final Community second;
+        private static final Queue<Triple> triplesPoll = new ArrayDeque<>();
 
-        Triple(double distance, Community first, Community second) {
-            this.distance = distance;
-            this.first = first;
-            this.second = second;
+        private double distance;
+        private Community first;
+        private Community second;
+
+        static Triple createTriple(double distance, Community first, Community second) {
+            final Triple triple = triplesPoll.isEmpty()? new Triple() : triplesPoll.poll();
+            triple.distance = distance;
+            triple.first = first;
+            triple.second = second;
+            return triple;
+        }
+
+        static void clearPool() {
+            triplesPoll.clear();
+        }
+
+        void release() {
+            triplesPoll.add(this);
         }
 
         @Override
