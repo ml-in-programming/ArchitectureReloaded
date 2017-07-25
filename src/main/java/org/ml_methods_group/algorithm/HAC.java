@@ -17,10 +17,12 @@
 package org.ml_methods_group.algorithm;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,37 +30,55 @@ public class HAC extends Algorithm {
     private final SortedSet<Triple> heap = new TreeSet<>();
     private final Map<Long, Triple> triples = new HashMap<>();
     private final Set<Community> communities = new HashSet<>();
+    private final AtomicInteger progressCounter = new AtomicInteger();
+    private ExecutionContext context;
     private int idGenerator = 0;
     private int newClassCount = 0;
 
     public HAC() {
-        super("HAC", false);
+        super("HAC", true);
     }
 
     private void init(ExecutionContext context) {
+        this.context = context;
         heap.clear();
         communities.clear();
         idGenerator = 0;
         newClassCount = 0;
+        progressCounter.set(0);
         EntitySearchResult entities = context.entities;
         Stream.of(entities.getClasses(), entities.getMethods(), entities.getFields())
                 .flatMap(List::stream)
                 .map(this::singletonCommunity)
                 .forEach(communities::add);
+        List<Community> communitiesAsList = new ArrayList<>(communities);
+        Collections.shuffle(communitiesAsList);
+        final List<Triple> toInsert =
+                runParallel(communitiesAsList, context, ArrayList::new, this::findTriples, this::combineLists);
+        toInsert.forEach(this::insertTriple);
+    }
 
-        int stepsCount = 0;
-        for (Community first : communities) {
-            final Entity representative = first.entities.get(0);
-            for (Community second : communities) {
-                if (first == second) {
-                    break;
-                }
-                final double distance = representative.distance(second.entities.get(0));
-                insertTriple(distance, first, second);
+    private List<Triple> findTriples(Community community, List<Triple> accumulator) {
+        final Entity representative = community.entities.get(0);
+        for (Community another : communities) {
+            if (another == community) {
+                break;
             }
-            stepsCount++;
-            reportProgress(0.5 * stepsCount / communities.size(), context);
+            final double distance = representative.distance(another.entities.get(0));
+            if (distance < 1) {
+                accumulator.add(new Triple(distance, community, another));
+            }
         }
+        reportProgress(0.9 * (double) progressCounter.incrementAndGet() / communities.size(), context);
+        return accumulator;
+    }
+
+    private <T> List<T> combineLists(List<T> first, List<T> second) {
+        if (first.size() < second.size()) {
+            return combineLists(second, first);
+        }
+        first.addAll(second);
+        return first;
     }
 
     @Override
@@ -72,7 +92,7 @@ public class HAC extends Algorithm {
             final Community first = minTriple.first;
             final Community second = minTriple.second;
             mergeCommunities(first, second);
-            reportProgress(1 - 0.5 * communities.size() / initialCommunitiesCount, context);
+            reportProgress(1 - 0.1 * communities.size() / initialCommunitiesCount, context);
         }
 
         for (Community community : communities) {
@@ -127,13 +147,13 @@ public class HAC extends Algorithm {
             final double newDistance = Math.max(getDistance(fromFirst), getDistance(fromSecond));
             invalidateTriple(fromFirst);
             invalidateTriple(fromSecond);
-            insertTriple(newDistance, newCommunity, community);
+            insertTripleIfNecessary(newDistance, newCommunity, community);
         }
         communities.add(newCommunity);
         return newCommunity;
     }
 
-    private double getDistance(Triple triple) {
+    private double getDistance(@Nullable Triple triple) {
         return triple == null? Double.POSITIVE_INFINITY : triple.distance;
     }
 
@@ -144,16 +164,20 @@ public class HAC extends Algorithm {
         return first.id * 1_000_000_009L + second.id;
     }
 
-    private void insertTriple(double distance, Community first, Community second) {
+    private void insertTriple(@NotNull Triple triple) {
+        triples.put(getTripleID(triple.first, triple.second), triple);
+        heap.add(triple);
+    }
+
+    private void insertTripleIfNecessary(double distance, Community first, Community second) {
         if (distance > 1.0) {
             return;
         }
         final Triple triple = Triple.createTriple(distance, first, second);
-        triples.put(getTripleID(first, second), triple);
-        heap.add(triple);
+        insertTriple(triple);
     }
 
-    private void invalidateTriple(Triple triple) {
+    private void invalidateTriple(@Nullable Triple triple) {
         if (triple == null) {
             return;
         }
@@ -202,8 +226,17 @@ public class HAC extends Algorithm {
         private Community first;
         private Community second;
 
+        Triple(double distance, Community first, Community second) {
+            this.distance = distance;
+            this.first = first;
+            this.second = second;
+        }
+
         static Triple createTriple(double distance, Community first, Community second) {
-            final Triple triple = triplesPoll.isEmpty()? new Triple() : triplesPoll.poll();
+            if (triplesPoll.isEmpty()) {
+                return new Triple(distance, first, second);
+            }
+            final Triple triple = triplesPoll.poll();
             triple.distance = distance;
             triple.first = first;
             triple.second = second;
