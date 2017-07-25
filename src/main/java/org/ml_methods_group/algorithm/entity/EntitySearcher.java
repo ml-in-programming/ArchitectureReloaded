@@ -88,6 +88,9 @@ public class EntitySearcher {
             }
         }
         Entity.normalize(validEntities);
+        validEntities.stream()
+                .map(Entity::getProperties)
+                .forEach(RelevantProperties::prepare);
         return new EntitySearchResult(classes, methods, fields, System.currentTimeMillis() - startTime);
     }
 

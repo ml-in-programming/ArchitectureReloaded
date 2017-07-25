@@ -63,9 +63,9 @@ public class CCDA extends Algorithm {
         for (Entity entity : nodes) {
             final RelevantProperties properties = entity.getRelevantProperties();
             final Set<String> neighbors = graph.getOrDefault(entity.getName(), new HashSet<>());
-            final Set<String> methods = properties.getAllMethods();
 
-            methods.forEach(name -> addNode(name, entity, neighbors));
+            properties.getAllMethods()
+                    .forEach(name -> addNode(name, entity, neighbors));
 
             for (String field : properties.getAllFields()) {
                 addNode(field, entity, neighbors);

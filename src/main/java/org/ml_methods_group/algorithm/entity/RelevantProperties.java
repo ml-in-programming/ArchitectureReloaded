@@ -16,24 +16,26 @@
 
 package org.ml_methods_group.algorithm.entity;
 
-import com.google.common.collect.Sets;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.utils.MethodUtils;
-import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.*;
 
 import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
 public class RelevantProperties {
-    private final Set<String> methods = new HashSet<>();
-    private final Set<String> classes = new HashSet<>();
-    private final Set<String> fields = new HashSet<>();
-    private final Set<String> privateMembers = new HashSet<>();
-    private final Set<String> overrideMethods = new HashSet<>();
+
+    private static final Comparator<String> FAST_COMPARATOR = Comparator.comparingInt(String::length)
+            .thenComparingInt(String::hashCode)
+            .thenComparing(String::compareTo);
+
+    private final ArrayList<String> methods = new ArrayList<>();
+    private final ArrayList<String> classes = new ArrayList<>();
+    private final ArrayList<String> fields = new ArrayList<>();
+    private final ArrayList<String> privateMembers = new ArrayList<>();
+    private final ArrayList<String> allMethods = new ArrayList<>();
 
     @Deprecated
     public void removeMethod(String method) {
@@ -45,59 +47,110 @@ public class RelevantProperties {
         fields.remove(field);
     }
 
-    public void addMethod(PsiMethod method) {
+    void addMethod(PsiMethod method) {
         methods.add(getHumanReadableName(method));
+        allMethods.add(getHumanReadableName(method));
         if (MethodUtils.isPrivate(method)) {
             privateMembers.add(getHumanReadableName(method));
         }
     }
 
-    public void addClass(PsiClass aClass) {
+    void addClass(PsiClass aClass) {
         classes.add(getHumanReadableName(aClass));
     }
 
-    public void addField(PsiField field) {
+    void addField(PsiField field) {
         fields.add(getHumanReadableName(field));
         if (MethodUtils.isPrivate(field)) {
             privateMembers.add(getHumanReadableName(field));
         }
     }
 
-    public void addOverrideMethod(PsiMethod method) {
-        overrideMethods.add(getHumanReadableName(method));
+    void addOverrideMethod(PsiMethod method) {
+        allMethods.add(getHumanReadableName(method));
     }
 
-    public int numberOfMethods() {
+    void prepare() {
+        prepareList(privateMembers);
+        prepareList(classes);
+        prepareList(allMethods);
+        prepareList(fields);
+    }
+
+    private void prepareList(ArrayList<String> list) {
+        removeCopies(list);
+        list.sort(FAST_COMPARATOR);
+        list.trimToSize();
+    }
+
+    int numberOfMethods() {
         return methods.size();
     }
 
-    public Set<String> getAllFields() {
-        return Collections.unmodifiableSet(fields);
+    public List<String> getAllFields() {
+        return Collections.unmodifiableList(fields);
     }
 
-    public Set<String> getAllMethods() {
-        return Collections.unmodifiableSet(methods);
-    }
-
-    public Set<String> getAllClasses() {
-        return Collections.unmodifiableSet(classes);
+    public List<String> getAllMethods() {
+        return Collections.unmodifiableList(methods);
     }
 
     public int size() {
-        return classes.size() + fields.size() + methods.size() + overrideMethods.size();
+        return classes.size() + fields.size() + allMethods.size();
     }
 
     public int sizeOfIntersect(RelevantProperties properties) {
         int result = 0;
-        result += Sets.intersection(fields, properties.fields).size();
-        result += Sets.intersection(classes, properties.classes).size();
-        result += Sets.intersection(Sets.union(methods, overrideMethods),
-                Sets.union(properties.methods, properties.overrideMethods)).size();
+        result += sizeOfIntersection(classes, properties.classes);
+        result += sizeOfIntersection(allMethods, properties.allMethods);
+        result += sizeOfIntersection(fields, properties.fields);
         return result;
     }
 
     public boolean hasCommonPrivateMember(RelevantProperties properties) {
-        return !Sets.intersection(privateMembers, properties.privateMembers).isEmpty();
+        return !isIntersectionEmpty(privateMembers, properties.privateMembers);
+    }
+
+    private void removeCopies(Collection<String> collection) {
+        final Set<String> distinctValues = new HashSet<>(collection);
+        collection.clear();
+        collection.addAll(distinctValues);
+    }
+
+    private int sizeOfIntersection(List<String> first, List<String> second) {
+        int intersection = 0;
+        int firstIndex = 0;
+        int secondIndex = 0;
+        while (firstIndex < first.size() && secondIndex < second.size()) {
+            int cmp = FAST_COMPARATOR.compare(first.get(firstIndex), second.get(secondIndex));
+            if (cmp == 0) {
+                intersection++;
+                firstIndex++;
+                secondIndex++;
+            } else if (cmp < 0) {
+                firstIndex++;
+            } else {
+                secondIndex++;
+            }
+        }
+        return intersection;
+    }
+
+    private boolean isIntersectionEmpty(List<String> first, List<String> second) {
+        int firstIndex = 0;
+        int secondIndex = 0;
+        while (firstIndex < first.size() && secondIndex < second.size()) {
+            int cmp = FAST_COMPARATOR.compare(first.get(firstIndex), second.get(secondIndex));
+            if (cmp == 0) {
+                assert first.get(firstIndex).equals(second.get(secondIndex));
+                return false;
+            } else if (cmp < 0) {
+                firstIndex++;
+            } else {
+                secondIndex++;
+            }
+        }
+        return true;
     }
 
     @Deprecated
@@ -106,7 +159,7 @@ public class RelevantProperties {
         classes.add(targetClass);
     }
 
-    public void printAll() {
+    void printAll() {
         System.out.print("    ");
         for (String aClass : classes) {
             System.out.print(aClass + " ");
@@ -114,13 +167,7 @@ public class RelevantProperties {
         System.out.println();
 
         System.out.print("    ");
-        for (String method : methods) {
-            System.out.print(method + ' ');
-        }
-        System.out.println();
-
-        System.out.print("    ");
-        for (String method : overrideMethods) {
+        for (String method : allMethods) {
             System.out.print(method + ' ');
         }
         System.out.println();
