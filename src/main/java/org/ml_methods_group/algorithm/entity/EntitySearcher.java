@@ -17,9 +17,10 @@
 package org.ml_methods_group.algorithm.entity;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.java.AnonymousClassElement;
-import com.intellij.util.containers.ArrayListSet;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.ml_methods_group.algorithm.PSIUtil;
@@ -45,8 +46,19 @@ public class EntitySearcher {
     }
 
     private EntitySearchResult runCalculations(MetricsRun metricsRun) {
+        final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
+        if (indicator != null) {
+            indicator.pushState();
+            indicator.setText("Search units");
+        }
         scope.accept(new UnitsFinder());
-        scope.accept(new PropertiesCalculator());
+        if (indicator != null) {
+            indicator.setText("Calculate properties");
+        }
+        scope.accept(new PropertiesCalculator(indicator));
+        if (indicator != null) {
+            indicator.popState();
+        }
         return prepareResult(metricsRun);
     }
 
@@ -120,6 +132,13 @@ public class EntitySearcher {
     }
 
     private class PropertiesCalculator extends JavaRecursiveElementVisitor {
+        private final ProgressIndicator indicator;
+        private int propertiesCalculated = 0;
+
+        private PropertiesCalculator(ProgressIndicator indicator) {
+            this.indicator = indicator;
+        }
+
         private PsiMethod currentMethod;
 
         @Override
@@ -151,6 +170,7 @@ public class EntitySearcher {
             Arrays.stream(aClass.getAllFields())
                     .filter(m -> isProperty(aClass, m))
                     .forEach(classProperties::addField);
+            reportPropertiesCalculated();
             super.visitClass(aClass);
         }
 
@@ -184,6 +204,7 @@ public class EntitySearcher {
                     .map(classForName::get)
                     .filter(Objects::nonNull)
                     .forEach(methodProperties::addClass);
+            reportPropertiesCalculated();
             super.visitMethod(method);
             if (currentMethod == method) {
                 currentMethod = null;
@@ -208,7 +229,6 @@ public class EntitySearcher {
             if (entity == null) {
                 super.visitField(field);
                 return;
-
             }
             RelevantProperties fieldProperties = entity.getProperties();
             fieldProperties.addField(field);
@@ -216,6 +236,7 @@ public class EntitySearcher {
             if (containingClass != null) {
                 fieldProperties.addClass(containingClass);
             }
+            reportPropertiesCalculated();
             super.visitField(field);
         }
 
@@ -227,6 +248,13 @@ public class EntitySearcher {
                         .ifPresent(p -> p.addMethod((PsiMethod) element));
             }
             super.visitMethodCallExpression(expression);
+        }
+
+        private void reportPropertiesCalculated() {
+            propertiesCalculated++;
+            if (indicator != null) {
+                indicator.setFraction((double) propertiesCalculated / entities.size());
+            }
         }
     }
 

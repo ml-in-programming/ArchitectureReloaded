@@ -16,10 +16,8 @@
 
 package org.ml_methods_group.algorithm;
 
-import com.sixrr.metrics.MetricCategory;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
-import org.ml_methods_group.algorithm.entity.MethodEntity;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -41,8 +39,7 @@ public class AKMeans extends Algorithm {
         this(50);
     }
 
-    @Override
-    protected void setData(EntitySearchResult entities) {
+    private void init(EntitySearchResult entities) {
         points.clear();
         communities.clear();
         communityIds.clear();
@@ -66,10 +63,12 @@ public class AKMeans extends Algorithm {
 
     @Override
     protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+        init(context.entities);
         final Map<String, String> refactorings = new HashMap<>();
         initializeCenters();
 
-        for (int step = 0; step < steps; ++step) {
+        for (int step = 0; step < steps; step++) {
+            reportProgress((double) step / steps, context);
             boolean isMoved = false;
             final Map<Entity, String> newCommunities = new HashMap<>();
             for (Entity entity : points) {

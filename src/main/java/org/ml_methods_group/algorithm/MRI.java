@@ -16,11 +16,9 @@
 
 package org.ml_methods_group.algorithm;
 
-import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.Entity;
-import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,15 +35,12 @@ public class MRI extends Algorithm {
     }
 
     @Override
-    protected void setData(EntitySearchResult entities) {
-        this.entities.clear();
-        this.entities.addAll(entities.getClasses());
-        this.entities.addAll(entities.getMethods());
-        this.entities.addAll(entities.getFields());
-    }
-
-    @Override
     protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+        this.entities.clear();
+        this.entities.addAll(context.entities.getClasses());
+        this.entities.addAll(context.entities.getMethods());
+        this.entities.addAll(context.entities.getFields());
+
         final Map<String, String> refactorings = new HashMap<>();
 
         for (Entity currentEntity : entities) {

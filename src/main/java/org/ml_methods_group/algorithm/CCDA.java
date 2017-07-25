@@ -16,18 +16,12 @@
 
 package org.ml_methods_group.algorithm;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.RelevantProperties;
-import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.*;
 import java.util.stream.Stream;
-
-import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
 public class CCDA extends Algorithm {
     private final Map<String, Integer> communityIds = new HashMap<>();
@@ -45,8 +39,7 @@ public class CCDA extends Algorithm {
 
     }
 
-    @Override
-    protected void setData(EntitySearchResult entities) {
+    private void init(EntitySearchResult entities) {
         communityIds.clear();
         idCommunity.clear();
         nodes.clear();
@@ -102,11 +95,10 @@ public class CCDA extends Algorithm {
 
     @Override
     protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+        init(context.entities);
         final Map<String, String> refactorings = new HashMap<>();
         quality = calculateQualityIndex();
-        System.out.println(quality);
-
-        System.out.println("Running...");
+        double progress = 0;
         while (true) {
             final Holder optimum = runParallel(nodes, context, Holder::new, this::attempt, this::max);
             if (optimum.delta <= eps) {
@@ -119,6 +111,8 @@ public class CCDA extends Algorithm {
             System.out.println("move " + optimum.targetEntity.getName() + " to " + idCommunity.get(optimum.community - 1));
             System.out.println("quality index is now: " + quality);
             System.out.println();
+            progress = Math.max(progress, eps / optimum.delta);
+            reportProgress(progress, context);
         }
 
         return refactorings;

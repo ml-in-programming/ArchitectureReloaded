@@ -16,11 +16,12 @@
 
 package org.ml_methods_group.algorithm;
 
-import org.ml_methods_group.algorithm.entity.Entity;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -47,22 +48,35 @@ public abstract class Algorithm {
 
     public final AlgorithmResult execute(EntitySearchResult entities, ExecutorService service) {
         final long startTime = System.currentTimeMillis();
-        final ExecutionContext context = new ExecutionContext(isParallelExecution ? requireNonNull(service) : null);
+        final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
+        if (indicator != null) {
+            indicator.pushState();
+            indicator.setText("Run " + name + "...");
+            indicator.setFraction(0);
+        }
+        final ExecutionContext context =
+                new ExecutionContext(isParallelExecution ? requireNonNull(service) : null, indicator, entities);
         final Map<String, String> refactorings;
         try {
-            setData(entities);
             refactorings = calculateRefactorings(context);
         } catch (Exception e) {
             e.printStackTrace();
             return new AlgorithmResult(name, e);
         }
         final long totalTime = System.currentTimeMillis() - startTime;
+        if (indicator != null) {
+            indicator.popState();
+        }
         return new AlgorithmResult(refactorings, name, totalTime, context.usedThreads);
     }
 
-    protected abstract void setData(EntitySearchResult entities);
-
     protected abstract Map<String, String> calculateRefactorings(ExecutionContext context) throws Exception;
+
+    protected void reportProgress(double progress, ExecutionContext context) {
+        if (context.indicator != null) {
+            context.indicator.setFraction(progress);
+        }
+    }
 
     protected final <A, V> A runParallel(List<V> values, ExecutionContext context, Supplier<A> accumulatorFactory,
                                             BiFunction<V, A, A> processor, BinaryOperator<A> combiner) {
@@ -110,10 +124,15 @@ public abstract class Algorithm {
 
     protected final class ExecutionContext {
         private final ExecutorService service;
+        private final ProgressIndicator indicator;
+        public final EntitySearchResult entities;
         private int usedThreads = 1; // default thread
 
-        private ExecutionContext(ExecutorService service) {
+        private ExecutionContext(ExecutorService service, @Nullable ProgressIndicator indicator,
+                                 EntitySearchResult entities) {
             this.service = service;
+            this.indicator = indicator;
+            this.entities = entities;
         }
 
         private void reportAdditionalThreadsUsed(int count) {

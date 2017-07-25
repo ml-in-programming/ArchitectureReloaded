@@ -16,33 +16,34 @@
 
 package org.ml_methods_group.algorithm;
 
-import com.sixrr.metrics.MetricCategory;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
-import org.ml_methods_group.algorithm.entity.EntitySearchResult;
-import org.ml_methods_group.algorithm.entity.MethodEntity;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ARI extends Algorithm {
     private final List<Entity> units = new ArrayList<>();
     private final List<ClassEntity> classEntities = new ArrayList<>();
+    private final AtomicInteger progressCount = new AtomicInteger();
+    private ExecutionContext context;
 
     public ARI() {
         super("ARI", true);
     }
 
     @Override
-    protected void setData(EntitySearchResult entities) {
+    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
         units.clear();
         classEntities.clear();
-        classEntities.addAll(entities.getClasses());
-        units.addAll(entities.getMethods());
-        units.addAll(entities.getFields());
-    }
-
-    @Override
-    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+        classEntities.addAll(context.entities.getClasses());
+        units.addAll(context.entities.getMethods());
+        units.addAll(context.entities.getFields());
+        progressCount.set(0);
+        this.context = context;
         return runParallel(units, context, HashMap<String, String>::new, this::findRefactoring, this::combineMaps);
     }
 
@@ -53,6 +54,7 @@ public class ARI extends Algorithm {
 
     // todo check, that method isn't abstract or constructor
     private Map<String, String> findRefactoring(Entity entity, Map<String, String> accumulator) {
+        reportProgress((double) progressCount.incrementAndGet() / units.size(), context);
         if (!entity.isMovable()) {
             return accumulator;
         }

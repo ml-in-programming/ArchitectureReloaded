@@ -19,7 +19,6 @@ package org.ml_methods_group.refactoring;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -34,7 +33,6 @@ import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.EntitySearcher;
 
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -81,6 +79,7 @@ public class RefactoringExecutionContext {
         Task.Modal task = new Task.Modal(project, "Search For Refactorings", true) {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
+                indicator.setText("Search fo refactorings");
                 execute();
             }
 
@@ -102,23 +101,10 @@ public class RefactoringExecutionContext {
         metricsRun.setProfileName(profile.getName());
         metricsRun.setContext(scope);
         metricsRun.setTimestamp(new TimeStamp());
-        final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
-        final int tasks = requestedAlgorithms.size() + 1;
-        int completedTasks = 0;
-        if (!ApplicationManager.getApplication().isUnitTestMode()) {
-            indicator.setText("Generate entities");
-            indicator.setFraction(completedTasks / tasks);
-        }
         entitySearchResult = ApplicationManager.getApplication()
                 .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
-        completedTasks++;
         for (String algorithm : requestedAlgorithms) {
-            if (!ApplicationManager.getApplication().isUnitTestMode()) {
-                indicator.setText("Run algorithm " + algorithm);
-                indicator.setFraction((double) completedTasks / tasks);
-            }
             calculateAlgorithmForName(algorithm);
-            completedTasks++;
         }
     }
 

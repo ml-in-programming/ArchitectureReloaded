@@ -26,25 +26,27 @@ import java.util.stream.Stream;
 
 public class HAC extends Algorithm {
     private final SortedSet<Triple> heap = new TreeSet<>();
+    private final Map<Long, Triple> triples = new HashMap<>();
     private final Set<Community> communities = new HashSet<>();
-    private long idGenerator = 0;
+    private int idGenerator = 0;
     private int newClassCount = 0;
 
     public HAC() {
         super("HAC", false);
     }
 
-    @Override
-    protected void setData(EntitySearchResult entities) {
+    private void init(ExecutionContext context) {
         heap.clear();
         communities.clear();
         idGenerator = 0;
         newClassCount = 0;
+        EntitySearchResult entities = context.entities;
         Stream.of(entities.getClasses(), entities.getMethods(), entities.getFields())
                 .flatMap(List::stream)
                 .map(this::singletonCommunity)
                 .forEach(communities::add);
 
+        int stepsCount = 0;
         for (Community first : communities) {
             final Entity representative = first.entities.get(0);
             for (Community second : communities) {
@@ -54,18 +56,23 @@ public class HAC extends Algorithm {
                 final double distance = representative.distance(second.entities.get(0));
                 insertTriple(distance, first, second);
             }
+            stepsCount++;
+            reportProgress(0.5 * stepsCount / communities.size(), context);
         }
     }
 
+    @Override
     protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+        init(context);
+        final int initialCommunitiesCount = communities.size();
         final Map<String, String> refactorings = new HashMap<>();
-
         while (!heap.isEmpty()) {
             final Triple minTriple = heap.first();
             invalidateTriple(minTriple);
             final Community first = minTriple.first;
             final Community second = minTriple.second;
             mergeCommunities(first, second);
+            reportProgress(1 - 0.5 * communities.size() / initialCommunitiesCount, context);
         }
 
         for (Community community : communities) {
@@ -112,12 +119,14 @@ public class HAC extends Algorithm {
         communities.remove(second);
 
         for (Community community : communities) {
-            final Triple fromFirst = first.usages.get(community);
-            final Triple fromSecond = second.usages.get(community);
+            final long fromFirstID = getTripleID(first, community);
+            final long fromSecondID = getTripleID(second, community);
+            final Triple fromFirst = triples.get(fromFirstID);
+            final Triple fromSecond = triples.get(fromSecondID);
             final double newDistance = Math.max(getDistance(fromFirst), getDistance(fromSecond));
-            insertTriple(newDistance, newCommunity, community);
             invalidateTriple(fromFirst);
             invalidateTriple(fromSecond);
+            insertTriple(newDistance, newCommunity, community);
         }
         communities.add(newCommunity);
         return newCommunity;
@@ -127,13 +136,19 @@ public class HAC extends Algorithm {
         return triple == null? Double.POSITIVE_INFINITY : triple.distance;
     }
 
+    private long getTripleID(Community first, Community second) {
+        if (second.id > first.id) {
+            return getTripleID(second, first);
+        }
+        return first.id * 1_000_000_009L + second.id;
+    }
+
     private void insertTriple(double distance, Community first, Community second) {
         if (distance > 1.0) {
             return;
         }
         final Triple triple = new Triple(distance, first, second);
-        second.usages.put(first, triple);
-        first.usages.put(second, triple);
+        triples.put(getTripleID(first, second), triple);
         heap.add(triple);
     }
 
@@ -141,8 +156,8 @@ public class HAC extends Algorithm {
         if (triple == null) {
             return;
         }
-        triple.first.usages.remove(triple.second, triple);
-        triple.second.usages.remove(triple.first, triple);
+        final long tripleID = getTripleID(triple.first, triple.second);
+        triples.remove(tripleID);
         heap.remove(triple);
     }
 
@@ -155,8 +170,7 @@ public class HAC extends Algorithm {
     private class Community implements Comparable<Community> {
 
         private final List<Entity> entities;
-        private final Map<Community, Triple> usages = new HashMap<>();
-        private final long id;
+        private final int id;
 
         Community(List<Entity> entities) {
             this.entities = entities;
@@ -165,12 +179,12 @@ public class HAC extends Algorithm {
 
         @Override
         public int compareTo(@NotNull Community o) {
-            return Long.compare(id, o.id);
+            return id - o.id;
         }
 
         @Override
         public int hashCode() {
-            return Long.hashCode(id);
+            return id;
         }
 
         @Override
