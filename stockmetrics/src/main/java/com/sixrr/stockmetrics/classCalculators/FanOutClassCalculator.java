@@ -16,9 +16,7 @@
 
 package com.sixrr.stockmetrics.classCalculators;
 
-import com.intellij.psi.JavaRecursiveElementVisitor;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.*;
 import com.sixrr.stockmetrics.dependency.DependencyMap;
 
 import java.util.Set;
@@ -42,6 +40,16 @@ public class FanOutClassCalculator extends ClassCalculator {
             final DependencyMap dependentsMap = getDependencyMap();
             final Set<PsiClass> dependencies = dependentsMap.calculateDependencies(aClass);
             postMetric(aClass, dependencies.size());
+            super.visitClass(aClass);
+        }
+
+
+        @Override
+        public void visitMethod(PsiMethod method) {
+        }
+
+        @Override
+        public void visitField(PsiField field) {
         }
     }
 }

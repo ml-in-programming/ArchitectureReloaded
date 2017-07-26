@@ -62,5 +62,9 @@ public class FanInMethodCalculator extends MethodCalculator {
             }
             super.visitMethodCallExpression(expression);
         }
+
+        @Override
+        public void visitField(PsiField field) {
+        }
     }
 }

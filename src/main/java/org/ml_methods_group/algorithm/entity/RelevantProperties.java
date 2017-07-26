@@ -48,10 +48,11 @@ public class RelevantProperties {
     }
 
     void addMethod(PsiMethod method) {
-        methods.add(getHumanReadableName(method));
-        allMethods.add(getHumanReadableName(method));
+        final String name = getHumanReadableName(method);
+        methods.add(name);
+        allMethods.add(name);
         if (MethodUtils.isPrivate(method)) {
-            privateMembers.add(getHumanReadableName(method));
+            privateMembers.add(name);
         }
     }
 
@@ -60,9 +61,10 @@ public class RelevantProperties {
     }
 
     void addField(PsiField field) {
-        fields.add(getHumanReadableName(field));
+        final String name = getHumanReadableName(field);
+        fields.add(name);
         if (MethodUtils.isPrivate(field)) {
-            privateMembers.add(getHumanReadableName(field));
+            privateMembers.add(name);
         }
     }
 

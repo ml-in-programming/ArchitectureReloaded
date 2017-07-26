@@ -58,5 +58,9 @@ public class FanOutMethodCalculator extends MethodCalculator {
             }
             result++;
         }
+
+        @Override
+        public void visitField(PsiField field) {
+        }
     }
 }
