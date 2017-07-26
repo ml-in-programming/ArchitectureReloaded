@@ -129,22 +129,6 @@ public abstract class Entity {
         return name;
     }
 
-    public void print() {
-        System.out.println(name + ": " + getCategory().name());
-        System.out.print("    ");
-        for (double comp : vector) {
-            System.out.print(comp);
-            System.out.print(" ");
-        }
-        System.out.println();
-
-        relevantProperties.printAll();
-    }
-
-    public RelevantProperties getProperties() {
-        return relevantProperties;
-    }
-
     private VectorCalculator getCalculatorForEntity() {
         if (getClass() == ClassEntity.class) {
             return CLASS_ENTITY_CALCULATOR;

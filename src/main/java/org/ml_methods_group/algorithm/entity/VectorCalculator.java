@@ -56,7 +56,7 @@ public class VectorCalculator {
             applyMetricsDependencies(metricsRun.getResultsForCategory(Class), entity.getClassName(), vector);
         }
         if (!propertiesDependencies.isEmpty()) {
-            applyPropertiesDependencies(entity.getProperties(), vector);
+            applyPropertiesDependencies(entity.getRelevantProperties(), vector);
         }
         for (Entry<Integer, Double> entry : constValues.entrySet()) {
             vector[entry.getKey()] = entry.getValue();

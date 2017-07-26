@@ -36,7 +36,7 @@ public class EntitySearchResult {
         this.searchTime = searchTime;
         propertiesCount = Stream.of(classes, methods, fields)
                 .flatMap(List::stream)
-                .map(Entity::getProperties)
+                .map(Entity::getRelevantProperties)
                 .mapToInt(RelevantProperties::size)
                 .sum();
     }

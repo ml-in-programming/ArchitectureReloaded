@@ -92,32 +92,4 @@ public class MRI extends Algorithm {
             nearestClass.removeFromClass(method.getName());
         }
     }
-
-    public void printTableDistances() {
-        int maxLength = 0;
-        for (Entity ent : entities) {
-            maxLength = Math.max(maxLength, ent.getName().length() + 4);
-        }
-
-        System.out.print(String.format("%1$" + maxLength + "s", ""));
-        for (Entity ent : entities) {
-            final String name = String.format("%1$" + maxLength + "s", ent.getName());
-            System.out.print(name);
-        }
-        System.out.println();
-
-        for (Entity ent : entities) {
-            final String name = String.format("%1$" + maxLength + "s", ent.getName());
-            System.out.print(name);
-            for (Entity entity : entities) {
-                final double dist = ent.distance(entity);
-                String d = "";
-                d = dist == Double.POSITIVE_INFINITY
-                        ? String.format("%1$" + maxLength + "s", "inf")
-                        : String.format("  %." + (maxLength - 4) + "f", dist);
-                System.out.print(d);
-            }
-            System.out.println();
-        }
-    }
 }

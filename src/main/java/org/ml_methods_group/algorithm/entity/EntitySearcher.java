@@ -89,7 +89,7 @@ public class EntitySearcher {
         }
         Entity.normalize(validEntities);
         validEntities.stream()
-                .map(Entity::getProperties)
+                .map(Entity::getRelevantProperties)
                 .forEach(RelevantProperties::prepare);
         return new EntitySearchResult(classes, methods, fields, System.currentTimeMillis() - startTime);
     }
@@ -158,7 +158,7 @@ public class EntitySearcher {
                 super.visitClass(aClass);
                 return;
             }
-            final RelevantProperties classProperties = entity.getProperties();
+            final RelevantProperties classProperties = entity.getRelevantProperties();
             classProperties.addClass(aClass);
             for (PsiClass superClass : PSIUtil.getAllSupers(aClass)) {
                 if (superClass.isInterface()) {
@@ -189,7 +189,7 @@ public class EntitySearcher {
                 return;
 
             }
-            final RelevantProperties methodProperties = entity.getProperties();
+            final RelevantProperties methodProperties = entity.getRelevantProperties();
             methodProperties.addMethod(method);
             Optional.ofNullable(method.getContainingClass())
                     .ifPresent(methodProperties::addClass);
@@ -199,7 +199,7 @@ public class EntitySearcher {
             PSIUtil.getAllSupers(method).stream()
                     .map(entities::get)
                     .filter(Objects::nonNull)
-                    .map(Entity::getProperties)
+                    .map(Entity::getRelevantProperties)
                     .forEach(properties -> properties.addOverrideMethod(method));
             Arrays.stream(method.getParameterList().getParameters())
                     .map(PsiParameter::getType)
@@ -233,7 +233,7 @@ public class EntitySearcher {
                 super.visitField(field);
                 return;
             }
-            RelevantProperties fieldProperties = entity.getProperties();
+            RelevantProperties fieldProperties = entity.getRelevantProperties();
             fieldProperties.addField(field);
             final PsiClass containingClass = field.getContainingClass();
             if (containingClass != null) {
@@ -263,7 +263,7 @@ public class EntitySearcher {
 
     private Optional<RelevantProperties> propertiesFor(PsiElement element) {
         return Optional.ofNullable(entities.get(element))
-                .map(Entity::getProperties);
+                .map(Entity::getRelevantProperties);
     }
 
     private boolean isSourceFile(PsiFile file) {

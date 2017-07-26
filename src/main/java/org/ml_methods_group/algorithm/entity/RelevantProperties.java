@@ -37,20 +37,14 @@ public class RelevantProperties {
     private final ArrayList<String> fields = new ArrayList<>();
     private final ArrayList<String> privateMembers = new ArrayList<>();
     private final ArrayList<String> allMethods = new ArrayList<>();
-    private boolean modifiable = true;
-
-    private void checkModifiable() {
-        if (!modifiable) {
-            throw new UnsupportedOperationException("Properties already prepared and can't be modified now");
-        }
-    }
+    private boolean prepared = true;
 
     void prepare() {
         prepareList(privateMembers);
         prepareList(classes);
         prepareList(allMethods);
         prepareList(fields);
-        modifiable = false;
+        prepared = true;
     }
 
     private void prepareList(ArrayList<String> list) {
@@ -59,44 +53,38 @@ public class RelevantProperties {
         list.trimToSize();
     }
 
-    public void removeMethod(String method) {
-        checkModifiable();
+    void removeMethod(String method) {
         methods.remove(method);
-    }
-
-    @Deprecated
-    public void removeField(String field) {
-        checkModifiable();
-        fields.remove(field);
+        prepared = false;
     }
 
     void addMethod(PsiMethod method) {
-        checkModifiable();
         final String name = getHumanReadableName(method);
         methods.add(name);
         allMethods.add(name);
         if (MethodUtils.isPrivate(method)) {
             privateMembers.add(name);
         }
+        prepared = false;
     }
 
     void addClass(PsiClass aClass) {
-        checkModifiable();
         classes.add(getHumanReadableName(aClass));
+        prepared = false;
     }
 
     void addField(PsiField field) {
-        checkModifiable();
         final String name = getHumanReadableName(field);
         fields.add(name);
         if (MethodUtils.isPrivate(field)) {
             privateMembers.add(name);
         }
+        prepared = false;
     }
 
     void addOverrideMethod(PsiMethod method) {
-        checkModifiable();
         allMethods.add(getHumanReadableName(method));
+        prepared = false;
     }
 
     int numberOfMethods() {
@@ -115,7 +103,10 @@ public class RelevantProperties {
         return classes.size() + fields.size() + allMethods.size();
     }
 
-    public int sizeOfIntersection(RelevantProperties properties) {
+    int sizeOfIntersection(RelevantProperties properties) {
+        if (!prepared) {
+            throw new RuntimeException("Properties wasn't prepared");
+        }
         int result = 0;
         result += ListUtil.sizeOfIntersection(classes, properties.classes, FAST_COMPARATOR);
         result += ListUtil.sizeOfIntersection(allMethods, properties.allMethods, FAST_COMPARATOR);
@@ -123,33 +114,16 @@ public class RelevantProperties {
         return result;
     }
 
-    public boolean hasCommonPrivateMember(RelevantProperties properties) {
+    boolean hasCommonPrivateMember(RelevantProperties properties) {
+        if (!prepared) {
+            throw new RuntimeException("Properties wasn't prepared");
+        }
         return !ListUtil.isIntersectionEmpty(privateMembers, properties.privateMembers, FAST_COMPARATOR);
     }
 
-    public void moveTo(String targetClass) {
-        checkModifiable();
+    void moveTo(String targetClass) {
         classes.clear();
         classes.add(targetClass);
-    }
-
-    void printAll() {
-        System.out.print("    ");
-        for (String aClass : classes) {
-            System.out.print(aClass + " ");
-        }
-        System.out.println();
-
-        System.out.print("    ");
-        for (String method : allMethods) {
-            System.out.print(method + ' ');
-        }
-        System.out.println();
-
-        System.out.print("    ");
-        for (String field : fields) {
-            System.out.print(field + " ");
-        }
-        System.out.println();
+        prepared = false;
     }
 }
