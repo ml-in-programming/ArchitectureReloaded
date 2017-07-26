@@ -122,6 +122,22 @@ public abstract class Algorithm {
         }
     }
 
+    static <K, V> Map<K, V> combineMaps(Map<K, V> first, Map<K, V> second) {
+        if (first.size() < second.size()) {
+            return combineMaps(second, first);
+        }
+        first.putAll(second);
+        return first;
+    }
+
+    static <V> List<V> combineLists(List<V> first, List<V> second) {
+        if (first.size() < second.size()) {
+            return combineLists(second, first);
+        }
+        first.addAll(second);
+        return first;
+    }
+
     protected final class ExecutionContext {
         private final ExecutorService service;
         private final ProgressIndicator indicator;

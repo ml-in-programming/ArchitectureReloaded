@@ -20,6 +20,7 @@ import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Stream;
 
 public class AKMeans extends Algorithm {
@@ -31,7 +32,7 @@ public class AKMeans extends Algorithm {
     private int newClassCount = 0;
 
     public AKMeans(int steps) {
-        super("AKMeans", false);
+        super("AKMeans", true);
         this.steps = steps;
     }
 
@@ -69,30 +70,12 @@ public class AKMeans extends Algorithm {
 
         for (int step = 0; step < steps; step++) {
             reportProgress((double) step / steps, context);
-            boolean isMoved = false;
-            final Map<Entity, String> newCommunities = new HashMap<>();
-            for (Entity entity : points) {
-                final String newCenter = findNearestCommunity(entity);
-                if (newCenter.isEmpty()) {
-                    continue;
-                }
-
-                if (!newCenter.equals(communityIds.get(entity))) {
-                    isMoved = true;
-                }
-
-                newCommunities.put(entity, newCenter);
-                if (!communityIds.get(entity).equals(newCenter)) {
-                    System.out.println("Move " + entity.getName() + " to " + newCenter + ", " + distToCommunity(entity, newCenter));
-                }
+            final Map<Entity, String> movements =
+                    runParallel(points, context, HashMap::new, this::findNearestCommunity, Algorithm::combineMaps);
+            for (Entry<Entity, String> movement : movements.entrySet()) {
+                moveToCommunity(movement.getKey(), movement.getValue());
             }
-
-            for (Entity entity : newCommunities.keySet()) {
-                moveToCommunity(entity, newCommunities.get(entity));
-            }
-            System.out.println();
-
-            if (!isMoved) {
+            if (movements.size() == 0) {
                 break;
             }
         }
@@ -113,11 +96,7 @@ public class AKMeans extends Algorithm {
         final Map<String, Integer> classCounts = new HashMap<>();
         for (Entity entity : communities.get(center)) {
             final String className = entity.getClassName();
-            if (!classCounts.containsKey(className)) {
-                classCounts.put(className, 0);
-            }
-
-            classCounts.put(className, classCounts.get(className) + 1);
+            classCounts.put(className, classCounts.getOrDefault(className, 0) + 1);
         }
 
         for (String className : classCounts.keySet()) {
@@ -135,21 +114,20 @@ public class AKMeans extends Algorithm {
         return name;
     }
 
-    private String findNearestCommunity(Entity entity) {
-        double minD = Double.POSITIVE_INFINITY;
-        String id = "";
+    private Map<Entity, String> findNearestCommunity(Entity entity, Map<Entity, String> accumulator) {
+        double minDistance = Double.POSITIVE_INFINITY;
+        String target = null;
         for (String center : communities.keySet()) {
-            double d = distToCommunity(entity, center);
-            if (!canMove(entity, center)) {
-                d = Double.POSITIVE_INFINITY;
-            }
-            if (d < minD) {
-                minD = d;
-                id = center;
+            double distance = distToCommunity(entity, center);
+            if (canMove(entity, center) && distance < minDistance) {
+                minDistance = distance;
+                target = center;
             }
         }
-
-        return id;
+        if (target != null && !target.equals(communityIds.get(entity))) {
+            accumulator.put(entity, target);
+        }
+        return accumulator;
     }
 
     private boolean canMove(Entity entity, String center) {
@@ -157,16 +135,23 @@ public class AKMeans extends Algorithm {
     }
 
     private double distToCommunity(Entity entity, String center) {
-        double minD = 0.0;
+        double maxDistance = 0.0;
         for (Entity point : communities.get(center)) {
-            final double d = entity.distance(point);
-            minD = Math.max(d, minD);
+            final double distance = entity.distance(point);
+            maxDistance = Math.max(distance, maxDistance);
+            if (maxDistance == Double.POSITIVE_INFINITY) {
+                break;
+            }
         }
 
-        return minD;
+        return maxDistance;
     }
 
     private void moveToCommunity(Entity entity, String id) {
+        final String currentCommunity = communityIds.get(entity);
+        if (!currentCommunity.isEmpty()) {
+            communities.get(currentCommunity).remove(entity);
+        }
         communities.get(id).add(entity);
         communityIds.put(entity, id);
     }

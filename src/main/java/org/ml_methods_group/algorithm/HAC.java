@@ -54,7 +54,7 @@ public class HAC extends Algorithm {
         List<Community> communitiesAsList = new ArrayList<>(communities);
         Collections.shuffle(communitiesAsList);
         final List<Triple> toInsert =
-                runParallel(communitiesAsList, context, ArrayList::new, this::findTriples, this::combineLists);
+                runParallel(communitiesAsList, context, ArrayList::new, this::findTriples, Algorithm::combineLists);
         toInsert.forEach(this::insertTriple);
     }
 
@@ -71,14 +71,6 @@ public class HAC extends Algorithm {
         }
         reportProgress(0.9 * (double) progressCounter.incrementAndGet() / communities.size(), context);
         return accumulator;
-    }
-
-    private <T> List<T> combineLists(List<T> first, List<T> second) {
-        if (first.size() < second.size()) {
-            return combineLists(second, first);
-        }
-        first.addAll(second);
-        return first;
     }
 
     @Override

@@ -44,12 +44,7 @@ public class ARI extends Algorithm {
         units.addAll(context.entities.getFields());
         progressCount.set(0);
         this.context = context;
-        return runParallel(units, context, HashMap<String, String>::new, this::findRefactoring, this::combineMaps);
-    }
-
-    private <K, V> Map<K, V> combineMaps(Map<K, V> first, Map<K, V> second) {
-        first.putAll(second);
-        return first;
+        return runParallel(units, context, HashMap<String, String>::new, this::findRefactoring, Algorithm::combineMaps);
     }
 
     // todo check, that method isn't abstract or constructor
