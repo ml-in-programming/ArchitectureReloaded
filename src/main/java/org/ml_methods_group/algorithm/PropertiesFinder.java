@@ -21,6 +21,7 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.java.AnonymousClassElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.sixrr.metrics.utils.MethodUtils;
 
 import java.util.*;
@@ -123,7 +124,7 @@ public class PropertiesFinder {
     private class FileVisitor extends JavaElementVisitor {
         @Override
         public void visitFile(final PsiFile file) {
-            if (!file.getName().endsWith(".class") && !file.getName().endsWith(".java"))
+            if (!file.getName().endsWith(".java"))
                 return;
 
             System.out.println("!#! " + file.getName());
@@ -235,6 +236,7 @@ public class PropertiesFinder {
 
         @Override
         public void visitReferenceExpression(PsiReferenceExpression expression) {
+            super.visitReferenceExpression(expression);
             final PsiElement elem = expression.resolve();
             if (!(elem instanceof PsiField)) {
                 return;
@@ -259,11 +261,24 @@ public class PropertiesFinder {
             if (!methods.containsKey(fullFieldName)) {
                 methods.put(fullFieldName, new HashSet<>());
             }
-            methods.get(fullFieldName).add(method);
+            if (isRelation(expression)) {
+                methods.get(fullFieldName).add(method);
+            }
+        }
+
+        private boolean isRelation(PsiElement element) {
+            final PsiElement e = PsiTreeUtil.getDeepestFirst(element).getParent();
+            if (!(e instanceof PsiReferenceExpression)) {
+                return false;
+            }
+            final PsiElement resolved = ((PsiReferenceExpression) e).resolve();
+            return resolved instanceof PsiField || resolved instanceof PsiClass || resolved instanceof PsiMethod ||
+                    resolved instanceof PsiThisExpression;
         }
 
         @Override
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
+            super.visitMethodCallExpression(expression);
             if (methodStack.empty()) {
                 return;
             }
@@ -274,11 +289,16 @@ public class PropertiesFinder {
             if (!methods.containsKey(callerName)) {
                 methods.put(callerName, new HashSet<>());
             }
-            methods.get(callerName).add(element);
+            if (element != null && (isRelation(expression))) {
+                methods.get(callerName).add(element);
+            }
         }
 
         @Override
         public void visitMethod(PsiMethod method) {
+            if (method.isConstructor() || MethodUtils.isAbstract(method)) {
+                return;
+            }
             final PsiClass containingClass = method.getContainingClass();
             if (containingClass == null || containingClass.isInterface()) {
                 return;
