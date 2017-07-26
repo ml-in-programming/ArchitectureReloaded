@@ -25,8 +25,9 @@ import java.util.stream.Stream;
 
 public class AKMeans extends Algorithm {
     private final List<Entity> points = new ArrayList<>();
-    private final Map<String, Set<Entity>> communities = new HashMap<>();
-    private final Map<Entity, String> communityIds = new HashMap<>();
+    private final List<Integer> indexes = new ArrayList<>();
+    private final List<Integer> communityID = new ArrayList<>();
+    private final List<Set<Entity>> communities = new ArrayList<>();
     private final int steps;
     private int numberOfClasses = 0;
     private int newClassCount = 0;
@@ -43,22 +44,29 @@ public class AKMeans extends Algorithm {
     private void init(EntitySearchResult entities) {
         points.clear();
         communities.clear();
-        communityIds.clear();
+        communityID.clear();
         newClassCount = 0;
         numberOfClasses = entities.getClasses().size();
         Stream.of(entities.getMethods(), entities.getFields())
                 .flatMap(List::stream)
-                .peek(points::add)
-                .forEach(e -> communityIds.put(e, ""));
+                .peek(x -> communityID.add(-1))
+                .forEach(points::add);
+        communityID.addAll(Collections.nCopies(points.size(), -1));
+        Stream.iterate(0, x -> x + 1)
+                .sequential()
+                .limit(points.size())
+                .forEach(indexes::add);
     }
 
     private void initializeCenters() {
         final List<Entity> entities = new ArrayList<>(points);
         Collections.shuffle(entities);
 
-        for (int i = 0; i < numberOfClasses; ++i) {
-            final Entity center = entities.get(i);
-            communities.put(center.getName(), new HashSet<>(Collections.singletonList(center)));
+        for (int i = 0; i < numberOfClasses; i++) {
+            final Set<Entity> community = new HashSet<>();
+            community.add(entities.get(i));
+            communityID.set(i, i);
+            communities.add(community);
         }
     }
 
@@ -70,9 +78,9 @@ public class AKMeans extends Algorithm {
 
         for (int step = 0; step < steps; step++) {
             reportProgress((double) step / steps, context);
-            final Map<Entity, String> movements =
-                    runParallel(points, context, HashMap::new, this::findNearestCommunity, Algorithm::combineMaps);
-            for (Entry<Entity, String> movement : movements.entrySet()) {
+            final Map<Integer, Integer> movements =
+                    runParallel(indexes, context, HashMap::new, this::findNearestCommunity, Algorithm::combineMaps);
+            for (Entry<Integer, Integer> movement : movements.entrySet()) {
                 moveToCommunity(movement.getKey(), movement.getValue());
             }
             if (movements.size() == 0) {
@@ -80,21 +88,22 @@ public class AKMeans extends Algorithm {
             }
         }
 
-        for (String center : communities.keySet()) {
-            final String newName = receiveClassName(center);
-            communities.get(center).stream()
+        for (Set<Entity> community : communities) {
+            final String newName = receiveClassName(community);
+            community.stream()
                     .filter(e -> !e.getClassName().equals(newName))
+                    .filter(Entity::isMovable)
                     .forEach(e -> refactorings.put(e.getName(), newName));
         }
 
         return refactorings;
     }
 
-    private String receiveClassName(String center) {
+    private String receiveClassName(Set<Entity> entities) {
         String name = "";
         Integer maxClassCount = 0;
         final Map<String, Integer> classCounts = new HashMap<>();
-        for (Entity entity : communities.get(center)) {
+        for (Entity entity : entities) {
             final String className = entity.getClassName();
             classCounts.put(className, classCounts.getOrDefault(className, 0) + 1);
         }
@@ -114,29 +123,26 @@ public class AKMeans extends Algorithm {
         return name;
     }
 
-    private Map<Entity, String> findNearestCommunity(Entity entity, Map<Entity, String> accumulator) {
+    private Map<Integer, Integer> findNearestCommunity(int entityID, Map<Integer, Integer> accumulator) {
         double minDistance = Double.POSITIVE_INFINITY;
-        String target = null;
-        for (String center : communities.keySet()) {
-            double distance = distToCommunity(entity, center);
-            if (canMove(entity, center) && distance < minDistance) {
+        int targetID = -1;
+        final Entity entity = points.get(entityID);
+        for (int centerID = 0; centerID < communities.size(); centerID++) {
+            double distance = distToCommunity(entity, centerID);
+            if (distance < minDistance) {
                 minDistance = distance;
-                target = center;
+                targetID = centerID;
             }
         }
-        if (target != null && !target.equals(communityIds.get(entity))) {
-            accumulator.put(entity, target);
+        if (targetID != -1 && targetID != communityID.get(entityID)) {
+            accumulator.put(entityID, targetID);
         }
         return accumulator;
     }
 
-    private boolean canMove(Entity entity, String center) {
-        return entity.isMovable() || entity.getClassName().equals(center);
-    }
-
-    private double distToCommunity(Entity entity, String center) {
+    private double distToCommunity(Entity entity, int centerID) {
         double maxDistance = 0.0;
-        for (Entity point : communities.get(center)) {
+        for (Entity point : communities.get(centerID)) {
             final double distance = entity.distance(point);
             maxDistance = Math.max(distance, maxDistance);
             if (maxDistance == Double.POSITIVE_INFINITY) {
@@ -147,12 +153,13 @@ public class AKMeans extends Algorithm {
         return maxDistance;
     }
 
-    private void moveToCommunity(Entity entity, String id) {
-        final String currentCommunity = communityIds.get(entity);
-        if (!currentCommunity.isEmpty()) {
-            communities.get(currentCommunity).remove(entity);
+    private void moveToCommunity(int entityID, int centerID) {
+        final Entity entity = points.get(entityID);
+        final int currentCommunity = communityID.get(entityID);
+        if (currentCommunity != -1) {
+            communities.get(currentCommunity).remove(points.get(entityID));
         }
-        communities.get(id).add(entity);
-        communityIds.put(entity, id);
+        communities.get(centerID).add(entity);
+        communityID.set(entityID, centerID);
     }
 }
