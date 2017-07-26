@@ -20,6 +20,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.utils.MethodUtils;
+import org.ml_methods_group.utils.ListUtil;
 
 import java.util.*;
 
@@ -36,18 +37,41 @@ public class RelevantProperties {
     private final ArrayList<String> fields = new ArrayList<>();
     private final ArrayList<String> privateMembers = new ArrayList<>();
     private final ArrayList<String> allMethods = new ArrayList<>();
+    private boolean modifiable = true;
 
-    @Deprecated
+    private void checkModifiable() {
+        if (!modifiable) {
+            throw new UnsupportedOperationException("Properties already prepared and can't be modified now");
+        }
+    }
+
+    void prepare() {
+        prepareList(privateMembers);
+        prepareList(classes);
+        prepareList(allMethods);
+        prepareList(fields);
+        modifiable = false;
+    }
+
+    private void prepareList(ArrayList<String> list) {
+        ListUtil.removeCopies(list);
+        list.sort(FAST_COMPARATOR);
+        list.trimToSize();
+    }
+
     public void removeMethod(String method) {
+        checkModifiable();
         methods.remove(method);
     }
 
     @Deprecated
     public void removeField(String field) {
+        checkModifiable();
         fields.remove(field);
     }
 
     void addMethod(PsiMethod method) {
+        checkModifiable();
         final String name = getHumanReadableName(method);
         methods.add(name);
         allMethods.add(name);
@@ -57,10 +81,12 @@ public class RelevantProperties {
     }
 
     void addClass(PsiClass aClass) {
+        checkModifiable();
         classes.add(getHumanReadableName(aClass));
     }
 
     void addField(PsiField field) {
+        checkModifiable();
         final String name = getHumanReadableName(field);
         fields.add(name);
         if (MethodUtils.isPrivate(field)) {
@@ -69,20 +95,8 @@ public class RelevantProperties {
     }
 
     void addOverrideMethod(PsiMethod method) {
+        checkModifiable();
         allMethods.add(getHumanReadableName(method));
-    }
-
-    void prepare() {
-        prepareList(privateMembers);
-        prepareList(classes);
-        prepareList(allMethods);
-        prepareList(fields);
-    }
-
-    private void prepareList(ArrayList<String> list) {
-        removeCopies(list);
-        list.sort(FAST_COMPARATOR);
-        list.trimToSize();
     }
 
     int numberOfMethods() {
@@ -101,62 +115,20 @@ public class RelevantProperties {
         return classes.size() + fields.size() + allMethods.size();
     }
 
-    public int sizeOfIntersect(RelevantProperties properties) {
+    public int sizeOfIntersection(RelevantProperties properties) {
         int result = 0;
-        result += sizeOfIntersection(classes, properties.classes);
-        result += sizeOfIntersection(allMethods, properties.allMethods);
-        result += sizeOfIntersection(fields, properties.fields);
+        result += ListUtil.sizeOfIntersection(classes, properties.classes, FAST_COMPARATOR);
+        result += ListUtil.sizeOfIntersection(allMethods, properties.allMethods, FAST_COMPARATOR);
+        result += ListUtil.sizeOfIntersection(fields, properties.fields, FAST_COMPARATOR);
         return result;
     }
 
     public boolean hasCommonPrivateMember(RelevantProperties properties) {
-        return !isIntersectionEmpty(privateMembers, properties.privateMembers);
+        return !ListUtil.isIntersectionEmpty(privateMembers, properties.privateMembers, FAST_COMPARATOR);
     }
 
-    private void removeCopies(Collection<String> collection) {
-        final Set<String> distinctValues = new HashSet<>(collection);
-        collection.clear();
-        collection.addAll(distinctValues);
-    }
-
-    private int sizeOfIntersection(List<String> first, List<String> second) {
-        int intersection = 0;
-        int firstIndex = 0;
-        int secondIndex = 0;
-        while (firstIndex < first.size() && secondIndex < second.size()) {
-            int cmp = FAST_COMPARATOR.compare(first.get(firstIndex), second.get(secondIndex));
-            if (cmp == 0) {
-                intersection++;
-                firstIndex++;
-                secondIndex++;
-            } else if (cmp < 0) {
-                firstIndex++;
-            } else {
-                secondIndex++;
-            }
-        }
-        return intersection;
-    }
-
-    private boolean isIntersectionEmpty(List<String> first, List<String> second) {
-        int firstIndex = 0;
-        int secondIndex = 0;
-        while (firstIndex < first.size() && secondIndex < second.size()) {
-            int cmp = FAST_COMPARATOR.compare(first.get(firstIndex), second.get(secondIndex));
-            if (cmp == 0) {
-                assert first.get(firstIndex).equals(second.get(secondIndex));
-                return false;
-            } else if (cmp < 0) {
-                firstIndex++;
-            } else {
-                secondIndex++;
-            }
-        }
-        return true;
-    }
-
-    @Deprecated
     public void moveTo(String targetClass) {
+        checkModifiable();
         classes.clear();
         classes.add(targetClass);
     }
