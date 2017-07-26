@@ -19,6 +19,7 @@ package com.sixrr.metrics.metricModel;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -77,18 +78,19 @@ public class MetricsExecutionContextImpl implements MetricsExecutionContext {
     }
 
     public void calculateMetrics(MetricsProfile profile, final MetricsResultsHolder resultsHolder) {
-        final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
-        final List<MetricInstance> metrics = profile.getMetricInstances();
-        if (!ApplicationManager.getApplication().isUnitTestMode()) {
-            indicator.setText(MetricsReloadedBundle.message("initializing.progress.string"));
+        final ProgressIndicator indicator;
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+            indicator = new EmptyProgressIndicator();
+        } else {
+            indicator = ProgressManager.getInstance().getProgressIndicator();
         }
+        final List<MetricInstance> metrics = profile.getMetricInstances();
+        indicator.setText(MetricsReloadedBundle.message("initializing.progress.string"));
         final int numFiles = scope.getFileCount();
         final int numMetrics = metrics.size();
         final List<MetricCalculator> calculators = new ArrayList<MetricCalculator>(numMetrics);
         for (final MetricInstance metricInstance : metrics) {
-            if (!ApplicationManager.getApplication().isUnitTestMode()) {
-                indicator.checkCanceled();
-            }
+            indicator.checkCanceled();
             if (!metricInstance.isEnabled()) {
                 continue;
             }
@@ -119,33 +121,27 @@ public class MetricsExecutionContextImpl implements MetricsExecutionContext {
                     return;
                 }
                 final String fileName = file.getName();
-                if (!ApplicationManager.getApplication().isUnitTestMode()) {
-                    indicator.setText(MetricsReloadedBundle.message("analyzing.progress.string", fileName));
-                }
+                indicator.setText(MetricsReloadedBundle.message("analyzing.progress.string", fileName));
                 mainTraversalProgress++;
 
                 for (MetricCalculator calculator : calculators) {
                     calculator.processFile(file);
                 }
-                if (!ApplicationManager.getApplication().isUnitTestMode()) {
-                    indicator.setFraction((double) mainTraversalProgress / (double) numFiles);
-                }
+                indicator.setFraction((double) mainTraversalProgress / (double) numFiles);
             }
         });
-        if (!ApplicationManager.getApplication().isUnitTestMode()) {
-            indicator.setText(MetricsReloadedBundle.message("tabulating.results.progress.string"));
-        }
+        indicator.setText(MetricsReloadedBundle.message("tabulating.results.progress.string"));
         for (MetricCalculator calculator : calculators) {
-            if (!ApplicationManager.getApplication().isUnitTestMode()) {
-                indicator.checkCanceled();
-            }
+            indicator.checkCanceled();
             calculator.endMetricsRun();
         }
     }
 
-    public void onFinish() {}
+    public void onFinish() {
+    }
 
-    public void onCancel() {}
+    public void onCancel() {
+    }
 
     @Override
     public final Project getProject() {
