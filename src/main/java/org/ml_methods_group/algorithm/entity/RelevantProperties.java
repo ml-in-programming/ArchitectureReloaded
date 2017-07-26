@@ -20,42 +20,25 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.utils.MethodUtils;
-import org.ml_methods_group.utils.ListUtil;
+import org.ml_methods_group.utils.SetsUtil;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
 public class RelevantProperties {
 
-    private static final Comparator<String> FAST_COMPARATOR = Comparator.comparingInt(String::length)
-            .thenComparingInt(String::hashCode)
-            .thenComparing(String::compareTo);
+    private final HashSet<String> methods = new HashSet<>();
+    private final HashSet<String> classes = new HashSet<>();
+    private final HashSet<String> fields = new HashSet<>();
+    private final HashSet<String> privateMembers = new HashSet<>();
+    private final HashSet<String> allMethods = new HashSet<>();
 
-    private final ArrayList<String> methods = new ArrayList<>();
-    private final ArrayList<String> classes = new ArrayList<>();
-    private final ArrayList<String> fields = new ArrayList<>();
-    private final ArrayList<String> privateMembers = new ArrayList<>();
-    private final ArrayList<String> allMethods = new ArrayList<>();
-    private boolean prepared = true;
-
-    void prepare() {
-        prepareList(privateMembers);
-        prepareList(classes);
-        prepareList(allMethods);
-        prepareList(fields);
-        prepared = true;
-    }
-
-    private void prepareList(ArrayList<String> list) {
-        ListUtil.removeCopies(list);
-        list.sort(FAST_COMPARATOR);
-        list.trimToSize();
-    }
 
     void removeMethod(String method) {
         methods.remove(method);
-        prepared = false;
     }
 
     void addMethod(PsiMethod method) {
@@ -65,12 +48,10 @@ public class RelevantProperties {
         if (MethodUtils.isPrivate(method)) {
             privateMembers.add(name);
         }
-        prepared = false;
     }
 
     void addClass(PsiClass aClass) {
         classes.add(getHumanReadableName(aClass));
-        prepared = false;
     }
 
     void addField(PsiField field) {
@@ -79,24 +60,22 @@ public class RelevantProperties {
         if (MethodUtils.isPrivate(field)) {
             privateMembers.add(name);
         }
-        prepared = false;
     }
 
     void addOverrideMethod(PsiMethod method) {
         allMethods.add(getHumanReadableName(method));
-        prepared = false;
     }
 
     int numberOfMethods() {
         return methods.size();
     }
 
-    public List<String> getAllFields() {
-        return Collections.unmodifiableList(fields);
+    public Set<String> getAllFields() {
+        return Collections.unmodifiableSet(fields);
     }
 
-    public List<String> getAllMethods() {
-        return Collections.unmodifiableList(methods);
+    public Set<String> getAllMethods() {
+        return Collections.unmodifiableSet(methods);
     }
 
     public int size() {
@@ -104,26 +83,19 @@ public class RelevantProperties {
     }
 
     int sizeOfIntersection(RelevantProperties properties) {
-        if (!prepared) {
-            throw new RuntimeException("Properties wasn't prepared");
-        }
         int result = 0;
-        result += ListUtil.sizeOfIntersection(classes, properties.classes, FAST_COMPARATOR);
-        result += ListUtil.sizeOfIntersection(allMethods, properties.allMethods, FAST_COMPARATOR);
-        result += ListUtil.sizeOfIntersection(fields, properties.fields, FAST_COMPARATOR);
+        result += SetsUtil.intersection(classes, properties.classes);
+        result += SetsUtil.intersection(allMethods, properties.allMethods);
+        result += SetsUtil.intersection(fields, properties.fields);
         return result;
     }
 
     boolean hasCommonPrivateMember(RelevantProperties properties) {
-        if (!prepared) {
-            throw new RuntimeException("Properties wasn't prepared");
-        }
-        return !ListUtil.isIntersectionEmpty(privateMembers, properties.privateMembers, FAST_COMPARATOR);
+        return !SetsUtil.isIntersectionEmpty(privateMembers, properties.privateMembers);
     }
 
     void moveTo(String targetClass) {
         classes.clear();
         classes.add(targetClass);
-        prepared = false;
     }
 }
