@@ -18,10 +18,6 @@ package org.ml_methods_group.algorithm.entity;
 
 import com.intellij.psi.PsiClass;
 import com.sixrr.metrics.MetricCategory;
-import com.sixrr.metrics.metricModel.MetricsRun;
-import org.ml_methods_group.algorithm.PSIUtil;
-
-import java.util.Set;
 
 public class ClassEntity extends Entity {
     ClassEntity(PsiClass psiClass) {

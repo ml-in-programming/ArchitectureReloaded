@@ -18,9 +18,8 @@ package org.ml_methods_group.algorithm.entity;
 
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
-import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.utils.MethodUtils;
-import org.ml_methods_group.algorithm.PSIUtil;
+import org.ml_methods_group.utils.PSIUtil;
 
 public class MethodEntity extends Entity {
 

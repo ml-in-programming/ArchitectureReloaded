@@ -23,7 +23,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.java.AnonymousClassElement;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.utils.MethodUtils;
-import org.ml_methods_group.algorithm.PSIUtil;
+import org.ml_methods_group.utils.PSIUtil;
 
 import java.util.*;
 
