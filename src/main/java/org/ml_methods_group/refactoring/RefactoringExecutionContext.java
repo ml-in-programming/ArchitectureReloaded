@@ -144,8 +144,7 @@ public class RefactoringExecutionContext {
     private void calculateAlgorithmForName(String algorithm) {
         for (Class<? extends Algorithm> algorithmClass : ALGORITHMS) {
             if (algorithm.equals(algorithmClass.getSimpleName())) {
-                ApplicationManager.getApplication()
-                        .runReadAction(() -> calculate(algorithmClass));
+                calculate(algorithmClass);
                 return;
             }
         }
