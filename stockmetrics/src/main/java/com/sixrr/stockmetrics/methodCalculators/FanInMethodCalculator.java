@@ -17,10 +17,7 @@
 package com.sixrr.stockmetrics.methodCalculators;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.psi.JavaRecursiveElementVisitor;
-import com.intellij.psi.PsiElementVisitor;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiMethodCallExpression;
+import com.intellij.psi.*;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,12 +48,12 @@ public class FanInMethodCalculator extends MethodCalculator {
         }
 
         @Override
-        public void visitMethodCallExpression(PsiMethodCallExpression expression) {
+        public void visitCallExpression(PsiCallExpression expression) {
             final PsiMethod method = expression.resolveMethod();
             if (method != null && !method.equals(currentMethod)) {
                 references.put(method, references.getOrDefault(method, 0) + 1);
             }
-            super.visitMethodCallExpression(expression);
+            super.visitCallExpression(expression);
         }
     }
 
