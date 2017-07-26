@@ -16,14 +16,21 @@
 
 package com.sixrr.stockmetrics.methodCalculators;
 
-import com.intellij.psi.*;
-import com.intellij.psi.search.searches.ReferencesSearch;
-import com.intellij.util.Query;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.psi.JavaRecursiveElementVisitor;
+import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiMethodCallExpression;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 public class FanInMethodCalculator extends MethodCalculator {
     private PsiMethod currentMethod;
     private int methodNestingDepth = 0;
-    private int result = 0;
+    private final HashMap<PsiMethod, Integer> references = new HashMap<>();
+    private final Set<PsiMethod> primaryMethods = new HashSet<>();
 
     @Override
     protected PsiElementVisitor createVisitor() {
@@ -34,37 +41,34 @@ public class FanInMethodCalculator extends MethodCalculator {
         @Override
         public void visitMethod(PsiMethod method) {
             if (methodNestingDepth == 0) {
-                result = 0;
                 currentMethod = method;
-                final Query<PsiReference> references = ReferencesSearch.search(method);
-                for (final PsiReference reference : references) {
-                    final PsiElement element = reference.getElement();
-                    if (element != null && element.getParent() instanceof PsiCallExpression) {
-                        result++;
-                    }
-                }
+                primaryMethods.add(method);
             }
 
             methodNestingDepth++;
             super.visitMethod(method);
             methodNestingDepth--;
-
-            if (methodNestingDepth == 0) {
-                postMetric(method, result);
-            }
         }
 
         @Override
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
             final PsiMethod method = expression.resolveMethod();
-            if (currentMethod != null && currentMethod.equals(method)) {
-                result--;
+            if (method != null && !method.equals(currentMethod)) {
+                references.put(method, references.getOrDefault(method, 0) + 1);
             }
             super.visitMethodCallExpression(expression);
         }
+    }
 
-        @Override
-        public void visitField(PsiField field) {
+    @Override
+    public void endMetricsRun() {
+        ApplicationManager.getApplication()
+                .runReadAction(this::postResult);
+    }
+
+    private void postResult() {
+        for (PsiMethod method : primaryMethods) {
+            postMetric(method, references.getOrDefault(method, 0));
         }
     }
 }
