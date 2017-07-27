@@ -71,7 +71,8 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
     };
 
     static {
-        ProjectManager.getInstance().addProjectManagerListener(listener);
+        // todo fix bug: IndexNotReadyException
+//        ProjectManager.getInstance().addProjectManagerListener(listener);
     }
 
     public AutomaticRefactoringAction() {
