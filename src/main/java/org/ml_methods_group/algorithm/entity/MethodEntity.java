@@ -29,6 +29,10 @@ public class MethodEntity extends Entity {
                 !MethodUtils.isAbstract(method) && !method.isConstructor();
     }
 
+    private MethodEntity(MethodEntity original) {
+        super(original);
+    }
+
     @Override
     public MetricCategory getCategory() {
         return MetricCategory.Method;
@@ -39,5 +43,10 @@ public class MethodEntity extends Entity {
         final String signature = getName();
         final String name = signature.substring(0, signature.indexOf('('));
         return name.substring(0, name.lastIndexOf('.'));
+    }
+
+    @Override
+    public MethodEntity copy() {
+        return new MethodEntity(this);
     }
 }

@@ -67,6 +67,13 @@ public abstract class Entity {
         relevantProperties = new RelevantProperties();
     }
 
+    protected Entity(Entity original) {
+        relevantProperties = original.relevantProperties.copy();
+        name = original.name;
+        vector = Arrays.copyOf(original.vector, original.vector.length);
+        isMovable = original.isMovable;
+    }
+
     void calculateVector(MetricsRun metricsRun) {
         vector = getCalculatorForEntity().calculateVector(metricsRun, this);
     }
@@ -113,14 +120,6 @@ public abstract class Entity {
         }
     }
 
-    public void moveToClass(String newClass) {
-        relevantProperties.moveTo(newClass);
-    }
-
-    public void removeFromClass(String method) {
-        relevantProperties.removeMethod(method);
-    }
-
     public RelevantProperties getRelevantProperties() {
         return relevantProperties;
     }
@@ -154,4 +153,5 @@ public abstract class Entity {
 
     abstract public MetricCategory getCategory();
     abstract public String getClassName();
+    abstract public Entity copy();
 }

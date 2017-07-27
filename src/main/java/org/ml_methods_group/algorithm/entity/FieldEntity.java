@@ -27,6 +27,10 @@ public class FieldEntity extends Entity {
         isMovable = MethodUtils.isStatic(field);
     }
 
+    private FieldEntity(FieldEntity original) {
+        super(original);
+    }
+
     @Override
     public MetricCategory getCategory() {
         return MetricCategory.Package;
@@ -36,5 +40,10 @@ public class FieldEntity extends Entity {
     public String getClassName() {
         final String name = getName();
         return name.substring(0, name.lastIndexOf('.'));
+    }
+
+    @Override
+    public FieldEntity copy() {
+        return new FieldEntity(this);
     }
 }

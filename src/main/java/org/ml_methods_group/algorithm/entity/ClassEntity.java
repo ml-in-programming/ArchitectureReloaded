@@ -24,6 +24,10 @@ public class ClassEntity extends Entity {
         super(psiClass);
     }
 
+    private ClassEntity(ClassEntity original) {
+        super(original);
+    }
+
     @Override
     public MetricCategory getCategory() {
         return MetricCategory.Class;
@@ -32,5 +36,19 @@ public class ClassEntity extends Entity {
     @Override
     public String getClassName() {
         return getName();
+    }
+
+
+    public void removeFromClass(String method) {
+        getRelevantProperties().removeMethod(method);
+    }
+
+    public void addToClass(String method) {
+        getRelevantProperties().addMethod(method);
+    }
+
+    @Override
+    public ClassEntity copy() {
+        return new ClassEntity(this);
     }
 }

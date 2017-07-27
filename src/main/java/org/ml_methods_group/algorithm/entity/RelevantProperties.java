@@ -41,6 +41,10 @@ public class RelevantProperties {
         methods.remove(method);
     }
 
+    void addMethod(String method) {
+        methods.add(method);
+    }
+
     void addMethod(PsiMethod method) {
         final String name = getHumanReadableName(method);
         methods.add(name);
@@ -97,5 +101,15 @@ public class RelevantProperties {
     void moveTo(String targetClass) {
         classes.clear();
         classes.add(targetClass);
+    }
+
+    public RelevantProperties copy() {
+        final RelevantProperties copy = new RelevantProperties();
+        copy.classes.addAll(classes);
+        copy.allMethods.addAll(allMethods);
+        copy.methods.addAll(methods);
+        copy.fields.addAll(fields);
+        copy.privateMembers.addAll(privateMembers);
+        return copy;
     }
 }

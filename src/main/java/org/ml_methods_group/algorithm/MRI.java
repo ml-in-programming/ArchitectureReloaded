@@ -18,42 +18,48 @@ package org.ml_methods_group.algorithm;
 
 import com.sixrr.metrics.MetricCategory;
 import org.jetbrains.annotations.Nullable;
+import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// It changes entities
-@Deprecated
 public class MRI extends Algorithm {
-    private final List<Entity> entities = new ArrayList<>();
+    private final List<Entity> units = new ArrayList<>();
+    private final Map<String, ClassEntity> classesByName = new HashMap<>();
+    private final List<ClassEntity> classes = new ArrayList<>();
 
     public MRI() {
-        super("MRI", false);
+        super("MRI", true);
     }
 
     @Override
     protected Map<String, String> calculateRefactorings(ExecutionContext context) {
-        this.entities.clear();
-        this.entities.addAll(context.entities.getClasses());
-        this.entities.addAll(context.entities.getMethods());
-        this.entities.addAll(context.entities.getFields());
+        final EntitySearchResult searchResult = context.entities;
+        units.clear();
+        classes.clear();
+        units.addAll(searchResult.getMethods());
+        units.addAll(searchResult.getFields());
+
+        searchResult.getClasses()
+                .stream()
+                .map(ClassEntity::copy) // create local copies
+                .peek(entity -> classesByName.put(entity.getName(), entity))
+                .forEach(classes::add);
 
         final Map<String, String> refactorings = new HashMap<>();
 
-        for (Entity currentEntity : entities) {
-            if (currentEntity.getCategory() == MetricCategory.Class) {
-                continue;
-            }
-
-            final Entity nearestClass = getNearestClass(currentEntity);
-            if (nearestClass == null) {
+        for (Entity currentEntity : units) {
+            final Holder minHolder = runParallel(classes, context, Holder::new,
+                            (candidate, holder) -> getNearestClass(currentEntity, candidate, holder), this::min);
+            if (minHolder.candidate == null) {
                 System.out.println("WARNING: " + currentEntity.getName() + " has no nearest class");
                 continue;
             }
-
+            final ClassEntity nearestClass = minHolder.candidate;
             if (nearestClass.getName().equals(currentEntity.getClassName())) {
                 continue;
             }
@@ -69,27 +75,30 @@ public class MRI extends Algorithm {
     }
 
     @Nullable
-    private Entity getNearestClass(Entity entity) {
-        Entity candidateClass = null;
-        double minDist = Double.POSITIVE_INFINITY;
-
-        for (Entity currentClass : entities) {
-            if (currentClass.getCategory() == MetricCategory.Class) {
-                final double dist = entity.distance(currentClass);
-                if (dist < minDist) {
-                    minDist = dist;
-                    candidateClass = currentClass;
-                }
-            }
+    private Holder getNearestClass(Entity entity, ClassEntity targetClass, Holder holder) {
+        final double distance = entity.distance(targetClass);
+        if (holder.distance > distance) {
+            holder.distance = distance;
+            holder.candidate = targetClass;
         }
-        return candidateClass;
+        return holder;
     }
 
-    private void processMethod(Map<String, String> refactorings, Entity method, Entity nearestClass) {
+    private class Holder {
+        private double distance = Double.POSITIVE_INFINITY;
+        private ClassEntity candidate;
+    }
+
+    private Holder min(Holder first, Holder second) {
+        return first.distance > second.distance ? second : first;
+    }
+
+    private void processMethod(Map<String, String> refactorings, Entity method, ClassEntity nearestClass) {
         if (method.isMovable()) {
+            final ClassEntity containingClass = classesByName.get(method.getClassName());
             refactorings.put(method.getName(), nearestClass.getClassName());
-            method.moveToClass(nearestClass.getName());
-            nearestClass.removeFromClass(method.getName());
+            containingClass.removeFromClass(method.getName());
+            nearestClass.addToClass(method.getName());
         }
     }
 }

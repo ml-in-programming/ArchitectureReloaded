@@ -37,12 +37,12 @@ import static java.util.Objects.requireNonNull;
 
 public abstract class Algorithm {
     private final String name;
-    private final boolean isParallelExecution;
+    private final boolean enableParallelExecution;
     private final int preferredThreadsCount;
 
-    protected Algorithm(String name, boolean isParallelExecution) {
+    Algorithm(String name, boolean enableParallelExecution) {
         this.name = name;
-        this.isParallelExecution = isParallelExecution;
+        this.enableParallelExecution = enableParallelExecution;
         preferredThreadsCount = Runtime.getRuntime().availableProcessors();
     }
 
@@ -55,7 +55,7 @@ public abstract class Algorithm {
             indicator.setFraction(0);
         }
         final ExecutionContext context =
-                new ExecutionContext(isParallelExecution ? requireNonNull(service) : null, indicator, entities);
+                new ExecutionContext(enableParallelExecution ? requireNonNull(service) : null, indicator, entities);
         final Map<String, String> refactorings;
         try {
             refactorings = calculateRefactorings(context);
