@@ -141,8 +141,12 @@ public class AKMeans extends Algorithm {
     }
 
     private double distToCommunity(Entity entity, int centerID) {
+        final Set<Entity> community = communities.get(centerID);
+        if (community.isEmpty()) {
+            return Double.POSITIVE_INFINITY;
+        }
         double maxDistance = 0.0;
-        for (Entity point : communities.get(centerID)) {
+        for (Entity point : community) {
             final double distance = entity.distance(point);
             maxDistance = Math.max(distance, maxDistance);
             if (maxDistance == Double.POSITIVE_INFINITY) {
