@@ -18,6 +18,7 @@ package org.ml_methods_group.refactoring;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -80,7 +81,7 @@ public class RefactoringExecutionContext {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 indicator.setText("Search fo refactorings");
-                execute();
+                execute(indicator);
             }
 
             @Override
@@ -92,11 +93,11 @@ public class RefactoringExecutionContext {
     }
 
     public void executeSynchronously() {
-        execute();
+        execute(new EmptyProgressIndicator());
         onFinish();
     }
 
-    private void execute() {
+    private void execute(ProgressIndicator indicator) {
         metricsExecutionContext.calculateMetrics(profile, metricsRun);
         metricsRun.setProfileName(profile.getName());
         metricsRun.setContext(scope);
@@ -106,6 +107,7 @@ public class RefactoringExecutionContext {
         for (String algorithm : requestedAlgorithms) {
             calculateAlgorithmForName(algorithm);
         }
+        indicator.setText("Finish refactorings search...");
     }
 
 

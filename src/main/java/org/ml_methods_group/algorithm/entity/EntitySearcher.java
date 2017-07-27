@@ -17,6 +17,7 @@
 package org.ml_methods_group.algorithm.entity;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.*;
@@ -46,19 +47,20 @@ public class EntitySearcher {
     }
 
     private EntitySearchResult runCalculations(MetricsRun metricsRun) {
-        final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
-        if (indicator != null) {
-            indicator.pushState();
-            indicator.setText("Search units");
+        final ProgressIndicator indicator;
+        if (ProgressManager.getInstance().hasProgressIndicator()) {
+            indicator = ProgressManager.getInstance().getProgressIndicator();
+        } else {
+            indicator = new EmptyProgressIndicator();
         }
+        indicator.pushState();
+        indicator.setText("Search units");
+        indicator.setIndeterminate(true);
         scope.accept(new UnitsFinder());
-        if (indicator != null) {
-            indicator.setText("Calculate properties");
-        }
+        indicator.setIndeterminate(false);
+        indicator.setText("Calculate properties");
         scope.accept(new PropertiesCalculator(indicator));
-        if (indicator != null) {
-            indicator.popState();
-        }
+        indicator.popState();
         return prepareResult(metricsRun);
     }
 

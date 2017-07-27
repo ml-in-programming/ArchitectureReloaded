@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class MRI extends Algorithm {
     private final List<Entity> units = new ArrayList<>();
@@ -41,8 +42,10 @@ public class MRI extends Algorithm {
         final EntitySearchResult searchResult = context.entities;
         units.clear();
         classes.clear();
-        units.addAll(searchResult.getMethods());
-        units.addAll(searchResult.getFields());
+        Stream.of(searchResult.getFields(), searchResult.getMethods())
+                .flatMap(List::stream)
+                .filter(Entity::isMovable)
+                .forEach(units::add);
 
         searchResult.getClasses()
                 .stream()
@@ -52,9 +55,12 @@ public class MRI extends Algorithm {
 
         final Map<String, String> refactorings = new HashMap<>();
 
+        int progress = 0;
         for (Entity currentEntity : units) {
             final Holder minHolder = runParallel(classes, context, Holder::new,
                             (candidate, holder) -> getNearestClass(currentEntity, candidate, holder), this::min);
+            progress++;
+            reportProgress((double) progress / units.size(), context);
             if (minHolder.candidate == null) {
                 System.out.println("WARNING: " + currentEntity.getName() + " has no nearest class");
                 continue;
