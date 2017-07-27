@@ -21,19 +21,22 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import org.jetbrains.annotations.NotNull;
+import org.ml_methods_group.algorithm.AlgorithmResult;
+import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public final class RefactoringsToolWindow implements Disposable {
@@ -43,7 +46,8 @@ public final class RefactoringsToolWindow implements Disposable {
 
     private final Project project;
     private ToolWindow myToolWindow = null;
-    private Map<String, Map<String, String>> refactorings;
+    private List<AlgorithmResult> results;
+    private EntitySearchResult searchResult;
     private AnalysisScope scope;
 
     private RefactoringsToolWindow(@NotNull Project project) {
@@ -73,18 +77,20 @@ public final class RefactoringsToolWindow implements Disposable {
     private ActionToolbar createToolbar() {
         final DefaultActionGroup toolbarGroup = new DefaultActionGroup();
         toolbarGroup.add(new IntersectAction());
+        toolbarGroup.add(new InfoAction());
         toolbarGroup.add(new CloseAction());
         return ActionManager.getInstance()
                 .createActionToolbar(WINDOW_ID, toolbarGroup, false);
     }
 
-    public void show(Map<String, Map<String, String>> refactorings, AnalysisScope scope) {
-        this.refactorings = refactorings;
+    public void show(List<AlgorithmResult> results, EntitySearchResult searchResult, AnalysisScope scope) {
+        this.results = results;
         this.scope = scope;
+        this.searchResult = searchResult;
         myToolWindow.getContentManager().removeAllContents(true);
         myToolWindow.setAvailable(false, null);
-        for (Map.Entry<String, Map<String, String>> entry : refactorings.entrySet()) {
-            addTab(entry.getKey(), entry.getValue());
+        for (AlgorithmResult result : results) {
+            addTab(result.getAlgorithmName(), result.getRefactorings());
         }
         myToolWindow.setAvailable(true, null);
         myToolWindow.show(null);
@@ -94,23 +100,27 @@ public final class RefactoringsToolWindow implements Disposable {
     public void dispose() {
         final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
         toolWindowManager.unregisterToolWindow(WINDOW_ID);
-        refactorings = null;
+        results = null;
         scope = null;
+        searchResult = null;
     }
 
     private void intersect(Set<String> algorithms) {
-        HashMap<String, String> results = null;
-        for (String algorithm : algorithms) {
-            final Map<String, String> result = refactorings.get(algorithm);
-            if (results == null) {
-                results = new HashMap<>(result);
+        HashMap<String, String> intersection = null;
+        for (AlgorithmResult result : results) {
+            if (!algorithms.contains(result.getAlgorithmName())) {
+                continue;
             }
-            results.entrySet().retainAll(result.entrySet());
+            final Map<String, String> refactorings = result.getRefactorings();
+            if (intersection == null) {
+                intersection = new HashMap<>(refactorings);
+            }
+            intersection.entrySet().retainAll(refactorings.entrySet());
         }
-        if (results != null) {
+        if (intersection != null) {
             final String tabName = algorithms.stream()
                     .collect(Collectors.joining(" & "));
-            addTab(tabName, results);
+            addTab(tabName, intersection);
         }
     }
 
@@ -123,12 +133,31 @@ public final class RefactoringsToolWindow implements Disposable {
 
         @Override
         public void actionPerformed(AnActionEvent e) {
-            if (refactorings != null) {
-                final IntersectionDialog dialog = new IntersectionDialog(project, refactorings.keySet());
+            if (results != null) {
+                final Set<String> algorithms = results.stream()
+                        .map(AlgorithmResult::getAlgorithmName)
+                        .collect(Collectors.toSet());
+                final IntersectionDialog dialog = new IntersectionDialog(project, algorithms);
                 dialog.show();
                 if (dialog.isOK()) {
                     intersect(dialog.getSelected());
                 }
+            }
+        }
+    }
+
+    private class InfoAction extends AnAction {
+        InfoAction() {
+            super(ArchitectureReloadedBundle.message("info.action.text"),
+                    ArchitectureReloadedBundle.message("info.action.description"),
+                    AllIcons.Actions.Help);
+        }
+
+        @Override
+        public void actionPerformed(AnActionEvent e) {
+            if (results != null && searchResult != null) {
+                final DialogWrapper dialog = new ExecutionInfoDialog(project, searchResult, results);
+                dialog.show();
             }
         }
     }
@@ -143,7 +172,7 @@ public final class RefactoringsToolWindow implements Disposable {
         @Override
         public void actionPerformed(AnActionEvent e) {
             myToolWindow.setAvailable(false, null);
-            refactorings = null;
+            results = null;
             scope = null;
         }
     }

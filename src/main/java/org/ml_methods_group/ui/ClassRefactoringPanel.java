@@ -33,6 +33,7 @@ import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.List;
 import java.util.Map;
 
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
@@ -55,12 +56,15 @@ class ClassRefactoringPanel extends JPanel {
     private final JButton doRefactorButton = new JButton();
     private final JLabel info = new JLabel();
 
+    private final List<String> warnings;
+
     ClassRefactoringPanel(@NotNull Project project, Map<String, String> refactorings,
                           @NotNull AnalysisScope scope) {
         this.project = project;
         this.scope = scope;
         setLayout(new BorderLayout());
         model = new RefactoringsTableModel(refactorings);
+        warnings = RefactoringUtil.getWarnings(model.getUnits(), model.getMovements(), scope);
         setupGUI();
     }
 
@@ -131,13 +135,7 @@ class ClassRefactoringPanel extends JPanel {
 
     private void onSelectionChanged() {
         final int selectedRow = table.getSelectedRow();
-        if (selectedRow == -1) {
-            info.setText("");
-        } else {
-            String unit = model.getUnitAt(selectedRow, 1);
-            String target = model.getUnitAt(selectedRow, 2);
-            info.setText(RefactoringUtil.getWarning(unit, target, scope));
-        }
+        info.setText(selectedRow == -1 ? "" : warnings.get(selectedRow));
     }
 
     @FunctionalInterface
@@ -150,9 +148,16 @@ class ClassRefactoringPanel extends JPanel {
             }
         }
 
-        default void mousePressed(MouseEvent e) {}
-        default void mouseReleased(MouseEvent e) {}
-        default void mouseEntered(MouseEvent e) {}
-        default void mouseExited(MouseEvent e) {}
+        default void mousePressed(MouseEvent e) {
+        }
+
+        default void mouseReleased(MouseEvent e) {
+        }
+
+        default void mouseEntered(MouseEvent e) {
+        }
+
+        default void mouseExited(MouseEvent e) {
+        }
     }
 }

@@ -16,106 +16,63 @@
 
 package org.ml_methods_group.algorithm;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMember;
-import com.sixrr.metrics.MetricCategory;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class ARI {
-    private final Map<String, Set<Entity>> communities = new HashMap<>();
-    private final Map<Entity, String> communityIds = new HashMap<>();
-    private final List<Entity> methodsAndFields;
-    private final List<ClassEntity> classEntities;
-    private final Set<PsiClass> psiClasses;
+public class ARI extends Algorithm {
+    private final List<Entity> units = new ArrayList<>();
+    private final List<ClassEntity> classEntities = new ArrayList<>();
+    private final AtomicInteger progressCount = new AtomicInteger();
+    private ExecutionContext context;
 
-    public ARI(Iterable<Entity> entityList) {
-        methodsAndFields = new ArrayList<>();
-        classEntities = new ArrayList<>();
-        psiClasses = new HashSet<>();
-        for (Entity entity : entityList) {
-            if (entity.getCategory() == MetricCategory.Class) {
-                classEntities.add((ClassEntity) entity);
-                psiClasses.add((PsiClass) entity.getPsiElement());
-            } else {
-                methodsAndFields.add(entity);
-            }
-        }
+    public ARI() {
+        super("ARI", true);
     }
 
-    public Map<String, String> run() {
-        final Map<String, String> refactorings = new HashMap<>();
+    @Override
+    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+        units.clear();
+        classEntities.clear();
+        classEntities.addAll(context.entities.getClasses());
+        units.addAll(context.entities.getMethods());
+        units.addAll(context.entities.getFields());
+        progressCount.set(0);
+        this.context = context;
+        return runParallel(units, context, HashMap<String, String>::new, this::findRefactoring, Algorithm::combineMaps);
+    }
 
-        for (Entity method : methodsAndFields) {
-            double minD = Double.MAX_VALUE;
-            ClassEntity targetClass = null;
-
-            for (final ClassEntity classEntity : classEntities) {
-                if (method.getCategory() == MetricCategory.Method) {
-                    final PsiClass classFrom = ((PsiMember) method.getPsiElement()).getContainingClass();
-                    final PsiClass classTo = (PsiClass) classEntity.getPsiElement();
-
-                    final Set<PsiClass> supersTo = PSIUtil.getAllSupers(classTo, psiClasses);
-                    final Set<PsiClass> supersFrom = PSIUtil.getAllSupers(classFrom, psiClasses);
-
-                    if (supersTo.contains(classFrom) || supersFrom.contains(classTo)) {
-                        continue;
-                    }
-
-                    supersFrom.retainAll(supersTo);
-                    final boolean isOverride = supersFrom.stream()
-                            .flatMap(c -> Arrays.stream(c.getMethods()))
-                            .anyMatch(method::equals);
-
-                    if (isOverride) {
-                        continue;
-                    }
-                }
-
-                final double distance = method.distance(classEntity);
-
-                if (distance < minD) {
-                    minD = distance;
-                    targetClass = classEntity;
-                }
-            }
-
-//            assert targetClass != null;
-
-            if (targetClass == null) {
-                System.out.println("!!!!! targetClass is null for " + method.getName());
-                // TODO: find out why are they null
-                continue;
-            }
-
-            if (communityIds.containsKey(targetClass)) {
-                putMethodOrField(method, targetClass);
-            } else {
-                createCommunity(method, targetClass);
-            }
-
-            System.out.println("Add " + method.getName() + " to " + targetClass.getName());
+    // todo check, that method isn't abstract or constructor
+    private Map<String, String> findRefactoring(Entity entity, Map<String, String> accumulator) {
+        reportProgress((double) progressCount.incrementAndGet() / units.size(), context);
+        if (!entity.isMovable()) {
+            return accumulator;
         }
+        double minDistance = Double.POSITIVE_INFINITY;
+        ClassEntity targetClass = null;
+        for (final ClassEntity classEntity : classEntities) {
 
-        for (Entity entity : methodsAndFields) {
-            if (!entity.getClassName().equals(communityIds.get(entity))) {
-                refactorings.put(entity.getName(), communityIds.get(entity));
+            final double distance = entity.distance(classEntity);
+            if (distance < minDistance) {
+                minDistance = distance;
+                targetClass = classEntity;
             }
         }
 
-        return refactorings;
-    }
+        if (targetClass == null) {
+            System.out.println("Warning (ARI): targetClass is null for " + entity.getName());
+            return accumulator;
+        }
 
-    private void createCommunity(Entity method, Entity cl) {
-        communityIds.put(cl, cl.getName());
-        communityIds.put(method, cl.getName());
-        communities.put(cl.getName(), new HashSet<>(Arrays.asList(method, cl)));
-    }
-
-    private void putMethodOrField(Entity method, Entity cl) {
-        communityIds.put(method, cl.getName());
-        communities.get(cl.getName()).add(method);
+        final String targetClassName = targetClass.getName();
+        if (!targetClassName.equals(entity.getClassName())) {
+            accumulator.put(entity.getName(), targetClassName);
+        }
+        return accumulator;
     }
 }

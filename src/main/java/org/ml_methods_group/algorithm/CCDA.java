@@ -16,83 +16,59 @@
 
 package org.ml_methods_group.algorithm;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
-import com.sixrr.metrics.MetricCategory;
-import com.sixrr.metrics.utils.MethodUtils;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.EntitySearchResult;
+import org.ml_methods_group.algorithm.entity.RelevantProperties;
 
 import java.util.*;
+import java.util.stream.Stream;
 
-public class CCDA {
-    private final Map<String, Integer> communityIds;
-    private final List<String> idCommunity;
-    private final List<Integer> aCoefficients;
-    private Map<String, Set<String>> graph;
-    private final List<Entity> nodes;
+public class CCDA extends Algorithm {
+    private final Map<String, Integer> communityIds = new HashMap<>();
+    private final List<String> idCommunity = new ArrayList<>();
+    private final List<Integer> aCoefficients = new ArrayList<>();
+    private final List<Entity> nodes = new ArrayList<>();
+    private final Map<String, Set<String>> graph = new HashMap<>();
 
     private double quality;
     private double edges;
     private static final double eps = 5e-4;
 
-    public CCDA(Iterable<Entity> entities) {
-        communityIds = new HashMap<>();
-        idCommunity = new ArrayList<>();
-        nodes = new ArrayList<>();
+    public CCDA() {
+        super("CCDA", true);
+
+    }
+
+    private void init(EntitySearchResult entities) {
+        communityIds.clear();
+        idCommunity.clear();
+        nodes.clear();
+        aCoefficients.clear();
         quality = 0.0;
-
-        for (Entity ent : entities) {
-            if (ent.getCategory() == MetricCategory.Class) {
-                communityIds.put(ent.getName(), Integer.valueOf(communityIds.size() + 1));
-                idCommunity.add(ent.getName());
-            }
-        }
-
-        for (Entity ent : entities) {
-            if (ent.getCategory() != MetricCategory.Class && communityIds.containsKey(ent.getClassName())) {
-                nodes.add(ent);
-                communityIds.put(ent.getName(), communityIds.get(ent.getClassName()));
-            }
-        }
-
-        aCoefficients = new ArrayList<>(Collections.nCopies(idCommunity.size() + 1, Integer.valueOf(0)));
+        entities.getClasses().stream()
+                .peek(entity -> communityIds.put(entity.getName(), communityIds.size() + 1))
+                .map(Entity::getName)
+                .forEach(idCommunity::add);
+        Stream.of(entities.getFields(), entities.getMethods())
+                .flatMap(List::stream)
+                .filter(entity -> communityIds.containsKey(entity.getClassName()))
+                .peek(entity -> communityIds.put(entity.getName(), communityIds.get(entity.getClassName())))
+                .forEach(nodes::add);
+        aCoefficients.addAll(Collections.nCopies(idCommunity.size() + 1, 0));
         buildGraph();
     }
 
-    public void applyRefactorings(Map<String, String> refactorings) {
-        for (String entity : refactorings.keySet()) {
-            final String com = refactorings.get(entity);
-            if (!communityIds.containsKey(com)) {
-                communityIds.put(com, Integer.valueOf(communityIds.size() + 1));
-                idCommunity.add(com);
-            }
-            communityIds.put(entity, communityIds.get(com));
-        }
-    }
-
     private void buildGraph() {
-        graph = new HashMap<>();
+        graph.clear();
         for (Entity entity : nodes) {
             final RelevantProperties properties = entity.getRelevantProperties();
             final Set<String> neighbors = graph.getOrDefault(entity.getName(), new HashSet<>());
-            final Set<PsiMethod> methods = properties.getAllMethods();
 
-            methods.stream().map(MethodUtils::calculateSignature).forEach(name -> addNode(name, entity, neighbors));
+            properties.getAllMethods()
+                    .forEach(name -> addNode(name, entity, neighbors));
 
-            for (PsiField field : properties.getAllFields()) {
-                final PsiClass containingClass = field.getContainingClass();
-
-//                assert containingClass != null;
-                if (containingClass == null) {
-                    System.out.println("!!!!!!! containingClass is null for " + field.getName());
-                    // TODO: find out why are they null
-                    continue;
-                }
-
-
-                final String qualifiedFieldName = containingClass.getQualifiedName() + "." + field.getName();
-                addNode(qualifiedFieldName, entity, neighbors);
+            for (String field : properties.getAllFields()) {
+                addNode(field, entity, neighbors);
             }
 
             graph.put(entity.getName(), neighbors);
@@ -113,85 +89,92 @@ public class CCDA {
             return;
         }
         neighbors.add(entityName);
-
-        if (!graph.containsKey(entityName)) {
-            graph.put(entityName, new HashSet<>());
-        }
-
-        graph.get(entityName).add(entity.getName());
+        graph.computeIfAbsent(entityName, k -> new HashSet())
+                .add(entity.getName());
     }
 
-    public Map<String, String> run() {
+    @Override
+    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+        init(context.entities);
         final Map<String, String> refactorings = new HashMap<>();
         quality = calculateQualityIndex();
-        System.out.println(quality);
-
-        double dq = 1.0;
-        System.out.println("Running...");
-        while (dq > eps) {
-            dq = 0.0;
-            Entity targetEntity = null;
-            int community = -1;
-
-            for (Entity entity : nodes) {
-                for (int i = 1; i <= idCommunity.size(); ++i) {
-                    if (i == communityIds.get(entity.getName()).intValue()) {
-                        continue;
-                    }
-                    final double curdq = move(entity, i, true);
-                    if (curdq > dq) {
-                        dq = curdq;
-                        targetEntity = entity;
-                        community = i;
-                    }
-                }
+        double progress = 0;
+        while (true) {
+            final Holder optimum = runParallel(nodes, context, Holder::new, this::attempt, this::max);
+            if (optimum.delta <= eps) {
+                break;
             }
+            refactorings.put(optimum.targetEntity.getName(), idCommunity.get(optimum.community - 1));
+            move(optimum.targetEntity, optimum.community, false);
+            communityIds.put(optimum.targetEntity.getName(), optimum.community);
 
-            if (dq > eps) {
-                refactorings.put(targetEntity.getName(), idCommunity.get(community - 1));
-                move(targetEntity, community, false);
-                communityIds.put(targetEntity.getName(), Integer.valueOf(community));
-
-                System.out.println("move " + targetEntity.getName() + " to " + idCommunity.get(community - 1));
-                System.out.println("quality index is now: " + quality);
-                System.out.println();
-            }
+            System.out.println("move " + optimum.targetEntity.getName() + " to " + idCommunity.get(optimum.community - 1));
+            System.out.println("quality index is now: " + quality);
+            System.out.println();
+            progress = Math.max(progress, eps / optimum.delta);
+            reportProgress(progress, context);
         }
 
         return refactorings;
     }
 
+    private Holder attempt(Entity entity, Holder optimum) {
+        final int currentCommunityID = communityIds.get(entity.getName());
+        for (int i = 1; i <= idCommunity.size(); ++i) {
+            if (i == currentCommunityID) {
+                continue;
+            }
+            final double delta = move(entity, i, true);
+            if (delta >= optimum.delta) {
+                optimum.delta = delta;
+                optimum.targetEntity = entity;
+                optimum.community = i;
+            }
+        }
+        return optimum;
+    }
+
+    private class Holder {
+        private double delta = 0;
+        private Entity targetEntity;
+        private int community = -1;
+    }
+
+    private Holder max(Holder first, Holder second) {
+        return first.delta >= second.delta ? first : second;
+    }
+
     private double move(Entity ent, int to, boolean rollback) {
         final String name = ent.getName();
-        final int from = communityIds.get(name).intValue();
+        final int from = communityIds.get(name);
         double dq = 0.0;
-        dq += Math.pow(aCoefficients.get(from).doubleValue() * 1.0 / edges, 2.0);
-        dq += Math.pow(aCoefficients.get(to).doubleValue() * 1.0 / edges, 2.0);
+        dq += Math.pow(aCoefficients.get(from) * 1.0 / edges, 2.0);
+        dq += Math.pow(aCoefficients.get(to) * 1.0 / edges, 2.0);
 
         int aFrom = 0;
         int aTo = 0;
         int de = 0;
 
         for (String neighbor : graph.get(name)) {
-            if (communityIds.get(neighbor).intValue() == from) {
+            if (communityIds.get(neighbor) == from) {
                 de--;
             } else {
                 aFrom++;
             }
 
-            if (communityIds.get(neighbor).intValue() == to) {
+            if (communityIds.get(neighbor) == to) {
                 de++;
             } else {
                 aTo++;
             }
         }
 
-        aFrom = aCoefficients.get(from).intValue() - aFrom;
-        aTo = aCoefficients.get(to).intValue() + aTo;
+        aFrom = aCoefficients.get(from) - aFrom;
+        aTo = aCoefficients.get(to) + aTo;
 
         if (!rollback) {
-            aCoefficients.add(from, Integer.valueOf(aFrom));
-            aCoefficients.add(to, Integer.valueOf(aTo));
+            aCoefficients.add(from, aFrom);
+            aCoefficients.add(to, aTo);
         }
 
         dq += (double) de * 1.0 / edges;
@@ -205,7 +188,7 @@ public class CCDA {
         return dq;
     }
 
-    public double calculateQualityIndex() {
+    private double calculateQualityIndex() {
         System.out.println("Calculating Q...");
         double qualityIndex = 0.0;
 
@@ -241,7 +224,7 @@ public class CCDA {
 
             e /= 2;
             a += e;
-            aCoefficients.add(i, Integer.valueOf(a));
+            aCoefficients.add(i, a);
             qualityIndex += ((double) e * 1.0 / edges) - Math.pow((double) a * 1.0 / edges, 2.0);
         }
 

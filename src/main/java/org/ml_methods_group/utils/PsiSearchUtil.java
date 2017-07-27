@@ -22,8 +22,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 
 import static com.sixrr.metrics.utils.MethodUtils.calculateSignature;
@@ -42,13 +41,19 @@ public class PsiSearchUtil {
     }
 
     public static <V> Optional<V> findElement(String humanReadableName, AnalysisScope scope, Function<PsiElement, V> mapper) {
+        final Map<String, V> result = findAllElements(Collections.singleton(humanReadableName), scope, mapper);
+        return Optional.ofNullable(result.get(humanReadableName));
+    }
+
+    public static <V> Map<String, V> findAllElements(Set<String> names, AnalysisScope scope,
+                                                              Function<PsiElement, V> mapper) {
         final SearchOptions<String, V> options = new SearchOptions<>();
         options.classKeyExtractor = PsiSearchUtil::getHumanReadableName;
         options.methodKeyExtractor = PsiSearchUtil::getHumanReadableName;
         options.fieldKeyExtractor = PsiSearchUtil::getHumanReadableName;
         options.resultExtractor = mapper;
         options.scope = scope;
-        return runSafeSearch(humanReadableName, options);
+        return runSafeSearch(names, options);
     }
 
     public static Optional<PsiElement> findElement(String humanReadableName, AnalysisScope scope) {
@@ -60,11 +65,8 @@ public class PsiSearchUtil {
         options.methodKeyExtractor = PsiMethod::getName;
         options.resultExtractor = PsiMethod.class::cast;
         options.scope = scope;
-        return runSafeSearch(name, options);
-    }
-
-    public static Optional<String> getElementText(String unit, AnalysisScope scope) {
-        return findElement(unit, scope, PsiElement::getText);
+        final Map<String, PsiMethod> result = runSafeSearch(Collections.singleton(name), options);
+        return Optional.ofNullable(result.get(name));
     }
 
     public static String getHumanReadableName(@Nullable PsiElement element) {
@@ -79,19 +81,21 @@ public class PsiSearchUtil {
         return "???";
     }
 
-    public static <K, V> Optional<V> runSafeSearch(K key, SearchOptions<K, V> options) {
+    public static <K, V> Map<K, V> runSafeSearch(Set<K> keys, SearchOptions<K, V> options) {
         return ApplicationManager.getApplication()
-                .runReadAction((Computable<Optional<V>>) () -> runSearch(key, options));
+                .runReadAction((Computable<Map<K, V>>) () -> runSearch(keys, options));
     }
 
-    private static <K, V> Optional<V> runSearch(K key, SearchOptions<K, V> options) {
-        final PsiElement[] resultHolder = new PsiElement[1];
+    private static <K, V> Map<K, V> runSearch(Set<K> keys, SearchOptions<K, V> options) {
+        final Map<K, V> results = new HashMap<>();
         options.scope.accept(new JavaRecursiveElementVisitor() {
             @Override
             public void visitClass(PsiClass aClass) {
                 super.visitClass(aClass);
-                if (Objects.equals(key, options.classKeyExtractor.apply(aClass))) {
-                    resultHolder[0] = aClass;
+                final K currentKey = options.classKeyExtractor.apply(aClass);
+                if (keys.contains(currentKey)) {
+                    final V value = options.resultExtractor.apply(aClass);
+                    results.put(currentKey, value);
                 }
             }
 
@@ -99,19 +103,23 @@ public class PsiSearchUtil {
             @Override
             public void visitMethod(PsiMethod method) {
                 super.visitMethod(method);
-                if (Objects.equals(key, options.methodKeyExtractor.apply(method))) {
-                    resultHolder[0] = method;
+                final K currentKey = options.methodKeyExtractor.apply(method);
+                if (keys.contains(currentKey)) {
+                    final V value = options.resultExtractor.apply(method);
+                    results.put(currentKey, value);
                 }
             }
 
             @Override
             public void visitField(PsiField field) {
                 super.visitField(field);
-                if (Objects.equals(key, options.fieldKeyExtractor.apply(field))) {
-                    resultHolder[0] = field;
+                final K currentKey = options.fieldKeyExtractor.apply(field);
+                if (keys.contains(currentKey)) {
+                    final V value = options.resultExtractor.apply(field);
+                    results.put(currentKey, value);
                 }
             }
         });
-        return Optional.ofNullable(resultHolder[0]).map(options.resultExtractor);
+        return results;
     }
 }

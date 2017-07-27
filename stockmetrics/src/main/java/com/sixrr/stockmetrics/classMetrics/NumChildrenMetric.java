@@ -16,10 +16,7 @@
 
 package com.sixrr.stockmetrics.classMetrics;
 
-import com.intellij.psi.JavaRecursiveElementVisitor;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElementVisitor;
-import com.intellij.psi.PsiModifier;
+import com.intellij.psi.*;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.sixrr.metrics.MetricCalculator;
 import com.sixrr.metrics.MetricType;
@@ -73,6 +70,15 @@ public class NumChildrenMetric extends ClassMetric {
                 }
                 final int numberOfChildren = getNumberOfChildren(aClass);
                 postMetric(aClass, numberOfChildren);
+            }
+
+
+            @Override
+            public void visitMethod(PsiMethod method) {
+            }
+
+            @Override
+            public void visitField(PsiField field) {
             }
 
             int getNumberOfChildren(final PsiClass aClass) {

@@ -16,49 +16,75 @@
 
 package org.ml_methods_group.algorithm;
 
-import com.sixrr.metrics.MetricCategory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class HAC {
+public class HAC extends Algorithm {
     private final SortedSet<Triple> heap = new TreeSet<>();
+    private final Map<Long, Triple> triples = new HashMap<>();
     private final Set<Community> communities = new HashSet<>();
-    private long idGenerator = 0;
+    private final AtomicInteger progressCounter = new AtomicInteger();
+    private ExecutionContext context;
+    private int idGenerator = 0;
     private int newClassCount = 0;
 
-    public HAC(Collection<Entity> entityList) {
-        entityList.stream()
-                .map(Community::new)
-                .forEach(communities::add);
-
-        for (Community first : communities) {
-            final Entity representative = getRepresentative(first);
-            for (Community second : communities) {
-                if (first == second) {
-                    break;
-                }
-                final double distance = representative.distance(getRepresentative(second));
-                createAndInsertTriple(distance, first, second);
-            }
-        }
+    public HAC() {
+        super("HAC", true);
     }
 
-    public Map<String, String> run() {
-        final Map<String, String> refactorings = new HashMap<>();
+    private void init(ExecutionContext context) {
+        this.context = context;
+        heap.clear();
+        communities.clear();
+        idGenerator = 0;
+        newClassCount = 0;
+        progressCounter.set(0);
+        EntitySearchResult entities = context.entities;
+        Stream.of(entities.getClasses(), entities.getMethods(), entities.getFields())
+                .flatMap(List::stream)
+                .map(this::singletonCommunity)
+                .forEach(communities::add);
+        List<Community> communitiesAsList = new ArrayList<>(communities);
+        Collections.shuffle(communitiesAsList);
+        final List<Triple> toInsert =
+                runParallel(communitiesAsList, context, ArrayList::new, this::findTriples, Algorithm::combineLists);
+        toInsert.forEach(this::insertTriple);
+    }
 
-        while (!heap.isEmpty()) {
-            final Triple minTriple = heap.first();
-            if (minTriple.distance > 1.0) {
+    private List<Triple> findTriples(Community community, List<Triple> accumulator) {
+        final Entity representative = community.entities.get(0);
+        for (Community another : communities) {
+            if (another == community) {
                 break;
             }
+            final double distance = representative.distance(another.entities.get(0));
+            if (distance < 1) {
+                accumulator.add(new Triple(distance, community, another));
+            }
+        }
+        reportProgress(0.9 * (double) progressCounter.incrementAndGet() / communities.size(), context);
+        return accumulator;
+    }
+
+    @Override
+    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+        init(context);
+        final int initialCommunitiesCount = communities.size();
+        final Map<String, String> refactorings = new HashMap<>();
+        while (!heap.isEmpty()) {
+            final Triple minTriple = heap.first();
             invalidateTriple(minTriple);
             final Community first = minTriple.first;
             final Community second = minTriple.second;
-            final Community mergedCommunity = mergeCommunities(first, second);
-            System.out.println("Merge " + first + " and " + second + " to " + mergedCommunity);
+            mergeCommunities(first, second);
+            reportProgress(1 - 0.1 * communities.size() / initialCommunitiesCount, context);
         }
 
         for (Community community : communities) {
@@ -69,14 +95,8 @@ public class HAC {
                 }
             }
         }
+        Triple.clearPool();
         return refactorings;
-    }
-
-    private Entity getRepresentative(Community community) {
-        if (community.entities.size() != 1) {
-            throw new IllegalArgumentException("Something went wrong! Singleton set expected");
-        }
-        return community.entities.iterator().next();
     }
 
     // todo doubtful code starts
@@ -98,86 +118,91 @@ public class HAC {
     // doubtful code ends
 
     private Community mergeCommunities(Community first, Community second) {
-        final Set<Entity> merged = new HashSet<>();
-        merged.addAll(first.entities);
-        merged.addAll(second.entities);
-        final Set<String> availableClassNames = merged.stream()
-                .filter(e -> e.getCategory() == MetricCategory.Class)
-                .map(Entity::getName)
-                .collect(Collectors.toSet());
-        final String newName = merged.stream()
-                .collect(Collectors.groupingBy(Entity::getClassName, Collectors.counting()))
-                .entrySet().stream()
-                .filter(entry -> availableClassNames.contains(entry.getKey()))
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse(first.name);
+        final List<Entity> merged;
+        if (first.entities.size() < second.entities.size()) {
+            merged = second.entities;
+            merged.addAll(first.entities);
+        } else {
+            merged = first.entities;
+            merged.addAll(second.entities);
+        }
 
-        final Community newCommunity = new Community(merged, newName);
+        final Community newCommunity = new Community(merged);
         communities.remove(first);
         communities.remove(second);
 
         for (Community community : communities) {
-            final Triple fromFirst = first.usages.get(community);
-            final Triple fromSecond = second.usages.get(community);
-            final double newDistance = Math.max(fromFirst.distance, fromSecond.distance);
-            createAndInsertTriple(newDistance, newCommunity, community);
+            final long fromFirstID = getTripleID(first, community);
+            final long fromSecondID = getTripleID(second, community);
+            final Triple fromFirst = triples.get(fromFirstID);
+            final Triple fromSecond = triples.get(fromSecondID);
+            final double newDistance = Math.max(getDistance(fromFirst), getDistance(fromSecond));
             invalidateTriple(fromFirst);
             invalidateTriple(fromSecond);
+            insertTripleIfNecessary(newDistance, newCommunity, community);
         }
         communities.add(newCommunity);
         return newCommunity;
     }
 
-    private void createAndInsertTriple(double distance, Community first, Community second) {
-        final Triple triple = new Triple(distance, first, second);
-        second.usages.put(first, triple);
-        first.usages.put(second, triple);
+    private double getDistance(@Nullable Triple triple) {
+        return triple == null? Double.POSITIVE_INFINITY : triple.distance;
+    }
+
+    private long getTripleID(Community first, Community second) {
+        if (second.id > first.id) {
+            return getTripleID(second, first);
+        }
+        return first.id * 1_000_000_009L + second.id;
+    }
+
+    private void insertTriple(@NotNull Triple triple) {
+        triples.put(getTripleID(triple.first, triple.second), triple);
         heap.add(triple);
     }
 
-    private void invalidateTriple(Triple triple) {
-        triple.first.usages.remove(triple.second, triple);
-        triple.second.usages.remove(triple.first, triple);
+    private void insertTripleIfNecessary(double distance, Community first, Community second) {
+        if (distance > 1.0) {
+            return;
+        }
+        final Triple triple = Triple.createTriple(distance, first, second);
+        insertTriple(triple);
+    }
+
+    private void invalidateTriple(@Nullable Triple triple) {
+        if (triple == null) {
+            return;
+        }
+        final long tripleID = getTripleID(triple.first, triple.second);
+        triples.remove(tripleID);
         heap.remove(triple);
+        triple.release();
+    }
+
+    private Community singletonCommunity(Entity entity) {
+        final List<Entity> singletonList = new ArrayList<>(1);
+        singletonList.add(entity);
+        return new Community(singletonList);
     }
 
     private class Community implements Comparable<Community> {
 
-        private final Set<Entity> entities;
-        private final Map<Community, Triple> usages = new HashMap<>();
-        private final String name;
-        private final long id;
+        private final List<Entity> entities;
+        private final int id;
 
-        Community(Set<Entity> entities, String name) {
+        Community(List<Entity> entities) {
             this.entities = entities;
-            this.name = name;
             id = idGenerator++;
-        }
-
-        Community(Entity entity) {
-            this(Collections.singleton(entity), entity.getName());
-        }
-
-        @Override
-        public String toString() {
-            return name + "(id = " + id + ")";
         }
 
         @Override
         public int compareTo(@NotNull Community o) {
-            if (o == this) {
-                return 0;
-            }
-            if (!name.equals(o.name)) {
-                return name.compareTo(o.name);
-            }
-            return Long.compare(id, o.id);
+            return id - o.id;
         }
 
         @Override
         public int hashCode() {
-            return Long.hashCode(id);
+            return id;
         }
 
         @Override
@@ -187,14 +212,35 @@ public class HAC {
     }
 
     private static class Triple implements Comparable<Triple> {
-        private final double distance;
-        private final Community first;
-        private final Community second;
+        private static final Queue<Triple> triplesPoll = new ArrayDeque<>();
+
+        private double distance;
+        private Community first;
+        private Community second;
 
         Triple(double distance, Community first, Community second) {
             this.distance = distance;
             this.first = first;
             this.second = second;
+        }
+
+        static Triple createTriple(double distance, Community first, Community second) {
+            if (triplesPoll.isEmpty()) {
+                return new Triple(distance, first, second);
+            }
+            final Triple triple = triplesPoll.poll();
+            triple.distance = distance;
+            triple.first = first;
+            triple.second = second;
+            return triple;
+        }
+
+        static void clearPool() {
+            triplesPoll.clear();
+        }
+
+        void release() {
+            triplesPoll.add(this);
         }
 
         @Override

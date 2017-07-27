@@ -18,15 +18,14 @@ package org.ml_methods_group.algorithm.entity;
 
 import com.intellij.psi.PsiClass;
 import com.sixrr.metrics.MetricCategory;
-import com.sixrr.metrics.metricModel.MetricsRun;
-import org.ml_methods_group.algorithm.PSIUtil;
-import org.ml_methods_group.algorithm.PropertiesFinder;
-
-import java.util.Set;
 
 public class ClassEntity extends Entity {
-    public ClassEntity(String name, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
-        super(name, metricsRun, propertiesFinder);
+    ClassEntity(PsiClass psiClass) {
+        super(psiClass);
+    }
+
+    private ClassEntity(ClassEntity original) {
+        super(original);
     }
 
     @Override
@@ -39,7 +38,17 @@ public class ClassEntity extends Entity {
         return getName();
     }
 
-    public Set<PsiClass> getAllSupers(Set<PsiClass> existing) {
-        return PSIUtil.getAllSupers((PsiClass) getPsiElement(), existing);
+
+    public void removeFromClass(String method) {
+        getRelevantProperties().removeMethod(method);
+    }
+
+    public void addToClass(String method) {
+        getRelevantProperties().addMethod(method);
+    }
+
+    @Override
+    public ClassEntity copy() {
+        return new ClassEntity(this);
     }
 }

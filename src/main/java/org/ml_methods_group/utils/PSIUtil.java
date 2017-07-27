@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.ml_methods_group.algorithm;
+package org.ml_methods_group.utils;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -85,5 +86,9 @@ public final class PSIUtil {
         }
 
         return allSupers;
+    }
+
+    public static boolean isOverriding(PsiMethod method) {
+        return method.findSuperMethods().length != 0;
     }
 }

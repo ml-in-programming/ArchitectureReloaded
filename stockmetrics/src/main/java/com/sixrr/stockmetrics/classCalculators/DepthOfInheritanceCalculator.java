@@ -16,9 +16,7 @@
 
 package com.sixrr.stockmetrics.classCalculators;
 
-import com.intellij.psi.JavaRecursiveElementVisitor;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.*;
 
 public class DepthOfInheritanceCalculator extends ClassCalculator {
 
@@ -36,6 +34,14 @@ public class DepthOfInheritanceCalculator extends ClassCalculator {
                 final int depth = getInheritanceDepth(aClass);
                 postMetric(aClass, depth);
             }
+        }
+
+        @Override
+        public void visitMethod(PsiMethod method) {
+        }
+
+        @Override
+        public void visitField(PsiField field) {
         }
 
         private int getInheritanceDepth(PsiClass aClass) {

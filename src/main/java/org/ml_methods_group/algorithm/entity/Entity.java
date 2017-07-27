@@ -16,10 +16,7 @@
 
 package org.ml_methods_group.algorithm.entity;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
+import com.intellij.psi.*;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsRun;
@@ -29,8 +26,7 @@ import com.sixrr.stockmetrics.classMetrics.FanOutClassMetric;
 import com.sixrr.stockmetrics.classMetrics.NumChildrenMetric;
 import com.sixrr.stockmetrics.methodMetrics.FanInMethodMetric;
 import com.sixrr.stockmetrics.methodMetrics.FanOutMethodMetric;
-import org.ml_methods_group.algorithm.PropertiesFinder;
-import org.ml_methods_group.algorithm.RelevantProperties;
+import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.*;
 
@@ -61,18 +57,25 @@ public abstract class Entity {
         assert FIELD_ENTITY_CALCULATOR.getDimension() == DIMENSION;
     }
 
-    private final PsiElement psiEntity;
-    private double[] vector;
     private final RelevantProperties relevantProperties;
     private final String name;
+    private double[] vector;
+    protected boolean isMovable = true;
 
+    public Entity(PsiElement element) {
+        this.name = PsiSearchUtil.getHumanReadableName(element);
+        relevantProperties = new RelevantProperties();
+    }
 
+    protected Entity(Entity original) {
+        relevantProperties = original.relevantProperties.copy();
+        name = original.name;
+        vector = Arrays.copyOf(original.vector, original.vector.length);
+        isMovable = original.isMovable;
+    }
 
-    public Entity(String name, MetricsRun metricsRun, PropertiesFinder propertiesFinder) {
-        this.name = name;
-        vector = getCalculatorForEntity().calculateVector(metricsRun, propertiesFinder, this);
-        relevantProperties = propertiesFinder.getProperties(this.name);
-        psiEntity = propertiesFinder.getPsiElement(name);
+    void calculateVector(MetricsRun metricsRun) {
+        vector = getCalculatorForEntity().calculateVector(metricsRun, this);
     }
 
     private double square(double value) {
@@ -80,14 +83,18 @@ public abstract class Entity {
     }
 
     public double distance(Entity entity) {
+        if (relevantProperties.hasCommonPrivateMember(entity.relevantProperties)) {
+            return 0;
+        }
+
         double ans = 0.0;
         for (int i = 0; i < DIMENSION; i++) {
             ans += square(vector[i] - entity.vector[i]);
         }
 
-        final int rpIntersect = entity.relevantProperties.sizeOfIntersect(relevantProperties);
+        final int rpIntersect = entity.relevantProperties.sizeOfIntersection(relevantProperties);
         if (rpIntersect == 0) {
-            return Double.MAX_VALUE;
+            return Double.POSITIVE_INFINITY;
         }
         ans += 2.0 * (1 - rpIntersect /
                 (1.0 * relevantProperties.size() + entity.relevantProperties.size() - rpIntersect));
@@ -96,7 +103,7 @@ public abstract class Entity {
         return Math.sqrt(ans);
     }
 
-    public static void normalize(Iterable<Entity> entities) {
+    static void normalize(Iterable<? extends Entity> entities) {
         for (int i = 0; i < DIMENSION; i++) {
             double mx = 0.0;
             for (Entity entity : entities) {
@@ -113,48 +120,12 @@ public abstract class Entity {
         }
     }
 
-    public void moveToClass(PsiClass newClass) {
-        final Set<PsiClass> oldClasses = relevantProperties.getAllClasses();
-        for (PsiClass oldClass : oldClasses) {
-            relevantProperties.removeClass(oldClass);
-        }
-        relevantProperties.addClass(newClass);
-    }
-
-    public void removeFromClass(PsiMethod method) {
-        relevantProperties.removeMethod(method);
-    }
-
-    public void removeFromClass(PsiField field) {
-        relevantProperties.removeField(field);
-    }
-
     public RelevantProperties getRelevantProperties() {
         return relevantProperties;
     }
 
-    public double[] getVector() {
-        return vector;
-    }
-
     public String getName() {
         return name;
-    }
-
-    public void print() {
-        System.out.println(name + ": " + getCategory().name());
-        System.out.print("    ");
-        for (double comp : vector) {
-            System.out.print(comp);
-            System.out.print(" ");
-        }
-        System.out.println();
-
-        relevantProperties.printAll();
-    }
-
-    public PsiElement getPsiElement() {
-        return psiEntity;
     }
 
     private VectorCalculator getCalculatorForEntity() {
@@ -176,6 +147,11 @@ public abstract class Entity {
         return result;
     }
 
+    public boolean isMovable() {
+        return isMovable;
+    }
+
     abstract public MetricCategory getCategory();
     abstract public String getClassName();
+    abstract public Entity copy();
 }

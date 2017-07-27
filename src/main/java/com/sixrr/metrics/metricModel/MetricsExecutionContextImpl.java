@@ -17,7 +17,9 @@
 package com.sixrr.metrics.metricModel;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -76,7 +78,12 @@ public class MetricsExecutionContextImpl implements MetricsExecutionContext {
     }
 
     public void calculateMetrics(MetricsProfile profile, final MetricsResultsHolder resultsHolder) {
-        final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
+        final ProgressIndicator indicator;
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+            indicator = new EmptyProgressIndicator();
+        } else {
+            indicator = ProgressManager.getInstance().getProgressIndicator();
+        }
         final List<MetricInstance> metrics = profile.getMetricInstances();
         indicator.setText(MetricsReloadedBundle.message("initializing.progress.string"));
         final int numFiles = scope.getFileCount();
@@ -123,7 +130,6 @@ public class MetricsExecutionContextImpl implements MetricsExecutionContext {
                 indicator.setFraction((double) mainTraversalProgress / (double) numFiles);
             }
         });
-
         indicator.setText(MetricsReloadedBundle.message("tabulating.results.progress.string"));
         for (MetricCalculator calculator : calculators) {
             indicator.checkCanceled();
@@ -131,9 +137,11 @@ public class MetricsExecutionContextImpl implements MetricsExecutionContext {
         }
     }
 
-    public void onFinish() {}
+    public void onFinish() {
+    }
 
-    public void onCancel() {}
+    public void onCancel() {
+    }
 
     @Override
     public final Project getProject() {
