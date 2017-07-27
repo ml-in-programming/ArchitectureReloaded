@@ -117,7 +117,7 @@ class ClassRefactoringPanel extends JPanel {
         selectAllButton.setEnabled(false);
         table.setEnabled(false);
         final Map<String, String> movements = model.pullSelected();
-        RefactoringUtil.moveRefactoring(movements, project, scope);
+        RefactoringUtil.moveRefactoring(movements, scope);
         table.setEnabled(true);
         doRefactorButton.setEnabled(true);
         selectAllButton.setEnabled(true);
