@@ -16,8 +16,10 @@
 
 package org.ml_methods_group.algorithm;
 
+import org.apache.log4j.Logger;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.config.Logging;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +28,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ARI extends Algorithm {
+    private static final Logger LOGGER = Logging.getLogger(ARI.class);
+
     private final List<Entity> units = new ArrayList<>();
     private final List<ClassEntity> classEntities = new ArrayList<>();
     private final AtomicInteger progressCount = new AtomicInteger();
@@ -47,7 +51,6 @@ public class ARI extends Algorithm {
         return runParallel(units, context, HashMap<String, String>::new, this::findRefactoring, Algorithm::combineMaps);
     }
 
-    // todo check, that method isn't abstract or constructor
     private Map<String, String> findRefactoring(Entity entity, Map<String, String> accumulator) {
         reportProgress((double) progressCount.incrementAndGet() / units.size(), context);
         if (!entity.isMovable()) {
@@ -65,7 +68,7 @@ public class ARI extends Algorithm {
         }
 
         if (targetClass == null) {
-            System.out.println("Warning (ARI): targetClass is null for " + entity.getName());
+            LOGGER.warn("targetClass is null for " + entity.getName());
             return accumulator;
         }
 

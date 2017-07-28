@@ -27,11 +27,13 @@ import com.sixrr.metrics.metricModel.MetricsExecutionContextImpl;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
 import com.sixrr.metrics.metricModel.TimeStamp;
 import com.sixrr.metrics.profile.MetricsProfile;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.*;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.EntitySearcher;
+import org.ml_methods_group.config.Logging;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -39,6 +41,8 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 public class RefactoringExecutionContext {
+    private static final Logger LOGGER = Logging.getLogger(RefactoringExecutionContext.class);
+
     private static final List<Class<? extends Algorithm>> ALGORITHMS = Arrays.asList(ARI.class, AKMeans.class,
             CCDA.class, HAC.class, MRI.class);
 
@@ -112,12 +116,6 @@ public class RefactoringExecutionContext {
 
 
     private void onFinish() {
-        System.out.println("Classes: " + getClassCount());
-        System.out.println("Methods: " + getMethodsCount());
-        System.out.println("Fields: " + getFieldsCount());
-        System.out.println("Total properties: " + entitySearchResult.getPropertiesCount());
-        System.out.println();
-
         if (continuation != null) {
             continuation.accept(this);
         }
@@ -127,19 +125,14 @@ public class RefactoringExecutionContext {
         try {
             return algorithmClass.newInstance();
         } catch (Exception e) {
+            LOGGER.error("Failed to create algorithm instance " + algorithmClass.getCanonicalName());
             throw new RuntimeException("Failed to create instance of algorithm", e);
         }
     }
 
     private void calculate(Class<? extends Algorithm> algorithmClass) {
         final Algorithm algorithm = createInstance(algorithmClass);
-        System.out.println("Starting " + algorithmClass.getSimpleName() + "...");
         final AlgorithmResult result = algorithm.execute(entitySearchResult, executorService);
-        final Map<String, String> refactorings = result.getRefactorings();
-        System.out.println("Finished " + algorithmClass.getSimpleName() + "\n");
-        for (String ent : refactorings.keySet()) {
-            System.out.println(ent + " --> " + refactorings.get(ent));
-        }
         algorithmsResults.add(result);
     }
 
