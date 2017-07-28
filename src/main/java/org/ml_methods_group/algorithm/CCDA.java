@@ -29,6 +29,7 @@ public class CCDA extends Algorithm {
     private final List<Integer> aCoefficients = new ArrayList<>();
     private final List<Entity> nodes = new ArrayList<>();
     private final Map<String, Set<String>> graph = new HashMap<>();
+    private ExecutionContext context;
 
     private double quality;
     private double edges;
@@ -39,7 +40,8 @@ public class CCDA extends Algorithm {
 
     }
 
-    private void init(EntitySearchResult entities) {
+    private void init() {
+        final EntitySearchResult entities = context.entities;
         communityIds.clear();
         idCommunity.clear();
         nodes.clear();
@@ -71,17 +73,9 @@ public class CCDA extends Algorithm {
                 addNode(field, entity, neighbors);
             }
 
+            context.checkCanceled();
             graph.put(entity.getName(), neighbors);
         }
-
-        System.out.println("Graph built:");
-        for (String ent : graph.keySet()) {
-            System.out.println(ent);
-            for (String neighbor : graph.get(ent)) {
-                System.out.println("  -> " + neighbor);
-            }
-        }
-        System.out.println("-----");
     }
 
     private void addNode(String entityName, Entity entity, Collection<String> neighbors) {
@@ -95,8 +89,10 @@ public class CCDA extends Algorithm {
 
     @Override
     protected Map<String, String> calculateRefactorings(ExecutionContext context) {
-        init(context.entities);
+        this.context = context;
+        init();
         final Map<String, String> refactorings = new HashMap<>();
+        context.checkCanceled();
         quality = calculateQualityIndex();
         double progress = 0;
         while (true) {
@@ -113,6 +109,7 @@ public class CCDA extends Algorithm {
             System.out.println();
             progress = Math.max(progress, eps / optimum.delta);
             reportProgress(progress, context);
+            context.checkCanceled();
         }
 
         return refactorings;
@@ -131,6 +128,7 @@ public class CCDA extends Algorithm {
                 optimum.community = i;
             }
         }
+        context.checkCanceled();
         return optimum;
     }
 

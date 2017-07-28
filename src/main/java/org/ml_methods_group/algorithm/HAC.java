@@ -70,6 +70,7 @@ public class HAC extends Algorithm {
             }
         }
         reportProgress(0.9 * (double) progressCounter.incrementAndGet() / communities.size(), context);
+        context.checkCanceled();
         return accumulator;
     }
 
@@ -85,6 +86,7 @@ public class HAC extends Algorithm {
             final Community second = minTriple.second;
             mergeCommunities(first, second);
             reportProgress(1 - 0.1 * communities.size() / initialCommunitiesCount, context);
+            context.checkCanceled();
         }
 
         for (Community community : communities) {

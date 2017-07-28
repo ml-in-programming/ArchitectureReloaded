@@ -50,6 +50,7 @@ public class ARI extends Algorithm {
     // todo check, that method isn't abstract or constructor
     private Map<String, String> findRefactoring(Entity entity, Map<String, String> accumulator) {
         reportProgress((double) progressCount.incrementAndGet() / units.size(), context);
+        context.checkCanceled();
         if (!entity.isMovable()) {
             return accumulator;
         }
