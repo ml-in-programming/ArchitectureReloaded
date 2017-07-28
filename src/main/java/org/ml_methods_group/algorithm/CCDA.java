@@ -62,6 +62,7 @@ public class CCDA extends Algorithm {
 
     private void buildGraph() {
         graph.clear();
+        int iteration = 0;
         for (Entity entity : nodes) {
             final RelevantProperties properties = entity.getRelevantProperties();
             final Set<String> neighbors = graph.getOrDefault(entity.getName(), new HashSet<>());
@@ -75,6 +76,8 @@ public class CCDA extends Algorithm {
 
             context.checkCanceled();
             graph.put(entity.getName(), neighbors);
+            iteration++;
+            reportProgress((0.1 * iteration) / nodes.size(), context);
         }
     }
 
@@ -108,7 +111,7 @@ public class CCDA extends Algorithm {
             System.out.println("quality index is now: " + quality);
             System.out.println();
             progress = Math.max(progress, eps / optimum.delta);
-            reportProgress(progress, context);
+            reportProgress(0.1 + 0.9 * progress, context);
             context.checkCanceled();
         }
 
