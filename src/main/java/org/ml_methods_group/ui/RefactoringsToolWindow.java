@@ -21,6 +21,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -31,9 +32,9 @@ import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public final class RefactoringsToolWindow implements Disposable {
@@ -59,8 +60,15 @@ public final class RefactoringsToolWindow implements Disposable {
         myToolWindow.setAvailable(false, null);
     }
 
+    private void addComparrsionTab(String tabName, @NotNull Map<String, String> refactorings1, @NotNull Map<String, String> refactorings2) {
+        addTab(tabName, new ClassRefactoringPanel(project, refactorings1, refactorings2, scope));
+    }
+
     private void addTab(String tabName, @NotNull Map<String, String> refactorings) {
-        final JComponent component = new ClassRefactoringPanel(project, refactorings, scope);
+        addTab(tabName, new ClassRefactoringPanel(project, refactorings, refactorings, scope));
+    }
+
+    private void addTab(String tabName, JComponent component) {
         final ActionToolbar toolbar = createToolbar();
         final JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.add(component, BorderLayout.CENTER);
@@ -78,16 +86,48 @@ public final class RefactoringsToolWindow implements Disposable {
                 .createActionToolbar(WINDOW_ID, toolbarGroup, false);
     }
 
-    public void show(Map<String, Map<String, String>> refactorings, AnalysisScope scope) {
+    public void show(Map<String, Map<String, String>> refactorings1, Map<String, Map<String, String>> refactorings2, AnalysisScope scope) {
         this.refactorings = refactorings;
         this.scope = scope;
         myToolWindow.getContentManager().removeAllContents(true);
         myToolWindow.setAvailable(false, null);
-        for (Map.Entry<String, Map<String, String>> entry : refactorings.entrySet()) {
-            addTab(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, Map<String, String>> entry : refactorings1.entrySet()) {
+            addComparrsionTab(entry.getKey(), entry.getValue(), refactorings2.get(entry.getKey()));
         }
         myToolWindow.setAvailable(true, null);
         myToolWindow.show(null);
+    }
+
+    public void addRefactorings(Map<String, String> r) {
+
+    }
+
+    private Set<Map<String, String>> groupRefactorings(@NotNull final Map<String, String> refactorings) {
+        Map<String, Set<String>> m = refactorings.entrySet().stream().filter(e -> e.getValue() != null)
+                .collect(Collectors.toMap(
+                        Map.Entry::getValue,
+                        e -> refactorings.entrySet().stream()
+                                .filter(entry -> e.getValue().equals(entry.getValue()))
+                                .map(Map.Entry::getKey)
+                                .collect(Collectors.toSet()),
+                        (s1, s2) -> {
+                            Set<String> s = new HashSet<>(s1);
+                            s.addAll(s2);
+                            return s;
+                        }
+                ));
+                return m.entrySet().stream()
+                .map(e -> e.getValue().stream().map(v -> new Pair<>(v, e.getKey()))
+                        .collect(Collectors.toMap(
+                                p -> p.getFirst(),
+                                p -> p.getSecond()
+                        )))
+                .collect(Collectors.toSet());
+                /*).collect(Collectors.toMap(
+                Pair::getSecond,
+                Pair::getFirst*/
+//        )))
+//        .;
     }
 
     @Override

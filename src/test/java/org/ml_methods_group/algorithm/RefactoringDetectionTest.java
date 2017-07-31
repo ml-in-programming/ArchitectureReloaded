@@ -27,9 +27,7 @@ import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.utils.MetricsProfilesUtil;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
     private Project project;

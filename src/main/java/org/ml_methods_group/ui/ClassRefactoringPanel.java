@@ -29,6 +29,7 @@ import org.ml_methods_group.utils.PsiSearchUtil;
 import org.ml_methods_group.utils.RefactoringUtil;
 
 import javax.swing.*;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -48,25 +49,39 @@ class ClassRefactoringPanel extends JPanel {
     @NotNull
     private final AnalysisScope scope;
     @NotNull
-    private final RefactoringsTableModel model;
-    private final JBTable table = new JBTable();
+    private final RefactoringsComparisonTableModel model;
+    private JBTable table = new JBTable() {
+        @NotNull
+        @Override
+        public Component prepareRenderer(@NotNull TableCellRenderer renderer, int row, int column) {
+            Component c = super.prepareRenderer(renderer, row, column);
+            if (!isCellSelected(row, column)) {
+                c.setForeground(model.getRowColor(row));
+            }
+            return c;
+        }
+    };
     private final JButton selectAllButton = new JButton();
     private final JButton deselectAllButton = new JButton();
     private final JButton doRefactorButton = new JButton();
     private final JLabel info = new JLabel();
 
-    ClassRefactoringPanel(@NotNull Project project, Map<String, String> refactorings,
+    ClassRefactoringPanel(@NotNull Project project, Map<String, String> refactorings1, Map<String, String> refactorings2,
                           @NotNull AnalysisScope scope) {
         this.project = project;
         this.scope = scope;
         setLayout(new BorderLayout());
-        model = new RefactoringsTableModel(refactorings);
+        model = new RefactoringsComparisonTableModel(refactorings1, refactorings2);
         setupGUI();
     }
 
     private void setupGUI() {
         add(createTablePanel(), BorderLayout.CENTER);
         add(createButtonsPanel(), BorderLayout.SOUTH);
+    }
+
+    public void addRefactorings(Map<String, String> r) {
+        model.setNewRefactorings(r);
     }
 
     private JComponent createTablePanel() {
@@ -150,9 +165,16 @@ class ClassRefactoringPanel extends JPanel {
             }
         }
 
-        default void mousePressed(MouseEvent e) {}
-        default void mouseReleased(MouseEvent e) {}
-        default void mouseEntered(MouseEvent e) {}
-        default void mouseExited(MouseEvent e) {}
+        default void mousePressed(MouseEvent e) {
+        }
+
+        default void mouseReleased(MouseEvent e) {
+        }
+
+        default void mouseEntered(MouseEvent e) {
+        }
+
+        default void mouseExited(MouseEvent e) {
+        }
     }
 }

@@ -40,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.properties.finder_strategy.FinderStrategy;
 import org.ml_methods_group.algorithm.properties.finder_strategy.NewStrategy;
+import org.ml_methods_group.algorithm.properties.finder_strategy.OldStrategy;
 import org.ml_methods_group.config.ArchitectureReloadedConfig;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.ui.AlgorithmsSelectionPanel;
@@ -99,7 +100,17 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     @Override
     protected void analyze(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
-        analyze(project, analysisScope, this::showRefactoringsDialog, NewStrategy.getInstance());
+        analyze(project, analysisScope, c -> {
+            calculateRefactorings(c, false);
+            final Map<String, Map<String, String>> oldRefactorings = refactorings;
+            refactorings = new HashMap<>();
+
+            analyze(project, analysisScope, context -> {
+                calculateRefactorings(context, false);
+                ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
+                        .show(oldRefactorings, refactorings, context.getScope());
+            }, NewStrategy.getInstance());
+        }, OldStrategy.getInstance());
     }
 
     private void analyze(@NotNull final Project project,
@@ -118,10 +129,12 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
     }
 
     public void analyzeBackground(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
-        if (true) {return;}
+        if (true) {
+            return;
+        }
         checkRefactoringProfile();
         final Task.Backgroundable task = new Task.Backgroundable(project,
-        "Calculating Refactorings...", true) {
+                "Calculating Refactorings...", true) {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 analyze(project, analysisScope, context -> {
@@ -173,7 +186,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
         ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
-                .show(requestedRefactorings, context.getScope());
+                .show(requestedRefactorings, requestedRefactorings, context.getScope());
     }
 
     private static void checkRefactoringProfile() {
