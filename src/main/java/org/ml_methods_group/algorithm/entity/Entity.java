@@ -81,9 +81,9 @@ public abstract class Entity {
 
     public double distance(Entity entity) {
         double ans = 0.0;
-        for (int i = 0; i < DIMENSION; i++) {
-            ans += square(vector[i] - entity.vector[i]);
-        }
+//        for (int i = 0; i < DIMENSION; i++) {
+//            ans += square(vector[i] - entity.vector[i]);
+//        }
 
         final int rpIntersect = entity.relevantProperties.sizeOfIntersect(relevantProperties);
         if (rpIntersect == 0) {
@@ -92,7 +92,7 @@ public abstract class Entity {
         ans += 2.0 * (1 - rpIntersect /
                 (1.0 * relevantProperties.size() + entity.relevantProperties.size() - rpIntersect));
 
-        ans /= DIMENSION + 2;
+//        ans /= DIMENSION + 2;
         return Math.sqrt(ans);
     }
 

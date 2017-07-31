@@ -20,9 +20,9 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.source.tree.java.AnonymousClassElement;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.sixrr.metrics.utils.MethodUtils;
+import org.jetbrains.annotations.NotNull;
+import org.ml_methods_group.algorithm.properties.finder_strategy.FinderStrategy;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,6 +38,11 @@ public class PropertiesFinder {
     private final Map<String, PsiField> fieldByName = new HashMap<>();
     private final Stack<PsiMethod> methodStack = new Stack<>();
     private final Set<PsiClass> allClasses = new HashSet<>();
+    private FinderStrategy strategy;
+
+    public PropertiesFinder(@NotNull final FinderStrategy strategy) {
+        this.strategy = strategy;
+    }
 
     public PsiElementVisitor createVisitor(final AnalysisScope analysisScope) {
         final PsiElementVisitor visitor = new FileClassesCounter();
@@ -96,14 +101,7 @@ public class PropertiesFinder {
     private class ClassCounter extends JavaRecursiveElementVisitor {
         @Override
         public void visitClass(PsiClass aClass) {
-            if (aClass.isEnum()) {
-                return;
-            }
-            if (aClass instanceof AnonymousClassElement) {
-                return;
-            }
-
-            if (aClass.getQualifiedName() == null) {
+            if (!strategy.acceptClass(aClass)) {
                 return;
             }
             allClasses.add(aClass);
@@ -114,6 +112,9 @@ public class PropertiesFinder {
     private class FileClassesCounter extends JavaElementVisitor {
         @Override
         public void visitFile(final PsiFile file) {
+            if (!strategy.acceptFile(file)) {
+                return;
+            }
             System.out.println("!#! " + file.getName());
 
             final PsiElementVisitor counter = new ClassCounter();
@@ -124,7 +125,7 @@ public class PropertiesFinder {
     private class FileVisitor extends JavaElementVisitor {
         @Override
         public void visitFile(final PsiFile file) {
-            if (!file.getName().endsWith(".java"))
+            if (!strategy.acceptFile(file))
                 return;
 
             System.out.println("!#! " + file.getName());
@@ -135,27 +136,30 @@ public class PropertiesFinder {
             final PsiElementVisitor visitor = new EntityVisitor();
             ProgressManager.getInstance().runProcess(() -> file.accept(visitor), new EmptyProgressIndicator());
 
-            processSuperClasses();
-            processSuperMethods();
+            if (strategy.processSupers()) {
+                processSuperClasses();
+                processSuperMethods();
+            }
 
-            for (String name : methods.keySet()) {
-                if (!methodByName.containsKey(name) && !fieldByName.containsKey(name)
-                        && !classByName.containsKey(name)) {
-                    continue;
-                }
-
-                for (PsiMethod method : methods.get(name)) {
-                    if (methodByName.containsValue(method)) {
-                        properties.get(name).addMethod(method);
-                    }
+            for (Map.Entry<String, PsiField> e : fieldByName.entrySet()) {
+                String name = e.getKey();
+                PsiField field = e.getValue();
+                if (methods.containsKey(name)) {
+                    methods.get(name).forEach(method ->
+                            properties.get(name).addMethod(method, strategy.getWeight(field, method)));
                 }
             }
 
-            for (String name : fields.keySet()) {
-                for (PsiField field : fields.get(name)) {
-                    if (fieldByName.containsValue(field)) {
-                        properties.get(name).addField(field);
-                    }
+            for (Map.Entry<String, PsiMethod> e : methodByName.entrySet()) {
+                String name = e.getKey();
+                PsiMethod method = e.getValue();
+                if (methods.containsKey(name)) {
+                    methods.get(name).forEach(m ->
+                            properties.get(name).addMethod(m, strategy.getWeight(method, m)));
+                }
+                if (fields.containsKey(name)) {
+                    fields.get(name).forEach(f ->
+                            properties.get(name).addField(f, strategy.getWeight(method, f)));
                 }
             }
 
@@ -187,7 +191,7 @@ public class PropertiesFinder {
                     if (!properties.containsKey(parentName)) {
                         continue;
                     }
-                    properties.get(parentName).addClass(psiClass);
+                    properties.get(parentName).addClass(psiClass, strategy.getWeight(parent, psiClass));
                 }
             }
         }
@@ -196,38 +200,32 @@ public class PropertiesFinder {
     private class EntityVisitor extends JavaRecursiveElementVisitor {
         @Override
         public void visitClass(PsiClass psiClass) {
-            if (psiClass.isEnum()) {
-                return;
-            }
-
-            if (psiClass instanceof AnonymousClassElement) {
-                return;
-            }
-
-            if (psiClass.getQualifiedName() == null) {
+            if (!strategy.acceptClass(psiClass)) {
                 return;
             }
 
             final RelevantProperties props = new RelevantProperties();
             final String fullName = psiClass.getQualifiedName();
             classByName.put(fullName, psiClass);
-            props.addClass(psiClass);
+            props.addClass(psiClass, strategy.getWeight(psiClass, psiClass));
 
             super.visitClass(psiClass);
 
-            Arrays.stream(psiClass.getAllFields()).forEach(props::addField);
-            Arrays.stream(psiClass.getAllMethods()).forEach(props::addMethod);
+            Arrays.stream(psiClass.getFields()).forEach(f -> props.addField(f, strategy.getWeight(psiClass, f)));
+            Arrays.stream(psiClass.getMethods()).forEach(m -> props.addMethod(m, strategy.getWeight(psiClass, m)));
 
-            final Set<PsiClass> supers = PSIUtil.getAllSupers(psiClass);
-            for (PsiClass sup : supers) {
-                if (sup.isInterface()) {
-                    props.addClass(sup);
-                } else {
-                    if (!parents.containsKey(fullName)) {
-                        parents.put(fullName, new HashSet<>());
+            if (strategy.processSupers()) {
+                final Set<PsiClass> supers = PSIUtil.getAllSupers(psiClass);
+                for (PsiClass sup : supers) {
+                    if (sup.isInterface()) {
+                        props.addClass(sup, strategy.getWeight(psiClass, sup));
+                    } else {
+                        if (!parents.containsKey(fullName)) {
+                            parents.put(fullName, new HashSet<>());
+                        }
+
+                        parents.get(fullName).add(sup);
                     }
-
-                    parents.get(fullName).add(sup);
                 }
             }
 
@@ -261,19 +259,9 @@ public class PropertiesFinder {
             if (!methods.containsKey(fullFieldName)) {
                 methods.put(fullFieldName, new HashSet<>());
             }
-            if (isRelation(expression)) {
+            if (strategy.isRelation(expression)) {
                 methods.get(fullFieldName).add(method);
             }
-        }
-
-        private boolean isRelation(PsiElement element) {
-            final PsiElement e = PsiTreeUtil.getDeepestFirst(element).getParent();
-            if (!(e instanceof PsiReferenceExpression)) {
-                return false;
-            }
-            final PsiElement resolved = ((PsiReferenceExpression) e).resolve();
-            return resolved instanceof PsiField || resolved instanceof PsiClass || resolved instanceof PsiMethod ||
-                    resolved instanceof PsiThisExpression;
         }
 
         @Override
@@ -289,27 +277,24 @@ public class PropertiesFinder {
             if (!methods.containsKey(callerName)) {
                 methods.put(callerName, new HashSet<>());
             }
-            if (element != null && (isRelation(expression))) {
+            if (element != null && strategy.isRelation(expression)) {
                 methods.get(callerName).add(element);
             }
         }
 
         @Override
         public void visitMethod(PsiMethod method) {
-            if (method.isConstructor() || MethodUtils.isAbstract(method)) {
-                return;
-            }
-            final PsiClass containingClass = method.getContainingClass();
-            if (containingClass == null || containingClass.isInterface()) {
+            if (!strategy.acceptMethod(method)) {
                 return;
             }
 
+            final PsiClass containingClass = method.getContainingClass();
             final String methodName = MethodUtils.calculateSignature(method);
             methodByName.put(methodName, method);
 
             final RelevantProperties props = new RelevantProperties();
-            props.addMethod(method);
-            props.addClass(containingClass);
+            props.addMethod(method, strategy.getWeight(method, method));
+            props.addClass(containingClass, strategy.getWeight(method, containingClass));
 
             properties.put(methodName, props);
             methodStack.push(method);
@@ -321,17 +306,18 @@ public class PropertiesFinder {
 
         @Override
         public void visitField(PsiField field) {
-            if (field.getContainingClass() == null) {
+            if (!strategy.acceptField(field)) {
                 return;
             }
 
-            final String name = field.getContainingClass().getQualifiedName() + "." + field.getName();
+            final PsiClass fieldClass = field.getContainingClass();
+            final String name = fieldClass.getQualifiedName() + "." + field.getName();
 
             if (!properties.containsKey(name)) {
                 properties.put(name, new RelevantProperties());
             }
-            properties.get(name).addClass(field.getContainingClass());
-            properties.get(name).addField(field);
+            properties.get(name).addClass(fieldClass, strategy.getWeight(field, fieldClass));
+            properties.get(name).addField(field, strategy.getWeight(field, field));
             fieldByName.put(name, field);
         }
     }

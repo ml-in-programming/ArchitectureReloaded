@@ -17,19 +17,21 @@
 package org.ml_methods_group.algorithm;
 
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.utils.MethodUtils;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class RelevantProperties {
-    private final Set<PsiMethod> methods = new HashSet<>();
-    private final Set<PsiClass> classes = new HashSet<>();
-    private final Set<PsiField> fields = new HashSet<>();
-    private final Collection<PsiMethod> overrideMethods = new HashSet<>();
+    private final Map<PsiMethod, Integer> methods = new HashMap<>();
+    private final Map<PsiClass, Integer> classes = new HashMap<>();
+    private final Map<PsiField, Integer> fields = new HashMap<>();
+    private final Collection<Property<PsiMethod>> overrideMethods = new HashSet<>();
+
+    private final Integer DEFAULT_PROPERTY_WEIGHT = 1;
 
     public void removeMethod(PsiMethod method) {
         methods.remove(method);
@@ -44,27 +46,45 @@ public class RelevantProperties {
     }
 
     public void addMethod(PsiMethod method) {
-        methods.add(method);
+        addMethod(method, DEFAULT_PROPERTY_WEIGHT);
+    }
+
+    public void addMethod(PsiMethod method, Integer weight) {
+        if (methods.getOrDefault(method, 0) < weight) {
+            methods.put(method, weight);
+        }
     }
 
     public void addClass(PsiClass aClass) {
-        classes.add(aClass);
+        addClass(aClass, DEFAULT_PROPERTY_WEIGHT);
+    }
+
+    public void addClass(PsiClass aClass, Integer weight) {
+        if (classes.getOrDefault(aClass, 0) < weight) {
+            classes.put(aClass, weight);
+        }
     }
 
     public void addField(PsiField field) {
-        fields.add(field);
+        addField(field, DEFAULT_PROPERTY_WEIGHT);
+    }
+
+    public void addField(PsiField field, Integer weight) {
+        if (fields.getOrDefault(field, 0) < weight) {
+            fields.put(field, weight);
+        }
     }
 
     public void retainMethods(Collection<PsiMethod> methodsSet) {
-        methods.retainAll(methodsSet);
+        methods.keySet().retainAll(methodsSet);
     }
 
     public void retainClasses(Collection<PsiClass> classSet) {
-        classes.retainAll(classSet);
+        classes.keySet().retainAll(classSet);
     }
 
     public void addOverrideMethod(PsiMethod method) {
-        overrideMethods.add(method);
+        overrideMethods.add(new Property<>(method, DEFAULT_PROPERTY_WEIGHT));
     }
 
     public int numberOfMethods() {
@@ -72,58 +92,117 @@ public class RelevantProperties {
     }
 
     public Set<PsiField> getAllFields() {
-        return new HashSet<PsiField>(fields);
+        return new HashSet<>(fields.keySet());
     }
 
     public Set<PsiMethod> getAllMethods() {
-        return new HashSet<PsiMethod>(methods);
+        return new HashSet<>(methods.keySet());
     }
 
     public Set<PsiClass> getAllClasses() {
-        return new HashSet<PsiClass>(classes);
+        return new HashSet<>(classes.keySet());
     }
 
     public int size() {
-        return classes.size() + fields.size() + methods.size();
+//        return classes.size() + fields.size() + methods.size();
+        return getWeightedSize(classes) + getWeightedSize(fields) + getWeightedSize(methods);
+    }
+
+    private int getWeightedSize(Map<?, Integer> m) {
+        return m.values().stream().mapToInt(Integer::valueOf).sum();
     }
 
     public int sizeOfIntersect(RelevantProperties properties) {
         int result = 0;
-        final Collection<PsiClass> commonClasses = new HashSet<>(classes);
-        commonClasses.retainAll(properties.classes);
-        result += commonClasses.size();
-
-        final Collection<PsiMethod> commonMethods = new HashSet<>(methods);
-        commonMethods.addAll(overrideMethods);
-        final Set<PsiMethod> rpMethods = properties.methods;
-        rpMethods.addAll(properties.overrideMethods);
-        commonMethods.retainAll(rpMethods);
-        result += commonMethods.size();
-
-        final Collection<PsiField> commonFields = new HashSet<>(fields);
-        commonFields.retainAll(properties.fields);
-        result += commonFields.size();
+        result += sizeOfIntersectWeighted(classes, properties.classes);
+        result += sizeOfIntersectWeighted(methods, properties.methods);
+        result += sizeOfIntersectWeighted(fields, properties.fields);
+//        result +=
+//        final Collection<PsiClass> commonClasses = new HashSet<>(classes);
+//        commonClasses.retainAll(properties.classes);
+//        result += commonClasses.size();
+//
+//        final Collection<PsiMethod> commonMethods = new HashSet<>(methods);
+//        commonMethods.addAll(overrideMethods);
+//        final Set<PsiMethod> rpMethods = properties.methods;
+//        rpMethods.addAll(properties.overrideMethods);
+//        commonMethods.retainAll(rpMethods);
+//        result += commonMethods.size();
+//
+//        final Collection<PsiField> commonFields = new HashSet<>(fields);
+//        commonFields.retainAll(properties.fields);
+//        result += commonFields.size();
 
         return result;
     }
 
+    private static int sizeOfIntersectWeighted(Map<?, Integer> m1, Map<?, Integer> m2) {
+        return m1.entrySet().stream()
+                .filter(e -> m2.containsKey(e.getKey()))
+                .mapToInt(e -> Math.min(e.getValue(), m2.get(e.getKey())))
+                .sum();
+    }
+
     public void printAll() {
         System.out.print("    ");
-        for (PsiClass aClass : classes) {
+        for (PsiClass aClass : classes.keySet()) {
             System.out.print(aClass.getQualifiedName() + " ");
         }
         System.out.println();
 
         System.out.print("    ");
-        for (PsiMethod method : methods) {
+        for (PsiMethod method : methods.keySet()) {
             System.out.print(MethodUtils.calculateSignature(method) + ' ');
         }
         System.out.println();
 
         System.out.print("    ");
-        for (PsiField field : fields) {
+        for (PsiField field : fields.keySet()) {
             System.out.print(field.getContainingClass().getQualifiedName() + "." + field.getName() + " ");
         }
         System.out.println();
+    }
+
+    private class Property<T extends PsiElement> {
+        private final T member;
+        private final int weight;
+        private final double eps = 1e-7;
+
+        private Property(@NotNull T member, int weight) {
+            this.member = member;
+            this.weight = weight;
+        }
+
+        public T getMember() {
+            return member;
+        }
+
+        public int getWeight() {
+            return weight;
+        }
+
+        @Override
+        public int hashCode() {
+            return getMember().hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (super.equals(obj)) {
+                return true;
+            }
+            if (obj instanceof Property<?>) {
+                Property<?> prop = (Property<?>) obj;
+                return getMember().equals(prop.getMember());
+            } else if (obj instanceof PsiElement) {
+                return obj.equals(getMember());
+            }
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("{%s; %d}", member, weight);
+        }
     }
 }

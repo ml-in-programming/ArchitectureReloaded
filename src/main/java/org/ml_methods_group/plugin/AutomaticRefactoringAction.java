@@ -38,6 +38,8 @@ import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.properties.finder_strategy.FinderStrategy;
+import org.ml_methods_group.algorithm.properties.finder_strategy.NewStrategy;
 import org.ml_methods_group.config.ArchitectureReloadedConfig;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.ui.AlgorithmsSelectionPanel;
@@ -97,12 +99,13 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     @Override
     protected void analyze(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
-        analyze(project, analysisScope, this::showRefactoringsDialog);
+        analyze(project, analysisScope, this::showRefactoringsDialog, NewStrategy.getInstance());
     }
 
     private void analyze(@NotNull final Project project,
                          @NotNull final AnalysisScope analysisScope,
-                         @Nullable Consumer<RefactoringExecutionContext> callback) {
+                         @Nullable Consumer<RefactoringExecutionContext> callback,
+                         @NotNull FinderStrategy strategy) {
         System.out.println(analysisScope.getDisplayName());
         System.out.println(project.getBasePath());
         System.out.println();
@@ -111,10 +114,11 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 .getCurrentProfile();
         assert metricsProfile != null;
         new RefactoringExecutionContext(project, analysisScope, metricsProfile,
-                callback);
+                callback, strategy);
     }
 
     public void analyzeBackground(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
+        if (true) {return;}
         checkRefactoringProfile();
         final Task.Backgroundable task = new Task.Backgroundable(project,
         "Calculating Refactorings...", true) {
@@ -143,7 +147,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                             DaemonCodeAnalyzer.getInstance(project).restart();
                         }
                     }.queue();
-                });
+                }, NewStrategy.getInstance());
             }
         };
         task.queue();
@@ -167,6 +171,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 .stream()
                 .filter(e -> selectedAlgorithms.contains(e.getKey()))
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+
         ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
                 .show(requestedRefactorings, context.getScope());
     }

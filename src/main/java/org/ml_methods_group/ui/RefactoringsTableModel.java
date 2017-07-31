@@ -24,11 +24,8 @@ import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -36,8 +33,8 @@ public class RefactoringsTableModel extends AbstractTableModel {
     private static final String UNIT_COLUMN_TITLE_KEY = "unit.column.title";
     private static final String MOVE_TO_COLUMN_TITLE_KEY = "move.to.column.title";
     static final int SELECTION_COLUMN_INDEX = 0;
-    static final int UNIT_COLUMN_INDEX = 1;
-    static final int MOVE_TO_COLUMN_INDEX = 2;
+    private static final int UNIT_COLUMN_INDEX = 1;
+    private static final int MOVE_TO_COLUMN_INDEX = 2;
     private static final int COLUMNS_COUNT = 3;
 
     private final List<String> units = new ArrayList<>();
@@ -46,13 +43,13 @@ public class RefactoringsTableModel extends AbstractTableModel {
     private final boolean[] isActive;
 
     RefactoringsTableModel(Map<String, String> refactorings) {
-        for (Entry<String, String> refactoring : refactorings.entrySet()) {
-            if (refactoring.getKey() == null || refactoring.getValue() == null) {
-                continue;
-            }
-            units.add(refactoring.getKey());
-            movements.add(refactoring.getValue());
-        }
+        refactorings.entrySet().stream()
+                .filter(e -> e.getValue() != null)
+                .sorted(Comparator.comparing(Map.Entry::getValue))
+                .forEachOrdered(e -> {
+                    units.add(e.getKey());
+                    movements.add(e.getValue());
+                });
         isSelected = new boolean[units.size()];
         isActive = new boolean[units.size()];
         Arrays.fill(isActive, true);

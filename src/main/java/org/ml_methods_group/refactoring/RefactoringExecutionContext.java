@@ -31,6 +31,7 @@ import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.FieldEntity;
 import org.ml_methods_group.algorithm.entity.MethodEntity;
+import org.ml_methods_group.algorithm.properties.finder_strategy.FinderStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,12 +57,13 @@ public class RefactoringExecutionContext extends MetricsExecutionContextImpl {
 
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
                                        @NotNull MetricsProfile profile,
-                                       @Nullable Consumer<RefactoringExecutionContext> continuation) {
+                                       @Nullable Consumer<RefactoringExecutionContext> continuation,
+                                       @NotNull FinderStrategy strategy) {
         super(project, scope);
         this.profile = profile;
         this.continuation = continuation;
 
-        properties = new PropertiesFinder();
+        properties = new PropertiesFinder(strategy);
         scope.accept(properties.createVisitor(scope));
 
         execute(profile, metricsRun);
