@@ -23,9 +23,9 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.*;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.utils.MethodUtils;
+import org.apache.log4j.Logger;
 import org.ml_methods_group.algorithm.properties.finder_strategy.FinderStrategy;
 import org.ml_methods_group.algorithm.properties.finder_strategy.NewStrategy;
-import org.apache.log4j.Logger;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.PSIUtil;
 
@@ -182,10 +182,10 @@ public class EntitySearcher {
                     propertiesFor(superClass).ifPresent(p -> p.addClass(aClass, strategy.getWeight(superClass, aClass)));
                 }
             }
-            Arrays.stream(aClass.getAllMethods())
+            Arrays.stream(aClass.getMethods())
                     .filter(m -> isProperty(aClass, m))
                     .forEach(m -> classProperties.addMethod(m, strategy.getWeight(aClass, m)));
-            Arrays.stream(aClass.getAllFields())
+            Arrays.stream(aClass.getFields())
                     .filter(f -> isProperty(aClass, f))
                     .forEach(f -> classProperties.addField(f, strategy.getWeight(aClass, f)));
             reportPropertiesCalculated();
@@ -193,7 +193,7 @@ public class EntitySearcher {
         }
 
         private boolean isProperty(PsiClass aClass, PsiMember member) {
-            return aClass.equals(member.getContainingClass()) || !MethodUtils.isPrivate(member);
+            return !"java.lang.Object".equals(member.getContainingClass().getQualifiedName()) && (aClass.equals(member.getContainingClass()) || !MethodUtils.isPrivate(member));
         }
 
         @Override
@@ -206,7 +206,7 @@ public class EntitySearcher {
 
             }
             final RelevantProperties methodProperties = entity.getRelevantProperties();
-            methodProperties.addMethod(method);
+            methodProperties.addMethod(method, strategy.getWeight(method, method));
             Optional.ofNullable(method.getContainingClass())
                     .ifPresent(c -> methodProperties.addClass(c, strategy.getWeight(method, c)));
             if (currentMethod == null) {
@@ -235,7 +235,7 @@ public class EntitySearcher {
         public void visitReferenceExpression(PsiReferenceExpression expression) {
             indicator.checkCanceled();
             PsiElement element = expression.resolve();
-            if (currentMethod != null && element instanceof PsiField) {
+            if (currentMethod != null && element instanceof PsiField && strategy.isRelation(expression)) {
                 final PsiField field = (PsiField) element;
                 propertiesFor(currentMethod)
                         .ifPresent(p -> p.addField(field, strategy.getWeight(currentMethod, field)));
@@ -268,7 +268,6 @@ public class EntitySearcher {
             indicator.checkCanceled();
             PsiMethod called = expression.resolveMethod();
             if (currentMethod != null && called != null && strategy.isRelation(expression)) {
-            PsiElement element = expression.getMethodExpression().resolve();
                 propertiesFor(currentMethod)
                         .ifPresent(p -> p.addMethod(called, strategy.getWeight(currentMethod, called)));
             }

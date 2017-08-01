@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class NewStrategy implements FinderStrategy {
     private final int PRIVATE_MEMBER_ACCESS_WEIGHT = 2 * DEFAULT_WEIGHT;
+    private final int ITSELF_WEIGHT = 1 * DEFAULT_WEIGHT;
 
     private static NewStrategy INSTANCE = new NewStrategy();
 
@@ -81,6 +82,9 @@ public class NewStrategy implements FinderStrategy {
 
     @Override
     public int getWeight(PsiMethod from, PsiMethod to) {
+        if (from.equals(to)) {
+            return ITSELF_WEIGHT;
+        }
         if (to.hasModifierProperty(PsiModifier.PRIVATE)) {
             return PRIVATE_MEMBER_ACCESS_WEIGHT;
         }
@@ -104,11 +108,17 @@ public class NewStrategy implements FinderStrategy {
 
     @Override
     public int getWeight(PsiClass from, PsiClass to) {
+        if (from.equals(to)) {
+            return ITSELF_WEIGHT;
+        }
         return DEFAULT_WEIGHT;
     }
 
     @Override
     public int getWeight(PsiField from, PsiField to) {
+        if (from.equals(to)) {
+            return ITSELF_WEIGHT;
+        }
         return DEFAULT_WEIGHT;
     }
 

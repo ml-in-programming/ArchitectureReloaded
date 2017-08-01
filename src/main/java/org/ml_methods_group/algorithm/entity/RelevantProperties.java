@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BinaryOperator;
 
 import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
@@ -103,8 +104,15 @@ public class RelevantProperties {
     public Set<String> getAllMethods() {
         return Collections.unmodifiableSet(methods.keySet());
     }
+
     public int size() {
         return getWeightedSize(classes) + getWeightedSize(fields) + getWeightedSize(methods);
+    }
+
+    public int getWeight(String name) {
+        return classes.getOrDefault(name, 0)
+                + methods.getOrDefault(name, 0)
+                + fields.getOrDefault(name, 0);
     }
 
     private int getWeightedSize(Map<?, Integer> m) {
@@ -113,22 +121,28 @@ public class RelevantProperties {
 
     int sizeOfIntersection(RelevantProperties properties) {
         int result = 0;
-        result += sizeOfIntersectWeighted(classes, properties.classes);
-        result += sizeOfIntersectWeighted(allMethods, properties.methods);
-        result += sizeOfIntersectWeighted(fields, properties.fields);
+        result += sizeOfIntersectWeighted(classes, properties.classes, Math::min);
+        result += sizeOfIntersectWeighted(allMethods, properties.allMethods, Math::min);
+        result += sizeOfIntersectWeighted(fields, properties.fields, Math::min);
 
         return result;
     }
 
-    private static int sizeOfIntersectWeighted(Map<?, Integer> m1, Map<?, Integer> m2) {
+    private static int sizeOfIntersectWeighted(Map<?, Integer> m1, Map<?, Integer> m2, BinaryOperator<Integer> f) {
         return m1.entrySet().stream()
                 .filter(e -> m2.containsKey(e.getKey()))
-                .mapToInt(e -> Math.min(e.getValue(), m2.get(e.getKey())))
+                .mapToInt(e -> f.apply(e.getValue(), m2.get(e.getKey())))
                 .sum();
     }
 
-    boolean hasCommonPrivateMember(RelevantProperties properties) {
-        return false;
+    public int sizeOfUnion(RelevantProperties other) {
+        int result = 0;
+
+        result += size() + other.size();
+        result -= sizeOfIntersectWeighted(classes, other.classes, Math::addExact);
+        result -= sizeOfIntersectWeighted(allMethods, other.allMethods, Math::addExact);
+        result -= sizeOfIntersectWeighted(fields, other.fields, Math::addExact);
+        return result;
     }
 
     public RelevantProperties copy() {
