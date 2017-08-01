@@ -40,10 +40,16 @@ public class EntitySearcher {
     private final Map<PsiElement, Entity> entities = new HashMap<>();
     private final AnalysisScope scope;
     private final long startTime;
+    private final ProgressIndicator indicator;
 
     private EntitySearcher(AnalysisScope scope) {
         this.scope = scope;
         startTime = System.currentTimeMillis();
+        if (ProgressManager.getInstance().hasProgressIndicator()) {
+            indicator = ProgressManager.getInstance().getProgressIndicator();
+        } else {
+            indicator = new EmptyProgressIndicator();
+        }
     }
 
     public static EntitySearchResult analyze(AnalysisScope scope, MetricsRun metricsRun) {
@@ -52,12 +58,6 @@ public class EntitySearcher {
     }
 
     private EntitySearchResult runCalculations(MetricsRun metricsRun) {
-        final ProgressIndicator indicator;
-        if (ProgressManager.getInstance().hasProgressIndicator()) {
-            indicator = ProgressManager.getInstance().getProgressIndicator();
-        } else {
-            indicator = new EmptyProgressIndicator();
-        }
         indicator.pushState();
         indicator.setText("Search units");
         indicator.setIndeterminate(true);
@@ -66,7 +66,7 @@ public class EntitySearcher {
         indicator.setIndeterminate(false);
         LOGGER.info("Calculate properties...");
         indicator.setText("Calculate properties");
-        scope.accept(new PropertiesCalculator(indicator));
+        scope.accept(new PropertiesCalculator());
         indicator.popState();
         return prepareResult(metricsRun);
     }
@@ -78,6 +78,7 @@ public class EntitySearcher {
         final List<FieldEntity> fields = new ArrayList<>();
         final List<Entity> validEntities = new ArrayList<>();
         for (Entity entity : entities.values()) {
+            indicator.checkCanceled();
             try {
                 entity.calculateVector(metricsRun);
             } catch (Exception e) {
@@ -109,6 +110,7 @@ public class EntitySearcher {
 
         @Override
         public void visitFile(PsiFile file) {
+            indicator.checkCanceled();
             if (isSourceFile(file)) {
                 LOGGER.info("Index " + file.getName());
                 super.visitFile(file);
@@ -117,6 +119,7 @@ public class EntitySearcher {
 
         @Override
         public void visitClass(PsiClass aClass) {
+            indicator.checkCanceled();
             classForName.put(getHumanReadableName(aClass), aClass);
             if (aClass.isEnum()) {
                 return;
@@ -134,29 +137,27 @@ public class EntitySearcher {
 
         @Override
         public void visitField(PsiField field) {
+            indicator.checkCanceled();
             entities.put(field, new FieldEntity(field));
             super.visitField(field);
         }
 
         @Override
         public void visitMethod(PsiMethod method) {
+            indicator.checkCanceled();
             entities.put(method, new MethodEntity(method));
             super.visitMethod(method);
         }
     }
 
     private class PropertiesCalculator extends JavaRecursiveElementVisitor {
-        private final ProgressIndicator indicator;
         private int propertiesCalculated = 0;
-
-        private PropertiesCalculator(ProgressIndicator indicator) {
-            this.indicator = indicator;
-        }
 
         private PsiMethod currentMethod;
 
         @Override
         public void visitFile(PsiFile file) {
+            indicator.checkCanceled();
             if (isSourceFile(file)) {
                 super.visitFile(file);
             }
@@ -164,6 +165,7 @@ public class EntitySearcher {
 
         @Override
         public void visitClass(PsiClass aClass) {
+            indicator.checkCanceled();
             final Entity entity = entities.get(aClass);
             if (entity == null) {
                 super.visitClass(aClass);
@@ -194,6 +196,7 @@ public class EntitySearcher {
 
         @Override
         public void visitMethod(PsiMethod method) {
+            indicator.checkCanceled();
             final Entity entity = entities.get(method);
             if (entity == null) {
                 super.visitMethod(method);
@@ -227,6 +230,7 @@ public class EntitySearcher {
 
         @Override
         public void visitReferenceExpression(PsiReferenceExpression expression) {
+            indicator.checkCanceled();
             PsiElement element = expression.resolve();
             if (currentMethod != null && element instanceof PsiField) {
                 propertiesFor(currentMethod)
@@ -239,6 +243,7 @@ public class EntitySearcher {
 
         @Override
         public void visitField(PsiField field) {
+            indicator.checkCanceled();
             final Entity entity = entities.get(field);
             if (entity == null) {
                 super.visitField(field);
@@ -256,6 +261,7 @@ public class EntitySearcher {
 
         @Override
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
+            indicator.checkCanceled();
             PsiElement element = expression.getMethodExpression().resolve();
             if (currentMethod != null && element instanceof PsiMethod) {
                 propertiesFor(currentMethod)

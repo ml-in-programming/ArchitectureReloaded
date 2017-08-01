@@ -33,6 +33,7 @@ public class CCDA extends Algorithm {
     private final List<Integer> aCoefficients = new ArrayList<>();
     private final List<Entity> nodes = new ArrayList<>();
     private final Map<String, Set<String>> graph = new HashMap<>();
+    private ExecutionContext context;
 
     private double quality;
     private double edges;
@@ -43,7 +44,8 @@ public class CCDA extends Algorithm {
 
     }
 
-    private void init(EntitySearchResult entities) {
+    private void init() {
+        final EntitySearchResult entities = context.entities;
         LOGGER.info("Init CCDA");
         communityIds.clear();
         idCommunity.clear();
@@ -66,6 +68,7 @@ public class CCDA extends Algorithm {
     private void buildGraph() {
         LOGGER.info("Building graph");
         graph.clear();
+        int iteration = 0;
         for (Entity entity : nodes) {
             final RelevantProperties properties = entity.getRelevantProperties();
             final Set<String> neighbors = graph.getOrDefault(entity.getName(), new HashSet<>());
@@ -77,7 +80,10 @@ public class CCDA extends Algorithm {
                 addNode(field, entity, neighbors);
             }
 
+            context.checkCanceled();
             graph.put(entity.getName(), neighbors);
+            iteration++;
+            reportProgress((0.1 * iteration) / nodes.size(), context);
         }
     }
 
@@ -92,8 +98,10 @@ public class CCDA extends Algorithm {
 
     @Override
     protected Map<String, String> calculateRefactorings(ExecutionContext context) {
-        init(context.entities);
+        this.context = context;
+        init();
         final Map<String, String> refactorings = new HashMap<>();
+        context.checkCanceled();
         quality = calculateQualityIndex();
         double progress = 0;
         while (true) {
@@ -105,8 +113,9 @@ public class CCDA extends Algorithm {
             move(optimum.targetEntity, optimum.community, false);
             communityIds.put(optimum.targetEntity.getName(), optimum.community);
             progress = Math.max(progress, eps / optimum.delta);
-            reportProgress(progress, context);
+            reportProgress(0.1 + 0.9 * progress, context);
             LOGGER.info("Finish iteration. Current quality is " + quality + " (delta is " + optimum.delta + ")");
+            context.checkCanceled();
         }
 
         return refactorings;
@@ -125,6 +134,7 @@ public class CCDA extends Algorithm {
                 optimum.community = i;
             }
         }
+        context.checkCanceled();
         return optimum;
     }
 

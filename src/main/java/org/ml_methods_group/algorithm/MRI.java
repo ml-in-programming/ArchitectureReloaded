@@ -61,6 +61,7 @@ public class MRI extends Algorithm {
 
         int progress = 0;
         for (Entity currentEntity : units) {
+            context.checkCanceled();
             final Holder minHolder = runParallel(classes, context, Holder::new,
                             (candidate, holder) -> getNearestClass(currentEntity, candidate, holder), this::min);
             progress++;

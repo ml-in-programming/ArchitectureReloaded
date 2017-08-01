@@ -53,6 +53,7 @@ public class ARI extends Algorithm {
 
     private Map<String, String> findRefactoring(Entity entity, Map<String, String> accumulator) {
         reportProgress((double) progressCount.incrementAndGet() / units.size(), context);
+        context.checkCanceled();
         if (!entity.isMovable()) {
             return accumulator;
         }

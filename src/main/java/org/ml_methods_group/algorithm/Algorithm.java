@@ -16,10 +16,11 @@
 
 package org.ml_methods_group.algorithm;
 
+import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import org.apache.log4j.Logger;
-import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.config.Logging;
 
@@ -53,41 +54,43 @@ public abstract class Algorithm {
     public final AlgorithmResult execute(EntitySearchResult entities, ExecutorService service) {
         LOGGER.info(name + " started");
         final long startTime = System.currentTimeMillis();
-        final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
-        if (indicator != null) {
-            indicator.pushState();
-            indicator.setText("Run " + name + "...");
-            indicator.setFraction(0);
+        final ProgressIndicator indicator;
+        if (ProgressManager.getInstance().hasProgressIndicator()) {
+            indicator = ProgressManager.getInstance().getProgressIndicator();
+        } else {
+            indicator = new EmptyProgressIndicator();
         }
+        indicator.pushState();
+        indicator.setText("Run " + name + "...");
+        indicator.setFraction(0);
         final ExecutionContext context =
                 new ExecutionContext(enableParallelExecution ? requireNonNull(service) : null, indicator, entities);
         final Map<String, String> refactorings;
         try {
             refactorings = calculateRefactorings(context);
+        } catch (ProcessCanceledException e) {
+            throw e;
         } catch (Exception e) {
             LOGGER.error(name + " finished with error: " + e);
             return new AlgorithmResult(name, e);
         }
         final long totalTime = System.currentTimeMillis() - startTime;
-        if (indicator != null) {
-            indicator.popState();
-        }
+        indicator.popState();
         final AlgorithmResult result = new AlgorithmResult(refactorings, name, totalTime, context.usedThreads);
         LOGGER.info(name + " successfully finished");
         LOGGER.info(result.getReport());
         return result;
     }
 
+
     protected abstract Map<String, String> calculateRefactorings(ExecutionContext context) throws Exception;
 
     protected void reportProgress(double progress, ExecutionContext context) {
-        if (context.indicator != null) {
-            context.indicator.setFraction(progress);
-        }
+        context.indicator.setFraction(progress);
     }
 
     protected final <A, V> A runParallel(List<V> values, ExecutionContext context, Supplier<A> accumulatorFactory,
-                                            BiFunction<V, A, A> processor, BinaryOperator<A> combiner) {
+                                         BiFunction<V, A, A> processor, BinaryOperator<A> combiner) {
         if (context.service == null) {
             throw new UnsupportedOperationException("Parallel execution is disabled");
         }
@@ -95,7 +98,7 @@ public abstract class Algorithm {
                 .sequential()
                 .map(list -> new Task<>(list, accumulatorFactory, processor))
                 .collect(Collectors.toList());
-        context.reportAdditionalThreadsUsed(tasks.size());;
+        context.reportAdditionalThreadsUsed(tasks.size());
         final List<Future<A>> results = new ArrayList<>();
         for (Callable<A> task : tasks) {
             results.add(context.service.submit(task));
@@ -120,12 +123,16 @@ public abstract class Algorithm {
     }
 
     private <T> T getResult(Future<T> future) {
-        while(true) {
+        while (true) {
             try {
                 return future.get();
             } catch (InterruptedException ignored) {
             } catch (ExecutionException e) {
-                throw new RuntimeException(e); // todo
+                if (e.getCause() instanceof ProcessCanceledException) {
+                    throw (ProcessCanceledException) e.getCause();
+                } else {
+                    throw new RuntimeException(e); // todo
+                }
             }
         }
     }
@@ -152,11 +159,15 @@ public abstract class Algorithm {
         public final EntitySearchResult entities;
         private int usedThreads = 1; // default thread
 
-        private ExecutionContext(ExecutorService service, @Nullable ProgressIndicator indicator,
+        private ExecutionContext(ExecutorService service, ProgressIndicator indicator,
                                  EntitySearchResult entities) {
             this.service = service;
             this.indicator = indicator;
             this.entities = entities;
+        }
+
+        public void checkCanceled() {
+            indicator.checkCanceled();
         }
 
         private void reportAdditionalThreadsUsed(int count) {

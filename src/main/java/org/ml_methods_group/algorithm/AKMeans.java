@@ -79,12 +79,15 @@ public class AKMeans extends Algorithm {
     @Override
     protected Map<String, String> calculateRefactorings(ExecutionContext context) {
         init(context.entities);
+        context.checkCanceled();
         final Map<String, String> refactorings = new HashMap<>();
         initializeCenters();
+        context.checkCanceled();
 
         for (int step = 0; step < steps; step++) {
             LOGGER.info("Start step " + step);
             reportProgress((double) step / steps, context);
+            context.checkCanceled();
             final Map<Integer, Integer> movements =
                     runParallel(indexes, context, HashMap::new, this::findNearestCommunity, Algorithm::combineMaps);
             for (Entry<Integer, Integer> movement : movements.entrySet()) {
