@@ -31,8 +31,6 @@ import org.ml_methods_group.utils.RefactoringUtil;
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.List;
 import java.util.Map;
 
@@ -136,28 +134,5 @@ class ClassRefactoringPanel extends JPanel {
     private void onSelectionChanged() {
         final int selectedRow = table.getSelectedRow();
         info.setText(selectedRow == -1 ? "" : warnings.get(selectedRow));
-    }
-
-    @FunctionalInterface
-    private interface DoubleClickListener extends MouseListener {
-        void onDoubleClick();
-
-        default void mouseClicked(MouseEvent e) {
-            if (e.getClickCount() >= 2) {
-                onDoubleClick();
-            }
-        }
-
-        default void mousePressed(MouseEvent e) {
-        }
-
-        default void mouseReleased(MouseEvent e) {
-        }
-
-        default void mouseEntered(MouseEvent e) {
-        }
-
-        default void mouseExited(MouseEvent e) {
-        }
     }
 }

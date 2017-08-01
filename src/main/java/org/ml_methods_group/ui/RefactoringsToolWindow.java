@@ -78,6 +78,7 @@ public final class RefactoringsToolWindow implements Disposable {
         final DefaultActionGroup toolbarGroup = new DefaultActionGroup();
         toolbarGroup.add(new IntersectAction());
         toolbarGroup.add(new InfoAction());
+        toolbarGroup.add(new DistanceAction());
         toolbarGroup.add(new CloseAction());
         return ActionManager.getInstance()
                 .createActionToolbar(WINDOW_ID, toolbarGroup, false);
@@ -159,6 +160,19 @@ public final class RefactoringsToolWindow implements Disposable {
                 final DialogWrapper dialog = new ExecutionInfoDialog(project, searchResult, results);
                 dialog.show();
             }
+        }
+    }
+
+    private class DistanceAction extends AnAction {
+        DistanceAction() {
+            super(ArchitectureReloadedBundle.message("close.action.text"),
+                    ArchitectureReloadedBundle.message("close.action.description"),
+                    AllIcons.Actions.Diff);
+        }
+
+        @Override
+        public void actionPerformed(AnActionEvent e) {
+            new EntityPickerDialog(project, searchResult).show();
         }
     }
 
