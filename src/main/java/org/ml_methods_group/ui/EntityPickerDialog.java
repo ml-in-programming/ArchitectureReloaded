@@ -53,6 +53,8 @@ public class EntityPickerDialog extends DialogWrapper {
         setOKActionEnabled(false);
         suggestionsTable.addMouseListener((DoubleClickListener) this::onDoubleClick);
         suggestionsTable.setModel(model);
+        suggestionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        input.setToolTipText("Write any part of name of entity");
         input.getDocument().addDocumentListener(new DocumentAdapter() {
             @Override
             protected void textChanged(DocumentEvent e) {

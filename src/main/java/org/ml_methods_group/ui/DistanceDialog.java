@@ -16,6 +16,7 @@
 
 package org.ml_methods_group.ui;
 
+import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.ScrollPaneFactory;
@@ -35,29 +36,40 @@ import java.util.*;
 import java.util.List;
 
 public class DistanceDialog extends DialogWrapper {
-    private static final Dimension MINIMUM_SIZE = new Dimension(1200, 600);
+    private static final Dimension MINIMUM_SIZE = new Dimension(800, 200);
 
     private final EntitySearchResult searchResult;
     private final ComparisionModel model = new ComparisionModel();
     private final JTable comparision = new JBTable(model);
     private final Project project;
+    private final AnalysisScope scope;
     private final JLabel generalInfo = new JLabel();
+    private final JCheckBox showOnlyIntersection = new JCheckBox("Show only intersection");
 
-    DistanceDialog(@Nullable Project project, EntitySearchResult searchResult) {
-        super(project, true);
+    DistanceDialog(AnalysisScope scope, EntitySearchResult searchResult) {
+        super(scope.getProject(), true);
         this.searchResult = searchResult;
-        this.project = project;
+        this.scope = scope;
+        this.project = scope.getProject();
+        comparision.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        comparision.addMouseListener((DoubleClickListener) this::onDoubleClick);
         setModal(false);
         setTitle(ArchitectureReloadedBundle.message("distance.dialog.title"));
         init();
         pack();
     }
 
+    private void onDoubleClick() {
+        final int row = comparision.getSelectedRow();
+        if (row != -1) {
+            PsiSearchUtil.openDefinition(model.getPropertyAt(row), scope);
+        }
+    }
+
     @NotNull
     @Override
     protected Action[] createActions() {
-        return new Action[]{new OkAction() {
-        }};
+        return new Action[0];
     }
 
     @Nullable
@@ -73,14 +85,14 @@ public class DistanceDialog extends DialogWrapper {
 
     private JPanel createButtonsPanel() {
         final JPanel result = new JPanel(new BorderLayout());
-        final JButton chooseLeft = new JButton("Choose");
+        final JButton chooseLeft = new JButton("Choose left");
         chooseLeft.addActionListener(e -> {
             EntityPickerDialog dialog = new EntityPickerDialog(project, searchResult);
             dialog.show();
             model.setLeftEntity(dialog.getSelected());
             updateInfo(model.left, model.right);
         });
-        final JButton chooseRight = new JButton("Choose");
+        final JButton chooseRight = new JButton("Choose right");
         chooseRight.addActionListener(e -> {
             EntityPickerDialog dialog = new EntityPickerDialog(project, searchResult);
             dialog.show();
@@ -89,6 +101,8 @@ public class DistanceDialog extends DialogWrapper {
         });
         result.add(chooseLeft, BorderLayout.WEST);
         result.add(chooseRight, BorderLayout.EAST);
+        result.add(showOnlyIntersection, BorderLayout.CENTER);
+        showOnlyIntersection.addChangeListener(e -> model.refresh());
         return result;
     }
 
@@ -119,12 +133,12 @@ public class DistanceDialog extends DialogWrapper {
 
         void setLeftEntity(Entity entity) {
             left = entity;
-            recalculateData();
+            refresh();
         }
 
         void setRightEntity(Entity entity) {
             right = entity;
-            recalculateData();
+            refresh();
         }
 
         @Override
@@ -133,7 +147,8 @@ public class DistanceDialog extends DialogWrapper {
             return entity == null ? "" : entity.getName();
         }
 
-        private void recalculateData() {
+        private void refresh() {
+            final boolean intersectionOnly = showOnlyIntersection.isSelected();
             final List<String> leftProperties = getAllProperties(left);
             final List<String> rightProperties = getAllProperties(right);
             leftData.clear();
@@ -144,26 +159,34 @@ public class DistanceDialog extends DialogWrapper {
                 final String leftValue = leftProperties.get(leftIndex);
                 final String rightValue = rightProperties.get(rightIndex);
                 final int cmp = leftValue.compareTo(rightValue);
-                if (cmp <= 0) {
-                    leftData.add(leftValue);
+                if (cmp < 0) {
+                    if (!intersectionOnly) {
+                        leftData.add(leftValue);
+                        rightData.add("");
+                    }
                     leftIndex++;
-                } else {
-                    leftData.add("");
-                }
-                if (cmp >= 0) {
-                    rightData.add(rightValue);
+                } else if (cmp > 0) {
+                    if (!intersectionOnly) {
+                        rightData.add(rightValue);
+                        leftData.add("");
+                    }
                     rightIndex++;
                 } else {
-                    rightData.add("");
+                    leftData.add(leftValue);
+                    rightData.add(rightValue);
+                    leftIndex++;
+                    rightIndex++;
                 }
             }
-            for (String data : leftProperties.subList(leftIndex, leftProperties.size())) {
-                leftData.add(data);
-                rightData.add("");
-            }
-            for (String data : rightProperties.subList(rightIndex, rightProperties.size())) {
-                leftData.add("");
-                rightData.add(data);
+            if (!intersectionOnly) {
+                for (String data : leftProperties.subList(leftIndex, leftProperties.size())) {
+                    leftData.add(data);
+                    rightData.add("");
+                }
+                for (String data : rightProperties.subList(rightIndex, rightProperties.size())) {
+                    leftData.add("");
+                    rightData.add(data);
+                }
             }
             fireTableDataChanged();
             fireTableStructureChanged();
@@ -196,6 +219,11 @@ public class DistanceDialog extends DialogWrapper {
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
             return (columnIndex == 0 ? leftData : rightData).get(rowIndex);
+        }
+
+        String getPropertyAt(int rowIndex) {
+            final String leftProperty = leftData.get(rowIndex);
+            return leftProperty.isEmpty() ? rightData.get(rowIndex) : leftProperty;
         }
     }
 }
