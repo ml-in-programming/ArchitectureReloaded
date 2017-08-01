@@ -33,11 +33,13 @@ import com.sixrr.metrics.profile.MetricsProfileRepository;
 import com.sixrr.metrics.ui.dialogs.ProfileSelectionPanel;
 import com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.AlgorithmResult;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.config.ArchitectureReloadedConfig;
+import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.ui.AlgorithmsSelectionPanel;
 import org.ml_methods_group.ui.RefactoringsToolWindow;
@@ -53,6 +55,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class AutomaticRefactoringAction extends BaseAnalysisAction {
+    private static final Logger LOGGER = Logging.getLogger(AutomaticRefactoringAction.class);
     private static final String REFACTORING_PROFILE_KEY = "refactoring.metrics.profile.name";
     private static final Map<String, ProgressIndicator> processes = new ConcurrentHashMap<>();
 
@@ -97,9 +100,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     @Override
     protected void analyze(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
-        System.out.println(analysisScope.getDisplayName());
-        System.out.println(project.getBasePath());
-        System.out.println();
+        LOGGER.info("Run analysis (scope=" + analysisScope.getDisplayName() + ")");
 
         final MetricsProfile metricsProfile = MetricsProfileRepository.getInstance()
                 .getCurrentProfile();

@@ -16,14 +16,18 @@
 
 package org.ml_methods_group.algorithm;
 
+import org.apache.log4j.Logger;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.RelevantProperties;
+import org.ml_methods_group.config.Logging;
 
 import java.util.*;
 import java.util.stream.Stream;
 
 public class CCDA extends Algorithm {
+    private static final Logger LOGGER = Logging.getLogger(CCDA.class);
+
     private final Map<String, Integer> communityIds = new HashMap<>();
     private final List<String> idCommunity = new ArrayList<>();
     private final List<Integer> aCoefficients = new ArrayList<>();
@@ -42,6 +46,7 @@ public class CCDA extends Algorithm {
 
     private void init() {
         final EntitySearchResult entities = context.entities;
+        LOGGER.info("Init CCDA");
         communityIds.clear();
         idCommunity.clear();
         nodes.clear();
@@ -61,6 +66,7 @@ public class CCDA extends Algorithm {
     }
 
     private void buildGraph() {
+        LOGGER.info("Building graph");
         graph.clear();
         int iteration = 0;
         for (Entity entity : nodes) {
@@ -106,12 +112,9 @@ public class CCDA extends Algorithm {
             refactorings.put(optimum.targetEntity.getName(), idCommunity.get(optimum.community - 1));
             move(optimum.targetEntity, optimum.community, false);
             communityIds.put(optimum.targetEntity.getName(), optimum.community);
-
-            System.out.println("move " + optimum.targetEntity.getName() + " to " + idCommunity.get(optimum.community - 1));
-            System.out.println("quality index is now: " + quality);
-            System.out.println();
             progress = Math.max(progress, eps / optimum.delta);
             reportProgress(0.1 + 0.9 * progress, context);
+            LOGGER.info("Finish iteration. Current quality is " + quality + " (delta is " + optimum.delta + ")");
             context.checkCanceled();
         }
 

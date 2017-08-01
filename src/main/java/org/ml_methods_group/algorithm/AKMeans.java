@@ -16,14 +16,18 @@
 
 package org.ml_methods_group.algorithm;
 
+import org.apache.log4j.Logger;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
+import org.ml_methods_group.config.Logging;
 
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
 
 public class AKMeans extends Algorithm {
+    private static final Logger LOGGER = Logging.getLogger(AKMeans.class);
+
     private final List<Entity> points = new ArrayList<>();
     private final List<Integer> indexes = new ArrayList<>();
     private final List<Integer> communityID = new ArrayList<>();
@@ -42,6 +46,7 @@ public class AKMeans extends Algorithm {
     }
 
     private void init(EntitySearchResult entities) {
+        LOGGER.info("Init AKMeans");
         points.clear();
         communities.clear();
         communityID.clear();
@@ -59,6 +64,7 @@ public class AKMeans extends Algorithm {
     }
 
     private void initializeCenters() {
+        LOGGER.info("Initialize centers");
         final List<Entity> entities = new ArrayList<>(points);
         Collections.shuffle(entities);
 
@@ -79,6 +85,7 @@ public class AKMeans extends Algorithm {
         context.checkCanceled();
 
         for (int step = 0; step < steps; step++) {
+            LOGGER.info("Start step " + step);
             reportProgress((double) step / steps, context);
             context.checkCanceled();
             final Map<Integer, Integer> movements =
@@ -86,6 +93,7 @@ public class AKMeans extends Algorithm {
             for (Entry<Integer, Integer> movement : movements.entrySet()) {
                 moveToCommunity(movement.getKey(), movement.getValue());
             }
+            LOGGER.info(movements.size() + " movements found");
             if (movements.size() == 0) {
                 break;
             }
@@ -122,7 +130,7 @@ public class AKMeans extends Algorithm {
             newClassCount++;
             name = "NewClass" + newClassCount;
         }
-
+        LOGGER.info("Receive class name :" + name);
         return name;
     }
 
