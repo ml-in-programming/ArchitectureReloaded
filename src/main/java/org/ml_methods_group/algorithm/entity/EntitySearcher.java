@@ -24,6 +24,8 @@ import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.java.AnonymousClassElement;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.utils.MethodUtils;
+import org.apache.log4j.Logger;
+import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.PSIUtil;
 
 import java.util.*;
@@ -31,6 +33,9 @@ import java.util.*;
 import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
 public class EntitySearcher {
+
+    private static final Logger LOGGER = Logging.getLogger(EntitySearcher.class);
+
     private final Map<String, PsiClass> classForName = new HashMap<>();
     private final Map<PsiElement, Entity> entities = new HashMap<>();
     private final AnalysisScope scope;
@@ -56,8 +61,10 @@ public class EntitySearcher {
         indicator.pushState();
         indicator.setText("Search units");
         indicator.setIndeterminate(true);
+        LOGGER.info("Index units...");
         scope.accept(new UnitsFinder());
         indicator.setIndeterminate(false);
+        LOGGER.info("Calculate properties...");
         indicator.setText("Calculate properties");
         scope.accept(new PropertiesCalculator(indicator));
         indicator.popState();
@@ -65,6 +72,7 @@ public class EntitySearcher {
     }
 
     private EntitySearchResult prepareResult(MetricsRun metricsRun) {
+        LOGGER.info("Prepare results...");
         final List<ClassEntity> classes = new ArrayList<>();
         final List<MethodEntity> methods = new ArrayList<>();
         final List<FieldEntity> fields = new ArrayList<>();
@@ -73,7 +81,7 @@ public class EntitySearcher {
             try {
                 entity.calculateVector(metricsRun);
             } catch (Exception e) {
-                System.out.println("Failed to calculate vector for " + entity.getName());
+                LOGGER.warn("Failed to calculate vector for " + entity.getName());
                 continue;
             }
             validEntities.add(entity);
@@ -90,6 +98,10 @@ public class EntitySearcher {
             }
         }
         Entity.normalize(validEntities);
+        LOGGER.info("Properties calculated");
+        LOGGER.info("Generated " + classes.size() + " class entities");
+        LOGGER.info("Generated " + methods.size() + " method entities");
+        LOGGER.info("Generated " + fields.size() + " field entities");
         return new EntitySearchResult(classes, methods, fields, System.currentTimeMillis() - startTime);
     }
 
@@ -98,7 +110,7 @@ public class EntitySearcher {
         @Override
         public void visitFile(PsiFile file) {
             if (isSourceFile(file)) {
-                System.out.println("!#! " + file.getName());
+                LOGGER.info("Index " + file.getName());
                 super.visitFile(file);
             }
         }

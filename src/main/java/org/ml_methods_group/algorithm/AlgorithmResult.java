@@ -70,4 +70,11 @@ public class AlgorithmResult {
     public boolean isSuccess() {
         return exception == null;
     }
+
+    public String getReport() {
+        return "Results of " + algorithmName + " running" + System.lineSeparator() +
+                "  Found " + refactorings.size() + " refactorings" + System.lineSeparator() +
+                "  Execution time: " + executionTime + System.lineSeparator() +
+                "  Threads used: " + threadUsed;
+    }
 }
