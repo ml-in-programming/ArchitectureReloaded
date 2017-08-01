@@ -64,10 +64,10 @@ public class CCDA extends Algorithm {
             final RelevantProperties properties = entity.getRelevantProperties();
             final Set<String> neighbors = graph.getOrDefault(entity.getName(), new HashSet<>());
 
-            properties.getAllMethods()
+            properties.getMethods()
                     .forEach(name -> addNode(name, entity, neighbors));
 
-            for (String field : properties.getAllFields()) {
+            for (String field : properties.getFields()) {
                 addNode(field, entity, neighbors);
             }
 

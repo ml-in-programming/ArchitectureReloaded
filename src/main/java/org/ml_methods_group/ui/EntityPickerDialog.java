@@ -49,7 +49,7 @@ public class EntityPickerDialog extends DialogWrapper {
         super(project, false);
         this.searchResult = searchResult;
         setModal(true);
-        setTitle(ArchitectureReloadedBundle.message("execution.info.dialog.title"));
+        setTitle(ArchitectureReloadedBundle.message("entity.picker.dialog.title"));
         setOKActionEnabled(false);
         suggestionsTable.addMouseListener((DoubleClickListener) this::onDoubleClick);
         suggestionsTable.setModel(model);

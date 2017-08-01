@@ -172,7 +172,7 @@ public final class RefactoringsToolWindow implements Disposable {
 
         @Override
         public void actionPerformed(AnActionEvent e) {
-            new EntityPickerDialog(project, searchResult).show();
+            new DistanceDialog(project, searchResult).show();
         }
     }
 
