@@ -17,10 +17,12 @@
 package org.ml_methods_group.algorithm;
 
 import com.sixrr.metrics.MetricCategory;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
+import org.ml_methods_group.config.Logging;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +31,8 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public class MRI extends Algorithm {
+    private static final Logger LOGGER = Logging.getLogger(MRI.class);
+
     private final List<Entity> units = new ArrayList<>();
     private final Map<String, ClassEntity> classesByName = new HashMap<>();
     private final List<ClassEntity> classes = new ArrayList<>();
@@ -57,12 +61,13 @@ public class MRI extends Algorithm {
 
         int progress = 0;
         for (Entity currentEntity : units) {
+            context.checkCanceled();
             final Holder minHolder = runParallel(classes, context, Holder::new,
                             (candidate, holder) -> getNearestClass(currentEntity, candidate, holder), this::min);
             progress++;
             reportProgress((double) progress / units.size(), context);
             if (minHolder.candidate == null) {
-                System.out.println("WARNING: " + currentEntity.getName() + " has no nearest class");
+                LOGGER.warn(currentEntity.getName() + " has no nearest class");
                 continue;
             }
             final ClassEntity nearestClass = minHolder.candidate;

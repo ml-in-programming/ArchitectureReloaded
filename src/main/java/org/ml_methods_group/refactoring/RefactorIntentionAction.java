@@ -65,6 +65,6 @@ public class RefactorIntentionAction extends BaseIntentionAction {
     @Override
     public void invoke(@NotNull Project project, Editor editor, PsiFile psiFile) throws IncorrectOperationException {
         ApplicationManager.getApplication().invokeLater(() ->
-                RefactoringUtil.moveRefactoring(refactorings, project, scope));
+                RefactoringUtil.moveRefactoring(refactorings, scope));
     }
 }

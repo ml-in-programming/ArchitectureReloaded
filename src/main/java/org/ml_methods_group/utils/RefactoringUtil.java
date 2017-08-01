@@ -19,13 +19,11 @@ package org.ml_methods_group.utils;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.refactoring.makeStatic.MakeStaticHandler;
 import com.intellij.refactoring.move.moveInstanceMethod.MoveInstanceMethodDialog;
 import com.intellij.refactoring.move.moveMembers.MoveMembersDialog;
-import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -35,7 +33,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.sixrr.metrics.utils.MethodUtils.isStatic;
-import static org.ml_methods_group.utils.PsiSearchUtil.*;
+import static java.util.stream.Collectors.groupingBy;
+import static org.ml_methods_group.utils.PsiSearchUtil.findAllElements;
+import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
 public final class RefactoringUtil {
 
@@ -43,51 +43,43 @@ public final class RefactoringUtil {
     }
 
     public static void moveRefactoring(@NotNull Map<String, String> refactorings,
-                                       @NotNull Project project,
                                        @NotNull AnalysisScope scope) {
+        final Map<PsiClass, List<PsiElement>> groupedRefactorings = prepareRefactorings(refactorings, scope);
         ApplicationManager.getApplication().runReadAction(() -> {
-            final Map<String, List<String>> groupedMovements = refactorings.keySet().stream()
-                    .collect(Collectors.groupingBy(refactorings::get, Collectors.toList()));
-
-            for (Entry<String, List<String>> refactoring : groupedMovements.entrySet()) {
-                String targetClass = refactoring.getKey();
+            for (Entry<PsiClass, List<PsiElement>> refactoring : groupedRefactorings.entrySet()) {
+                final PsiClass target = refactoring.getKey();
                 final List<PsiMember> members = refactoring.getValue().stream()
                         .sequential()
-                        .filter(unit -> !tryMoveInstanceMethod(unit, targetClass, scope))
-                        .map(unit -> tryMakeStatic(unit, scope)) // no effect for already static members
-                        .map(o -> o.map(unit -> findElement(unit, scope, PsiMember.class::cast).orElse(null)))
-                        .filter(Optional::isPresent)
-                        .map(Optional::get)
+                        .filter(unit -> !(unit instanceof PsiMethod) || !moveInstanceMethod((PsiMethod) unit, target))
+                        .map(RefactoringUtil::makeStatic) // no effect for already static members
+                        .filter(Objects::nonNull)
                         .collect(Collectors.toList());
-                moveMembersRefactoring(members, refactoring.getKey(), project, scope);
+                moveMembersRefactoring(members, refactoring.getKey(), scope);
             }
         });
     }
 
-    private static void moveMembersRefactoring(Collection<PsiMember> elements, String targetClass,
-                                               Project project, AnalysisScope scope) {
+    private static void moveMembersRefactoring(Collection<PsiMember> elements, PsiClass targetClass,
+                                               AnalysisScope scope) {
         final Map<PsiClass, Set<PsiMember>> groupByCurrentClass = elements.stream()
-                .collect(Collectors.groupingBy(PsiMember::getContainingClass, Collectors.toSet()));
+                .collect(groupingBy(PsiMember::getContainingClass, Collectors.toSet()));
 
         for (Entry<PsiClass, Set<PsiMember>> movement : groupByCurrentClass.entrySet()) {
-            final Optional<PsiClass> destination = findElement(targetClass, scope, PsiClass.class::cast);
-            if (!destination.isPresent()) {
-                return;
-            }
-            MoveMembersDialog dialog = new MoveMembersDialog(project, movement.getKey(), destination.get(), movement.getValue(), null);
+            MoveMembersDialog dialog = new MoveMembersDialog(scope.getProject(), movement.getKey(), targetClass,
+                    movement.getValue(), null);
             TransactionGuard.getInstance().submitTransactionAndWait(dialog::show);
         }
     }
 
-    private static Optional<String> tryMakeStatic(String unit, AnalysisScope scope) {
-        return findElement(unit, scope, element -> tryMakeStatic((PsiMember) element, scope));
-    }
-
-    private static String tryMakeStatic(PsiMember element, AnalysisScope scope) {
-        if (isStatic(element)) {
-            return getHumanReadableName(element);
+    private static PsiMember makeStatic(PsiElement element) {
+        if (!(element instanceof PsiMember)) {
+            return null;
         }
-        if (!(element instanceof PsiMethod)) {
+        final PsiMember member = (PsiMember) element;
+        if (isStatic(member)) {
+            return member;
+        }
+        if (!(member instanceof PsiMethod)) {
             return null;
         }
         PsiMethod method = (PsiMethod) element;
@@ -95,29 +87,24 @@ public final class RefactoringUtil {
             return null;
         }
         TransactionGuard.getInstance().submitTransactionAndWait(() -> MakeStaticHandler.invoke(method));
-        return findMethodByName(method.getName(), scope)
-                .filter(MethodUtils::isStatic)
-                .map(PsiSearchUtil::getHumanReadableName)
-                .orElse(null);
-    }
-
-    private static boolean tryMoveInstanceMethod(String unit, String target, AnalysisScope scope) {
-        return findElement(unit, scope, e -> e instanceof PsiMethod && !isStatic((PsiMethod) e)
-                && tryMoveInstanceMethod((PsiMethod) e, target)).orElse(false);
+        return isStatic(member) ? member : null;
     }
 
     private static PsiVariable[] getAvailableVariables(PsiMethod method, String target) {
+        if (target == null) {
+            return new PsiVariable[0];
+        }
         final PsiClass psiClass = method.getContainingClass();
         Stream<PsiVariable> parameters = Arrays.stream(method.getParameterList().getParameters());
-        Stream<PsiVariable> fields = psiClass == null? Stream.empty() : Arrays.stream(psiClass.getFields());
+        Stream<PsiVariable> fields = psiClass == null ? Stream.empty() : Arrays.stream(psiClass.getFields());
         return Stream.concat(parameters, fields)
                 .filter(Objects::nonNull)
                 .filter(p -> target.equals(p.getType().getCanonicalText()))
                 .toArray(PsiVariable[]::new);
     }
 
-    private static boolean tryMoveInstanceMethod(@NotNull PsiMethod method, String target) {
-        PsiVariable[] available = getAvailableVariables(method, target);
+    private static boolean moveInstanceMethod(@NotNull PsiMethod method, PsiClass target) {
+        PsiVariable[] available = getAvailableVariables(method, target.getQualifiedName());
         if (available.length == 0) {
             return false;
         }
@@ -137,7 +124,7 @@ public final class RefactoringUtil {
             String warning = "";
             if (element != null) {
                 warning = ApplicationManager.getApplication()
-                        .runReadAction((Computable<String>) () -> getWarning(element,target));
+                        .runReadAction((Computable<String>) () -> getWarning(element, target));
             }
             warnings.add(warning);
         }
@@ -162,5 +149,20 @@ public final class RefactoringUtil {
             return "    Sorry, can't move such elements";
         }
         return "";
+    }
+
+    private static Map<PsiClass, List<PsiElement>> prepareRefactorings(Map<String, String> refactorings,
+                                                                       AnalysisScope scope) {
+        final Set<String> names = new HashSet<>();
+        names.addAll(refactorings.values());
+        names.addAll(refactorings.keySet());
+        final Map<String, PsiElement> elements = findAllElements(names, scope, Function.identity());
+        final HashMap<PsiClass, List<PsiElement>> result = new HashMap<>();
+        for (Entry<String, String> refactoring : refactorings.entrySet()) {
+            final PsiClass target = (PsiClass) elements.get(refactoring.getValue());
+            final PsiElement element = elements.get(refactoring.getKey());
+            result.computeIfAbsent(target, x -> new ArrayList<>()).add(element);
+        }
+        return result;
     }
 }

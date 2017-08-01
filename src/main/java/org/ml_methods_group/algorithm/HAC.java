@@ -16,10 +16,12 @@
 
 package org.ml_methods_group.algorithm;
 
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
+import org.ml_methods_group.config.Logging;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,6 +29,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class HAC extends Algorithm {
+    private static final Logger LOGGER = Logging.getLogger(HAC.class);
+
     private final SortedSet<Triple> heap = new TreeSet<>();
     private final Map<Long, Triple> triples = new HashMap<>();
     private final Set<Community> communities = new HashSet<>();
@@ -40,6 +44,7 @@ public class HAC extends Algorithm {
     }
 
     private void init(ExecutionContext context) {
+        LOGGER.info("Init HAC");
         this.context = context;
         heap.clear();
         communities.clear();
@@ -56,6 +61,7 @@ public class HAC extends Algorithm {
         final List<Triple> toInsert =
                 runParallel(communitiesAsList, context, ArrayList::new, this::findTriples, Algorithm::combineLists);
         toInsert.forEach(this::insertTriple);
+        LOGGER.info("Built heap (" + heap.size() + " triples)");
     }
 
     private List<Triple> findTriples(Community community, List<Triple> accumulator) {
@@ -70,6 +76,7 @@ public class HAC extends Algorithm {
             }
         }
         reportProgress(0.9 * (double) progressCounter.incrementAndGet() / communities.size(), context);
+        context.checkCanceled();
         return accumulator;
     }
 
@@ -85,10 +92,12 @@ public class HAC extends Algorithm {
             final Community second = minTriple.second;
             mergeCommunities(first, second);
             reportProgress(1 - 0.1 * communities.size() / initialCommunitiesCount, context);
+            context.checkCanceled();
         }
 
         for (Community community : communities) {
             final String newName = receiveClassName(community);
+            LOGGER.info("Generate class name for community (id = " + community.id +"): " + newName);
             for (Entity entity : community.entities) {
                 if (!entity.getClassName().equals(newName)) {
                     refactorings.put(entity.getName(), newName);

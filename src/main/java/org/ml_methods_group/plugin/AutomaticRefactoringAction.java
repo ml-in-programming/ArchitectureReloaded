@@ -25,7 +25,6 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.profile.MetricsProfile;
@@ -33,13 +32,13 @@ import com.sixrr.metrics.profile.MetricsProfileRepository;
 import com.sixrr.metrics.ui.dialogs.ProfileSelectionPanel;
 import com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.AlgorithmResult;
 import org.ml_methods_group.algorithm.entity.Entity;
-import org.ml_methods_group.algorithm.properties.finder_strategy.FinderStrategy;
-import org.ml_methods_group.algorithm.properties.finder_strategy.NewStrategy;
 import org.ml_methods_group.config.ArchitectureReloadedConfig;
+import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.ui.AlgorithmsSelectionPanel;
 import org.ml_methods_group.ui.RefactoringsToolWindow;
@@ -50,11 +49,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class AutomaticRefactoringAction extends BaseAnalysisAction {
+    private static final Logger LOGGER = Logging.getLogger(AutomaticRefactoringAction.class);
     private static final String REFACTORING_PROFILE_KEY = "refactoring.metrics.profile.name";
+    private static final Map<String, ProgressIndicator> processes = new ConcurrentHashMap<>();
 
     private Map<String, AlgorithmResult> results = new HashMap<>();
 
@@ -63,7 +64,8 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
     private static ProjectManagerListener listener = new ProjectManagerListener() {
         @Override
         public void projectOpened(Project project) {
-            getInstance(project).analyzeBackground(project, new AnalysisScope(project));
+            getInstance(project).analyzeBackground(project, new AnalysisScope(project),
+                    project.getName() + project.getLocationHash() + "|opened");
         }
 
         @Override
@@ -96,9 +98,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     @Override
     protected void analyze(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
-        System.out.println(analysisScope.getDisplayName());
-        System.out.println(project.getBasePath());
-        System.out.println();
+        LOGGER.info("Run analysis (scope=" + analysisScope.getDisplayName() + ")");
 
         final MetricsProfile metricsProfile = MetricsProfileRepository.getInstance()
                 .getCurrentProfile();
@@ -108,17 +108,23 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 .executeAsync();
     }
 
-    public void analyzeBackground(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
+    public void analyzeBackground(@NotNull final Project project, @NotNull final AnalysisScope analysisScope,
+                                  String identifier) {
         checkRefactoringProfile();
         final MetricsProfile metricsProfile = MetricsProfileRepository.getInstance()
                 .getProfileForName(ArchitectureReloadedBundle.message(REFACTORING_PROFILE_KEY));
         assert metricsProfile != null;
         final RefactoringExecutionContext context =
                 new RefactoringExecutionContext(project, analysisScope, metricsProfile, this::updateResults);
+        processes.computeIfPresent(identifier, (x, process) -> {
+            process.cancel();
+            return null;
+        });
         new Task.Backgroundable(project,
                 "Calculating Refactorings...", true) {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
+                processes.put(identifier, indicator);
                 context.executeSynchronously();
             }
 

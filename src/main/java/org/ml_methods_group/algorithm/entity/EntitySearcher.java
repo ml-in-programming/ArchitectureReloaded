@@ -25,6 +25,8 @@ import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.ml_methods_group.algorithm.properties.finder_strategy.FinderStrategy;
 import org.ml_methods_group.algorithm.properties.finder_strategy.NewStrategy;
+import org.apache.log4j.Logger;
+import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.PSIUtil;
 
 import java.util.*;
@@ -32,16 +34,25 @@ import java.util.*;
 import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
 public class EntitySearcher {
+
+    private static final Logger LOGGER = Logging.getLogger(EntitySearcher.class);
+
     private final Map<String, PsiClass> classForName = new HashMap<>();
     private final Map<PsiElement, Entity> entities = new HashMap<>();
     private final AnalysisScope scope;
     private final long startTime;
     private final FinderStrategy strategy;
+    private final ProgressIndicator indicator;
 
     private EntitySearcher(AnalysisScope scope) {
         this.scope = scope;
         strategy = NewStrategy.getInstance();
         startTime = System.currentTimeMillis();
+        if (ProgressManager.getInstance().hasProgressIndicator()) {
+            indicator = ProgressManager.getInstance().getProgressIndicator();
+        } else {
+            indicator = new EmptyProgressIndicator();
+        }
     }
 
     public static EntitySearchResult analyze(AnalysisScope scope, MetricsRun metricsRun) {
@@ -50,33 +61,31 @@ public class EntitySearcher {
     }
 
     private EntitySearchResult runCalculations(MetricsRun metricsRun) {
-        final ProgressIndicator indicator;
-        if (ProgressManager.getInstance().hasProgressIndicator()) {
-            indicator = ProgressManager.getInstance().getProgressIndicator();
-        } else {
-            indicator = new EmptyProgressIndicator();
-        }
         indicator.pushState();
         indicator.setText("Search units");
         indicator.setIndeterminate(true);
+        LOGGER.info("Index units...");
         scope.accept(new UnitsFinder());
         indicator.setIndeterminate(false);
+        LOGGER.info("Calculate properties...");
         indicator.setText("Calculate properties");
-        scope.accept(new PropertiesCalculator(indicator));
+        scope.accept(new PropertiesCalculator());
         indicator.popState();
         return prepareResult(metricsRun);
     }
 
     private EntitySearchResult prepareResult(MetricsRun metricsRun) {
+        LOGGER.info("Prepare results...");
         final List<ClassEntity> classes = new ArrayList<>();
         final List<MethodEntity> methods = new ArrayList<>();
         final List<FieldEntity> fields = new ArrayList<>();
         final List<Entity> validEntities = new ArrayList<>();
         for (Entity entity : entities.values()) {
+            indicator.checkCanceled();
             try {
                 entity.calculateVector(metricsRun);
             } catch (Exception e) {
-                System.out.println("Failed to calculate vector for " + entity.getName());
+                LOGGER.warn("Failed to calculate vector for " + entity.getName());
                 continue;
             }
             validEntities.add(entity);
@@ -93,6 +102,10 @@ public class EntitySearcher {
             }
         }
         Entity.normalize(validEntities);
+        LOGGER.info("Properties calculated");
+        LOGGER.info("Generated " + classes.size() + " class entities");
+        LOGGER.info("Generated " + methods.size() + " method entities");
+        LOGGER.info("Generated " + fields.size() + " field entities");
         return new EntitySearchResult(classes, methods, fields, System.currentTimeMillis() - startTime);
     }
 
@@ -100,14 +113,16 @@ public class EntitySearcher {
 
         @Override
         public void visitFile(PsiFile file) {
+            indicator.checkCanceled();
             if (strategy.acceptFile(file)) {
-                System.out.println("!#! " + file.getName());
+                LOGGER.info("Index " + file.getName());
                 super.visitFile(file);
             }
         }
 
         @Override
         public void visitClass(PsiClass aClass) {
+            indicator.checkCanceled();
             classForName.put(getHumanReadableName(aClass), aClass);
             if (!strategy.acceptClass(aClass)) {
                 return;
@@ -121,6 +136,7 @@ public class EntitySearcher {
             if (!strategy.acceptField(field)) {
                 return;
             }
+            indicator.checkCanceled();
             entities.put(field, new FieldEntity(field));
             super.visitField(field);
         }
@@ -130,23 +146,20 @@ public class EntitySearcher {
             if (!strategy.acceptMethod(method)) {
                 return;
             }
+            indicator.checkCanceled();
             entities.put(method, new MethodEntity(method));
             super.visitMethod(method);
         }
     }
 
     private class PropertiesCalculator extends JavaRecursiveElementVisitor {
-        private final ProgressIndicator indicator;
         private int propertiesCalculated = 0;
-
-        private PropertiesCalculator(ProgressIndicator indicator) {
-            this.indicator = indicator;
-        }
 
         private PsiMethod currentMethod;
 
         @Override
         public void visitFile(PsiFile file) {
+            indicator.checkCanceled();
             if (strategy.acceptFile(file)) {
                 super.visitFile(file);
             }
@@ -154,6 +167,7 @@ public class EntitySearcher {
 
         @Override
         public void visitClass(PsiClass aClass) {
+            indicator.checkCanceled();
             final Entity entity = entities.get(aClass);
             if (entity == null) {
                 super.visitClass(aClass);
@@ -184,6 +198,7 @@ public class EntitySearcher {
 
         @Override
         public void visitMethod(PsiMethod method) {
+            indicator.checkCanceled();
             final Entity entity = entities.get(method);
             if (entity == null) {
                 super.visitMethod(method);
@@ -218,6 +233,7 @@ public class EntitySearcher {
 
         @Override
         public void visitReferenceExpression(PsiReferenceExpression expression) {
+            indicator.checkCanceled();
             PsiElement element = expression.resolve();
             if (currentMethod != null && element instanceof PsiField) {
                 final PsiField field = (PsiField) element;
@@ -231,6 +247,7 @@ public class EntitySearcher {
 
         @Override
         public void visitField(PsiField field) {
+            indicator.checkCanceled();
             final Entity entity = entities.get(field);
             if (entity == null) {
                 super.visitField(field);
@@ -248,8 +265,10 @@ public class EntitySearcher {
 
         @Override
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
+            indicator.checkCanceled();
             PsiMethod called = expression.resolveMethod();
             if (currentMethod != null && called != null && strategy.isRelation(expression)) {
+            PsiElement element = expression.getMethodExpression().resolve();
                 propertiesFor(currentMethod)
                         .ifPresent(p -> p.addMethod(called, strategy.getWeight(currentMethod, called)));
             }
