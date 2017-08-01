@@ -139,6 +139,14 @@ public class RefactoringsTableModel extends AbstractTableModel {
         throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }
 
+    public List<String> getUnits() {
+        return Collections.unmodifiableList(units);
+    }
+
+    public List<String> getMovements() {
+        return Collections.unmodifiableList(movements);
+    }
+
     void setupRenderer(JTable table) {
         table.setDefaultRenderer(Boolean.class, new BooleanTableCellRenderer() {
             private final JLabel EMPTY_LABEL = new JLabel();
@@ -171,5 +179,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
                 return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             }
         });
+
+
     }
 }

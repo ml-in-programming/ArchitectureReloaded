@@ -16,37 +16,56 @@
 
 package org.ml_methods_group.algorithm;
 
-import java.util.*;
-
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import org.jetbrains.annotations.Nullable;
+import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 
-public class MRI {
-    private final List<Entity> entities;
-    private final Set<PsiClass> allClasses;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
-    public MRI(List<Entity> entityList, Set<PsiClass> existingClasses) {
-        entities = entityList;
-        allClasses = existingClasses;
+public class MRI extends Algorithm {
+    private final List<Entity> units = new ArrayList<>();
+    private final Map<String, ClassEntity> classesByName = new HashMap<>();
+    private final List<ClassEntity> classes = new ArrayList<>();
+
+    public MRI() {
+        super("MRI", true);
     }
 
-    public Map<String, String> run() {
+    @Override
+    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+        final EntitySearchResult searchResult = context.entities;
+        units.clear();
+        classes.clear();
+        Stream.of(searchResult.getFields(), searchResult.getMethods())
+                .flatMap(List::stream)
+                .filter(Entity::isMovable)
+                .forEach(units::add);
+
+        searchResult.getClasses()
+                .stream()
+                .map(ClassEntity::copy) // create local copies
+                .peek(entity -> classesByName.put(entity.getName(), entity))
+                .forEach(classes::add);
+
         final Map<String, String> refactorings = new HashMap<>();
 
-        for (Entity currentEntity : entities) {
-            if (currentEntity.getCategory() == MetricCategory.Class) {
-                continue;
-            }
-
-            final Entity nearestClass = getNearestClass(currentEntity);
-            if (nearestClass == null) {
+        int progress = 0;
+        for (Entity currentEntity : units) {
+            final Holder minHolder = runParallel(classes, context, Holder::new,
+                            (candidate, holder) -> getNearestClass(currentEntity, candidate, holder), this::min);
+            progress++;
+            reportProgress((double) progress / units.size(), context);
+            if (minHolder.candidate == null) {
                 System.out.println("WARNING: " + currentEntity.getName() + " has no nearest class");
                 continue;
             }
-
+            final ClassEntity nearestClass = minHolder.candidate;
             if (nearestClass.getName().equals(currentEntity.getClassName())) {
                 continue;
             }
@@ -62,72 +81,30 @@ public class MRI {
     }
 
     @Nullable
-    private Entity getNearestClass(Entity entity) {
-        Entity candidateClass = null;
-        double minDist = Double.MAX_VALUE;
-
-        for (Entity currentClass : entities) {
-            if (currentClass.getCategory() == MetricCategory.Class) {
-                final double dist = entity.distance(currentClass);
-                if (dist < minDist) {
-                    minDist = dist;
-                    candidateClass = currentClass;
-                }
-            }
+    private Holder getNearestClass(Entity entity, ClassEntity targetClass, Holder holder) {
+        final double distance = entity.distance(targetClass);
+        if (holder.distance > distance) {
+            holder.distance = distance;
+            holder.candidate = targetClass;
         }
-        return candidateClass;
+        return holder;
     }
 
-    private void processMethod(Map<String, String> refactorings, Entity currentEntity, Entity nearestClass) {
-        final PsiMethod method = (PsiMethod) currentEntity.getPsiElement();
-        final PsiClass classToMoveFrom = method.getContainingClass();
-        final PsiClass classToMoveTo = (PsiClass) nearestClass.getPsiElement();
-
-        final Set<PsiClass> supersTo = PSIUtil.getAllSupers(classToMoveTo, allClasses);
-        final Set<PsiClass> supersFrom = PSIUtil.getAllSupers(classToMoveFrom, allClasses);
-
-        if (supersTo.contains(classToMoveFrom) || supersFrom.contains(classToMoveTo)) {
-            return;
-        }
-
-        supersFrom.retainAll(supersTo);
-
-        final boolean isOverride = supersFrom.stream()
-                .flatMap(c -> Arrays.stream(c.getMethods()))
-                .anyMatch(method::equals);
-
-        if (!isOverride) {
-            refactorings.put(currentEntity.getName(), nearestClass.getClassName());
-            currentEntity.moveToClass((PsiClass) nearestClass.getPsiElement());
-            nearestClass.removeFromClass((PsiMethod) currentEntity.getPsiElement());
-        }
+    private class Holder {
+        private double distance = Double.POSITIVE_INFINITY;
+        private ClassEntity candidate;
     }
 
-    public void printTableDistances() {
-        int maxLength = 0;
-        for (Entity ent : entities) {
-            maxLength = Math.max(maxLength, ent.getName().length() + 4);
-        }
+    private Holder min(Holder first, Holder second) {
+        return first.distance > second.distance ? second : first;
+    }
 
-        System.out.print(String.format("%1$" + maxLength + "s", ""));
-        for (Entity ent : entities) {
-            final String name = String.format("%1$" + maxLength + "s", ent.getName());
-            System.out.print(name);
-        }
-        System.out.println();
-
-        for (Entity ent : entities) {
-            final String name = String.format("%1$" + maxLength + "s", ent.getName());
-            System.out.print(name);
-            for (Entity entity : entities) {
-                final double dist = ent.distance(entity);
-                String d = "";
-                d = dist == Double.MAX_VALUE
-                        ? String.format("%1$" + maxLength + "s", "inf")
-                        : String.format("  %." + (maxLength - 4) + "f", Double.valueOf(dist));
-                System.out.print(d);
-            }
-            System.out.println();
+    private void processMethod(Map<String, String> refactorings, Entity method, ClassEntity nearestClass) {
+        if (method.isMovable()) {
+            final ClassEntity containingClass = classesByName.get(method.getClassName());
+            refactorings.put(method.getName(), nearestClass.getClassName());
+            containingClass.removeFromClass(method.getName());
+            nearestClass.addToClass(method.getName());
         }
     }
 }

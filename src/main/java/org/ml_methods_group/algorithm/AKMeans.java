@@ -16,91 +16,96 @@
 
 package org.ml_methods_group.algorithm;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMethod;
-import com.sixrr.metrics.MetricCategory;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 
 import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Stream;
 
-public class AKMeans {
-    public AKMeans(Iterable<Entity> entityList, int steps) {
+public class AKMeans extends Algorithm {
+    private final List<Entity> points = new ArrayList<>();
+    private final List<Integer> indexes = new ArrayList<>();
+    private final List<Integer> communityID = new ArrayList<>();
+    private final List<Set<Entity>> communities = new ArrayList<>();
+    private final int steps;
+    private int numberOfClasses = 0;
+    private int newClassCount = 0;
+
+    public AKMeans(int steps) {
+        super("AKMeans", true);
         this.steps = steps;
-        for (Entity e : entityList) {
-            if (e.getCategory() != MetricCategory.Class) {
-                points.add(e);
-                communityIds.put(e, "");
-            } else {
-                numberOfClasses++;
-                allClasses.add((PsiClass) e.getPsiElement());
-            }
-        }
+    }
+
+    public AKMeans() {
+        this(50);
+    }
+
+    private void init(EntitySearchResult entities) {
+        points.clear();
+        communities.clear();
+        communityID.clear();
+        newClassCount = 0;
+        numberOfClasses = entities.getClasses().size();
+        Stream.of(entities.getMethods(), entities.getFields())
+                .flatMap(List::stream)
+                .peek(x -> communityID.add(-1))
+                .forEach(points::add);
+        communityID.addAll(Collections.nCopies(points.size(), -1));
+        Stream.iterate(0, x -> x + 1)
+                .sequential()
+                .limit(points.size())
+                .forEach(indexes::add);
     }
 
     private void initializeCenters() {
         final List<Entity> entities = new ArrayList<>(points);
         Collections.shuffle(entities);
 
-        for (int i = 0; i < numberOfClasses; ++i) {
-            final Entity center = entities.get(i);
-            communities.put(center.getName(), new HashSet<>(Collections.singletonList(center)));
+        for (int i = 0; i < numberOfClasses; i++) {
+            final Set<Entity> community = new HashSet<>();
+            community.add(entities.get(i));
+            communityID.set(i, i);
+            communities.add(community);
         }
     }
 
-    public Map<String, String> run() {
+    @Override
+    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+        init(context.entities);
         final Map<String, String> refactorings = new HashMap<>();
         initializeCenters();
 
-        for (int step = 0; step < steps; ++step) {
-            boolean isMoved = false;
-            final Map<Entity, String> newCommunities = new HashMap<>();
-            for (Entity entity : points) {
-                final String newCenter = findNearestCommunity(entity);
-                if (newCenter.isEmpty()) {
-                    continue;
-                }
-
-                if (!newCenter.equals(communityIds.get(entity))) {
-                    isMoved = true;
-                }
-
-                newCommunities.put(entity, newCenter);
-                if (!communityIds.get(entity).equals(newCenter)) {
-                    System.out.println("Move " + entity.getName() + " to " + newCenter + ", " + distToCommunity(entity, newCenter));
-                }
+        for (int step = 0; step < steps; step++) {
+            reportProgress((double) step / steps, context);
+            final Map<Integer, Integer> movements =
+                    runParallel(indexes, context, HashMap::new, this::findNearestCommunity, Algorithm::combineMaps);
+            for (Entry<Integer, Integer> movement : movements.entrySet()) {
+                moveToCommunity(movement.getKey(), movement.getValue());
             }
-
-            for (Entity entity : newCommunities.keySet()) {
-                moveToCommunity(entity, newCommunities.get(entity));
-            }
-            System.out.println();
-
-            if (!isMoved) {
+            if (movements.size() == 0) {
                 break;
             }
         }
 
-        for (String center : communities.keySet()) {
-            final String newName = receiveClassName(center);
-            communities.get(center).stream()
+        for (Set<Entity> community : communities) {
+            final String newName = receiveClassName(community);
+            community.stream()
                     .filter(e -> !e.getClassName().equals(newName))
+                    .filter(Entity::isMovable)
                     .forEach(e -> refactorings.put(e.getName(), newName));
         }
 
         return refactorings;
     }
 
-    private String receiveClassName(String center) {
+    private String receiveClassName(Set<Entity> entities) {
         String name = "";
-        Integer maxClassCount = Integer.valueOf(0);
+        Integer maxClassCount = 0;
         final Map<String, Integer> classCounts = new HashMap<>();
-        for (Entity entity : communities.get(center)) {
+        for (Entity entity : entities) {
             final String className = entity.getClassName();
-            if (!classCounts.containsKey(className)) {
-                classCounts.put(className, 0);
-            }
-
-            classCounts.put(className, Integer.valueOf(classCounts.get(className) + 1));
+            classCounts.put(className, classCounts.getOrDefault(className, 0) + 1);
         }
 
         for (String className : classCounts.keySet()) {
@@ -118,67 +123,47 @@ public class AKMeans {
         return name;
     }
 
-    private String findNearestCommunity(Entity entity) {
-        double minD = Double.MAX_VALUE;
-        String id = "";
-        for (String center : communities.keySet()) {
-            double d = distToCommunity(entity, center);
-            if (!canMove(entity, center)) {
-                d = Double.MAX_VALUE;
-            }
-            if (d < minD) {
-                minD = d;
-                id = center;
+    private Map<Integer, Integer> findNearestCommunity(int entityID, Map<Integer, Integer> accumulator) {
+        double minDistance = Double.POSITIVE_INFINITY;
+        int targetID = -1;
+        final Entity entity = points.get(entityID);
+        for (int centerID = 0; centerID < communities.size(); centerID++) {
+            double distance = distToCommunity(entity, centerID);
+            if (distance < minDistance) {
+                minDistance = distance;
+                targetID = centerID;
             }
         }
-
-        return id;
+        if (targetID != -1 && targetID != communityID.get(entityID)) {
+            accumulator.put(entityID, targetID);
+        }
+        return accumulator;
     }
 
-    private boolean canMove(Entity entity, String center) {
-        if (entity.getCategory() != MetricCategory.Method) {
-            return true;
+    private double distToCommunity(Entity entity, int centerID) {
+        final Set<Entity> community = communities.get(centerID);
+        if (community.isEmpty()) {
+            return Double.POSITIVE_INFINITY;
         }
-
-        final PsiMethod method = (PsiMethod) entity.getPsiElement();
-        final Set<Entity> cluster = communities.get(center);
-        for (Entity e : cluster) {
-            if (e.getCategory() != MetricCategory.Method) {
-                continue;
-            }
-
-            final PsiMethod component = (PsiMethod) e.getPsiElement();
-
-            final Set<PsiMethod> supers = PSIUtil.getAllSupers(component, allClasses);
-            supers.retainAll(PSIUtil.getAllSupers(method));
-            if (!supers.isEmpty()) {
-                return false;
+        double maxDistance = 0.0;
+        for (Entity point : community) {
+            final double distance = entity.distance(point);
+            maxDistance = Math.max(distance, maxDistance);
+            if (maxDistance == Double.POSITIVE_INFINITY) {
+                break;
             }
         }
 
-        return true;
+        return maxDistance;
     }
 
-    private double distToCommunity(Entity entity, String center) {
-        double minD = 0.0;
-        for (Entity point : communities.get(center)) {
-            final double d = entity.distance(point);
-            minD = Math.max(d, minD);
+    private void moveToCommunity(int entityID, int centerID) {
+        final Entity entity = points.get(entityID);
+        final int currentCommunity = communityID.get(entityID);
+        if (currentCommunity != -1) {
+            communities.get(currentCommunity).remove(points.get(entityID));
         }
-
-        return minD;
+        communities.get(centerID).add(entity);
+        communityID.set(entityID, centerID);
     }
-
-    private void moveToCommunity(Entity entity, String id) {
-        communities.get(id).add(entity);
-        communityIds.put(entity, id);
-    }
-
-    private final List<Entity> points = new ArrayList<>();
-    private final Map<String, Set<Entity>> communities = new HashMap<>();
-    private final Map<Entity, String> communityIds = new HashMap<>();
-    private final Set<PsiClass> allClasses = new HashSet<>();
-    private int numberOfClasses = 0;
-    private int steps = 0;
-    private int newClassCount = 0;
 }

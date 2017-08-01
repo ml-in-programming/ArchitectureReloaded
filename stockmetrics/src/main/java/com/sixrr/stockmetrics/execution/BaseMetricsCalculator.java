@@ -44,7 +44,7 @@ import com.sixrr.stockmetrics.metricModel.BaseMetric;
 
 public abstract class BaseMetricsCalculator implements MetricCalculator {
 
-    private static final Key<DependencyMapImpl> dependencyMapKey = new Key<DependencyMapImpl>("dependencyMap");
+    private static final Key<DependencyMapImpl> dependencyMapKey = new Key<>("dependencyMap");
 
     protected Metric metric = null;
     protected MetricsResultsHolder resultsHolder = null;
@@ -57,7 +57,7 @@ public abstract class BaseMetricsCalculator implements MetricCalculator {
         this.metric = metric;
         this.resultsHolder = resultsHolder;
         this.executionContext = executionContext;
-        if (((BaseMetric)metric).requiresDependents() && getDependencyMap() == null) {
+        if (((BaseMetric) metric).requiresDependents() && getDependencyMap() == null) {
             calculateDependencies();
         }
         visitor = createVisitor();
@@ -76,7 +76,8 @@ public abstract class BaseMetricsCalculator implements MetricCalculator {
     protected abstract PsiElementVisitor createVisitor();
 
     @Override
-    public void endMetricsRun() {}
+    public void endMetricsRun() {
+    }
 
     public DependencyMap getDependencyMap() {
         return executionContext.getUserData(dependencyMapKey);
@@ -104,9 +105,11 @@ public abstract class BaseMetricsCalculator implements MetricCalculator {
             @Override
             public boolean process(VirtualFile virtualFile) {
                 final String fileName = virtualFile.getName();
-                progressIndicator.setText(
-                        StockMetricsBundle.message("building.dependency.structure.progress.string", fileName));
-                progressIndicator.setFraction((double) dependencyProgress / (double) allFilesCount);
+                if (!ApplicationManager.getApplication().isUnitTestMode()) {
+                    progressIndicator.setText(
+                            StockMetricsBundle.message("building.dependency.structure.progress.string", fileName));
+                    progressIndicator.setFraction((double) dependencyProgress / (double) allFilesCount);
+                }
                 dependencyProgress++;
                 if (virtualFile.getFileType() != JavaFileType.INSTANCE) {
                     return true;

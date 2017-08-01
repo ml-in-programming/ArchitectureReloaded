@@ -19,8 +19,6 @@ package org.ml_methods_group.algorithm.entity;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRun;
-import org.ml_methods_group.algorithm.PropertiesFinder;
-import org.ml_methods_group.algorithm.RelevantProperties;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,14 +49,14 @@ public class VectorCalculator {
         return this;
     }
 
-    double[] calculateVector(MetricsRun metricsRun, PropertiesFinder finder, Entity entity) {
+    double[] calculateVector(MetricsRun metricsRun, Entity entity) {
         final double[] vector = new double[dimension];
         applyMetricsDependencies(metricsRun.getResultsForCategory(entity.getCategory()), entity.getName(), vector);
         if (entity.getCategory() != Class) {
             applyMetricsDependencies(metricsRun.getResultsForCategory(Class), entity.getClassName(), vector);
         }
         if (!propertiesDependencies.isEmpty()) {
-            applyPropertiesDependencies(finder.getProperties(entity.getName()), vector);
+            applyPropertiesDependencies(entity.getRelevantProperties(), vector);
         }
         for (Entry<Integer, Double> entry : constValues.entrySet()) {
             vector[entry.getKey()] = entry.getValue();

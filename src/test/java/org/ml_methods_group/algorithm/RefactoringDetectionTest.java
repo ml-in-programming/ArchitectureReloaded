@@ -22,7 +22,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import com.sixrr.metrics.profile.MetricsProfile;
 import org.ml_methods_group.algorithm.entity.Entity;
-import org.ml_methods_group.algorithm.properties.finder_strategy.NewStrategy;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.utils.MetricsProfilesUtil;
 
@@ -55,7 +54,8 @@ public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
         profile = MetricsProfilesUtil.createProfile("test_profile", Entity.getRequestedMetrics());
 
         new RefactoringExecutionContext(project, analysisScope, profile,
-                RefactoringDetectionTest::calculateMoveMethodRefactorings, NewStrategy.getInstance());
+                RefactoringDetectionTest::calculateMoveMethodRefactorings)
+                .executeSynchronously();
     }
 
     private static void calculateMoveMethodRefactorings(RefactoringExecutionContext context) {
@@ -63,12 +63,14 @@ public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
         assertEquals(6, context.getMethodsCount());
         assertEquals(4, context.getFieldsCount());
 
-        final Map<String, String> refactoringsCCDA = context.calculateAlgorithmForName("CCDA");
+        final Map<String, String> refactoringsCCDA = context.getResultForName("CCDA")
+                .getRefactorings();
         assertEquals(1, refactoringsCCDA.size());
         assertEquals("ClassB.methodB1()", refactoringsCCDA.keySet().toArray()[0]);
         assertEquals("ClassA", refactoringsCCDA.get("ClassB.methodB1()"));
 
-        final Map<String, String> refactoringsMRI = context.calculateAlgorithmForName("MRI");
+        final Map<String, String> refactoringsMRI = context.getResultForName("MRI")
+                .getRefactorings();
         assertEquals(1, refactoringsMRI.size());
         assertEquals("ClassB.methodB1()", refactoringsMRI.keySet().toArray()[0]);
         assertEquals("ClassA", refactoringsMRI.get("ClassB.methodB1()"));
@@ -89,7 +91,8 @@ public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
 //
 //        assertEquals(new HashSet(Collections.singletonList("ClassB.methodB1()")), common);
 
-        final Map<String, String> refactoringsAKMeans = context.calculateAlgorithmForName("AKMeans");
+        final Map<String, String> refactoringsAKMeans = context.getResultForName("AKMeans")
+                .getRefactorings();
 
 //        Set<String> refactoringsARIEC = new HashSet<>(refactoringsAKMeans.keySet());
 //        refactoringsARIEC.retainAll(refactoringsMRI.keySet());
@@ -107,13 +110,15 @@ public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
         // TODO: make AKMeans more deterministic somehow and get some assertions here
 //        assertEquals(new HashSet(Collections.singletonList("ClassB.methodB1()")), refactoringsARIEC);
 
-        final Map<String, String> refactoringsHAC = context.calculateAlgorithmForName("HAC");
+        final Map<String, String> refactoringsHAC = context.getResultForName("HAC")
+                .getRefactorings();
 
         final Map<String, String> expectedHAC = new HashMap<>();
         expectedHAC.put("ClassB.methodB1()", "ClassA");
         assertEquals(expectedHAC, refactoringsHAC);
 
-        final Map<String, String> refactoringsARI =context.calculateAlgorithmForName("ARI");
+        final Map<String, String> refactoringsARI =context.getResultForName("ARI")
+                .getRefactorings();
         assertEquals(expectedHAC, refactoringsARI);
     }
 }
