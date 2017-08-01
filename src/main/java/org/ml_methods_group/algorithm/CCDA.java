@@ -16,19 +16,24 @@
 
 package org.ml_methods_group.algorithm;
 
+import org.apache.log4j.Logger;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.RelevantProperties;
+import org.ml_methods_group.config.Logging;
 
 import java.util.*;
 import java.util.stream.Stream;
 
 public class CCDA extends Algorithm {
+    private static final Logger LOGGER = Logging.getLogger(CCDA.class);
+
     private final Map<String, Integer> communityIds = new HashMap<>();
     private final List<String> idCommunity = new ArrayList<>();
     private final List<Integer> aCoefficients = new ArrayList<>();
     private final List<Entity> nodes = new ArrayList<>();
     private final Map<String, Set<String>> graph = new HashMap<>();
+    private ExecutionContext context;
 
     private double quality;
     private double edges;
@@ -39,7 +44,9 @@ public class CCDA extends Algorithm {
 
     }
 
-    private void init(EntitySearchResult entities) {
+    private void init() {
+        final EntitySearchResult entities = context.entities;
+        LOGGER.info("Init CCDA");
         communityIds.clear();
         idCommunity.clear();
         nodes.clear();
@@ -59,7 +66,9 @@ public class CCDA extends Algorithm {
     }
 
     private void buildGraph() {
+        LOGGER.info("Building graph");
         graph.clear();
+        int iteration = 0;
         for (Entity entity : nodes) {
             final RelevantProperties properties = entity.getRelevantProperties();
             final Set<String> neighbors = graph.getOrDefault(entity.getName(), new HashSet<>());
@@ -71,17 +80,11 @@ public class CCDA extends Algorithm {
                 addNode(field, entity, neighbors);
             }
 
+            context.checkCanceled();
             graph.put(entity.getName(), neighbors);
+            iteration++;
+            reportProgress((0.1 * iteration) / nodes.size(), context);
         }
-
-        System.out.println("Graph built:");
-        for (String ent : graph.keySet()) {
-            System.out.println(ent);
-            for (String neighbor : graph.get(ent)) {
-                System.out.println("  -> " + neighbor);
-            }
-        }
-        System.out.println("-----");
     }
 
     private void addNode(String entityName, Entity entity, Collection<String> neighbors) {
@@ -95,8 +98,10 @@ public class CCDA extends Algorithm {
 
     @Override
     protected Map<String, String> calculateRefactorings(ExecutionContext context) {
-        init(context.entities);
+        this.context = context;
+        init();
         final Map<String, String> refactorings = new HashMap<>();
+        context.checkCanceled();
         quality = calculateQualityIndex();
         double progress = 0;
         while (true) {
@@ -107,12 +112,10 @@ public class CCDA extends Algorithm {
             refactorings.put(optimum.targetEntity.getName(), idCommunity.get(optimum.community - 1));
             move(optimum.targetEntity, optimum.community, false);
             communityIds.put(optimum.targetEntity.getName(), optimum.community);
-
-            System.out.println("move " + optimum.targetEntity.getName() + " to " + idCommunity.get(optimum.community - 1));
-            System.out.println("quality index is now: " + quality);
-            System.out.println();
             progress = Math.max(progress, eps / optimum.delta);
-            reportProgress(progress, context);
+            reportProgress(0.1 + 0.9 * progress, context);
+            LOGGER.info("Finish iteration. Current quality is " + quality + " (delta is " + optimum.delta + ")");
+            context.checkCanceled();
         }
 
         return refactorings;
@@ -131,6 +134,7 @@ public class CCDA extends Algorithm {
                 optimum.community = i;
             }
         }
+        context.checkCanceled();
         return optimum;
     }
 

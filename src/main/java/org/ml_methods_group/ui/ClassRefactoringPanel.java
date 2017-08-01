@@ -17,7 +17,6 @@
 package org.ml_methods_group.ui;
 
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.ide.util.EditorHelper;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TableSpeedSearch;
@@ -115,7 +114,7 @@ class ClassRefactoringPanel extends JPanel {
         selectAllButton.setEnabled(false);
         table.setEnabled(false);
         final Map<String, String> movements = model.pullSelected();
-        RefactoringUtil.moveRefactoring(movements, project, scope);
+        RefactoringUtil.moveRefactoring(movements, scope);
         table.setEnabled(true);
         doRefactorButton.setEnabled(true);
         selectAllButton.setEnabled(true);
@@ -127,8 +126,7 @@ class ClassRefactoringPanel extends JPanel {
         if (selectedRow == -1 || selectedColumn == -1 || selectedColumn == SELECTION_COLUMN_INDEX) {
             return;
         }
-        PsiSearchUtil.findElement(model.getUnitAt(selectedRow, selectedColumn), scope)
-                .ifPresent(EditorHelper::openInEditor);
+        PsiSearchUtil.openDefinition(model.getUnitAt(selectedRow, selectedColumn), scope);
     }
 
     private void onSelectionChanged() {
