@@ -17,9 +17,13 @@
 package org.ml_methods_group.utils;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.ide.util.EditorHelper;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -28,14 +32,8 @@ import java.util.function.Function;
 import static com.sixrr.metrics.utils.MethodUtils.calculateSignature;
 
 public class PsiSearchUtil {
-    private static <V> Function<Object, V> nullSupplier() {
-        return x -> null;
-    }
 
-    public static class SearchOptions<K, V> {
-        Function<? super PsiClass, ? extends K> classKeyExtractor = nullSupplier();
-        Function<? super PsiMethod, ? extends K> methodKeyExtractor = nullSupplier();
-        Function<? super PsiField, ? extends K> fieldKeyExtractor = nullSupplier();
+    public static class SearchOptions<V> {
         Function<? super PsiElement, V> resultExtractor;
         AnalysisScope scope;
     }
@@ -46,11 +44,8 @@ public class PsiSearchUtil {
     }
 
     public static <V> Map<String, V> findAllElements(Set<String> names, AnalysisScope scope,
-                                                              Function<PsiElement, V> mapper) {
-        final SearchOptions<String, V> options = new SearchOptions<>();
-        options.classKeyExtractor = PsiSearchUtil::getHumanReadableName;
-        options.methodKeyExtractor = PsiSearchUtil::getHumanReadableName;
-        options.fieldKeyExtractor = PsiSearchUtil::getHumanReadableName;
+                                                     Function<PsiElement, V> mapper) {
+        final SearchOptions<V> options = new SearchOptions<>();
         options.resultExtractor = mapper;
         options.scope = scope;
         return runSafeSearch(names, options);
@@ -60,13 +55,23 @@ public class PsiSearchUtil {
         return findElement(humanReadableName, scope, Function.identity());
     }
 
-    public static Optional<PsiMethod> findMethodByName(String name, AnalysisScope scope) {
-        final SearchOptions<String, PsiMethod> options = new SearchOptions<>();
-        options.methodKeyExtractor = PsiMethod::getName;
-        options.resultExtractor = PsiMethod.class::cast;
-        options.scope = scope;
-        final Map<String, PsiMethod> result = runSafeSearch(Collections.singleton(name), options);
-        return Optional.ofNullable(result.get(name));
+    public static void openDefinition(String unit, AnalysisScope scope) {
+        new Task.Backgroundable(scope.getProject(), "Search Definition"){
+            PsiElement result;
+
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+                indicator.setIndeterminate(true);
+                result = findElement(unit, scope).orElse(null);
+            }
+
+            @Override
+            public void onSuccess() {
+                if (result != null) {
+                    EditorHelper.openInEditor(result);
+                }
+            }
+        }.queue();
     }
 
     public static String getHumanReadableName(@Nullable PsiElement element) {
@@ -81,21 +86,31 @@ public class PsiSearchUtil {
         return "???";
     }
 
-    public static <K, V> Map<K, V> runSafeSearch(Set<K> keys, SearchOptions<K, V> options) {
+    private static <V> Map<String, V> runSafeSearch(Set<String> keys, SearchOptions<V> options) {
         return ApplicationManager.getApplication()
-                .runReadAction((Computable<Map<K, V>>) () -> runSearch(keys, options));
+                .runReadAction((Computable<Map<String, V>>) () -> runSearch(keys, options));
     }
 
-    private static <K, V> Map<K, V> runSearch(Set<K> keys, SearchOptions<K, V> options) {
-        final Map<K, V> results = new HashMap<>();
+    private static <V> Map<String, V> runSearch(Set<String> keys, SearchOptions<V> options) {
+        final Map<String, V> results = new HashMap<>();
+        final Set<String> paths = paths(keys);
         options.scope.accept(new JavaRecursiveElementVisitor() {
             @Override
+            public void visitPackage(PsiPackage aPackage) {
+                if (paths.contains(aPackage.getQualifiedName())) {
+                    super.visitPackage(aPackage);
+                }
+            }
+
+            @Override
             public void visitClass(PsiClass aClass) {
-                super.visitClass(aClass);
-                final K currentKey = options.classKeyExtractor.apply(aClass);
+                final String currentKey = getHumanReadableName(aClass);
                 if (keys.contains(currentKey)) {
                     final V value = options.resultExtractor.apply(aClass);
                     results.put(currentKey, value);
+                }
+                if (paths.contains(currentKey)) {
+                    super.visitClass(aClass);
                 }
             }
 
@@ -103,7 +118,7 @@ public class PsiSearchUtil {
             @Override
             public void visitMethod(PsiMethod method) {
                 super.visitMethod(method);
-                final K currentKey = options.methodKeyExtractor.apply(method);
+                final String currentKey = getHumanReadableName(method);
                 if (keys.contains(currentKey)) {
                     final V value = options.resultExtractor.apply(method);
                     results.put(currentKey, value);
@@ -113,7 +128,7 @@ public class PsiSearchUtil {
             @Override
             public void visitField(PsiField field) {
                 super.visitField(field);
-                final K currentKey = options.fieldKeyExtractor.apply(field);
+                final String currentKey = getHumanReadableName(field);
                 if (keys.contains(currentKey)) {
                     final V value = options.resultExtractor.apply(field);
                     results.put(currentKey, value);
@@ -121,5 +136,17 @@ public class PsiSearchUtil {
             }
         });
         return results;
+    }
+
+    private static Set<String> paths(Set<String> keys) {
+        final Set<String> result = new HashSet<>();
+        for (String key : keys) {
+            for (int i = 0; i < key.length(); i++) {
+                if (key.charAt(i) == '.') {
+                    result.add(key.substring(0, i));
+                }
+            }
+        }
+        return result;
     }
 }
