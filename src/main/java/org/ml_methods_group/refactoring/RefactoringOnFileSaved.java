@@ -53,7 +53,9 @@ public class RefactoringOnFileSaved implements ApplicationComponent {
                 for (Project project : ProjectManager.getInstance().getOpenProjects()) {
                     if (!project.isDefault() && project.isInitialized() && !project.isDisposed()
                             && ProjectRootManager.getInstance(project).getFileIndex().isInContent(savedFile)) {
-                        AutomaticRefactoringAction.getInstance(project).analyzeBackground(project, new AnalysisScope(project));
+                        AutomaticRefactoringAction.getInstance(project).analyzeBackground(project,
+                                new AnalysisScope(project),
+                                project.getName() + project.getLocationHash() + "|saved");
                     }
                 }
             }
