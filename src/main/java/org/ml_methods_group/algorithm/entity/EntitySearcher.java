@@ -175,11 +175,13 @@ public class EntitySearcher {
             }
             final RelevantProperties classProperties = entity.getRelevantProperties();
             classProperties.addClass(aClass, strategy.getWeight(aClass, aClass));
-            for (PsiClass superClass : PSIUtil.getAllSupers(aClass)) {
-                if (superClass.isInterface()) {
-                    classProperties.addClass(superClass, strategy.getWeight(aClass, superClass));
-                } else {
-                    propertiesFor(superClass).ifPresent(p -> p.addClass(aClass, strategy.getWeight(superClass, aClass)));
+            if (strategy.processSupers()) {
+                for (PsiClass superClass : PSIUtil.getAllSupers(aClass)) {
+                    if (superClass.isInterface()) {
+                        classProperties.addClass(superClass, strategy.getWeight(aClass, superClass));
+                    } else {
+                        propertiesFor(superClass).ifPresent(p -> p.addClass(aClass, strategy.getWeight(superClass, aClass)));
+                    }
                 }
             }
             Arrays.stream(aClass.getMethods())
@@ -212,12 +214,14 @@ public class EntitySearcher {
             if (currentMethod == null) {
                 currentMethod = method;
             }
-            PSIUtil.getAllSupers(method).stream()
-                    .map(entities::get)
-                    .filter(Objects::nonNull)
-                    .forEach(superMethod -> superMethod
-                            .getRelevantProperties()
-                            .addOverrideMethod(method, strategy.getWeight(superMethod, method)));
+            if (strategy.processSupers()) {
+                PSIUtil.getAllSupers(method).stream()
+                        .map(entities::get)
+                        .filter(Objects::nonNull)
+                        .forEach(superMethod -> superMethod
+                                .getRelevantProperties()
+                                .addOverrideMethod(method, strategy.getWeight(superMethod, method)));
+            }
 //            Arrays.stream(method.getParameterList().getParameters())
 //                    .map(PsiParameter::getType)
 //                    .map(PsiType::getCanonicalText)

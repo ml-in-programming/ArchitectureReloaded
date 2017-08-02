@@ -121,9 +121,11 @@ public class RelevantProperties {
 
     int sizeOfIntersection(RelevantProperties properties) {
         int result = 0;
-        result += sizeOfIntersectWeighted(classes, properties.classes, Math::min);
-        result += sizeOfIntersectWeighted(allMethods, properties.allMethods, Math::min);
-        result += sizeOfIntersectWeighted(fields, properties.fields, Math::min);
+
+        final BinaryOperator<Integer> bop = Math::min;
+        result += sizeOfIntersectWeighted(classes, properties.classes, bop);
+        result += sizeOfIntersectWeighted(allMethods, properties.allMethods, bop);
+        result += sizeOfIntersectWeighted(fields, properties.fields, bop);
 
         return result;
     }
@@ -138,10 +140,11 @@ public class RelevantProperties {
     public int sizeOfUnion(RelevantProperties other) {
         int result = 0;
 
+        final BinaryOperator<Integer> bop = Math::max;
         result += size() + other.size();
-        result -= sizeOfIntersectWeighted(classes, other.classes, Math::addExact);
-        result -= sizeOfIntersectWeighted(allMethods, other.allMethods, Math::addExact);
-        result -= sizeOfIntersectWeighted(fields, other.fields, Math::addExact);
+        result -= sizeOfIntersectWeighted(classes, other.classes, bop);
+        result -= sizeOfIntersectWeighted(allMethods, other.allMethods, bop);
+        result -= sizeOfIntersectWeighted(fields, other.fields, bop);
         return result;
     }
 

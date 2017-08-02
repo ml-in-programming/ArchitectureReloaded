@@ -25,6 +25,7 @@ public interface FinderStrategy {
 
     /**
      * Verifies that file needs to be processed by finder.
+     *
      * @param file PsiFile to check.
      * @return {@code True} if file needs to be processed.
      */

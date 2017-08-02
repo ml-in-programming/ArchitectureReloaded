@@ -93,8 +93,10 @@ public abstract class Entity {
         }
         // TODO: fix formula
         ans += (1 - rpIntersect /
-                (1.0 * relevantProperties.size() + entity.relevantProperties.size() - rpIntersect));
+//                (1.0 * relevantProperties.size() + entity.relevantProperties.size() - rpIntersect));
+                (1.0 * relevantProperties.sizeOfUnion(entity.getRelevantProperties())));
 
+//        ans +=  1.0 / rpIntersect;
         return Math.sqrt(ans);
     }
 
