@@ -55,6 +55,7 @@ public class DistanceDialog extends DialogWrapper {
         comparision.addMouseListener((DoubleClickListener) this::onDoubleClick);
         model.setLeftEntity(left);
         model.setRightEntity(right);
+        updateInfo(left, right);
         setModal(false);
         setTitle(ArchitectureReloadedBundle.message("distance.dialog.title"));
         init();

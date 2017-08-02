@@ -23,6 +23,7 @@ import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.PsiSearchUtil;
 import org.ml_methods_group.utils.RefactoringUtil;
@@ -34,7 +35,9 @@ import java.util.List;
 import java.util.Map;
 
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
+import static org.ml_methods_group.ui.RefactoringsTableModel.MOVE_TO_COLUMN_INDEX;
 import static org.ml_methods_group.ui.RefactoringsTableModel.SELECTION_COLUMN_INDEX;
+import static org.ml_methods_group.ui.RefactoringsTableModel.UNIT_COLUMN_INDEX;
 
 class ClassRefactoringPanel extends JPanel {
     private static final String SELECT_ALL_BUTTON_TEXT_KEY = "select.all.button";
@@ -132,5 +135,17 @@ class ClassRefactoringPanel extends JPanel {
     private void onSelectionChanged() {
         final int selectedRow = table.getSelectedRow();
         info.setText(selectedRow == -1 ? "" : warnings.get(selectedRow));
+    }
+
+    @Nullable
+    public String getSelectedUnit() {
+        final int selectedRow = table.getSelectedRow();
+        return selectedRow == -1 ? null : model.getUnitAt(selectedRow, UNIT_COLUMN_INDEX);
+    }
+
+    @Nullable
+    public String getSelectedMovement() {
+        final int selectedRow = table.getSelectedRow();
+        return selectedRow == -1 ? null : model.getUnitAt(selectedRow, MOVE_TO_COLUMN_INDEX);
     }
 }
