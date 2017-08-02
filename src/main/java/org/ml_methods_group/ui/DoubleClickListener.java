@@ -24,7 +24,7 @@ public interface DoubleClickListener extends MouseListener {
     void onDoubleClick();
 
     default void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() >= 2) {
+        if (e.getClickCount() >= 2 && e.getButton() == MouseEvent.BUTTON1) {
             onDoubleClick();
         }
     }

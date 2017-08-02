@@ -46,13 +46,15 @@ public class DistanceDialog extends DialogWrapper {
     private final JLabel generalInfo = new JLabel();
     private final JCheckBox showOnlyIntersection = new JCheckBox("Show only intersection");
 
-    DistanceDialog(AnalysisScope scope, EntitySearchResult searchResult) {
+    DistanceDialog(AnalysisScope scope, EntitySearchResult searchResult, Entity left, Entity right) {
         super(scope.getProject(), true);
         this.searchResult = searchResult;
         this.scope = scope;
         this.project = scope.getProject();
         comparision.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         comparision.addMouseListener((DoubleClickListener) this::onDoubleClick);
+        model.setLeftEntity(left);
+        model.setRightEntity(right);
         setModal(false);
         setTitle(ArchitectureReloadedBundle.message("distance.dialog.title"));
         init();
@@ -149,50 +151,42 @@ public class DistanceDialog extends DialogWrapper {
 
         private void refresh() {
             final boolean intersectionOnly = showOnlyIntersection.isSelected();
-            final List<String> leftProperties = getAllProperties(left);
-            final List<String> rightProperties = getAllProperties(right);
+            final Comparator<String> comparator = Comparator.nullsLast(String::compareTo);
+            final List<String> leftProperties = getAllProperties(left, comparator);
+            final List<String> rightProperties = getAllProperties(right, comparator);
             leftData.clear();
             rightData.clear();
             int leftIndex = 0;
             int rightIndex = 0;
-            while (leftIndex < leftProperties.size() && rightIndex < rightProperties.size()) {
-                final String leftValue = leftProperties.get(leftIndex);
-                final String rightValue = rightProperties.get(rightIndex);
-                final int cmp = leftValue.compareTo(rightValue);
+            while (leftIndex < leftProperties.size() || rightIndex < rightProperties.size()) {
+                String leftValue = getOrNull(leftProperties, leftIndex);
+                String rightValue = getOrNull(rightProperties, rightIndex);
+                final int cmp = comparator.compare(leftValue, rightValue);
                 if (cmp < 0) {
-                    if (!intersectionOnly) {
-                        leftData.add(leftValue);
-                        rightData.add("");
-                    }
-                    leftIndex++;
+                    rightValue = null;
                 } else if (cmp > 0) {
-                    if (!intersectionOnly) {
-                        rightData.add(rightValue);
-                        leftData.add("");
-                    }
-                    rightIndex++;
-                } else {
-                    leftData.add(leftValue);
-                    rightData.add(rightValue);
-                    leftIndex++;
-                    rightIndex++;
+                    leftValue = null;
                 }
-            }
-            if (!intersectionOnly) {
-                for (String data : leftProperties.subList(leftIndex, leftProperties.size())) {
-                    leftData.add(data);
-                    rightData.add("");
+                if (cmp == 0 || !intersectionOnly) {
+                    leftData.add(toStringOrEmpty(leftValue));
+                    rightData.add(toStringOrEmpty(rightValue));
                 }
-                for (String data : rightProperties.subList(rightIndex, rightProperties.size())) {
-                    leftData.add("");
-                    rightData.add(data);
-                }
+                leftIndex = leftValue != null ? leftIndex + 1 : leftIndex;
+                rightIndex = rightValue != null ? rightIndex + 1 : rightIndex;
             }
             fireTableDataChanged();
             fireTableStructureChanged();
         }
 
-        private List<String> getAllProperties(Entity entity) {
+        private String toStringOrEmpty(Object object) {
+            return object == null ? "" : object.toString();
+        }
+
+        private <T> T getOrNull(List<T> list, int index) {
+            return index < list.size() ? list.get(index) : null;
+        }
+
+        private List<String> getAllProperties(Entity entity, Comparator<String> comparator) {
             if (entity == null) {
                 return Collections.emptyList();
             }
@@ -202,7 +196,7 @@ public class DistanceDialog extends DialogWrapper {
             allPropertiesAsSet.addAll(properties.getAllMethods());
             allPropertiesAsSet.addAll(properties.getFields());
             final List<String> allPropertiesAsList = new ArrayList<>(allPropertiesAsSet);
-            allPropertiesAsList.sort(String::compareTo);
+            allPropertiesAsList.sort(comparator);
             return allPropertiesAsList;
         }
 

@@ -19,6 +19,7 @@ package org.ml_methods_group.ui;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
@@ -33,11 +34,15 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
 public class EntityPickerDialog extends DialogWrapper {
     private static final Dimension MINIMUM_SIZE = new Dimension(600, 300);
+    private static final int SUGGESTIONS_COUNT_LIMIT = 30;
 
     private final JTextField input = new JBTextField();
     private final SuggestionsModel model = new SuggestionsModel();
@@ -51,7 +56,28 @@ public class EntityPickerDialog extends DialogWrapper {
         setModal(true);
         setTitle(ArchitectureReloadedBundle.message("entity.picker.dialog.title"));
         setOKActionEnabled(false);
-        suggestionsTable.addMouseListener((DoubleClickListener) this::onDoubleClick);
+        suggestionsTable.addMouseListener(new DoubleClickListener() {
+            @Override
+            public void onDoubleClick() {
+                final int selectedRow = suggestionsTable.getSelectedRow();
+                if (selectedRow != -1) {
+                    selected = model.getEntity(selectedRow);
+                    close(0, true);
+                }
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                DoubleClickListener.super.mouseClicked(e);
+                if (e.getButton() != MouseEvent.BUTTON3) {
+                    return;
+                }
+                final int selectedRow = suggestionsTable.getSelectedRow();
+                if (selectedRow != -1) {
+                    input.setText(model.getEntity(selectedRow).getClassName());
+                }
+            }
+        });
         suggestionsTable.setModel(model);
         suggestionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         input.setToolTipText("Write any part of name of entity");
@@ -76,22 +102,19 @@ public class EntityPickerDialog extends DialogWrapper {
         }};
     }
 
-    private void onDoubleClick() {
-        final int selectedRow = suggestionsTable.getSelectedRow();
-        if (selectedRow != -1) {
-            selected = model.getEntity(selectedRow);
-            close(0, true);
-        }
-    }
-
     @Nullable
     @Override
     protected JComponent createCenterPanel() {
         final JPanel panel = new JPanel(new BorderLayout());
         panel.setMinimumSize(MINIMUM_SIZE);
         panel.add(input, BorderLayout.NORTH);
-        panel.add(suggestionsTable, BorderLayout.CENTER);
+        panel.add(ScrollPaneFactory.createScrollPane(suggestionsTable), BorderLayout.CENTER);
         return panel;
+    }
+
+    @Override
+    public void show() {
+        super.show();
     }
 
     public Entity getSelected() {
@@ -119,13 +142,13 @@ public class EntityPickerDialog extends DialogWrapper {
         }
 
         private void searchInList(List<? extends Entity> list) {
-            if (suggestions.size() >= 10) {
+            if (suggestions.size() >= SUGGESTIONS_COUNT_LIMIT) {
                 return;
             }
             for (Entity entity : list) {
                 if (entity.getName().contains(request)) {
                     suggestions.add(entity);
-                    if (suggestions.size() >= 10) {
+                    if (suggestions.size() >= SUGGESTIONS_COUNT_LIMIT) {
                         return;
                     }
                 }
@@ -140,6 +163,11 @@ public class EntityPickerDialog extends DialogWrapper {
             suggestions.clear();
             suggestions.addAll(list);
             fireTableDataChanged();
+        }
+
+        @Override
+        public String getColumnName(int column) {
+            return "Suggestions:";
         }
 
         @Override
