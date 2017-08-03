@@ -21,6 +21,7 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.*;
+import com.intellij.psi.util.PsiUtil;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.apache.log4j.Logger;
@@ -262,6 +263,10 @@ public class EntitySearcher {
             final PsiClass containingClass = field.getContainingClass();
             if (containingClass != null) {
                 fieldProperties.addClass(containingClass, strategy.getWeight(field, containingClass));
+                final PsiClass fieldClass = PsiUtil.resolveClassInType(field.getType());
+                if (fieldClass != null) {
+                    entities.get(containingClass).getRelevantProperties().addClass(fieldClass, strategy.getWeight(containingClass, fieldClass));
+                }
             }
             reportPropertiesCalculated();
             super.visitField(field);

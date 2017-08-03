@@ -66,7 +66,7 @@ public class NewStrategy implements FinderStrategy {
         }
         final PsiElement resolved = ((PsiReferenceExpression) e).resolve();
         return resolved instanceof PsiField || resolved instanceof PsiClass || resolved instanceof PsiMethod ||
-                resolved instanceof PsiThisExpression;
+                resolved instanceof PsiThisExpression || resolved instanceof PsiSuperExpression;
     }
 
     @Override
