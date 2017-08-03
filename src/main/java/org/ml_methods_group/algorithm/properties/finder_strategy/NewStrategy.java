@@ -17,15 +17,14 @@
 package org.ml_methods_group.algorithm.properties.finder_strategy;
 
 import com.intellij.psi.*;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.sixrr.metrics.utils.ClassUtils;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class NewStrategy implements FinderStrategy {
-    private final int PRIVATE_MEMBER_ACCESS_WEIGHT = 4 * DEFAULT_WEIGHT;
-    private final int STATIC_MEMBER_ACCESS_WEIGHT = DEFAULT_WEIGHT;
-    private final int MEMBER_ACCESS_WEIGHT = 2 * DEFAULT_WEIGHT;
+    private final int PRIVATE_MEMBER_ACCESS_WEIGHT = 6 * DEFAULT_WEIGHT;
+    private final int STATIC_MEMBER_ACCESS_WEIGHT = 2 * DEFAULT_WEIGHT;
+    private final int MEMBER_ACCESS_WEIGHT = 4 * DEFAULT_WEIGHT;
     private final int ITSELF_WEIGHT = MEMBER_ACCESS_WEIGHT;
 
     private static NewStrategy INSTANCE = new NewStrategy();
@@ -60,13 +59,14 @@ public class NewStrategy implements FinderStrategy {
 
     @Override
     public boolean isRelation(@NotNull PsiElement element) {
-        final PsiElement e = PsiTreeUtil.getDeepestFirst(element).getParent();
-        if (!(e instanceof PsiReferenceExpression)) {
-            return false;
-        }
-        final PsiElement resolved = ((PsiReferenceExpression) e).resolve();
-        return resolved instanceof PsiField || resolved instanceof PsiClass || resolved instanceof PsiMethod ||
-                resolved instanceof PsiThisExpression || resolved instanceof PsiSuperExpression;
+        return true;
+//        final PsiElement e = PsiTreeUtil.getDeepestFirst(element).getParent();
+//        if (!(e instanceof PsiReferenceExpression)) {
+//            return false;
+//        }
+//        final PsiElement resolved = ((PsiReferenceExpression) e).resolve();
+//        return resolved instanceof PsiField || resolved instanceof PsiClass || resolved instanceof PsiMethod ||
+//                resolved instanceof PsiThisExpression || resolved instanceof PsiSuperExpression;
     }
 
     @Override
@@ -101,7 +101,10 @@ public class NewStrategy implements FinderStrategy {
 
     @Override
     public int getWeight(PsiMethod from, PsiClass to) {
-        return DEFAULT_WEIGHT;
+        if (to.equals(from.getContainingClass())) {
+            return getWeight(to, from);
+        }
+        return 2 * DEFAULT_WEIGHT;
     }
 
     @Override
@@ -149,6 +152,9 @@ public class NewStrategy implements FinderStrategy {
 
     @Override
     public int getWeight(PsiField from, PsiClass to) {
+        if (to.equals(from.getContainingClass())) {
+            return getWeight(to, from);
+        }
         return DEFAULT_WEIGHT;
     }
 }

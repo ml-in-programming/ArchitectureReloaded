@@ -25,6 +25,7 @@ import com.intellij.psi.util.PsiUtil;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.properties.finder_strategy.FinderStrategy;
 import org.ml_methods_group.algorithm.properties.finder_strategy.NewStrategy;
 import org.ml_methods_group.config.Logging;
@@ -199,6 +200,10 @@ public class EntitySearcher {
             return !"java.lang.Object".equals(member.getContainingClass().getQualifiedName()) && (aClass.equals(member.getContainingClass()) || !MethodUtils.isPrivate(member));
         }
 
+        private boolean isClassInProject(final @Nullable PsiClass aClass) {
+            return classForName.containsKey(getHumanReadableName(aClass));
+        }
+
         @Override
         public void visitMethod(PsiMethod method) {
             indicator.checkCanceled();
@@ -240,14 +245,35 @@ public class EntitySearcher {
         public void visitReferenceExpression(PsiReferenceExpression expression) {
             indicator.checkCanceled();
             PsiElement element = expression.resolve();
-            if (currentMethod != null && element instanceof PsiField && strategy.isRelation(expression)) {
+            if (currentMethod != null && element instanceof PsiField
+                    && isClassInProject(((PsiField) element).getContainingClass()) && strategy.isRelation(expression)) {
                 final PsiField field = (PsiField) element;
                 propertiesFor(currentMethod)
                         .ifPresent(p -> p.addField(field, strategy.getWeight(currentMethod, field)));
                 propertiesFor(field)
                         .ifPresent(p -> p.addMethod(currentMethod, strategy.getWeight(field, currentMethod)));
+                final PsiClass fieldClass = PsiUtil.resolveClassInType(field.getType());
+                if (isClassInProject(fieldClass)) {
+                    propertiesFor(currentMethod)
+                            .ifPresent(p -> p.addClass(fieldClass, strategy.getWeight(currentMethod, fieldClass)));
+                }
             }
             super.visitReferenceExpression(expression);
+        }
+
+        @Override
+        public void visitNewExpression(PsiNewExpression expression) {
+            super.visitNewExpression(expression);
+            if (currentMethod == null) {
+                return;
+            }
+            final PsiJavaCodeReferenceElement refElement = expression.getClassReference();
+            final PsiElement element = refElement != null ? refElement.resolve() : null;
+            final PsiClass createdClass = element instanceof PsiClass ? (PsiClass) element : null;
+            if (createdClass != null && isClassInProject(createdClass)) {
+                propertiesFor(currentMethod)
+                        .ifPresent(p -> p.addClass(createdClass, strategy.getWeight(currentMethod, createdClass)));
+            }
         }
 
         @Override
@@ -276,7 +302,8 @@ public class EntitySearcher {
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
             indicator.checkCanceled();
             PsiMethod called = expression.resolveMethod();
-            if (currentMethod != null && called != null && strategy.isRelation(expression)) {
+            if (currentMethod != null && called != null && isClassInProject(called.getContainingClass())
+                    && strategy.isRelation(expression)) {
                 propertiesFor(currentMethod)
                         .ifPresent(p -> p.addMethod(called, strategy.getWeight(currentMethod, called)));
             }
