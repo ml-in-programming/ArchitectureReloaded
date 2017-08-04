@@ -31,6 +31,9 @@ public class CCDA extends Algorithm {
     private final Map<String, Integer> communityIds = new HashMap<>();
     private final List<String> idCommunity = new ArrayList<>();
     private final List<Integer> aCoefficients = new ArrayList<>();
+    private final List<Integer> eCoefficients = new ArrayList<>();
+    private final List<Integer> edgesInCommunity = new ArrayList<>();
+//    private final Map<Integer, Integer> aCoefficients = new HashMap<>();
     private final List<Entity> nodes = new ArrayList<>();
     private final Map<String, Set<String>> graph = new HashMap<>();
     private ExecutionContext context;
@@ -62,6 +65,8 @@ public class CCDA extends Algorithm {
                 .peek(entity -> communityIds.put(entity.getName(), communityIds.get(entity.getClassName())))
                 .forEach(nodes::add);
         aCoefficients.addAll(Collections.nCopies(idCommunity.size() + 1, 0));
+        eCoefficients.addAll(Collections.nCopies(idCommunity.size() + 1, 0));
+        edgesInCommunity.addAll(Collections.nCopies(idCommunity.size() + 1, 0));
         buildGraph();
     }
 
@@ -151,6 +156,11 @@ public class CCDA extends Algorithm {
     private double move(Entity ent, int to, boolean rollback) {
         final String name = ent.getName();
         final int from = communityIds.get(name);
+        int cFrom = edgesInCommunity.get(from);
+        int cTo = edgesInCommunity.get(to);
+        int eFrom = eCoefficients.get(from);
+        int eTo = eCoefficients.get(to);
+
         double dq = 0.0;
         dq += Math.pow(aCoefficients.get(from) * 1.0 / edges, 2.0);
         dq += Math.pow(aCoefficients.get(to) * 1.0 / edges, 2.0);
@@ -158,16 +168,20 @@ public class CCDA extends Algorithm {
         int aFrom = 0;
         int aTo = 0;
         int de = 0;
+        int dcFrom = 0;
+        int dcTo = 0;
 
         for (String neighbor : graph.get(name)) {
             if (communityIds.get(neighbor) == from) {
                 de--;
+                dcFrom--;
             } else {
                 aFrom++;
             }
 
             if (communityIds.get(neighbor) == to) {
                 de++;
+                dcTo++;
             } else {
                 aTo++;
             }
@@ -179,17 +193,30 @@ public class CCDA extends Algorithm {
         if (!rollback) {
             aCoefficients.set(from, aFrom);
             aCoefficients.set(to, aTo);
+
+            eCoefficients.set(from, eFrom + dcFrom);
+            eCoefficients.set(to, eTo + dcTo);
+
+            edgesInCommunity.set(from, cFrom - 1);
+            edgesInCommunity.set(to, cTo + 1);
         }
 
         dq += (double) de * 1.0 / edges;
         dq -= Math.pow((double) aFrom * 1.0 / edges, 2.0);
         dq -= Math.pow((double) aTo * 1.0 / edges, 2.0);
 
+        dq -= calcCohesion(eFrom, cFrom) - calcCohesion(eFrom + dcFrom, cFrom - 1);
+        dq -= calcCohesion(eTo, cTo) - calcCohesion(eTo + dcTo, cTo + 1);
+
         if (!rollback) {
             quality += dq;
         }
 
         return dq;
+    }
+
+    private double calcCohesion(double e, double c) {
+        return c == 0 || c == 1 ? 1 : Math.max(1, 2.0 * e / (c * (c - 1) / 2));
     }
 
     private double calculateQualityIndex() {
@@ -207,6 +234,7 @@ public class CCDA extends Algorithm {
             final String community = idCommunity.get(i - 1);
             int e = 0;
             int a = 0;
+            int c = 0;
 
             for (String node : graph.keySet()) {
                 if (!communityIds.containsKey(node)) {
@@ -217,6 +245,7 @@ public class CCDA extends Algorithm {
                 if (!communityIds.get(node).equals(communityIds.get(community))) {
                     continue;
                 }
+                c++;
                 for (String neighbor : graph.get(node)) {
                     if (communityIds.get(neighbor).equals(communityIds.get(community))) {
                         e++;
@@ -228,8 +257,12 @@ public class CCDA extends Algorithm {
 
             e /= 2;
             a += e;
-            qualityIndex += ((double) e * 1.0 / edges) - Math.pow((double) a * 1.0 / edges, 2.0);
+
             aCoefficients.set(i, a);
+            eCoefficients.set(i, e);
+            edgesInCommunity.set(i, c);
+            qualityIndex += ((double) e * 1.0 / edges) - Math.pow((double) a * 1.0 / edges, 2.0);
+            qualityIndex += calcCohesion(e, c);
         }
 
         return qualityIndex;
