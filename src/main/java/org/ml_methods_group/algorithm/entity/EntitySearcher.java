@@ -197,7 +197,7 @@ public class EntitySearcher {
         }
 
         private boolean isProperty(PsiClass aClass, PsiMember member) {
-            return !"java.lang.Object".equals(member.getContainingClass().getQualifiedName()) && (aClass.equals(member.getContainingClass()) || !MethodUtils.isPrivate(member));
+            return !(member instanceof PsiMethod && ((PsiMethod) member).isConstructor()) && (aClass.equals(member.getContainingClass()) || !MethodUtils.isPrivate(member));
         }
 
         private boolean isClassInProject(final @Nullable PsiClass aClass) {
@@ -228,12 +228,6 @@ public class EntitySearcher {
                                 .getRelevantProperties()
                                 .addOverrideMethod(method, strategy.getWeight(superMethod, method)));
             }
-//            Arrays.stream(method.getParameterList().getParameters())
-//                    .map(PsiParameter::getType)
-//                    .map(PsiType::getCanonicalText)
-//                    .map(classForName::get)
-//                    .filter(Objects::nonNull)
-//                    .forEach(methodProperties::addClass);
             reportPropertiesCalculated();
             super.visitMethod(method);
             if (currentMethod == method) {
@@ -250,8 +244,8 @@ public class EntitySearcher {
                 final PsiField field = (PsiField) element;
                 propertiesFor(currentMethod)
                         .ifPresent(p -> p.addField(field, strategy.getWeight(currentMethod, field)));
-                propertiesFor(field)
-                        .ifPresent(p -> p.addMethod(currentMethod, strategy.getWeight(field, currentMethod)));
+//                propertiesFor(field)
+//                        .ifPresent(p -> p.addMethod(currentMethod, strategy.getWeight(field, currentMethod)));
                 final PsiClass fieldClass = PsiUtil.resolveClassInType(field.getType());
                 if (isClassInProject(fieldClass)) {
                     propertiesFor(currentMethod)
@@ -259,21 +253,6 @@ public class EntitySearcher {
                 }
             }
             super.visitReferenceExpression(expression);
-        }
-
-        @Override
-        public void visitNewExpression(PsiNewExpression expression) {
-            super.visitNewExpression(expression);
-            if (currentMethod == null) {
-                return;
-            }
-            final PsiJavaCodeReferenceElement refElement = expression.getClassReference();
-            final PsiElement element = refElement != null ? refElement.resolve() : null;
-            final PsiClass createdClass = element instanceof PsiClass ? (PsiClass) element : null;
-            if (createdClass != null && isClassInProject(createdClass)) {
-                propertiesFor(currentMethod)
-                        .ifPresent(p -> p.addClass(createdClass, strategy.getWeight(currentMethod, createdClass)));
-            }
         }
 
         @Override
@@ -301,11 +280,15 @@ public class EntitySearcher {
         @Override
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
             indicator.checkCanceled();
-            PsiMethod called = expression.resolveMethod();
-            if (currentMethod != null && called != null && isClassInProject(called.getContainingClass())
+            final PsiMethod called = expression.resolveMethod();
+            final PsiClass usedClass = called != null ? called.getContainingClass() : null;
+            if (currentMethod != null && called != null && isClassInProject(usedClass)
                     && strategy.isRelation(expression)) {
                 propertiesFor(currentMethod)
-                        .ifPresent(p -> p.addMethod(called, strategy.getWeight(currentMethod, called)));
+                        .ifPresent(p -> {
+                            p.addMethod(called, strategy.getWeight(currentMethod, called));
+                            p.addClass(usedClass, strategy.getWeight(currentMethod, usedClass));
+                        });
             }
             super.visitMethodCallExpression(expression);
         }

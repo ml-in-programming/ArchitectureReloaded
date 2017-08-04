@@ -45,7 +45,13 @@ public class RefactoringsTableModel extends AbstractTableModel {
     RefactoringsTableModel(Map<String, String> refactorings) {
         refactorings.entrySet().stream()
                 .filter(e -> e.getValue() != null)
-                .sorted(Comparator.comparing(Map.Entry::getValue))
+                .sorted((e1, e2) -> {
+                    final int cmp = e1.getValue().compareTo(e2.getValue());
+                    if (cmp != 0) {
+                        return cmp;
+                    }
+                    return e1.getKey().compareTo(e2.getKey());
+                })
                 .forEachOrdered(e -> {
                     units.add(e.getKey());
                     movements.add(e.getValue());

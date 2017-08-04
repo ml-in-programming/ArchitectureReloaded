@@ -23,9 +23,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class NewStrategy implements FinderStrategy {
     private final int PRIVATE_MEMBER_ACCESS_WEIGHT = 6 * DEFAULT_WEIGHT;
-    private final int STATIC_MEMBER_ACCESS_WEIGHT = 2 * DEFAULT_WEIGHT;
+    private final int STATIC_FIELD_ACCESS_WEIGHT = 0;
+    private final int STATIC_METHOD_ACCESS_WEIGHT = DEFAULT_WEIGHT;
     private final int MEMBER_ACCESS_WEIGHT = 4 * DEFAULT_WEIGHT;
-    private final int ITSELF_WEIGHT = MEMBER_ACCESS_WEIGHT;
+    private final int OBJECT_CREATING_WEIGHT = 4 * DEFAULT_WEIGHT;
+    private final int ITSELF_WEIGHT = PRIVATE_MEMBER_ACCESS_WEIGHT;
 
     private static NewStrategy INSTANCE = new NewStrategy();
 
@@ -80,7 +82,7 @@ public class NewStrategy implements FinderStrategy {
             return PRIVATE_MEMBER_ACCESS_WEIGHT;
         }
         if (to.hasModifierProperty(PsiModifier.STATIC)) {
-            return STATIC_MEMBER_ACCESS_WEIGHT;
+            return STATIC_FIELD_ACCESS_WEIGHT;
         }
         return MEMBER_ACCESS_WEIGHT;
     }
@@ -94,7 +96,7 @@ public class NewStrategy implements FinderStrategy {
             return PRIVATE_MEMBER_ACCESS_WEIGHT;
         }
         if (to.hasModifierProperty(PsiModifier.STATIC)) {
-            return STATIC_MEMBER_ACCESS_WEIGHT;
+            return STATIC_METHOD_ACCESS_WEIGHT;
         }
         return MEMBER_ACCESS_WEIGHT;
     }
@@ -104,7 +106,7 @@ public class NewStrategy implements FinderStrategy {
         if (to.equals(from.getContainingClass())) {
             return getWeight(to, from);
         }
-        return 2 * DEFAULT_WEIGHT;
+        return DEFAULT_WEIGHT;
     }
 
     @Override
@@ -112,9 +114,9 @@ public class NewStrategy implements FinderStrategy {
         if (to.hasModifierProperty(PsiModifier.PRIVATE)) {
             return PRIVATE_MEMBER_ACCESS_WEIGHT;
         }
-        if (to.hasModifierProperty(PsiModifier.STATIC)) {
-            return STATIC_MEMBER_ACCESS_WEIGHT;
-        }
+//        if (to.hasModifierProperty(PsiModifier.STATIC)) {
+//            return STATIC_FIELD_ACCESS_WEIGHT;
+//        }
         return MEMBER_ACCESS_WEIGHT;
     }
 
@@ -123,9 +125,9 @@ public class NewStrategy implements FinderStrategy {
         if (to.hasModifierProperty(PsiModifier.PRIVATE)) {
             return PRIVATE_MEMBER_ACCESS_WEIGHT;
         }
-        if (to.hasModifierProperty(PsiModifier.STATIC)) {
-            return STATIC_MEMBER_ACCESS_WEIGHT;
-        }
+//        if (to.hasModifierProperty(PsiModifier.STATIC)) {
+//            return STATIC_MEMBER_ACCESS_WEIGHT;
+//        }
         return MEMBER_ACCESS_WEIGHT;
     }
 
