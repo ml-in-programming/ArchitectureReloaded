@@ -78,7 +78,7 @@ public class NewStrategy implements FinderStrategy {
 
     @Override
     public int getWeight(PsiMethod from, PsiField to) {
-        if (to.hasModifierProperty(PsiModifier.PRIVATE)) {
+        if (!to.hasModifierProperty(PsiModifier.PUBLIC)) {
             return PRIVATE_MEMBER_ACCESS_WEIGHT;
         }
         if (to.hasModifierProperty(PsiModifier.STATIC)) {
@@ -92,7 +92,7 @@ public class NewStrategy implements FinderStrategy {
         if (from.equals(to)) {
             return ITSELF_WEIGHT;
         }
-        if (to.hasModifierProperty(PsiModifier.PRIVATE)) {
+        if (!to.hasModifierProperty(PsiModifier.PUBLIC)) {
             return PRIVATE_MEMBER_ACCESS_WEIGHT;
         }
         if (to.hasModifierProperty(PsiModifier.STATIC)) {
@@ -111,7 +111,7 @@ public class NewStrategy implements FinderStrategy {
 
     @Override
     public int getWeight(PsiClass from, PsiField to) {
-        if (to.hasModifierProperty(PsiModifier.PRIVATE)) {
+        if (!to.hasModifierProperty(PsiModifier.PUBLIC)) {
             return PRIVATE_MEMBER_ACCESS_WEIGHT;
         }
 //        if (to.hasModifierProperty(PsiModifier.STATIC)) {
@@ -122,7 +122,7 @@ public class NewStrategy implements FinderStrategy {
 
     @Override
     public int getWeight(PsiClass from, PsiMethod to) {
-        if (to.hasModifierProperty(PsiModifier.PRIVATE)) {
+        if (!to.hasModifierProperty(PsiModifier.PUBLIC)) {
             return PRIVATE_MEMBER_ACCESS_WEIGHT;
         }
 //        if (to.hasModifierProperty(PsiModifier.STATIC)) {
