@@ -26,7 +26,6 @@ public class NewStrategy implements FinderStrategy {
     private final int STATIC_FIELD_ACCESS_WEIGHT = 0;
     private final int STATIC_METHOD_ACCESS_WEIGHT = DEFAULT_WEIGHT;
     private final int MEMBER_ACCESS_WEIGHT = 4 * DEFAULT_WEIGHT;
-    private final int OBJECT_CREATING_WEIGHT = 4 * DEFAULT_WEIGHT;
     private final int ITSELF_WEIGHT = PRIVATE_MEMBER_ACCESS_WEIGHT;
 
     private static NewStrategy INSTANCE = new NewStrategy();
@@ -78,7 +77,7 @@ public class NewStrategy implements FinderStrategy {
 
     @Override
     public int getWeight(PsiMethod from, PsiField to) {
-        if (to.hasModifierProperty(PsiModifier.PRIVATE)) {
+        if (!to.hasModifierProperty(PsiModifier.PUBLIC)) {
             return PRIVATE_MEMBER_ACCESS_WEIGHT;
         }
         if (to.hasModifierProperty(PsiModifier.STATIC)) {
@@ -92,7 +91,7 @@ public class NewStrategy implements FinderStrategy {
         if (from.equals(to)) {
             return ITSELF_WEIGHT;
         }
-        if (to.hasModifierProperty(PsiModifier.PRIVATE)) {
+        if (!to.hasModifierProperty(PsiModifier.PUBLIC)) {
             return PRIVATE_MEMBER_ACCESS_WEIGHT;
         }
         if (to.hasModifierProperty(PsiModifier.STATIC)) {
@@ -111,23 +110,17 @@ public class NewStrategy implements FinderStrategy {
 
     @Override
     public int getWeight(PsiClass from, PsiField to) {
-        if (to.hasModifierProperty(PsiModifier.PRIVATE)) {
+        if (!to.hasModifierProperty(PsiModifier.PUBLIC)) {
             return PRIVATE_MEMBER_ACCESS_WEIGHT;
         }
-//        if (to.hasModifierProperty(PsiModifier.STATIC)) {
-//            return STATIC_FIELD_ACCESS_WEIGHT;
-//        }
         return MEMBER_ACCESS_WEIGHT;
     }
 
     @Override
     public int getWeight(PsiClass from, PsiMethod to) {
-        if (to.hasModifierProperty(PsiModifier.PRIVATE)) {
+        if (!to.hasModifierProperty(PsiModifier.PUBLIC)) {
             return PRIVATE_MEMBER_ACCESS_WEIGHT;
         }
-//        if (to.hasModifierProperty(PsiModifier.STATIC)) {
-//            return STATIC_MEMBER_ACCESS_WEIGHT;
-//        }
         return MEMBER_ACCESS_WEIGHT;
     }
 
