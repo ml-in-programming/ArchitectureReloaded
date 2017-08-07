@@ -97,12 +97,20 @@ public class RelevantProperties {
         return methods.size();
     }
 
-    public Set<String> getAllFields() {
+    public Set<String> getFields() {
         return Collections.unmodifiableSet(fields.keySet());
     }
 
-    public Set<String> getAllMethods() {
+    public Set<String> getMethods() {
         return Collections.unmodifiableSet(methods.keySet());
+    }
+    
+    public Set<String> getAllMethods() {
+        return Collections.unmodifiableSet(allMethods.keySet());
+    }
+
+    public Set<String> getClasses() {
+        return Collections.unmodifiableSet(classes.keySet());
     }
 
     public int size() {
