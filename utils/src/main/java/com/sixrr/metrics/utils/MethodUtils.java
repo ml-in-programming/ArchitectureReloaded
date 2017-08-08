@@ -101,14 +101,23 @@ public final class MethodUtils {
     public static boolean isGetter(final PsiMethod method) {
         final String methodName = method.getName();
         final PsiType returnType = method.getReturnType();
-        if (returnType == null || PsiType.VOID.equals(returnType)
-                || method.getParameterList().getParametersCount() > 0
-                || !methodName.toLowerCase().startsWith("get")) {
+        if (PsiType.VOID.equals(returnType)
+                || parametersCount(method) > 0
+                || !isGetterName(methodName)) {
             return false;
         }
 
         final PsiClass aClass = method.getContainingClass();
         return aClass != null;
+    }
+
+    private static boolean isGetterName(final String name) {
+        if (name == null) {
+            return false;
+        }
+        final String lowerCase = name.toLowerCase();
+        return (lowerCase.length() > 3 && lowerCase.startsWith("get") && Character.isUpperCase(name.charAt(3)))
+                || (lowerCase.length() > 2 && lowerCase.startsWith("is") && Character.isUpperCase(name.charAt(2)));
     }
 
     public static boolean isTrivialGetter(final PsiMethod method) {

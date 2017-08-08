@@ -23,8 +23,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class NewStrategy implements FinderStrategy {
     private final int PRIVATE_MEMBER_ACCESS_WEIGHT = 6 * DEFAULT_WEIGHT;
-    private final int STATIC_FIELD_ACCESS_WEIGHT = 0;
-    private final int STATIC_METHOD_ACCESS_WEIGHT = DEFAULT_WEIGHT;
+    private final int GETTER_ACCESS_WEIGHT = DEFAULT_WEIGHT;
+    private final int PUBLIC_STATIC_FIELD_ACCESS_WEIGHT = 0;
+    private final int PUBLIC_STATIC_METHOD_ACCESS_WEIGHT = 0;
     private final int MEMBER_ACCESS_WEIGHT = 4 * DEFAULT_WEIGHT;
     private final int ITSELF_WEIGHT = PRIVATE_MEMBER_ACCESS_WEIGHT;
 
@@ -81,7 +82,7 @@ public class NewStrategy implements FinderStrategy {
             return PRIVATE_MEMBER_ACCESS_WEIGHT;
         }
         if (to.hasModifierProperty(PsiModifier.STATIC)) {
-            return STATIC_FIELD_ACCESS_WEIGHT;
+            return PUBLIC_STATIC_FIELD_ACCESS_WEIGHT;
         }
         return MEMBER_ACCESS_WEIGHT;
     }
@@ -91,11 +92,14 @@ public class NewStrategy implements FinderStrategy {
         if (from.equals(to)) {
             return ITSELF_WEIGHT;
         }
+        if (MethodUtils.isGetter(to)) {
+            return GETTER_ACCESS_WEIGHT;
+        }
         if (!to.hasModifierProperty(PsiModifier.PUBLIC)) {
             return PRIVATE_MEMBER_ACCESS_WEIGHT;
         }
         if (to.hasModifierProperty(PsiModifier.STATIC)) {
-            return STATIC_METHOD_ACCESS_WEIGHT;
+            return PUBLIC_STATIC_METHOD_ACCESS_WEIGHT;
         }
         return MEMBER_ACCESS_WEIGHT;
     }
