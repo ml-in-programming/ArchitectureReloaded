@@ -24,10 +24,11 @@ import com.intellij.util.Processor;
 import com.intellij.util.Query;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public final class MethodUtils {
+
+    static List<String> getterPrefixes = Arrays.asList("get", "is", "has");
 
     private MethodUtils() {}
 
@@ -99,25 +100,30 @@ public final class MethodUtils {
     }
 
     public static boolean isGetter(final PsiMethod method) {
-        final String methodName = method.getName();
         final PsiType returnType = method.getReturnType();
-        if (PsiType.VOID.equals(returnType)
-                || parametersCount(method) > 0
-                || !isGetterName(methodName)) {
-            return false;
-        }
-
-        final PsiClass aClass = method.getContainingClass();
-        return aClass != null;
+        return !PsiType.VOID.equals(returnType)
+                && parametersCount(method) == 0
+                && isGetterName(method);
     }
 
-    private static boolean isGetterName(final String name) {
-        if (name == null) {
+    private static boolean isGetterName(final PsiMethod method) {
+        if (method == null || method.getContainingClass() == null) {
             return false;
         }
+        final String name = method.getName();
         final String lowerCase = name.toLowerCase();
-        return (lowerCase.length() > 3 && lowerCase.startsWith("get") && Character.isUpperCase(name.charAt(3)))
-                || (lowerCase.length() > 2 && lowerCase.startsWith("is") && Character.isUpperCase(name.charAt(2)));
+        Optional<Boolean> res = getterPrefixes.stream()
+                .map(p -> lowerCase.length() > p.length() && lowerCase.startsWith(p))
+                .reduce(Boolean::logicalOr);
+        if (res.isPresent() && res.get()) {
+            return true;
+        }
+        final PsiClass aClass = method.getContainingClass();
+        res = Arrays.stream(aClass.getAllFields())
+                .filter(f -> f.getName() != null)
+                .map(f -> f.getName().toLowerCase().equals(lowerCase))
+                .reduce(Boolean::logicalOr);
+        return res.isPresent() && res.get();
     }
 
     public static boolean isTrivialGetter(final PsiMethod method) {
