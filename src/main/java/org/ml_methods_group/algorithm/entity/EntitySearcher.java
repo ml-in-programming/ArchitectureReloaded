@@ -25,6 +25,7 @@ import com.intellij.psi.util.PsiUtil;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.properties.finder_strategy.FinderStrategy;
 import org.ml_methods_group.algorithm.properties.finder_strategy.NewStrategy;
@@ -103,7 +104,6 @@ public class EntitySearcher {
                     break;
             }
         }
-        Entity.normalize(validEntities);
         LOGGER.info("Properties calculated");
         LOGGER.info("Generated " + classes.size() + " class entities");
         LOGGER.info("Generated " + methods.size() + " method entities");
@@ -200,8 +200,9 @@ public class EntitySearcher {
             return !(member instanceof PsiMethod && ((PsiMethod) member).isConstructor()) && (aClass.equals(member.getContainingClass()) || !MethodUtils.isPrivate(member));
         }
 
+        @Contract("null -> false")
         private boolean isClassInProject(final @Nullable PsiClass aClass) {
-            return classForName.containsKey(getHumanReadableName(aClass));
+            return aClass != null && classForName.containsKey(getHumanReadableName(aClass));
         }
 
         @Override
@@ -269,7 +270,7 @@ public class EntitySearcher {
             if (containingClass != null) {
                 fieldProperties.addClass(containingClass, strategy.getWeight(field, containingClass));
                 final PsiClass fieldClass = PsiUtil.resolveClassInType(field.getType());
-                if (fieldClass != null) {
+                if (isClassInProject(fieldClass)) {
                     entities.get(containingClass).getRelevantProperties().addClass(fieldClass, strategy.getWeight(containingClass, fieldClass));
                 }
             }
