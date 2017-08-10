@@ -26,6 +26,7 @@ public class NewStrategy implements FinderStrategy {
     private final int GETTER_ACCESS_WEIGHT = DEFAULT_WEIGHT;
     private final int PUBLIC_STATIC_FIELD_ACCESS_WEIGHT = 0;
     private final int PUBLIC_STATIC_METHOD_ACCESS_WEIGHT = 0;
+    private final int STATIC_METHOD_ACCESS_WEIGHT = 2 * DEFAULT_WEIGHT;
     private final int MEMBER_ACCESS_WEIGHT = 4 * DEFAULT_WEIGHT;
     private final int ITSELF_WEIGHT = PRIVATE_MEMBER_ACCESS_WEIGHT;
 
@@ -92,14 +93,18 @@ public class NewStrategy implements FinderStrategy {
         if (from.equals(to)) {
             return ITSELF_WEIGHT;
         }
+        if (MethodUtils.isStatic(to)) {
+            if (to.hasModifierProperty(PsiModifier.PUBLIC)) {
+                return PUBLIC_STATIC_METHOD_ACCESS_WEIGHT;
+            } else {
+                return STATIC_METHOD_ACCESS_WEIGHT;
+            }
+        }
         if (MethodUtils.isGetter(to)) {
             return GETTER_ACCESS_WEIGHT;
         }
         if (!to.hasModifierProperty(PsiModifier.PUBLIC)) {
             return PRIVATE_MEMBER_ACCESS_WEIGHT;
-        }
-        if (to.hasModifierProperty(PsiModifier.STATIC)) {
-            return PUBLIC_STATIC_METHOD_ACCESS_WEIGHT;
         }
         return MEMBER_ACCESS_WEIGHT;
     }
