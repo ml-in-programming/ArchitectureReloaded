@@ -36,8 +36,8 @@ public class RefactoringsTableModel extends AbstractTableModel {
     private static final Comparator<Entry<String, String>> LINES_COMPARATOR =
             Comparator.<Entry<String, String>, String>comparing(Entry::getValue).thenComparing(Entry::getKey);
     static final int SELECTION_COLUMN_INDEX = 0;
-    private static final int UNIT_COLUMN_INDEX = 1;
-    private static final int MOVE_TO_COLUMN_INDEX = 2;
+    static final int UNIT_COLUMN_INDEX = 1;
+    static final int MOVE_TO_COLUMN_INDEX = 2;
     private static final int COLUMNS_COUNT = 3;
 
     private final List<String> units = new ArrayList<>();
