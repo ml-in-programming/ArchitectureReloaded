@@ -104,7 +104,7 @@ public class RelevantProperties {
     public Set<String> getMethods() {
         return Collections.unmodifiableSet(methods.keySet());
     }
-    
+
     public Set<String> getAllMethods() {
         return Collections.unmodifiableSet(allMethods.keySet());
     }
@@ -127,7 +127,7 @@ public class RelevantProperties {
         return m.values().stream().mapToInt(Integer::valueOf).sum();
     }
 
-    int sizeOfIntersection(RelevantProperties properties) {
+    public int sizeOfIntersection(RelevantProperties properties) {
         int result = 0;
 
         final BinaryOperator<Integer> bop = Math::min;

@@ -28,6 +28,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.AlgorithmResult;
+import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class RefactoringsToolWindow implements Disposable {
 
@@ -64,20 +66,21 @@ public final class RefactoringsToolWindow implements Disposable {
     }
 
     private void addTab(String tabName, @NotNull Map<String, String> refactorings) {
-        final JComponent component = new ClassRefactoringPanel(project, refactorings, scope);
-        final ActionToolbar toolbar = createToolbar();
+        final ClassRefactoringPanel panel = new ClassRefactoringPanel(project, refactorings, scope);
+        final ActionToolbar toolbar = createToolbar(panel);
         final JPanel contentPanel = new JPanel(new BorderLayout());
-        contentPanel.add(component, BorderLayout.CENTER);
+        contentPanel.add(panel, BorderLayout.CENTER);
         contentPanel.add(toolbar.getComponent(), BorderLayout.WEST);
         final Content content = myToolWindow.getContentManager().getFactory()
                 .createContent(contentPanel, tabName, true);
         myToolWindow.getContentManager().addContent(content);
     }
 
-    private ActionToolbar createToolbar() {
+    private ActionToolbar createToolbar(ClassRefactoringPanel panel) {
         final DefaultActionGroup toolbarGroup = new DefaultActionGroup();
         toolbarGroup.add(new IntersectAction());
         toolbarGroup.add(new InfoAction());
+        toolbarGroup.add(new DistanceAction(panel));
         toolbarGroup.add(new CloseAction());
         return ActionManager.getInstance()
                 .createActionToolbar(WINDOW_ID, toolbarGroup, false);
@@ -159,6 +162,34 @@ public final class RefactoringsToolWindow implements Disposable {
                 final DialogWrapper dialog = new ExecutionInfoDialog(project, searchResult, results);
                 dialog.show();
             }
+        }
+    }
+
+    private class DistanceAction extends AnAction {
+        private final ClassRefactoringPanel panel;
+
+        DistanceAction(ClassRefactoringPanel panel) {
+            super(ArchitectureReloadedBundle.message("close.action.text"),
+                    ArchitectureReloadedBundle.message("close.action.description"),
+                    AllIcons.Actions.Diff);
+            this.panel = panel;
+        }
+
+        private Entity findEntity(String name) {
+            if (name == null) {
+                return null;
+            }
+            return Stream.of(searchResult.getClasses(), searchResult.getFields(), searchResult.getMethods())
+                    .flatMap(List::stream)
+                    .filter(entity -> entity.getName().equals(name))
+                    .findAny().orElse(null);
+        }
+
+        @Override
+        public void actionPerformed(AnActionEvent e) {
+            final Entity left = findEntity(panel.getSelectedUnit());
+            final Entity right = findEntity(panel.getSelectedMovement());
+            new DistanceDialog(scope, searchResult, left, right).show();
         }
     }
 
