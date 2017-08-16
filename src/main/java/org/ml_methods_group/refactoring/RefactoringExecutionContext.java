@@ -51,6 +51,7 @@ public class RefactoringExecutionContext {
     private final MetricsRunImpl metricsRun = new MetricsRunImpl();
     private final Project project;
     private final AnalysisScope scope;
+    private final PropertiesStrategy strategy;
     @NotNull
     private final MetricsProfile profile;
     private EntitySearchResult entitySearchResult;
@@ -79,6 +80,20 @@ public class RefactoringExecutionContext {
         this.continuation = continuation;
         this.requestedAlgorithms = requestedAlgorithms;
         metricsExecutionContext = new MetricsExecutionContextImpl(project, scope);
+        strategy = PropertiesStrategy.DEFAULT_STRATEGY;
+    }
+
+    public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
+                                       @NotNull MetricsProfile profile,
+                                       @NotNull String requestedAlgorithms,
+                                       @NotNull PropertiesStrategy strategy) {
+        this.project = project;
+        this.scope = scope;
+        this.profile = profile;
+        this.strategy = strategy;
+        this.requestedAlgorithms = Collections.singleton(requestedAlgorithms);
+        metricsExecutionContext = new MetricsExecutionContextImpl(project, scope);
+        continuation = null;
     }
 
     public void executeAsync() {
@@ -109,7 +124,7 @@ public class RefactoringExecutionContext {
         metricsRun.setTimestamp(new TimeStamp());
         entitySearchResult = ApplicationManager.getApplication()
                 .runReadAction((Computable<EntitySearchResult>) () ->
-                        EntitySearcher.analyze(scope, PropertiesStrategy.DEFAULT_STRATEGY, metricsRun));
+                        EntitySearcher.analyze(scope, strategy, metricsRun));
         for (String algorithm : requestedAlgorithms) {
             calculateAlgorithmForName(algorithm);
         }

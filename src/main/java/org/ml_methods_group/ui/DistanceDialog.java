@@ -118,7 +118,7 @@ public class DistanceDialog extends DialogWrapper {
             updateInfo(right);
         } else {
             final String intersectionSize = "Intersection size: " +
-                    left.getRelevantProperties().sizeOfIntersection(right.getRelevantProperties());
+                    left.getRelevantProperties().sizeOfIntersection(right.getRelevantProperties(), (x, y) -> 1);
             final String distance = "Distance: " + left.distance(right);
             generalInfo.setText(intersectionSize + "    " + distance);
         }

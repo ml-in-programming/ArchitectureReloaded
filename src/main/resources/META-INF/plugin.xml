@@ -64,6 +64,10 @@
               class="org.ml_methods_group.plugin.AutomaticRefactoringAction"
               text="Search for refactorings..."/>
       <add-to-group group-id="InspectCodeGroup" anchor="last"/>
+      <action id="Metrics.RunOptimizationAction"
+              class="org.ml_methods_group.plugin.RunOptimizationAction"
+              text="Run optimizations..."/>
+      <add-to-group group-id="InspectCodeGroup" anchor="last"/>
     </group>
   </actions>
 </idea-plugin>

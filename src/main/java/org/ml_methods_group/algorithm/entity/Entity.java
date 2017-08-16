@@ -51,6 +51,11 @@ public abstract class Entity {
 
     private final RelevantProperties relevantProperties;
     private final String name;
+
+    public PropertiesStrategy getStrategy() {
+        return strategy;
+    }
+
     private final PropertiesStrategy strategy;
     private double[] vector;
     protected boolean isMovable = true;
