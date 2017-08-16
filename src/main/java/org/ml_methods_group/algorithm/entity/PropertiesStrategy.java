@@ -22,6 +22,7 @@ import com.sixrr.metrics.utils.ClassUtils;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Random;
 import java.util.function.BiFunction;
 
 public class PropertiesStrategy {
@@ -130,6 +131,38 @@ public class PropertiesStrategy {
         this.classContainsStaticField = classContainsStaticField;
         this.self = self;
         this.distanceCalculator = distanceCalculator;
+    }
+
+    public PropertiesStrategy(int[] values, BiFunction<Entity, Entity, Double> distanceCalculator) {
+        assert values.length == 19;
+        this.methodCallMethod = values[0];
+        this.methodCallStaticMethod = values[1];
+        this.methodCallPrivateMethod = values[2];
+        this.methodCalledByMethod = values[3];
+        this.methodUseField = values[4];
+        this.methodUseStaticField = values[5];
+        this.methodUsePrivateField = values[6];
+        this.methodUseClassMember = values[7];
+        this.methodContainedByClass = values[8];
+        this.staticMethodContainedByClass = values[9];
+        this.fieldUsedByMethod = values[10];
+        this.fieldContainedByClass = values[11];
+        this.staticFieldUsedByMethod = values[12];
+        this.staticFieldContainedByClass = values[13];
+        this.classContainsMethod = values[14];
+        this.classContainsStaticMethod = values[15];
+        this.classContainsField = values[16];
+        this.classContainsStaticField = values[17];
+        this.self = values[18];
+        this.distanceCalculator = distanceCalculator;
+    }
+
+    public int[] values() {
+        return new int[]{methodCallMethod, methodCallStaticMethod, methodCallPrivateMethod, methodCalledByMethod,
+                methodUseField, methodUseStaticField, methodUsePrivateField, methodUseClassMember,
+                methodContainedByClass, staticMethodContainedByClass, fieldUsedByMethod, fieldContainedByClass,
+                staticFieldUsedByMethod, staticFieldContainedByClass, classContainsMethod, classContainsStaticMethod,
+                classContainsField, classContainsStaticField, self};
     }
 
     boolean acceptFile(final PsiFile file) {

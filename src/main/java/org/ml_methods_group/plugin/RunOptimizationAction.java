@@ -46,6 +46,7 @@ import org.ml_methods_group.ui.AlgorithmsSelectionPanel;
 import org.ml_methods_group.ui.RefactoringsToolWindow;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.MetricsProfilesUtil;
+import org.ml_methods_group.utils.RefactoringBase;
 
 import javax.swing.*;
 import java.awt.*;
@@ -73,6 +74,9 @@ public class RunOptimizationAction extends BaseAnalysisAction {
         RefactoringExecutionContext context = new RefactoringExecutionContext(project, analysisScope, metricsProfile,
                 "ARI", PropertiesStrategy.DEFAULT_STRATEGY);
         context.executeSynchronously();
+        RefactoringBase base = RefactoringBase.getInstance(project);
+        base.setStatus("member", "class", RefactoringBase.Status.VERY_BAD);
+        base.save(project);
         ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
                 .show(context.getAlgorithmResults(), context.getEntitySearchResult(), context.getScope());
     }
