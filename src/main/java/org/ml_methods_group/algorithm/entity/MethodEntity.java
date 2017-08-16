@@ -23,8 +23,8 @@ import org.ml_methods_group.utils.PSIUtil;
 
 public class MethodEntity extends Entity {
 
-    MethodEntity(PsiMethod method) {
-        super(method);
+    MethodEntity(PsiMethod method, PropertiesStrategy strategy) {
+        super(method, strategy);
         isMovable = !PSIUtil.isOverriding(method) &&
                 !MethodUtils.isAbstract(method) && !method.isConstructor();
     }

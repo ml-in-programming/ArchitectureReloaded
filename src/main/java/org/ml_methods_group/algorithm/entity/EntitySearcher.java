@@ -21,16 +21,12 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.*;
-import com.intellij.psi.util.PsiUtil;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
-import org.ml_methods_group.algorithm.properties.finder_strategy.FinderStrategy;
-import org.ml_methods_group.algorithm.properties.finder_strategy.NewStrategy;
 import org.ml_methods_group.config.Logging;
-import org.ml_methods_group.utils.PSIUtil;
 
 import java.util.*;
 
@@ -44,12 +40,12 @@ public class EntitySearcher {
     private final Map<PsiElement, Entity> entities = new HashMap<>();
     private final AnalysisScope scope;
     private final long startTime;
-    private final FinderStrategy strategy;
+    private final PropertiesStrategy strategy;
     private final ProgressIndicator indicator;
 
-    private EntitySearcher(AnalysisScope scope) {
+    private EntitySearcher(AnalysisScope scope, PropertiesStrategy strategy) {
         this.scope = scope;
-        strategy = NewStrategy.getInstance();
+        this.strategy = strategy;
         startTime = System.currentTimeMillis();
         if (ProgressManager.getInstance().hasProgressIndicator()) {
             indicator = ProgressManager.getInstance().getProgressIndicator();
@@ -58,8 +54,8 @@ public class EntitySearcher {
         }
     }
 
-    public static EntitySearchResult analyze(AnalysisScope scope, MetricsRun metricsRun) {
-        final EntitySearcher finder = new EntitySearcher(scope);
+    public static EntitySearchResult analyze(AnalysisScope scope, PropertiesStrategy strategy, MetricsRun metricsRun) {
+        final EntitySearcher finder = new EntitySearcher(scope, strategy);
         return finder.runCalculations(metricsRun);
     }
 
@@ -129,7 +125,7 @@ public class EntitySearcher {
             if (!strategy.acceptClass(aClass)) {
                 return;
             }
-            entities.put(aClass, new ClassEntity(aClass));
+            entities.put(aClass, new ClassEntity(aClass, strategy));
             super.visitClass(aClass);
         }
 
@@ -139,7 +135,7 @@ public class EntitySearcher {
                 return;
             }
             indicator.checkCanceled();
-            entities.put(field, new FieldEntity(field));
+            entities.put(field, new FieldEntity(field, strategy));
             super.visitField(field);
         }
 
@@ -149,7 +145,7 @@ public class EntitySearcher {
                 return;
             }
             indicator.checkCanceled();
-            entities.put(method, new MethodEntity(method));
+            entities.put(method, new MethodEntity(method, strategy));
             super.visitMethod(method);
         }
     }
@@ -176,22 +172,13 @@ public class EntitySearcher {
                 return;
             }
             final RelevantProperties classProperties = entity.getRelevantProperties();
-            classProperties.addClass(aClass, strategy.getWeight(aClass, aClass));
-            if (strategy.processSupers()) {
-                for (PsiClass superClass : PSIUtil.getAllSupers(aClass)) {
-                    if (superClass.isInterface()) {
-                        classProperties.addClass(superClass, strategy.getWeight(aClass, superClass));
-                    } else {
-                        propertiesFor(superClass).ifPresent(p -> p.addClass(aClass, strategy.getWeight(superClass, aClass)));
-                    }
-                }
-            }
+            classProperties.addClass(aClass, strategy.self);
             Arrays.stream(aClass.getMethods())
                     .filter(m -> isProperty(aClass, m))
-                    .forEach(m -> classProperties.addMethod(m, strategy.getWeight(aClass, m)));
+                    .forEach(m -> reportMethodContainedByClass(m, aClass));
             Arrays.stream(aClass.getFields())
                     .filter(f -> isProperty(aClass, f))
-                    .forEach(f -> classProperties.addField(f, strategy.getWeight(aClass, f)));
+                    .forEach(f -> reportFieldContainedByClass(f, aClass));
             reportPropertiesCalculated();
             super.visitClass(aClass);
         }
@@ -215,19 +202,9 @@ public class EntitySearcher {
 
             }
             final RelevantProperties methodProperties = entity.getRelevantProperties();
-            methodProperties.addMethod(method, strategy.getWeight(method, method));
-            Optional.ofNullable(method.getContainingClass())
-                    .ifPresent(c -> methodProperties.addClass(c, strategy.getWeight(method, c)));
+            methodProperties.addMethod(method, strategy.self);
             if (currentMethod == null) {
                 currentMethod = method;
-            }
-            if (strategy.processSupers()) {
-                PSIUtil.getAllSupers(method).stream()
-                        .map(entities::get)
-                        .filter(Objects::nonNull)
-                        .forEach(superMethod -> superMethod
-                                .getRelevantProperties()
-                                .addOverrideMethod(method, strategy.getWeight(superMethod, method)));
             }
             reportPropertiesCalculated();
             super.visitMethod(method);
@@ -241,17 +218,8 @@ public class EntitySearcher {
             indicator.checkCanceled();
             PsiElement element = expression.resolve();
             if (currentMethod != null && element instanceof PsiField
-                    && isClassInProject(((PsiField) element).getContainingClass()) && strategy.isRelation(expression)) {
-                final PsiField field = (PsiField) element;
-                propertiesFor(currentMethod)
-                        .ifPresent(p -> p.addField(field, strategy.getWeight(currentMethod, field)));
-//                propertiesFor(field)
-//                        .ifPresent(p -> p.addMethod(currentMethod, strategy.getWeight(field, currentMethod)));
-                final PsiClass fieldClass = PsiUtil.resolveClassInType(field.getType());
-                if (isClassInProject(fieldClass)) {
-                    propertiesFor(currentMethod)
-                            .ifPresent(p -> p.addClass(fieldClass, strategy.getWeight(currentMethod, fieldClass)));
-                }
+                    && isClassInProject(((PsiField) element).getContainingClass())) {
+                reportMethodUseField(currentMethod, (PsiField) element);
             }
             super.visitReferenceExpression(expression);
         }
@@ -265,15 +233,7 @@ public class EntitySearcher {
                 return;
             }
             RelevantProperties fieldProperties = entity.getRelevantProperties();
-            fieldProperties.addField(field, strategy.getWeight(field, field));
-            final PsiClass containingClass = field.getContainingClass();
-            if (containingClass != null) {
-                fieldProperties.addClass(containingClass, strategy.getWeight(field, containingClass));
-                final PsiClass fieldClass = PsiUtil.resolveClassInType(field.getType());
-                if (isClassInProject(fieldClass)) {
-                    entities.get(containingClass).getRelevantProperties().addClass(fieldClass, strategy.getWeight(containingClass, fieldClass));
-                }
-            }
+            fieldProperties.addField(field, strategy.self);
             reportPropertiesCalculated();
             super.visitField(field);
         }
@@ -283,13 +243,8 @@ public class EntitySearcher {
             indicator.checkCanceled();
             final PsiMethod called = expression.resolveMethod();
             final PsiClass usedClass = called != null ? called.getContainingClass() : null;
-            if (currentMethod != null && called != null && isClassInProject(usedClass)
-                    && strategy.isRelation(expression)) {
-                propertiesFor(currentMethod)
-                        .ifPresent(p -> {
-                            p.addMethod(called, strategy.getWeight(currentMethod, called));
-                            p.addClass(usedClass, strategy.getWeight(currentMethod, usedClass));
-                        });
+            if (currentMethod != null && called != null && isClassInProject(usedClass)) {
+                reportMethodCallMethod(currentMethod, called);
             }
             super.visitMethodCallExpression(expression);
         }
@@ -299,6 +254,60 @@ public class EntitySearcher {
             if (indicator != null) {
                 indicator.setFraction((double) propertiesCalculated / entities.size());
             }
+        }
+    }
+
+    private void reportMethodCallMethod(PsiMethod method, PsiMethod called) {
+        if (MethodUtils.isPrivate(called)) {
+            propertiesFor(method).ifPresent(p -> p.addMethod(called, strategy.methodCallPrivateMethod));
+        } else if (MethodUtils.isStatic(called)) {
+            propertiesFor(method).ifPresent(p -> p.addMethod(called, strategy.methodCallStaticMethod));
+        } else {
+            propertiesFor(method).ifPresent(p -> p.addMethod(called, strategy.methodCallMethod));
+        }
+        propertiesFor(called).ifPresent(p -> p.addMethod(method, strategy.methodCalledByMethod));
+        if (!MethodUtils.isStatic(called) && called.getContainingClass() != null) {
+            propertiesFor(method)
+                    .ifPresent(p -> p.addClass(called.getContainingClass(), strategy.methodUseClassMember));
+        }
+    }
+
+    private void reportFieldContainedByClass(PsiField field, PsiClass psiClass) {
+        if (MethodUtils.isStatic(field)) {
+            propertiesFor(field).ifPresent(p -> p.addClass(psiClass, strategy.staticFieldContainedByClass));
+            propertiesFor(psiClass).ifPresent(p -> p.addField(field, strategy.classContainsStaticField));
+        } else {
+            propertiesFor(psiClass).ifPresent(p -> p.addField(field, strategy.classContainsField));
+            propertiesFor(field).ifPresent(p -> p.addClass(psiClass, strategy.fieldContainedByClass));
+        }
+    }
+
+    private void reportMethodContainedByClass(PsiMethod method, PsiClass psiClass) {
+        if (MethodUtils.isStatic(method)) {
+            propertiesFor(method).ifPresent(p -> p.addClass(psiClass, strategy.staticMethodContainedByClass));
+            propertiesFor(psiClass).ifPresent(p -> p.addMethod(method, strategy.classContainsStaticMethod));
+        } else {
+            propertiesFor(method).ifPresent(p -> p.addClass(psiClass, strategy.methodContainedByClass));
+            propertiesFor(psiClass).ifPresent(p -> p.addMethod(method, strategy.classContainsMethod));
+        }
+    }
+
+    private void reportMethodUseField(PsiMethod method, PsiField field) {
+        if (MethodUtils.isPrivate(field)) {
+            propertiesFor(method).ifPresent(p -> p.addField(field, strategy.methodUsePrivateField));
+        } else if (MethodUtils.isStatic(field)) {
+            propertiesFor(method).ifPresent(p -> p.addField(field, strategy.methodUseStaticField));
+        } else {
+            propertiesFor(method).ifPresent(p -> p.addField(field, strategy.methodUseField));
+        }
+        if (!MethodUtils.isStatic(field)) {
+            if (field.getContainingClass() != null) {
+                propertiesFor(method)
+                        .ifPresent(p -> p.addClass(field.getContainingClass(), strategy.methodUseClassMember));
+            }
+            propertiesFor(field).ifPresent(p -> p.addMethod(method, strategy.fieldUsedByMethod));
+        } else {
+            propertiesFor(field).ifPresent(p -> p.addMethod(method, strategy.staticFieldUsedByMethod));
         }
     }
 

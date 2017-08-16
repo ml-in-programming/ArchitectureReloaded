@@ -20,8 +20,8 @@ import com.intellij.psi.PsiClass;
 import com.sixrr.metrics.MetricCategory;
 
 public class ClassEntity extends Entity {
-    ClassEntity(PsiClass psiClass) {
-        super(psiClass);
+    ClassEntity(PsiClass psiClass, PropertiesStrategy strategy) {
+        super(psiClass, strategy);
     }
 
     private ClassEntity(ClassEntity original) {

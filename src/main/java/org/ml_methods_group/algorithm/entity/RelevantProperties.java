@@ -127,13 +127,11 @@ public class RelevantProperties {
         return m.values().stream().mapToInt(Integer::valueOf).sum();
     }
 
-    public int sizeOfIntersection(RelevantProperties properties) {
+    public int sizeOfIntersection(RelevantProperties properties, BinaryOperator<Integer> combiner) {
         int result = 0;
-
-        final BinaryOperator<Integer> bop = Math::min;
-        result += sizeOfIntersectWeighted(classes, properties.classes, bop);
-        result += sizeOfIntersectWeighted(allMethods, properties.allMethods, bop);
-        result += sizeOfIntersectWeighted(fields, properties.fields, bop);
+        result += sizeOfIntersectWeighted(classes, properties.classes, combiner);
+        result += sizeOfIntersectWeighted(allMethods, properties.allMethods, combiner);
+        result += sizeOfIntersectWeighted(fields, properties.fields, combiner);
 
         return result;
     }

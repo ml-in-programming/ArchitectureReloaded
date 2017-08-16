@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.*;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.EntitySearcher;
+import org.ml_methods_group.algorithm.entity.PropertiesStrategy;
 import org.ml_methods_group.config.Logging;
 
 import java.util.*;
@@ -107,13 +108,13 @@ public class RefactoringExecutionContext {
         metricsRun.setContext(scope);
         metricsRun.setTimestamp(new TimeStamp());
         entitySearchResult = ApplicationManager.getApplication()
-                .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
+                .runReadAction((Computable<EntitySearchResult>) () ->
+                        EntitySearcher.analyze(scope, PropertiesStrategy.DEFAULT_STRATEGY, metricsRun));
         for (String algorithm : requestedAlgorithms) {
             calculateAlgorithmForName(algorithm);
         }
         indicator.setText("Finish refactorings search...");
     }
-
 
     private void onFinish() {
         if (continuation != null) {

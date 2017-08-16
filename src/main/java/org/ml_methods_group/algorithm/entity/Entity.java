@@ -31,18 +31,15 @@ import java.util.Set;
 public abstract class Entity {
     private static final VectorCalculator CLASS_ENTITY_CALCULATOR = new VectorCalculator()
             .addMetricDependence(NumMethodsClassMetric.class)
-            .addMetricDependence(NumAttributesAddedMetric.class)
-            ;
+            .addMetricDependence(NumAttributesAddedMetric.class);
 
     private static final VectorCalculator METHOD_ENTITY_CALCULATOR = new VectorCalculator()
             .addConstValue(0)
-            .addConstValue(0)
-            ;
+            .addConstValue(0);
 
     private static final VectorCalculator FIELD_ENTITY_CALCULATOR = new VectorCalculator()
             .addConstValue(0)
-            .addConstValue(0)
-            ;
+            .addConstValue(0);
 
     private static final int DIMENSION = CLASS_ENTITY_CALCULATOR.getDimension();
 
@@ -54,11 +51,13 @@ public abstract class Entity {
 
     private final RelevantProperties relevantProperties;
     private final String name;
+    private final PropertiesStrategy strategy;
     private double[] vector;
     protected boolean isMovable = true;
 
-    public Entity(PsiElement element) {
+    public Entity(PsiElement element, PropertiesStrategy strategy) {
         this.name = PsiSearchUtil.getHumanReadableName(element);
+        this.strategy = strategy;
         relevantProperties = new RelevantProperties();
     }
 
@@ -67,6 +66,7 @@ public abstract class Entity {
         name = original.name;
         vector = Arrays.copyOf(original.vector, original.vector.length);
         isMovable = original.isMovable;
+        strategy = original.strategy;
     }
 
     void calculateVector(MetricsRun metricsRun) {
@@ -78,38 +78,7 @@ public abstract class Entity {
     }
 
     public double distance(Entity entity) {
-        double ans = 0.0;
-        double w = 0.0;
-        for (int i = 0; i < DIMENSION; i++) {
-            w += square(vector[i] + entity.vector[i]);
-        }
-        ans += w == 0 ? 0 : 1.0 / (w + 1);
-        final int rpIntersect = entity.relevantProperties.sizeOfIntersection(relevantProperties);
-        if (rpIntersect == 0) {
-            return Double.POSITIVE_INFINITY;
-        }
-        // TODO: improve formula
-        ans += (1 - rpIntersect /
-                (1.0 * relevantProperties.sizeOfUnion(entity.getRelevantProperties())));
-
-        return Math.sqrt(ans);
-    }
-
-    static void normalize(Iterable<? extends Entity> entities) {
-        for (int i = 0; i < DIMENSION; i++) {
-            double mx = 0.0;
-            for (Entity entity : entities) {
-                mx = Math.max(mx, entity.vector[i]);
-            }
-
-            if (mx == 0.0) {
-                continue;
-            }
-
-            for (Entity entity : entities) {
-                entity.vector[i] /= mx;
-            }
-        }
+        return strategy.distanceCalculator.apply(this, entity);
     }
 
     public RelevantProperties getRelevantProperties() {
