@@ -77,7 +77,7 @@ public class PropertiesStrategy {
             30, 1, 5, 1, 40,
             4, 7, 1, 2, 10,
             1, 1, 3, 1, 40,
-            1, 40, SIMPLE_MAX_CALCULATOR);
+            1, 40, SIMPLE_MIN_CALCULATOR);
 
     public final int methodCallMethod;
     public final int methodCallStaticMethod;

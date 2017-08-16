@@ -18,6 +18,8 @@ package org.ml_methods_group.utils;
 
 import com.intellij.openapi.project.Project;
 
+import java.awt.*;
+import java.awt.Color;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Paths;
@@ -27,7 +29,19 @@ import java.util.Map;
 public class RefactoringBase {
     private static final Map<String, RefactoringBase> INSTANCES = new HashMap<>();
 
-    public enum Status {UNKNOWN, GOOD, BAD, VERY_GOOD, VERY_BAD}
+    public enum Status {
+        UNKNOWN(Color.LIGHT_GRAY),
+        NEUTRAL(Color.WHITE),
+        VERY_GOOD(Color.GREEN),
+        GOOD(Color.YELLOW),
+        BAD(Color.PINK),
+        VERY_BAD(Color.RED);
+        public final Color color;
+
+        Status(Color color) {
+            this.color = color;
+        }
+    }
 
     private final Map<String, Status> refactoringBase;
 

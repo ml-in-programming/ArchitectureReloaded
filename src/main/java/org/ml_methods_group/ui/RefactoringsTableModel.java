@@ -19,6 +19,8 @@ package org.ml_methods_group.ui;
 import com.intellij.ui.BooleanTableCellRenderer;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
+import org.ml_methods_group.utils.RefactoringBase;
+import org.ml_methods_group.utils.RefactoringBase.Status;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
@@ -38,14 +40,17 @@ public class RefactoringsTableModel extends AbstractTableModel {
     static final int SELECTION_COLUMN_INDEX = 0;
     static final int UNIT_COLUMN_INDEX = 1;
     static final int MOVE_TO_COLUMN_INDEX = 2;
-    private static final int COLUMNS_COUNT = 3;
+    static final int STATUS_COLUMN_INDEX = 3;
+    private static final int COLUMNS_COUNT = 4;
 
+    private final RefactoringBase refactoringBase;
     private final List<String> units = new ArrayList<>();
     private final List<String> movements = new ArrayList<>();
     private final boolean[] isSelected;
     private final boolean[] isActive;
 
-    RefactoringsTableModel(Map<String, String> refactorings) {
+    RefactoringsTableModel(Map<String, String> refactorings, RefactoringBase refactoringBase) {
+        this.refactoringBase = refactoringBase;
         refactorings.entrySet()
                 .stream()
                 .filter(entry -> entry.getValue() != null)
@@ -93,6 +98,8 @@ public class RefactoringsTableModel extends AbstractTableModel {
                 return ArchitectureReloadedBundle.message(UNIT_COLUMN_TITLE_KEY);
             case MOVE_TO_COLUMN_INDEX:
                 return ArchitectureReloadedBundle.message(MOVE_TO_COLUMN_TITLE_KEY);
+            case STATUS_COLUMN_INDEX:
+                return "";
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }
@@ -104,7 +111,8 @@ public class RefactoringsTableModel extends AbstractTableModel {
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
-        return columnIndex == SELECTION_COLUMN_INDEX ? Boolean.class : String.class;
+        return (columnIndex == SELECTION_COLUMN_INDEX) ? Boolean.class :
+                ((columnIndex == STATUS_COLUMN_INDEX) ? Status.class : String.class);
     }
 
     @Override
@@ -129,6 +137,8 @@ public class RefactoringsTableModel extends AbstractTableModel {
                 return units.get(rowIndex);
             case MOVE_TO_COLUMN_INDEX:
                 return movements.get(rowIndex);
+            case STATUS_COLUMN_INDEX:
+                return refactoringBase.getStatusFor(units.get(rowIndex), movements.get(rowIndex));
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + columnIndex);
     }
@@ -185,6 +195,13 @@ public class RefactoringsTableModel extends AbstractTableModel {
                 }
                 setEnabled(isActive[row]);
                 return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            }
+        });
+        table.setDefaultRenderer(Status.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                setBackground(((Status) value).color);
+                return super.getTableCellRendererComponent(table, "", false, hasFocus, row, column);
             }
         });
     }

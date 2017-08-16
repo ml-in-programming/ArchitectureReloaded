@@ -26,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.PsiSearchUtil;
+import org.ml_methods_group.utils.RefactoringBase;
+import org.ml_methods_group.utils.RefactoringBase.Status;
 import org.ml_methods_group.utils.RefactoringUtil;
 
 import javax.swing.*;
@@ -35,9 +37,8 @@ import java.util.List;
 import java.util.Map;
 
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
-import static org.ml_methods_group.ui.RefactoringsTableModel.MOVE_TO_COLUMN_INDEX;
-import static org.ml_methods_group.ui.RefactoringsTableModel.SELECTION_COLUMN_INDEX;
-import static org.ml_methods_group.ui.RefactoringsTableModel.UNIT_COLUMN_INDEX;
+import static org.ml_methods_group.ui.RefactoringsTableModel.*;
+import static org.ml_methods_group.utils.RefactoringBase.Status.*;
 
 class ClassRefactoringPanel extends JPanel {
     private static final String SELECT_ALL_BUTTON_TEXT_KEY = "select.all.button";
@@ -50,6 +51,7 @@ class ClassRefactoringPanel extends JPanel {
     private final AnalysisScope scope;
     @NotNull
     private final RefactoringsTableModel model;
+    private final RefactoringBase refactoringBase;
     private final JBTable table = new JBTable();
     private final JButton selectAllButton = new JButton();
     private final JButton deselectAllButton = new JButton();
@@ -63,7 +65,8 @@ class ClassRefactoringPanel extends JPanel {
         this.project = project;
         this.scope = scope;
         setLayout(new BorderLayout());
-        model = new RefactoringsTableModel(refactorings);
+        refactoringBase = RefactoringBase.getInstance(project);
+        model = new RefactoringsTableModel(refactorings, refactoringBase);
         warnings = RefactoringUtil.getWarnings(model.getUnits(), model.getMovements(), scope);
         setupGUI();
     }
@@ -77,13 +80,45 @@ class ClassRefactoringPanel extends JPanel {
         new TableSpeedSearch(table);
         table.setModel(model);
         model.setupRenderer(table);
-        final TableColumn selectionColumn = table.getTableHeader().getColumnModel().getColumn(0);
+        final TableColumn selectionColumn = table.getTableHeader().getColumnModel().getColumn(SELECTION_COLUMN_INDEX);
         selectionColumn.setMaxWidth(30);
         selectionColumn.setMinWidth(30);
+        final TableColumn statusColumn = table.getTableHeader().getColumnModel().getColumn(STATUS_COLUMN_INDEX);
+        statusColumn.setMaxWidth(30);
+        statusColumn.setMinWidth(30);
         table.addMouseListener((DoubleClickListener) this::onDoubleClick);
         table.getSelectionModel().setSelectionMode(SINGLE_SELECTION);
         table.getSelectionModel().addListSelectionListener(e -> onSelectionChanged());
+        final JPopupMenu popupMenu = new JPopupMenu();
+        final JMenuItem markAsVeryBad = new JMenuItem("Mark as very bad");
+        markAsVeryBad.addActionListener(x -> markEvent(VERY_BAD));
+        final JMenuItem markAsBad = new JMenuItem("Mark as bad");
+        markAsBad.addActionListener(x -> markEvent(BAD));
+        final JMenuItem markAsNeutral = new JMenuItem("Mark as neutral");
+        markAsNeutral.addActionListener(x -> markEvent(NEUTRAL));
+        final JMenuItem markAsGood = new JMenuItem("Mark as good");
+        markAsGood.addActionListener(x -> markEvent(GOOD));
+        final JMenuItem markAsVeryGood = new JMenuItem("Mark as very good");
+        markAsVeryGood.addActionListener(x -> markEvent(VERY_GOOD));
+
+        popupMenu.add(markAsVeryBad);
+        popupMenu.add(markAsBad);
+        popupMenu.add(markAsNeutral);
+        popupMenu.add(markAsGood);
+        popupMenu.add(markAsVeryGood);
+        table.setComponentPopupMenu(popupMenu);
         return ScrollPaneFactory.createScrollPane(table);
+    }
+
+    private void markEvent(Status status) {
+        final int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            return;
+        }
+        refactoringBase.setStatus(model.getUnitAt(selectedRow, UNIT_COLUMN_INDEX),
+                        model.getUnitAt(selectedRow, MOVE_TO_COLUMN_INDEX),
+                        status);
+        refactoringBase.save(project);
     }
 
     private JComponent createButtonsPanel() {
