@@ -135,6 +135,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
             }
 
         }.queue();
+
     }
 
     private void updateResults(@NotNull RefactoringExecutionContext context) {

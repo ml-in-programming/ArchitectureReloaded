@@ -1,14 +1,13 @@
 package org.ooxo;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.ooxo.openapi.Graph;
+import org.ooxo.openapi.Label;
+
+import java.io.*;
+import java.util.*;
+import java.util.stream.Collectors;
 
 abstract class LPAlgorithm {
 	protected class Edge {
@@ -83,7 +82,58 @@ abstract class LPAlgorithm {
 		vertexFMap     = new HashMap<Long, ArrayList<Double>>();
 	}
 
-	boolean loadJSON(String fileName) {
+	void init(Graph graph) {
+		loadFromGraph(graph);
+		initMaps();
+	}
+
+	private void loadFromGraph(Graph graph) {
+		graph.getVertices().forEach(v -> {
+			vertexLabelMap.put(v.getId(), v.getLabel().getId());
+			final Set<Graph.Edge> edges = graph.getEdges(v);
+			vertexAdjMap.put(v.getId(), new ArrayList<>(edges.stream()
+					.map(e -> new Edge(e.getA().getId(), e.getB().getId(), e.getW()))
+					.collect(Collectors.toList())));
+		});
+	}
+
+	Map<Long, Label> getResults() {
+		Map<Long, Label> res = new HashMap<>();
+		ArrayList<Long> labels = new ArrayList<Long>(labelSize);
+		for (Long label : labelIndexMap.keySet()) {
+			labels.add(labelIndexMap.get(label).intValue(), label);
+		}
+		for (Long vertexId : vertexFMap.keySet()){
+			ArrayList<Double> arr = vertexFMap.get(vertexId);
+//			System.out.printf("[%d,", vertexId);
+//			ByteArrayOutputStream buff = new ByteArrayOutputStream();
+//			PrintStream ps = new PrintStream(buff);
+			double maxFVal = 0.0;
+			int maxFValIx = 0;
+			for (int i = 0; i < labelSize; ++i) {
+				double fval = arr.get(i);
+				if (fval > maxFVal) {
+					maxFVal = fval;
+					maxFValIx = i;
+				}
+//				ps.printf("[%d,%.04f]", labels.get(i), arr.get(i));
+//				ps.printf(i != labelSize - 1 ? "," : "]\n");
+			}
+			res.put(vertexId, new Label(labels.get(maxFValIx)));
+//			System.out.print(labels.get(maxFValIx) + "," + buff.toString());
+		}
+		return res;
+	}
+
+	boolean initFromJSON(String fileName) {
+		if (!loadJSON(fileName)) {
+			return false;
+		}
+		initMaps();
+		return true;
+	}
+
+	private boolean loadJSON(String fileName) {
 		ReadJSON reader = new ReadJSON(fileName);
 		try {
 			reader.processLineByLine();
@@ -91,6 +141,10 @@ abstract class LPAlgorithm {
 			System.err.println("Error: " + e.toString());
 			return false;
 		}
+		return true;
+	}
+
+	private void initMaps() {
 		// initialize vertexInAdjMap
 		for (Long vertexId : vertexAdjMap.keySet()) {
 			if (! vertexInAdjMap.containsKey(vertexId)) {
@@ -119,7 +173,7 @@ abstract class LPAlgorithm {
 		Iterator<Long> it = vSet.iterator();
 		Set<Long> lSet = new TreeSet<Long>();
 		while (it.hasNext()) {
-			
+
 			Long l = vertexLabelMap.get(it.next());
 			lSet.add(l);
 			vertexSize++;
@@ -154,8 +208,6 @@ abstract class LPAlgorithm {
 			}
 			vertexFMap.put(v, arr);
 		}
-		
-		return true;
 	}
 
 	void showDetail() {

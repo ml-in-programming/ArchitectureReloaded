@@ -1,8 +1,10 @@
 package org.ooxo;
 
 import org.apache.commons.cli.*;
-import java.lang.Double;
-import java.lang.Long;
+import org.ooxo.openapi.Graph;
+import org.ooxo.openapi.Label;
+
+import java.util.Map;
 
 public class LProp
 {
@@ -62,7 +64,14 @@ public class LProp
 			System.err.println("Specify algorithm with -a option.");
 			System.exit(1);
 		}
-		lp.loadJSON(inputFileNames[0]);
+		lp.initFromJSON(inputFileNames[0]);
 		lp.run(eps, maxIter);
+	}
+
+	public static Map<Long, Label> setLabels(Graph graph) {
+		LPAlgorithm alg = new GFHF();
+		alg.init(graph);
+		alg.run(1e-4, 100L);
+		return alg.getResults();
 	}
 }
