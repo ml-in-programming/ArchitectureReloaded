@@ -63,6 +63,9 @@
       <action id="Metrics.AutomaticRefactoringAction"
               class="org.ml_methods_group.plugin.AutomaticRefactoringAction"
               text="Search for refactorings..."/>
+      <action id="Metrics.RefactoringsFromTodo"
+              class="org.ml_methods_group.plugin.RefactoringsFromTodoAction"
+              text="Get refactorings from TODO's"/>
       <add-to-group group-id="InspectCodeGroup" anchor="last"/>
     </group>
   </actions>
