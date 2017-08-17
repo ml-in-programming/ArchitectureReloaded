@@ -18,6 +18,7 @@ package org.ml_methods_group.plugin;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -53,6 +54,13 @@ public class RefactoringsFromTodoAction extends BaseAnalysisAction {
     private void dumpRefactoringsFromTodos(@NotNull AnalysisScope scope) {
         final Map<String, String> refactorings = new HashMap<>();
         scope.accept(new JavaRecursiveElementWalkingVisitor() {
+            @Override
+            public void visitFile(PsiFile file) {
+                if (file.getFileType().equals(JavaFileType.INSTANCE)) {
+                    super.visitFile(file);
+                }
+            }
+
             @Override
             public void visitComment(PsiComment comment) {
                 super.visitComment(comment);
