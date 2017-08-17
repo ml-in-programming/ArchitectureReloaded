@@ -30,10 +30,12 @@ import org.ml_methods_group.utils.RefactoringUtil;
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 import static org.ml_methods_group.ui.RefactoringsTableModel.SELECTION_COLUMN_INDEX;
@@ -42,6 +44,7 @@ class ClassRefactoringPanel extends JPanel {
     private static final String SELECT_ALL_BUTTON_TEXT_KEY = "select.all.button";
     private static final String DESELECT_ALL_BUTTON_TEXT_KEY = "deselect.all.button";
     private static final String REFACTOR_BUTTON_TEXT_KEY = "refactor.button";
+    private static final String MARK_AS_GOOD_BUTTON_TEXT_KEY = "mark.as.good.button";
 
     @NotNull
     private final Project project;
@@ -53,12 +56,16 @@ class ClassRefactoringPanel extends JPanel {
     private final JButton selectAllButton = new JButton();
     private final JButton deselectAllButton = new JButton();
     private final JButton doRefactorButton = new JButton();
+    private final JButton markAsGoodButton = new JButton();
     private final JLabel info = new JLabel();
+    private final BiConsumer<Map<String, String>, Map<String, String>> refactoringsMarked;
 
     private final List<String> warnings;
 
     ClassRefactoringPanel(@NotNull Project project, Map<String, String> refactorings,
-                          @NotNull AnalysisScope scope) {
+                          @NotNull AnalysisScope scope,
+                          @NotNull BiConsumer<Map<String, String>, Map<String, String>> consumer) {
+        refactoringsMarked = consumer;
         this.project = project;
         this.scope = scope;
         setLayout(new BorderLayout());
@@ -105,10 +112,21 @@ class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setText(ArchitectureReloadedBundle.message(REFACTOR_BUTTON_TEXT_KEY));
         doRefactorButton.addActionListener(e -> refactorSelected());
         buttonsPanel.add(doRefactorButton);
+
+        markAsGoodButton.setText(ArchitectureReloadedBundle.message(MARK_AS_GOOD_BUTTON_TEXT_KEY));
+        markAsGoodButton.addActionListener(this::refactoringsMarkedGood);
+        buttonsPanel.add(markAsGoodButton);
+
         panel.add(buttonsPanel, BorderLayout.EAST);
 
         panel.add(info, BorderLayout.WEST);
         return panel;
+    }
+
+    private void refactoringsMarkedGood(ActionEvent e) {
+        final Map<String, String> goodRefactorings = model.getSelected();
+        final Map<String, String> badRefactorings = model.getUnselected();
+        refactoringsMarked.accept(goodRefactorings, badRefactorings);
     }
 
     private void refactorSelected() {

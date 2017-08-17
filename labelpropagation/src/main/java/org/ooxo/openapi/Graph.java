@@ -88,7 +88,7 @@ public final class Graph {
 
     }
 
-    public void add(int from, Label lFrom, int to, Label lTo, double weight) {
+    public void add(long from, Label lFrom, long to, Label lTo, double weight) {
         final Vertex v1 = new Vertex(from, lFrom);
         checkVertex(v1);
         graph.get(v1).add(new Edge(v1, new Vertex(to, lTo), weight));

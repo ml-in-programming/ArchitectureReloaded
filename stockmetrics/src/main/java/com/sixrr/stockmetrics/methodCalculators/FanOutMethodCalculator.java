@@ -30,6 +30,11 @@ public class FanOutMethodCalculator extends MethodCalculator {
 
     private class Visitor extends JavaRecursiveElementVisitor {
         @Override
+        public void visitAnonymousClass(PsiAnonymousClass aClass) {
+            // ignore
+        }
+
+        @Override
         public void visitMethod(PsiMethod method) {
             if (methodNestingDepth == 0) {
                 result = 0;

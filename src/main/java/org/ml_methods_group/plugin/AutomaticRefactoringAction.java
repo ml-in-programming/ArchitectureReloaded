@@ -36,6 +36,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.AlgorithmResult;
+import org.ml_methods_group.algorithm.LabelPropagationAdapter;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.config.ArchitectureReloadedConfig;
 import org.ml_methods_group.config.Logging;
@@ -58,6 +59,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
     private static final Map<String, ProgressIndicator> processes = new ConcurrentHashMap<>();
 
     private Map<String, AlgorithmResult> results = new HashMap<>();
+    private RefactoringExecutionContext context;
 
     private static final Map<Project, AutomaticRefactoringAction> factory = new HashMap<>();
 
@@ -104,8 +106,13 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 .getCurrentProfile();
         assert metricsProfile != null;
         final Collection<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
-        new RefactoringExecutionContext(project, analysisScope, metricsProfile, selectedAlgorithms, this::showDialogs)
+        (context = new RefactoringExecutionContext(project, analysisScope, metricsProfile, selectedAlgorithms, this::showDialogs))
                 .executeAsync();
+    }
+
+    public Map<String, String> getGoodRefactorings(Map<String, String> good, Map<String, String> bad) {
+        return new LabelPropagationAdapter().calculate(context.getEntitySearchResult(), good, bad,
+                (m, c) -> m.getRelevantProperties().sizeOfIntersection(c.getRelevantProperties()) >= 4);
     }
 
     public void analyzeBackground(@NotNull final Project project, @NotNull final AnalysisScope analysisScope,
@@ -144,7 +151,6 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         }
     }
 
-
     private void showDialogs(@NotNull RefactoringExecutionContext context) {
         updateResults(context);
         final Set<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
@@ -156,7 +162,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 .show(context.getMetricsRun(), context.getProfile(), context.getScope(), false);
 
         ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
-                .show(algorithmResult, context.getEntitySearchResult(), context.getScope());
+                .show(algorithmResult, context.getEntitySearchResult(), context.getScope(), this);
     }
 
     private static void checkRefactoringProfile() {

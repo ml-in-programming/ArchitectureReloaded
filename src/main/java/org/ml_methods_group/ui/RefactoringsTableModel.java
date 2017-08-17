@@ -26,6 +26,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.function.IntPredicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -69,6 +70,21 @@ public class RefactoringsTableModel extends AbstractTableModel {
     public void deselectAll() {
         Arrays.fill(isSelected, false);
         fireTableDataChanged();
+    }
+
+    public Map<String, String> getSelected() {
+        return getRefactorings(i -> isSelected[i]);
+    }
+
+    public Map<String, String> getUnselected() {
+        return getRefactorings(i -> !isSelected[i]);
+    }
+
+    private Map<String, String> getRefactorings(final IntPredicate p) {
+        return IntStream.range(0, isSelected.length)
+                .filter(p)
+                .boxed()
+                .collect(Collectors.toMap(units::get, movements::get));
     }
 
     Map<String, String> pullSelected() {

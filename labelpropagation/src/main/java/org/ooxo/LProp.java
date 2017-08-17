@@ -68,10 +68,10 @@ public class LProp
 		lp.run(eps, maxIter);
 	}
 
-	public static Map<Long, Label> setLabels(Graph graph) {
+	public static Map<Long, Label> setLabels(Graph graph, double eps, long iter) {
 		LPAlgorithm alg = new GFHF();
 		alg.init(graph);
-		alg.run(1e-4, 100L);
+		alg.run(eps, iter);
 		return alg.getResults();
 	}
 }

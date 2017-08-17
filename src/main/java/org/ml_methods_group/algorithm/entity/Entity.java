@@ -20,26 +20,37 @@ import com.intellij.psi.PsiElement;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsRun;
+import com.sixrr.stockmetrics.classMetrics.FanInClassMetric;
+import com.sixrr.stockmetrics.classMetrics.FanOutClassMetric;
 import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
 import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
+import com.sixrr.stockmetrics.methodMetrics.FanInMethodMetric;
+import com.sixrr.stockmetrics.methodMetrics.FanOutMethodMetric;
 import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public abstract class Entity {
     private static final VectorCalculator CLASS_ENTITY_CALCULATOR = new VectorCalculator()
             .addMetricDependence(NumMethodsClassMetric.class)
             .addMetricDependence(NumAttributesAddedMetric.class)
+            .addMetricDependence(FanInClassMetric.class)
+            .addMetricDependence(FanOutClassMetric.class)
             ;
 
     private static final VectorCalculator METHOD_ENTITY_CALCULATOR = new VectorCalculator()
             .addConstValue(0)
             .addConstValue(0)
+            .addMetricDependence(FanInMethodMetric.class)
+            .addMetricDependence(FanOutMethodMetric.class)
             ;
 
     private static final VectorCalculator FIELD_ENTITY_CALCULATOR = new VectorCalculator()
+            .addConstValue(0)
+            .addConstValue(0)
             .addConstValue(0)
             .addConstValue(0)
             ;
@@ -80,7 +91,7 @@ public abstract class Entity {
     public double distance(Entity entity) {
         double ans = 0.0;
         double w = 0.0;
-        for (int i = 0; i < DIMENSION; i++) {
+        for (int i = 0; i < 2; i++) {
             w += square(vector[i] + entity.vector[i]);
         }
         ans += w == 0 ? 0 : 1.0 / (w + 1);
@@ -112,6 +123,10 @@ public abstract class Entity {
         }
     }
 
+    public double getMetric(int index) {
+        return vector[index];
+    }
+
     public RelevantProperties getRelevantProperties() {
         return relevantProperties;
     }
@@ -137,6 +152,25 @@ public abstract class Entity {
         result.addAll(METHOD_ENTITY_CALCULATOR.getRequestedMetrics());
         result.addAll(FIELD_ENTITY_CALCULATOR.getRequestedMetrics());
         return result;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof Entity) {
+            return Objects.equals(name, ((Entity) obj).name) && getClass().equals(obj.getClass());
+        }
+        return false;
     }
 
     public boolean isMovable() {

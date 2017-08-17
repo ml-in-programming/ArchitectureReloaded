@@ -96,6 +96,10 @@ public class RefactoringExecutionContext {
         task.queue();
     }
 
+    public EntitySearchResult getResults() {
+        return entitySearchResult;
+    }
+
     public void executeSynchronously() {
         execute(new EmptyProgressIndicator());
         onFinish();

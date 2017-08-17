@@ -29,6 +29,7 @@ import com.intellij.ui.content.Content;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.AlgorithmResult;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
+import org.ml_methods_group.plugin.AutomaticRefactoringAction;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;
@@ -49,6 +50,7 @@ public final class RefactoringsToolWindow implements Disposable {
     private List<AlgorithmResult> results;
     private EntitySearchResult searchResult;
     private AnalysisScope scope;
+    private AutomaticRefactoringAction action;
 
     private RefactoringsToolWindow(@NotNull Project project) {
         this.project = project;
@@ -64,7 +66,7 @@ public final class RefactoringsToolWindow implements Disposable {
     }
 
     private void addTab(String tabName, @NotNull Map<String, String> refactorings) {
-        final JComponent component = new ClassRefactoringPanel(project, refactorings, scope);
+        final JComponent component = new ClassRefactoringPanel(project, refactorings, scope, this::acceptRefactorings);
         final ActionToolbar toolbar = createToolbar();
         final JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.add(component, BorderLayout.CENTER);
@@ -72,6 +74,10 @@ public final class RefactoringsToolWindow implements Disposable {
         final Content content = myToolWindow.getContentManager().getFactory()
                 .createContent(contentPanel, tabName, true);
         myToolWindow.getContentManager().addContent(content);
+    }
+
+    private void acceptRefactorings(Map<String, String> good, Map<String, String> bad) {
+        addTab("LabelPropagation", action.getGoodRefactorings(good, bad));
     }
 
     private ActionToolbar createToolbar() {
@@ -83,7 +89,9 @@ public final class RefactoringsToolWindow implements Disposable {
                 .createActionToolbar(WINDOW_ID, toolbarGroup, false);
     }
 
-    public void show(List<AlgorithmResult> results, EntitySearchResult searchResult, AnalysisScope scope) {
+    public void show(List<AlgorithmResult> results, EntitySearchResult searchResult, AnalysisScope scope,
+                     AutomaticRefactoringAction action) {
+        this.action = action;
         this.results = results;
         this.scope = scope;
         this.searchResult = searchResult;
