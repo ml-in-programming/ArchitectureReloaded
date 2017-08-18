@@ -24,5 +24,5 @@ dependencies {
   compile project(':openapi')
   compile project(':utils')
   compile project(':stockmetrics')
-  compile files('lib/args4j-2.32.jar', 'lib/jcommon-0.9.1.jar', 'lib/jfreechart-0.9.16.jar')
+  compile files('lib/args4j-2.32.jar', 'lib/jcommon-0.9.1.jar', 'lib/jfreechart-0.9.16.jar', 'lib/jenetics-3.8.0.jar')
 }

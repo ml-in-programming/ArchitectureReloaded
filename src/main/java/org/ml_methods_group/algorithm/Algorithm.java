@@ -48,7 +48,7 @@ public abstract class Algorithm {
     Algorithm(String name, boolean enableParallelExecution) {
         this.name = name;
         this.enableParallelExecution = enableParallelExecution;
-        preferredThreadsCount = Runtime.getRuntime().availableProcessors();
+        preferredThreadsCount = Math.max(Runtime.getRuntime().availableProcessors(), 1);
     }
 
     public final AlgorithmResult execute(EntitySearchResult entities, ExecutorService service) {
@@ -72,6 +72,7 @@ public abstract class Algorithm {
             throw e;
         } catch (Exception e) {
             LOGGER.error(name + " finished with error: " + e);
+            e.printStackTrace();
             return new AlgorithmResult(name, e);
         }
         final long totalTime = System.currentTimeMillis() - startTime;
@@ -93,6 +94,10 @@ public abstract class Algorithm {
                                          BiFunction<V, A, A> processor, BinaryOperator<A> combiner) {
         if (context.service == null) {
             throw new UnsupportedOperationException("Parallel execution is disabled");
+        }
+        if (values.isEmpty()) {
+            LOGGER.warn("Run parallel calculations on empty list");
+            return accumulatorFactory.get();
         }
         final List<Callable<A>> tasks = splitValues(values).stream()
                 .sequential()

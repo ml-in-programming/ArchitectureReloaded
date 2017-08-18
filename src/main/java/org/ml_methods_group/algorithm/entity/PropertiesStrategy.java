@@ -22,6 +22,8 @@ import com.sixrr.metrics.utils.ClassUtils;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.function.BiFunction;
 
@@ -73,11 +75,14 @@ public class PropertiesStrategy {
         return Math.exp(-rpIntersect);
     };
 
-    public static final PropertiesStrategy DEFAULT_STRATEGY = new PropertiesStrategy(4, 1,
-            30, 1, 5, 1, 40,
-            4, 7, 1, 2, 10,
-            1, 1, 3, 1, 40,
-            1, 40, SIMPLE_MIN_CALCULATOR);
+    private static final List<BiFunction<Entity, Entity, Double>> DEFAULT_CALCULATORS =
+            Arrays.asList(SIMPLE_MIN_CALCULATOR, SIMPLE_MAX_CALCULATOR, SIMPLE_AVERAGE_CALCULATOR, EXP_CALCULATOR);
+
+    public static final PropertiesStrategy DEFAULT_STRATEGY = new PropertiesStrategy(20,
+            13, 24, 24, 33, 9,
+            44,9, 48, 15, 7,
+            26,46, 0, 10, 25,
+            3,19, 50, SIMPLE_AVERAGE_CALCULATOR);
 
     public final int methodCallMethod;
     public final int methodCallStaticMethod;
@@ -133,8 +138,8 @@ public class PropertiesStrategy {
         this.distanceCalculator = distanceCalculator;
     }
 
-    public PropertiesStrategy(int[] values, BiFunction<Entity, Entity, Double> distanceCalculator) {
-        assert values.length == 19;
+    public PropertiesStrategy(int[] values) {
+        assert values.length == 20;
         this.methodCallMethod = values[0];
         this.methodCallStaticMethod = values[1];
         this.methodCallPrivateMethod = values[2];
@@ -154,7 +159,7 @@ public class PropertiesStrategy {
         this.classContainsField = values[16];
         this.classContainsStaticField = values[17];
         this.self = values[18];
-        this.distanceCalculator = distanceCalculator;
+        this.distanceCalculator = DEFAULT_CALCULATORS.get(values[19]);
     }
 
     public int[] values() {
@@ -184,5 +189,44 @@ public class PropertiesStrategy {
 
     public boolean acceptField(@NotNull PsiField field) {
         return field.getContainingClass() != null;
+    }
+
+    @Override
+    public String toString() {
+        return "PropertiesStrategy{" +
+                "methodCallMethod=" + methodCallMethod +
+                ", methodCallStaticMethod=" + methodCallStaticMethod +
+                ", methodCallPrivateMethod=" + methodCallPrivateMethod +
+                ", methodCalledByMethod=" + methodCalledByMethod +
+                ", methodUseField=" + methodUseField +
+                ", methodUseStaticField=" + methodUseStaticField +
+                ", methodUsePrivateField=" + methodUsePrivateField +
+                ", methodUseClassMember=" + methodUseClassMember +
+                ", methodContainedByClass=" + methodContainedByClass +
+                ", staticMethodContainedByClass=" + staticMethodContainedByClass +
+                ", fieldUsedByMethod=" + fieldUsedByMethod +
+                ", fieldContainedByClass=" + fieldContainedByClass +
+                ", staticFieldUsedByMethod=" + staticFieldUsedByMethod +
+                ", staticFieldContainedByClass=" + staticFieldContainedByClass +
+                ", classContainsMethod=" + classContainsMethod +
+                ", classContainsStaticMethod=" + classContainsStaticMethod +
+                ", classContainsField=" + classContainsField +
+                ", classContainsStaticField=" + classContainsStaticField +
+                ", self=" + self +
+                ", distanceCalculator=" + getCalculatorName(distanceCalculator) +
+                '}';
+    }
+
+    public String getCalculatorName(BiFunction<Entity, Entity, Double> calculator) {
+        if (calculator == SIMPLE_MAX_CALCULATOR) {
+            return "MAX_CALCULATOR";
+        } else if (calculator == SIMPLE_MIN_CALCULATOR) {
+            return "MIN_CALCULATOR";
+        } else if (calculator == SIMPLE_AVERAGE_CALCULATOR) {
+            return "AVERAGE_CALCULATOR";
+        } else if (calculator == EXP_CALCULATOR) {
+            return "EXP_CALCULATOR";
+        }
+        return "&&&";
     }
 }

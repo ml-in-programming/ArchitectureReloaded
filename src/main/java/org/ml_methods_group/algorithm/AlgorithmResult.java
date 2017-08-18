@@ -29,8 +29,8 @@ public class AlgorithmResult {
     private final int threadUsed;
     private final Exception exception;
 
-    AlgorithmResult(@NotNull Map<String, String> refactorings, String algorithmName, long executionTime,
-                    int threadUsed) {
+    public AlgorithmResult(@NotNull Map<String, String> refactorings, String algorithmName, long executionTime,
+                           int threadUsed) {
         this.refactorings = refactorings;
         this.algorithmName = algorithmName;
         this.executionTime = executionTime;

@@ -78,7 +78,6 @@ public class EntitySearcher {
         final List<ClassEntity> classes = new ArrayList<>();
         final List<MethodEntity> methods = new ArrayList<>();
         final List<FieldEntity> fields = new ArrayList<>();
-        final List<Entity> validEntities = new ArrayList<>();
         for (Entity entity : entities.values()) {
             indicator.checkCanceled();
             try {
@@ -87,7 +86,6 @@ public class EntitySearcher {
                 LOGGER.warn("Failed to calculate vector for " + entity.getName());
                 continue;
             }
-            validEntities.add(entity);
             switch (entity.getCategory()) {
                 case Class:
                     classes.add((ClassEntity) entity);
@@ -184,7 +182,7 @@ public class EntitySearcher {
         }
 
         private boolean isProperty(PsiClass aClass, PsiMember member) {
-            return !(member instanceof PsiMethod && ((PsiMethod) member).isConstructor()) && (aClass.equals(member.getContainingClass()) || !MethodUtils.isPrivate(member));
+            return aClass.equals(member.getContainingClass()) || !MethodUtils.isPrivate(member);
         }
 
         @Contract("null -> false")

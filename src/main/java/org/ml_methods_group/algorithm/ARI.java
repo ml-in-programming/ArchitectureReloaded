@@ -60,7 +60,6 @@ public class ARI extends Algorithm {
         double minDistance = Double.POSITIVE_INFINITY;
         ClassEntity targetClass = null;
         for (final ClassEntity classEntity : classEntities) {
-
             final double distance = entity.distance(classEntity);
             if (distance < minDistance) {
                 minDistance = distance;
@@ -72,7 +71,6 @@ public class ARI extends Algorithm {
             LOGGER.warn("targetClass is null for " + entity.getName());
             return accumulator;
         }
-
         final String targetClassName = targetClass.getName();
         if (!targetClassName.equals(entity.getClassName())) {
             accumulator.put(entity.getName(), targetClassName);
