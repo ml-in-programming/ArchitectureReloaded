@@ -126,7 +126,9 @@ class ClassRefactoringPanel extends JPanel {
     private void refactoringsMarkedGood(ActionEvent e) {
         final Map<String, String> goodRefactorings = model.getSelected();
         final Map<String, String> badRefactorings = model.getUnselected();
-        refactoringsMarked.accept(goodRefactorings, badRefactorings);
+        if (refactoringsMarked != null) {
+            refactoringsMarked.accept(goodRefactorings, badRefactorings);
+        }
     }
 
     private void refactorSelected() {
@@ -146,7 +148,7 @@ class ClassRefactoringPanel extends JPanel {
         if (selectedRow == -1 || selectedColumn == -1 || selectedColumn == SELECTION_COLUMN_INDEX) {
             return;
         }
-        PsiSearchUtil.openDefinition(model.getUnitAt(selectedRow, selectedColumn), scope);
+        PsiSearchUtil.openDefinition(model.getUnitAt(selectedRow, selectedColumn).split("[ ]")[0], scope);
     }
 
     private void onSelectionChanged() {

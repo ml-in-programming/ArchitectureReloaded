@@ -70,6 +70,7 @@ public final class LabelPropagationAdapter {
         }
         final Map<Long, Label> res = LProp.setLabels(g, 1e-4, 500);
         final Map<String, String> result = new HashMap<>();
+        final Map<String, Integer> ind = new HashMap<>();
         for (Map.Entry<Refactoring, Long> e : refactoringsToId.entrySet()) {
             if (e.getKey().isSameClass()) {
                 continue;
@@ -77,7 +78,15 @@ public final class LabelPropagationAdapter {
             if (!res.containsKey(e.getValue()) || !(res.get(e.getValue()).getId() == GOOD_LABEL_ID)) {
                 continue;
             }
-            result.put(e.getKey().getMethod().getName(), e.getKey().getTo().getName());
+            final String key = e.getKey().getMethod().getName();
+            final String value = e.getKey().getTo().getName();
+            if (result.containsKey(key)) {
+                final Integer i = ind.getOrDefault(key, 0);
+                result.put(String.format("%s %d", key, i + 1), value);
+                ind.put(key, i + 1);
+                continue;
+            }
+            result.put(key, value);
         }
         return result;
 //        return refactoringsToId.entrySet().stream()
@@ -126,8 +135,9 @@ public final class LabelPropagationAdapter {
     }
 
     private static ClassEntity getClassEntity(MethodEntity m, List<ClassEntity> list) {
+        final String className = m.getClassName();
         return list.stream()
-                .filter(c -> m.getName().startsWith(c.getName()))
+                .filter(c -> className.equals(c.getClassName()))
                 .findAny()
                 .orElse(null);
     }
