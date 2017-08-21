@@ -98,11 +98,6 @@ public class RelevantProperties {
         return !SetsUtil.isIntersectionEmpty(privateMembers, properties.privateMembers);
     }
 
-    void moveTo(String targetClass) {
-        classes.clear();
-        classes.add(targetClass);
-    }
-
     public RelevantProperties copy() {
         final RelevantProperties copy = new RelevantProperties();
         copy.classes.addAll(classes);

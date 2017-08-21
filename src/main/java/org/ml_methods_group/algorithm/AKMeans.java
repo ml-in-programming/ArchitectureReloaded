@@ -78,7 +78,7 @@ public class AKMeans extends Algorithm {
 
     @Override
     protected Map<String, String> calculateRefactorings(ExecutionContext context) {
-        init(context.entities);
+        init(context.getEntities());
         context.checkCanceled();
         final Map<String, String> refactorings = new HashMap<>();
         initializeCenters();

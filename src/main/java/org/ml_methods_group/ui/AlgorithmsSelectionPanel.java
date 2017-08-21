@@ -16,10 +16,8 @@
 
 package org.ml_methods_group.ui;
 
-import com.intellij.openapi.project.Project;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBCheckBox;
-import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.ml_methods_group.config.ArchitectureReloadedConfig;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;

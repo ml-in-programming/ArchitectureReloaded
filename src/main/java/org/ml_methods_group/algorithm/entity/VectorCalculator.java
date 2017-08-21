@@ -28,7 +28,7 @@ import java.util.function.Function;
 
 import static com.sixrr.metrics.MetricCategory.Class;
 
-public class VectorCalculator {
+class VectorCalculator {
     private final Map<Class<? extends Metric>, Integer> metricsDependencies = new HashMap<>();
     private final Map<Function<RelevantProperties, ? extends Number>, Integer> propertiesDependencies = new HashMap<>();
     private final Map<Integer, Double> constValues = new HashMap<>();

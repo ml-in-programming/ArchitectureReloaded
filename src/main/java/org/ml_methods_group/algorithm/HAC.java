@@ -51,12 +51,12 @@ public class HAC extends Algorithm {
         idGenerator = 0;
         newClassCount = 0;
         progressCounter.set(0);
-        EntitySearchResult entities = context.entities;
+        final EntitySearchResult entities = context.getEntities();
         Stream.of(entities.getClasses(), entities.getMethods(), entities.getFields())
                 .flatMap(List::stream)
                 .map(this::singletonCommunity)
                 .forEach(communities::add);
-        List<Community> communitiesAsList = new ArrayList<>(communities);
+        final List<Community> communitiesAsList = new ArrayList<>(communities);
         Collections.shuffle(communitiesAsList);
         final List<Triple> toInsert =
                 runParallel(communitiesAsList, context, ArrayList::new, this::findTriples, Algorithm::combineLists);
