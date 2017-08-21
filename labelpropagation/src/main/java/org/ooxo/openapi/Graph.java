@@ -66,7 +66,7 @@ public final class Graph {
         }
     }
 
-    public class Vertex {
+    public static class Vertex {
         private long id;
         private Label label;
 
@@ -81,6 +81,19 @@ public final class Graph {
 
         public Label getLabel() {
             return label;
+        }
+
+        @Override
+        public int hashCode() {
+            return Long.hashCode(id);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null) {
+                return false;
+            }
+            return obj instanceof Vertex && id == ((Vertex) obj).id;
         }
     }
 
