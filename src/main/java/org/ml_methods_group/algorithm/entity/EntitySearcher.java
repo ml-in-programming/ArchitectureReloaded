@@ -256,12 +256,12 @@ public class EntitySearcher {
     }
 
     private void reportMethodCallMethod(PsiMethod method, PsiMethod called) {
-        if (MethodUtils.isPrivate(called)) {
+        if (!MethodUtils.isPublic(called)) {
             propertiesFor(method).ifPresent(p -> p.addMethod(called, strategy.methodCallPrivateMethod));
         } else if (MethodUtils.isStatic(called)) {
             propertiesFor(method).ifPresent(p -> p.addMethod(called, strategy.methodCallStaticMethod));
         } else {
-            propertiesFor(method).ifPresent(p -> p.addMethod(called, strategy.methodCallMethod));
+            propertiesFor(method).ifPresent(p -> p.addMethod(called, strategy.methodCallPublicMethod));
         }
         propertiesFor(called).ifPresent(p -> p.addMethod(method, strategy.methodCalledByMethod));
         if (!MethodUtils.isStatic(called) && called.getContainingClass() != null) {
@@ -291,12 +291,12 @@ public class EntitySearcher {
     }
 
     private void reportMethodUseField(PsiMethod method, PsiField field) {
-        if (MethodUtils.isPrivate(field)) {
+        if (!MethodUtils.isPublic(field)) {
             propertiesFor(method).ifPresent(p -> p.addField(field, strategy.methodUsePrivateField));
         } else if (MethodUtils.isStatic(field)) {
             propertiesFor(method).ifPresent(p -> p.addField(field, strategy.methodUseStaticField));
         } else {
-            propertiesFor(method).ifPresent(p -> p.addField(field, strategy.methodUseField));
+            propertiesFor(method).ifPresent(p -> p.addField(field, strategy.methodUsePublicField));
         }
         if (!MethodUtils.isStatic(field)) {
             if (field.getContainingClass() != null) {

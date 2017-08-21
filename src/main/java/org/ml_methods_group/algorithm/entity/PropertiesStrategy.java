@@ -24,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 import java.util.function.BiFunction;
 
 public class PropertiesStrategy {
@@ -78,17 +77,30 @@ public class PropertiesStrategy {
     private static final List<BiFunction<Entity, Entity, Double>> DEFAULT_CALCULATORS =
             Arrays.asList(SIMPLE_MIN_CALCULATOR, SIMPLE_MAX_CALCULATOR, SIMPLE_AVERAGE_CALCULATOR, EXP_CALCULATOR);
 
-    public static final PropertiesStrategy DEFAULT_STRATEGY = new PropertiesStrategy(20,
-            13, 24, 24, 33, 9,
-            44,9, 48, 15, 7,
-            26,46, 0, 10, 25,
-            3,19, 50, SIMPLE_AVERAGE_CALCULATOR);
+//    HAC
+//    public static final PropertiesStrategy DEFAULT_STRATEGY = new PropertiesStrategy(1,
+//            1, 4, 0, 12, 5,
+//            8,3, 44, 0, 5,
+//            45,28, 0, 39, 44,
+//            4,0, 6, SIMPLE_MIN_CALCULATOR);
 
-    public final int methodCallMethod;
+//    ARI
+    public static final PropertiesStrategy DEFAULT_STRATEGY = new PropertiesStrategy(18,
+            7, 46, 0, 40, 46,
+            49,0, 49, 29, 37,
+            18,37, 27, 42, 14,
+            4,0, 32, EXP_CALCULATOR);
+
+//    HAC
+//    best is 43 gens: [[[1]],[[1]],[[4]],[[0]],[[12]],[[5]],[[8]],[[3]],[[44]],[[0]],[[5]],[[45]],[[28]],[[0]],[[39]],[[44]],[[4]],[[0]],[[6]],[[0]]]
+//            [1, 1, 4, 0, 12, 5, 8, 3, 44, 0, 5, 45, 28, 0, 39, 44, 4, 0, 6, 0]
+
+
+    public final int methodCallPublicMethod;
     public final int methodCallStaticMethod;
     public final int methodCallPrivateMethod;
     public final int methodCalledByMethod;
-    public final int methodUseField;
+    public final int methodUsePublicField;
     public final int methodUseStaticField;
     public final int methodUsePrivateField;
     public final int methodUseClassMember;
@@ -109,18 +121,18 @@ public class PropertiesStrategy {
 
     public final BiFunction<Entity, Entity, Double> distanceCalculator;
 
-    public PropertiesStrategy(int methodCallMethod, int methodCallStaticMethod, int methodCallPrivateMethod,
-                              int methodCalledByMethod, int methodUseField, int methodUseStaticField,
+    public PropertiesStrategy(int methodCallPublicMethod, int methodCallStaticMethod, int methodCallPrivateMethod,
+                              int methodCalledByMethod, int methodUsePublicField, int methodUseStaticField,
                               int methodUsePrivateField, int methodUseClassMember, int methodContainedByClass,
                               int staticMethodContainedByClass, int fieldUsedByMethod, int fieldContainedByClass, int staticFieldUsedByMethod,
                               int staticFieldContainedByClass, int classContainsMethod, int classContainsStaticMethod,
                               int classContainsField, int classContainsStaticField, int self,
                               BiFunction<Entity, Entity, Double> distanceCalculator) {
-        this.methodCallMethod = methodCallMethod;
+        this.methodCallPublicMethod = methodCallPublicMethod;
         this.methodCallStaticMethod = methodCallStaticMethod;
         this.methodCallPrivateMethod = methodCallPrivateMethod;
         this.methodCalledByMethod = methodCalledByMethod;
-        this.methodUseField = methodUseField;
+        this.methodUsePublicField = methodUsePublicField;
         this.methodUseStaticField = methodUseStaticField;
         this.methodUsePrivateField = methodUsePrivateField;
         this.methodUseClassMember = methodUseClassMember;
@@ -140,11 +152,11 @@ public class PropertiesStrategy {
 
     public PropertiesStrategy(int[] values) {
         assert values.length == 20;
-        this.methodCallMethod = values[0];
+        this.methodCallPublicMethod = values[0];
         this.methodCallStaticMethod = values[1];
         this.methodCallPrivateMethod = values[2];
         this.methodCalledByMethod = values[3];
-        this.methodUseField = values[4];
+        this.methodUsePublicField = values[4];
         this.methodUseStaticField = values[5];
         this.methodUsePrivateField = values[6];
         this.methodUseClassMember = values[7];
@@ -163,8 +175,8 @@ public class PropertiesStrategy {
     }
 
     public int[] values() {
-        return new int[]{methodCallMethod, methodCallStaticMethod, methodCallPrivateMethod, methodCalledByMethod,
-                methodUseField, methodUseStaticField, methodUsePrivateField, methodUseClassMember,
+        return new int[]{methodCallPublicMethod, methodCallStaticMethod, methodCallPrivateMethod, methodCalledByMethod,
+                methodUsePublicField, methodUseStaticField, methodUsePrivateField, methodUseClassMember,
                 methodContainedByClass, staticMethodContainedByClass, fieldUsedByMethod, fieldContainedByClass,
                 staticFieldUsedByMethod, staticFieldContainedByClass, classContainsMethod, classContainsStaticMethod,
                 classContainsField, classContainsStaticField, self};
@@ -194,11 +206,11 @@ public class PropertiesStrategy {
     @Override
     public String toString() {
         return "PropertiesStrategy{" +
-                "methodCallMethod=" + methodCallMethod +
+                "methodCallPublicMethod=" + methodCallPublicMethod +
                 ", methodCallStaticMethod=" + methodCallStaticMethod +
                 ", methodCallPrivateMethod=" + methodCallPrivateMethod +
                 ", methodCalledByMethod=" + methodCalledByMethod +
-                ", methodUseField=" + methodUseField +
+                ", methodUsePublicField=" + methodUsePublicField +
                 ", methodUseStaticField=" + methodUseStaticField +
                 ", methodUsePrivateField=" + methodUsePrivateField +
                 ", methodUseClassMember=" + methodUseClassMember +

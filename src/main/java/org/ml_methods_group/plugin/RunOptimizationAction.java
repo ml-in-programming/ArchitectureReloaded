@@ -20,6 +20,8 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.profile.MetricsProfile;
@@ -46,6 +48,7 @@ import java.awt.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import static java.util.Collections.singletonList;
@@ -70,28 +73,35 @@ public class RunOptimizationAction extends BaseAnalysisAction {
         assert metricsProfile != null;
         RefactoringBase base = RefactoringBase.getInstance(project);
         allRefactorings.clear();
-        PropertiesStrategy strategy = new Optimizer(base, r -> runARI(r, project, analysisScope)).runOptimization();
-        RefactoringExecutionContext context = new RefactoringExecutionContext(project, analysisScope, metricsProfile,
-                "ARI", strategy);
-        context.executeSynchronously();
-        ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
-                .show(singletonList(new AlgorithmResult(allRefactorings, "all", 5, 5)),
-                        context.getEntitySearchResult(), context.getScope());
+        final String algorithm = "ARI";
+        new Task.Backgroundable(project, "optimizing", false) {
+
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+                new Optimizer(base, r -> runAlgorithm(r, project, analysisScope, base, algorithm))
+                        .runOptimization();
+            }
+        }.queue();
     }
 
-    synchronized Map<String, String> runARI(PropertiesStrategy strategy, Project project, AnalysisScope scope) {
+    private synchronized Map<String, String> runAlgorithm(PropertiesStrategy strategy, Project project, AnalysisScope scope,
+                                            RefactoringBase base, String algorithm) {
         try {
 
             final MetricsProfile metricsProfile = MetricsProfileRepository.getInstance()
                     .getCurrentProfile();
             assert metricsProfile != null;
             RefactoringExecutionContext context = new RefactoringExecutionContext(project, scope, metricsProfile,
-                    "ARI", strategy);
+                    algorithm, strategy);
             context.executeSynchronously();
-            allRefactorings.putAll(context.getAlgorithmResults().get(0).getRefactorings());
+            for (Entry<String, String> entity : context.getAlgorithmResults().get(0).getRefactorings().entrySet()) {
+                if (base.getStatusFor(entity.getKey(), entity.getValue()) == RefactoringBase.Status.UNKNOWN) {
+                    allRefactorings.put(entity.getKey(), entity.getValue());
+                }
+            }
+            System.out.println("Algorithm finished");
             return context.getAlgorithmResults().get(0).getRefactorings();
         } catch (IllegalArgumentException e) {
-            System.out.println("LOL");
             e.printStackTrace();
             return Collections.emptyMap();
         }

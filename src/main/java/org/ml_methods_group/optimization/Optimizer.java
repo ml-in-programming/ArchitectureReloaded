@@ -52,11 +52,12 @@ public class Optimizer {
         Engine<IntegerGene, Integer> engine = Engine.builder(
                 this::fitness,
                 codecs.ofVector(ranges))
-                .populationSize(50)
+                .populationSize(100)
                 .optimize(Optimize.MAXIMUM)
                 .build();
         final Phenotype<IntegerGene, Integer> best = engine.stream()
-                .limit(bySteadyFitness(10))
+                .limit(bySteadyFitness(100))
+                .peek(e -> System.out.println(e.getGeneration() + " finished"))
                 .collect(toBestPhenotype());
         System.out.println("best is " + best.getFitness() + " gens: " + best.getGenotype());
         int[] values = best.getGenotype().stream()
