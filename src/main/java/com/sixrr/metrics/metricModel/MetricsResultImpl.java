@@ -25,12 +25,11 @@ import com.sixrr.metrics.MetricType;
 import com.sixrr.metrics.profile.MetricInstance;
 import com.sixrr.metrics.profile.MetricsProfile;
 import com.sixrr.metrics.utils.StringToFractionMap;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Predicate;
 
 public class MetricsResultImpl implements MetricsResult {
     private final Map<Metric, StringToFractionMap> values = new HashMap<Metric, StringToFractionMap>(32);
@@ -203,5 +202,20 @@ public class MetricsResultImpl implements MetricsResult {
         }
         return out;
 
+    }
+
+    @Override
+    public MetricsResult filterObjects(@NotNull final Predicate<String> filter) {
+        final MetricsResultImpl out = new MetricsResultImpl();
+        measuredObjects.stream()
+                .filter(filter)
+                .forEachOrdered(obj -> {
+                    metrics.forEach(m -> out.postValue(m, obj, getValueForMetric(m, obj)));
+                    final PsiElement elementForMeasuredObject = getElementForMeasuredObject(obj);
+                    if (elementForMeasuredObject != null) {
+                        out.setElementForMeasuredObject(obj, elementForMeasuredObject);
+                    }
+                });
+        return out;
     }
 }

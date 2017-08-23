@@ -44,7 +44,11 @@ public class TightClassCouplingCalculator extends ClassCalculator {
             final int allPairs = applicableMethods.size() * (applicableMethods.size() - 1) / 2;
             final int connectedPairs = calculateConnectedMethods(applicableMethods);
 
-            postMetric(aClass, connectedPairs, allPairs);
+            if (allPairs > 0) {
+                postMetric(aClass, connectedPairs, allPairs);
+            } else {
+                postMetric(aClass, 1);
+            }
         }
     }
 }

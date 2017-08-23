@@ -21,6 +21,8 @@ import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.profile.MetricsProfile;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Predicate;
+
 public interface MetricsResult {
 
     void postValue(Metric metric, String measured, double value);
@@ -54,4 +56,6 @@ public interface MetricsResult {
     boolean hasWarnings(MetricsProfile profile);
 
     MetricsResult filterRowsWithoutWarnings(MetricsProfile profile);
+
+    MetricsResult filterObjects(Predicate<String> filter);
 }

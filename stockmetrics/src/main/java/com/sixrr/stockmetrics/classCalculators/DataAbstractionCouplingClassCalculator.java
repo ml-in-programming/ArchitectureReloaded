@@ -32,6 +32,9 @@ public class DataAbstractionCouplingClassCalculator extends ClassCalculator {
     private class Visitor extends JavaRecursiveElementVisitor {
         @Override
         public void visitClass(PsiClass aClass) {
+            if (!isConcreteClass(aClass)) {
+                return;
+            }
             final Set<PsiClass> classes = new HashSet<PsiClass>();
             final PsiField[] fields = aClass.getFields();
             for (final PsiField field : fields) {
