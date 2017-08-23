@@ -70,7 +70,7 @@ public class IntersectionDialog extends DialogWrapper {
         return content;
     }
 
-    public Set<String> getSelected() {
+    Set<String> getSelected() {
         return selection.entrySet().stream()
                 .filter(Map.Entry::getValue)
                 .map(Map.Entry::getKey)

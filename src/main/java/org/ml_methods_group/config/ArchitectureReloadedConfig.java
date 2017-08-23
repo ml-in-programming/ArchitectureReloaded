@@ -30,7 +30,7 @@ import java.util.Set;
 @State(name = "ArchitectureReloaded", storages = @Storage(file = "architecture.reloaded.xml"))
 public final class ArchitectureReloadedConfig implements PersistentStateComponent<ArchitectureReloadedConfig> {
 
-    public Set<String> selectedAlgorithms = new HashSet<>();
+    private final Set<String> selectedAlgorithms = new HashSet<>();
 
     private ArchitectureReloadedConfig() {}
 

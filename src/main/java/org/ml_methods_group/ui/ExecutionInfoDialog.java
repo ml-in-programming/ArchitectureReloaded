@@ -18,7 +18,6 @@ package org.ml_methods_group.ui;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TitledSeparator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -17,7 +17,6 @@
 package org.ml_methods_group.ui;
 
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.openapi.project.Project;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBPanel;
@@ -44,8 +43,6 @@ class ClassRefactoringPanel extends JPanel {
     private static final String REFACTOR_BUTTON_TEXT_KEY = "refactor.button";
 
     @NotNull
-    private final Project project;
-    @NotNull
     private final AnalysisScope scope;
     @NotNull
     private final RefactoringsTableModel model;
@@ -57,9 +54,8 @@ class ClassRefactoringPanel extends JPanel {
 
     private final List<String> warnings;
 
-    ClassRefactoringPanel(@NotNull Project project, Map<String, String> refactorings,
+    ClassRefactoringPanel(Map<String, String> refactorings,
                           @NotNull AnalysisScope scope) {
-        this.project = project;
         this.scope = scope;
         setLayout(new BorderLayout());
         model = new RefactoringsTableModel(refactorings);

@@ -52,7 +52,6 @@ public final class RefactoringsToolWindow implements Disposable {
 
     private RefactoringsToolWindow(@NotNull Project project) {
         this.project = project;
-
         register();
     }
 
@@ -64,7 +63,7 @@ public final class RefactoringsToolWindow implements Disposable {
     }
 
     private void addTab(String tabName, @NotNull Map<String, String> refactorings) {
-        final JComponent component = new ClassRefactoringPanel(project, refactorings, scope);
+        final JComponent component = new ClassRefactoringPanel(refactorings, scope);
         final ActionToolbar toolbar = createToolbar();
         final JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.add(component, BorderLayout.CENTER);

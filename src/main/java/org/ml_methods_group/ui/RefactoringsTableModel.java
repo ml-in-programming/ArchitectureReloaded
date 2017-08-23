@@ -61,12 +61,12 @@ public class RefactoringsTableModel extends AbstractTableModel {
         Arrays.fill(isActive, true);
     }
 
-    public void selectAll() {
+    void selectAll() {
         Arrays.fill(isSelected, true);
         fireTableDataChanged();
     }
 
-    public void deselectAll() {
+    void deselectAll() {
         Arrays.fill(isSelected, false);
         fireTableDataChanged();
     }

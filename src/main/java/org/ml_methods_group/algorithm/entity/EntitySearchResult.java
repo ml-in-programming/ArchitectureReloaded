@@ -18,7 +18,6 @@ package org.ml_methods_group.algorithm.entity;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
 public class EntitySearchResult {

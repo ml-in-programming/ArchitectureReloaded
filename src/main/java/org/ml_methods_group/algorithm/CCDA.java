@@ -45,7 +45,7 @@ public class CCDA extends Algorithm {
     }
 
     private void init() {
-        final EntitySearchResult entities = context.entities;
+        final EntitySearchResult entities = context.getEntities();
         LOGGER.info("Init CCDA");
         communityIds.clear();
         idCommunity.clear();
@@ -193,7 +193,6 @@ public class CCDA extends Algorithm {
     }
 
     private double calculateQualityIndex() {
-        System.out.println("Calculating Q...");
         double qualityIndex = 0.0;
 
         edges = 0.0;
@@ -201,7 +200,6 @@ public class CCDA extends Algorithm {
             edges += (double) graph.get(node).size();
         }
         edges /= 2.0;
-        System.out.println(edges);
 
         for (int i = 1; i <= idCommunity.size(); ++i) {
             final String community = idCommunity.get(i - 1);
@@ -210,8 +208,7 @@ public class CCDA extends Algorithm {
 
             for (String node : graph.keySet()) {
                 if (!communityIds.containsKey(node)) {
-                    System.out.println("ERROR: unknown community");
-                    System.out.println(node);
+                    LOGGER.warn("ERROR: unknown community: " + node);
                 }
 
                 if (!communityIds.get(node).equals(communityIds.get(community))) {
