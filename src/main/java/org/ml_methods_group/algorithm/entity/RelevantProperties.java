@@ -43,6 +43,7 @@ public class RelevantProperties {
 
     void addMethod(String method) {
         methods.add(method);
+        allMethods.add(method);
     }
 
     void addMethod(PsiMethod method) {
@@ -74,19 +75,27 @@ public class RelevantProperties {
         return methods.size();
     }
 
-    public Set<String> getAllFields() {
+    public Set<String> getFields() {
         return Collections.unmodifiableSet(fields);
     }
 
-    public Set<String> getAllMethods() {
+    public Set<String> getMethods() {
         return Collections.unmodifiableSet(methods);
+    }
+
+    public Set<String> getAllMethods() {
+        return Collections.unmodifiableSet(allMethods);
+    }
+
+    public Set<String> getClasses() {
+        return Collections.unmodifiableSet(classes);
     }
 
     public int size() {
         return classes.size() + fields.size() + allMethods.size();
     }
 
-    int sizeOfIntersection(RelevantProperties properties) {
+    public int sizeOfIntersection(RelevantProperties properties) {
         int result = 0;
         result += SetsUtil.intersection(classes, properties.classes);
         result += SetsUtil.intersection(allMethods, properties.allMethods);

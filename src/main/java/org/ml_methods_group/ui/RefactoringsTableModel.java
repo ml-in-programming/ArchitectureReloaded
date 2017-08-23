@@ -33,6 +33,8 @@ import java.util.stream.IntStream;
 public class RefactoringsTableModel extends AbstractTableModel {
     private static final String UNIT_COLUMN_TITLE_KEY = "unit.column.title";
     private static final String MOVE_TO_COLUMN_TITLE_KEY = "move.to.column.title";
+    private static final Comparator<Entry<String, String>> LINES_COMPARATOR =
+            Comparator.<Entry<String, String>, String>comparing(Entry::getValue).thenComparing(Entry::getKey);
     static final int SELECTION_COLUMN_INDEX = 0;
     static final int UNIT_COLUMN_INDEX = 1;
     static final int MOVE_TO_COLUMN_INDEX = 2;
@@ -44,13 +46,14 @@ public class RefactoringsTableModel extends AbstractTableModel {
     private final boolean[] isActive;
 
     RefactoringsTableModel(Map<String, String> refactorings) {
-        for (Entry<String, String> refactoring : refactorings.entrySet()) {
-            if (refactoring.getKey() == null || refactoring.getValue() == null) {
-                continue;
-            }
-            units.add(refactoring.getKey());
-            movements.add(refactoring.getValue());
-        }
+        refactorings.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue() != null)
+                .sorted(LINES_COMPARATOR)
+                .forEach(entry -> {
+                    units.add(entry.getKey());
+                    movements.add(entry.getValue());
+                });
         isSelected = new boolean[units.size()];
         isActive = new boolean[units.size()];
         Arrays.fill(isActive, true);
@@ -140,15 +143,16 @@ public class RefactoringsTableModel extends AbstractTableModel {
         throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }
 
-    public List<String> getUnits() {
+    List<String> getUnits() {
         return Collections.unmodifiableList(units);
     }
 
-    public List<String> getMovements() {
+    List<String> getMovements() {
         return Collections.unmodifiableList(movements);
     }
 
     void setupRenderer(JTable table) {
+        table.getSelectionModel().addListSelectionListener(x -> table.repaint());
         table.setDefaultRenderer(Boolean.class, new BooleanTableCellRenderer() {
             private final JLabel EMPTY_LABEL = new JLabel();
 
@@ -160,27 +164,28 @@ public class RefactoringsTableModel extends AbstractTableModel {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSel, boolean hasFocus,
                                                            int row, int column) {
-                if (isActive[row]) {
-                    return super.getTableCellRendererComponent(table, value, isSel, hasFocus, row, column);
-                } else {
+                if (!isActive[row]) {
                     return EMPTY_LABEL;
                 }
+                return super.getTableCellRendererComponent(table, value, isSel, hasFocus, row, column);
             }
         });
         table.setDefaultRenderer(String.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
                                                            boolean hasFocus, int row, int column) {
+                final int selectedRow = table.getSelectedRow();
+                final String selectedGroup = selectedRow == -1 ? "" : movements.get(selectedRow);
                 if (!isActive[row]) {
                     setBackground(Color.LIGHT_GRAY);
+                } else if (isSelected) {
+                    setBackground(table.getSelectionBackground());
                 } else {
-                    setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+                    setBackground(movements.get(row).equals(selectedGroup) ? Color.ORANGE : table.getBackground());
                 }
                 setEnabled(isActive[row]);
                 return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             }
         });
-
-
     }
 }
