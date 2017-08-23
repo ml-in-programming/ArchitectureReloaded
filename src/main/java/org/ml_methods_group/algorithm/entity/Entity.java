@@ -28,12 +28,13 @@ import com.sixrr.stockmetrics.methodMetrics.FanInMethodMetric;
 import com.sixrr.stockmetrics.methodMetrics.FanOutMethodMetric;
 import org.ml_methods_group.utils.PsiSearchUtil;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public abstract class Entity {
+public abstract class Entity implements Serializable{
     private static final VectorCalculator CLASS_ENTITY_CALCULATOR = new VectorCalculator()
             .addMetricDependence(NumMethodsClassMetric.class)
             .addMetricDependence(NumAttributesAddedMetric.class)
@@ -55,7 +56,8 @@ public abstract class Entity {
             .addConstValue(0)
             ;
 
-    private static final int DIMENSION = CLASS_ENTITY_CALCULATOR.getDimension();
+    public static final int DIMENSION = CLASS_ENTITY_CALCULATOR.getDimension();
+    private static final long serialVersionUID = 4967939863423518670L;
 
     static {
         assert CLASS_ENTITY_CALCULATOR.getDimension() == DIMENSION;

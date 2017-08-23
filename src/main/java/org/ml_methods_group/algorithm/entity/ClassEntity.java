@@ -20,6 +20,8 @@ import com.intellij.psi.PsiClass;
 import com.sixrr.metrics.MetricCategory;
 
 public class ClassEntity extends Entity {
+    private static final long serialVersionUID = 1173749587554776204L;
+
     ClassEntity(PsiClass psiClass) {
         super(psiClass);
     }

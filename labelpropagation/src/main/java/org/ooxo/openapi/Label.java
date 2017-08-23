@@ -16,8 +16,11 @@
 
 package org.ooxo.openapi;
 
-public class Label {
+import java.io.Serializable;
+
+public class Label implements Serializable {
     public static final Label NO_LABEL = new Label();
+    private static final long serialVersionUID = 53043370748642067L;
 
     private final long id;
 
@@ -50,5 +53,10 @@ public class Label {
             return id == ((Label) obj).id;
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return Long.toString(getId());
     }
 }

@@ -20,6 +20,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,8 +29,9 @@ import java.util.function.BinaryOperator;
 
 import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
-public class RelevantProperties {
+public class RelevantProperties implements Serializable{
 
+    private static final long serialVersionUID = -2410408921702449774L;
     private final Map<String, Integer> methods = new HashMap<>();
     private final Map<String, Integer> classes = new HashMap<>();
     private final Map<String, Integer> fields = new HashMap<>();
