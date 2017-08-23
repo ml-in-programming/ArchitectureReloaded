@@ -104,6 +104,7 @@ public class EntitySearcher {
                     break;
             }
         }
+        Entity.normalize(validEntities);
         LOGGER.info("Properties calculated");
         LOGGER.info("Generated " + classes.size() + " class entities");
         LOGGER.info("Generated " + methods.size() + " method entities");

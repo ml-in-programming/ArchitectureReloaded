@@ -31,6 +31,7 @@ import org.ml_methods_group.algorithm.AlgorithmResult;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.plugin.AutomaticRefactoringAction;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
+import org.ml_methods_group.utils.LabeledRefactorings;
 
 import javax.swing.*;
 import java.awt.*;
@@ -76,8 +77,8 @@ public final class RefactoringsToolWindow implements Disposable {
         myToolWindow.getContentManager().addContent(content);
     }
 
-    private void acceptRefactorings(Map<String, String> good, Map<String, String> bad) {
-        addTab("LabelPropagation", action.getGoodRefactorings(good, bad));
+    private void acceptRefactorings(Map<String, String> refactorings, Boolean good) {
+        action.addMarkedRefactorings(refactorings, good);
     }
 
     private ActionToolbar createToolbar() {
@@ -85,6 +86,7 @@ public final class RefactoringsToolWindow implements Disposable {
         toolbarGroup.add(new IntersectAction());
         toolbarGroup.add(new InfoAction());
         toolbarGroup.add(new CloseAction());
+        toolbarGroup.add(new ShowLabeledRefactoringsAction());
         return ActionManager.getInstance()
                 .createActionToolbar(WINDOW_ID, toolbarGroup, false);
     }
@@ -182,6 +184,25 @@ public final class RefactoringsToolWindow implements Disposable {
             myToolWindow.setAvailable(false, null);
             results = null;
             scope = null;
+        }
+    }
+
+    private class ShowLabeledRefactoringsAction extends AnAction {
+        ShowLabeledRefactoringsAction() {
+            super(ArchitectureReloadedBundle.message("show.labeled.refactorings.action.text"),
+                    ArchitectureReloadedBundle.message("show.labeled.refactorings.action.description"),
+                    AllIcons.Actions.Get);
+        }
+
+        @Override
+        public void actionPerformed(AnActionEvent e) {
+            addTab("Labeled refactorings",
+                    LabeledRefactorings.getLabeledRefactorings().stream()
+                            .collect(Collectors.toMap(
+                                    lr -> lr.refactoring.getMethod().getName(),
+                                    lr -> lr.refactoring.getTo().getName()
+                            ))
+            );
         }
     }
 }

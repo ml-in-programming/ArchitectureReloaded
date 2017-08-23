@@ -47,11 +47,11 @@ public class RefactoringsTableModel extends AbstractTableModel {
         refactorings.entrySet().stream()
                 .filter(e -> e.getValue() != null)
                 .sorted((e1, e2) -> {
-                    final int cmp = e1.getValue().compareTo(e2.getValue());
+                    final int cmp = e1.getKey().compareTo(e2.getKey());
                     if (cmp != 0) {
                         return cmp;
                     }
-                    return e1.getKey().compareTo(e2.getKey());
+                    return e1.getValue().compareTo(e2.getValue());
                 })
                 .forEachOrdered(e -> {
                     units.add(e.getKey());
@@ -69,6 +69,13 @@ public class RefactoringsTableModel extends AbstractTableModel {
 
     public void deselectAll() {
         Arrays.fill(isSelected, false);
+        fireTableDataChanged();
+    }
+
+    public void invert() {
+        for (int i = 0; i < isSelected.length; i++) {
+            isSelected[i] = !isSelected[i];
+        }
         fireTableDataChanged();
     }
 

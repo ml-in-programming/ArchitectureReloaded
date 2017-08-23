@@ -45,6 +45,8 @@ class ClassRefactoringPanel extends JPanel {
     private static final String DESELECT_ALL_BUTTON_TEXT_KEY = "deselect.all.button";
     private static final String REFACTOR_BUTTON_TEXT_KEY = "refactor.button";
     private static final String MARK_AS_GOOD_BUTTON_TEXT_KEY = "mark.as.good.button";
+    private static final String MARK_AS_BAD_BUTTON_TEXT_KEY = "mark.as.bad.button";
+    private static final String INVERT_BUTTON_TEXT_KEY = "invert.button";
 
     @NotNull
     private final Project project;
@@ -57,14 +59,16 @@ class ClassRefactoringPanel extends JPanel {
     private final JButton deselectAllButton = new JButton();
     private final JButton doRefactorButton = new JButton();
     private final JButton markAsGoodButton = new JButton();
+    private final JButton markAsBadButton = new JButton();
+    private final JButton invertButton = new JButton();
     private final JLabel info = new JLabel();
-    private final BiConsumer<Map<String, String>, Map<String, String>> refactoringsMarked;
+    private final BiConsumer<Map<String, String>, Boolean> refactoringsMarked;
 
     private final List<String> warnings;
 
     ClassRefactoringPanel(@NotNull Project project, Map<String, String> refactorings,
                           @NotNull AnalysisScope scope,
-                          @NotNull BiConsumer<Map<String, String>, Map<String, String>> consumer) {
+                          @NotNull BiConsumer<Map<String, String>, Boolean> consumer) {
         refactoringsMarked = consumer;
         this.project = project;
         this.scope = scope;
@@ -117,6 +121,14 @@ class ClassRefactoringPanel extends JPanel {
         markAsGoodButton.addActionListener(this::refactoringsMarkedGood);
         buttonsPanel.add(markAsGoodButton);
 
+        markAsBadButton.setText(ArchitectureReloadedBundle.message(MARK_AS_BAD_BUTTON_TEXT_KEY));
+        markAsBadButton.addActionListener(this::refactoringsMarkedBad);
+        buttonsPanel.add(markAsBadButton);
+
+        invertButton.setText(ArchitectureReloadedBundle.message(INVERT_BUTTON_TEXT_KEY));
+        invertButton.addActionListener(this::refactoringsInvert);
+        buttonsPanel.add(invertButton);
+
         panel.add(buttonsPanel, BorderLayout.EAST);
 
         panel.add(info, BorderLayout.WEST);
@@ -125,10 +137,20 @@ class ClassRefactoringPanel extends JPanel {
 
     private void refactoringsMarkedGood(ActionEvent e) {
         final Map<String, String> goodRefactorings = model.getSelected();
-        final Map<String, String> badRefactorings = model.getUnselected();
         if (refactoringsMarked != null) {
-            refactoringsMarked.accept(goodRefactorings, badRefactorings);
+            refactoringsMarked.accept(goodRefactorings, true);
         }
+    }
+
+    private void refactoringsMarkedBad(ActionEvent e) {
+        final Map<String, String> goodRefactorings = model.getSelected();
+        if (refactoringsMarked != null) {
+            refactoringsMarked.accept(goodRefactorings, false);
+        }
+    }
+
+    private void refactoringsInvert(ActionEvent e) {
+        model.invert();
     }
 
     private void refactorSelected() {

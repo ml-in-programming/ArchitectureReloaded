@@ -16,9 +16,11 @@
 
 package org.ml_methods_group.algorithm.entity;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
 public class EntitySearchResult {
@@ -51,6 +53,22 @@ public class EntitySearchResult {
 
     public List<FieldEntity> getFields() {
         return Collections.unmodifiableList(fields);
+    }
+
+    @Nullable
+    public ClassEntity getClass(final @NotNull String name) {
+        return classes.stream()
+                .filter(c -> c.getName().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Nullable
+    public MethodEntity getMethod(final @NotNull String name) {
+        return methods.stream()
+                .filter(m -> m.getName().equals(name))
+                .findFirst()
+                .orElse(null);
     }
 
     public int getPropertiesCount() {

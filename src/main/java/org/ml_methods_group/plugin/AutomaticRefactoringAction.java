@@ -38,12 +38,16 @@ import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.AlgorithmResult;
 import org.ml_methods_group.algorithm.LabelPropagationAdapter;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.EntitySearchResult;
+import org.ml_methods_group.algorithm.entity.MethodEntity;
 import org.ml_methods_group.config.ArchitectureReloadedConfig;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.ui.AlgorithmsSelectionPanel;
 import org.ml_methods_group.ui.RefactoringsToolWindow;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
+import org.ml_methods_group.utils.LabelUtils;
+import org.ml_methods_group.utils.LabeledRefactorings;
 import org.ml_methods_group.utils.MetricsProfilesUtil;
 
 import javax.swing.*;
@@ -51,6 +55,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class AutomaticRefactoringAction extends BaseAnalysisAction {
@@ -60,6 +65,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     private Map<String, AlgorithmResult> results = new HashMap<>();
     private RefactoringExecutionContext context;
+    private Project project;
 
     private static final Map<Project, AutomaticRefactoringAction> factory = new HashMap<>();
 
@@ -102,6 +108,8 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
     protected void analyze(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
         LOGGER.info("Run analysis (scope=" + analysisScope.getDisplayName() + ")");
 
+        this.project = project;
+
         final MetricsProfile metricsProfile = MetricsProfileRepository.getInstance()
                 .getCurrentProfile();
         assert metricsProfile != null;
@@ -110,9 +118,37 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 .executeAsync();
     }
 
-    public Map<String, String> getGoodRefactorings(Map<String, String> good, Map<String, String> bad) {
-        return new LabelPropagationAdapter().calculate(context.getEntitySearchResult(), good, bad,
-                (m, c) -> m.getRelevantProperties().sizeOfIntersection(c.getRelevantProperties()) >= 4);
+    public void addMarkedRefactorings(Map<String, String> refactorings, Boolean good) {
+        Set<LabeledRefactorings.LabeledRefactoring> rs = LabeledRefactorings.getLabeledRefactorings();
+        final EntitySearchResult res = context.getEntitySearchResult();
+        final org.ooxo.openapi.Label l = good ? LabelUtils.getGoodLabel() : LabelUtils.getBadLabel();
+        rs.addAll(refactorings.entrySet().stream()
+                .map(e -> {
+                    final MethodEntity method = res.getMethod(e.getKey());
+                    return new LabeledRefactorings.LabeledRefactoring(
+                            new LabelPropagationAdapter.Refactoring(method, res.getClass(method.getClassName()), res.getClass(e.getValue())),
+                            l);
+                }).collect(Collectors.toList())
+        );
+        LabeledRefactorings.dump(rs);
+    }
+
+    public void getGoodRefactorings(Map<String, String> good, Map<String, String> bad, Consumer<Map<String, String>> callback) {
+//        final LabelPropagationAdapter lp = new LabelPropagationAdapter();
+//        new Task.Backgroundable(project, "Running Label Propagation...") {
+//            @Override
+//            public void run(@NotNull ProgressIndicator indicator) {
+//                lp.calculate(context.getEntitySearchResult(), good, bad,
+//                        (m, c) -> m.getRelevantProperties().sizeOfIntersection(c.getRelevantProperties()) > 1);
+//            }
+//
+//            @Override
+//            public void onFinished() {
+//                callback.accept(lp.getResult());
+//            }
+//        }.queue();
+//        return new LabelPropagationAdapter().calculate(context.getEntitySearchResult(), good, bad,
+//                (m, c) -> m.getRelevantProperties().sizeOfIntersection(c.getRelevantProperties()) >= 2);
     }
 
     public void analyzeBackground(@NotNull final Project project, @NotNull final AnalysisScope analysisScope,

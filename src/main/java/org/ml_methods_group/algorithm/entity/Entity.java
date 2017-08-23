@@ -20,12 +20,11 @@ import com.intellij.psi.PsiElement;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsRun;
-import com.sixrr.stockmetrics.classMetrics.FanInClassMetric;
-import com.sixrr.stockmetrics.classMetrics.FanOutClassMetric;
-import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
-import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
+import com.sixrr.stockmetrics.classMetrics.*;
 import com.sixrr.stockmetrics.methodMetrics.FanInMethodMetric;
 import com.sixrr.stockmetrics.methodMetrics.FanOutMethodMetric;
+import com.sixrr.stockmetrics.methodMetrics.NumParametersMetric;
+import org.jetbrains.annotations.Contract;
 import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.io.Serializable;
@@ -40,6 +39,8 @@ public abstract class Entity implements Serializable{
             .addMetricDependence(NumAttributesAddedMetric.class)
             .addMetricDependence(FanInClassMetric.class)
             .addMetricDependence(FanOutClassMetric.class)
+            .addMetricDependence(LackOfCohesionOfMethodsClassMetric.class)
+            .addConstValue(0)
             ;
 
     private static final VectorCalculator METHOD_ENTITY_CALCULATOR = new VectorCalculator()
@@ -47,9 +48,13 @@ public abstract class Entity implements Serializable{
             .addConstValue(0)
             .addMetricDependence(FanInMethodMetric.class)
             .addMetricDependence(FanOutMethodMetric.class)
+            .addMetricDependence(NumParametersMetric.class)
+            .addMetricDependence(HalsteadEffortClassMetric.class)
             ;
 
     private static final VectorCalculator FIELD_ENTITY_CALCULATOR = new VectorCalculator()
+            .addConstValue(0)
+            .addConstValue(0)
             .addConstValue(0)
             .addConstValue(0)
             .addConstValue(0)
@@ -86,6 +91,7 @@ public abstract class Entity implements Serializable{
         vector = getCalculatorForEntity().calculateVector(metricsRun, this);
     }
 
+    @Contract(pure = true)
     private double square(double value) {
         return value * value;
     }
@@ -109,7 +115,7 @@ public abstract class Entity implements Serializable{
     }
 
     static void normalize(Iterable<? extends Entity> entities) {
-        for (int i = 0; i < DIMENSION; i++) {
+        for (int i = 2; i < DIMENSION; i++) {
             double mx = 0.0;
             for (Entity entity : entities) {
                 mx = Math.max(mx, entity.vector[i]);
