@@ -73,7 +73,7 @@ public class RunOptimizationAction extends BaseAnalysisAction {
         assert metricsProfile != null;
         RefactoringBase base = RefactoringBase.getInstance(project);
         allRefactorings.clear();
-        final String algorithm = "ARI";
+        final String algorithm = "CCDA";
         new Task.Backgroundable(project, "optimizing", false) {
 
             @Override

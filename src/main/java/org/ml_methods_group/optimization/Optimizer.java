@@ -47,7 +47,7 @@ public class Optimizer {
 
     public PropertiesStrategy runOptimization() {
         IntRange[] ranges = new IntRange[20];
-        Arrays.setAll(ranges, i -> IntRange.of(0, 50));
+        Arrays.setAll(ranges, i -> IntRange.of(0, 1));
         ranges[19] = IntRange.of(0, 3);
         Engine<IntegerGene, Integer> engine = Engine.builder(
                 this::fitness,
@@ -56,8 +56,8 @@ public class Optimizer {
                 .optimize(Optimize.MAXIMUM)
                 .build();
         final Phenotype<IntegerGene, Integer> best = engine.stream()
-                .limit(bySteadyFitness(100))
-                .peek(e -> System.out.println(e.getGeneration() + " finished"))
+                .limit(100)
+                .peek(e -> System.out.println(e.getGeneration() + " finished | res =" + e.getBestFitness()))
                 .collect(toBestPhenotype());
         System.out.println("best is " + best.getFitness() + " gens: " + best.getGenotype());
         int[] values = best.getGenotype().stream()

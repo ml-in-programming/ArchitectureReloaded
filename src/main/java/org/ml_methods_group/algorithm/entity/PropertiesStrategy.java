@@ -85,15 +85,20 @@ public class PropertiesStrategy {
 //            4,0, 6, SIMPLE_MIN_CALCULATOR);
 
 //    ARI
-    public static final PropertiesStrategy DEFAULT_STRATEGY = new PropertiesStrategy(18,
-            7, 46, 0, 40, 46,
-            49,0, 49, 29, 37,
-            18,37, 27, 42, 14,
-            4,0, 32, EXP_CALCULATOR);
+//    public static final PropertiesStrategy DEFAULT_STRATEGY = new PropertiesStrategy(18,
+//            7, 46, 0, 40, 46,
+//            49,0, 49, 29, 37,
+//            18,37, 27, 42, 14,
+//            4,0, 32, EXP_CALCULATOR);
 
-//    HAC
-//    best is 43 gens: [[[1]],[[1]],[[4]],[[0]],[[12]],[[5]],[[8]],[[3]],[[44]],[[0]],[[5]],[[45]],[[28]],[[0]],[[39]],[[44]],[[4]],[[0]],[[6]],[[0]]]
-//            [1, 1, 4, 0, 12, 5, 8, 3, 44, 0, 5, 45, 28, 0, 39, 44, 4, 0, 6, 0]
+
+    //    ARI (21.08.2017)
+    public static final PropertiesStrategy DEFAULT_STRATEGY = new PropertiesStrategy(0,
+            42, 36, 4, 1, 1,
+            39,0, 7, 35, 33,
+            9,25, 2, 5, 6,
+            24,38, 4, SIMPLE_MIN_CALCULATOR);
+
 
 
     public final int methodCallPublicMethod;
