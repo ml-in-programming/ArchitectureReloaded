@@ -23,13 +23,12 @@ import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.config.Logging;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ARI extends Algorithm {
     private static final Logger LOGGER = Logging.getLogger(ARI.class);
+    private static final double ACCURACY = 1;
 
     private final List<Entity> units = new ArrayList<>();
     private final List<ClassEntity> classEntities = new ArrayList<>();
@@ -41,7 +40,7 @@ public class ARI extends Algorithm {
     }
 
     @Override
-    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+    protected List<Refactoring> calculateRefactorings(ExecutionContext context) {
         units.clear();
         classEntities.clear();
         final EntitySearchResult entities = context.getEntities();
@@ -50,10 +49,10 @@ public class ARI extends Algorithm {
         units.addAll(entities.getFields());
         progressCount.set(0);
         this.context = context;
-        return runParallel(units, context, HashMap<String, String>::new, this::findRefactoring, Algorithm::combineMaps);
+        return runParallel(units, context, ArrayList<Refactoring>::new, this::findRefactoring, Algorithm::combineLists);
     }
 
-    private Map<String, String> findRefactoring(Entity entity, Map<String, String> accumulator) {
+    private List<Refactoring> findRefactoring(Entity entity, List<Refactoring> accumulator) {
         reportProgress((double) progressCount.incrementAndGet() / units.size(), context);
         context.checkCanceled();
         if (!entity.isMovable()) {
@@ -77,7 +76,7 @@ public class ARI extends Algorithm {
 
         final String targetClassName = targetClass.getName();
         if (!targetClassName.equals(entity.getClassName())) {
-            accumulator.put(entity.getName(), targetClassName);
+            accumulator.add(new Refactoring(entity.getName(), targetClassName, ACCURACY));
         }
         return accumulator;
     }

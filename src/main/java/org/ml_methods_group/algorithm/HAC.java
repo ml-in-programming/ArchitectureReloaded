@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 
 public class HAC extends Algorithm {
     private static final Logger LOGGER = Logging.getLogger(HAC.class);
+    private static final double ACCURACY = 1;
 
     private final SortedSet<Triple> heap = new TreeSet<>();
     private final Map<Long, Triple> triples = new HashMap<>();
@@ -81,10 +82,9 @@ public class HAC extends Algorithm {
     }
 
     @Override
-    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+    protected List<Refactoring> calculateRefactorings(ExecutionContext context) {
         init(context);
         final int initialCommunitiesCount = communities.size();
-        final Map<String, String> refactorings = new HashMap<>();
         while (!heap.isEmpty()) {
             final Triple minTriple = heap.first();
             invalidateTriple(minTriple);
@@ -95,12 +95,13 @@ public class HAC extends Algorithm {
             context.checkCanceled();
         }
 
+        final List<Refactoring> refactorings = new ArrayList<>();
         for (Community community : communities) {
             final String newName = receiveClassName(community);
             LOGGER.info("Generate class name for community (id = " + community.id +"): " + newName);
             for (Entity entity : community.entities) {
                 if (!entity.getClassName().equals(newName)) {
-                    refactorings.put(entity.getName(), newName);
+                    refactorings.add(new Refactoring(entity.getName(), newName, ACCURACY));
                 }
             }
         }

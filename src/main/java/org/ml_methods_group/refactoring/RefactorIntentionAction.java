@@ -24,30 +24,28 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
+import org.ml_methods_group.algorithm.Refactoring;
 import org.ml_methods_group.utils.RefactoringUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public class RefactorIntentionAction extends BaseIntentionAction {
-    private final String algorithmName;
-    private final Map<String, String> refactorings = new HashMap<>();
     private final AnalysisScope scope;
-    private final String moveTo;
+    private final Refactoring refactoring;
 
-    public RefactorIntentionAction(String algorithmName, String from, String to, AnalysisScope scope) {
-        this.algorithmName = algorithmName;
+    public RefactorIntentionAction(String unit, String to, AnalysisScope scope) {
         this.scope = scope;
-        this.moveTo = to;
-        refactorings.put(from, to);
+        this.refactoring = new Refactoring(unit, to, 0);
     }
 
     @NotNull
     @Override
     public String getText() {
-        return String.format("Move to %s", moveTo);
+        return String.format("Move to %s", refactoring.getTarget());
     }
 
     @Nls
@@ -65,6 +63,6 @@ public class RefactorIntentionAction extends BaseIntentionAction {
     @Override
     public void invoke(@NotNull Project project, Editor editor, PsiFile psiFile) throws IncorrectOperationException {
         ApplicationManager.getApplication().invokeLater(() ->
-                RefactoringUtil.moveRefactoring(refactorings, scope));
+                RefactoringUtil.moveRefactoring(Collections.singletonList(refactoring), scope));
     }
 }

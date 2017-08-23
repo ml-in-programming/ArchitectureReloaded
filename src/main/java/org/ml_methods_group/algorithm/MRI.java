@@ -32,6 +32,7 @@ import java.util.stream.Stream;
 
 public class MRI extends Algorithm {
     private static final Logger LOGGER = Logging.getLogger(MRI.class);
+    private static final double ACCURACY = 1;
 
     private final List<Entity> units = new ArrayList<>();
     private final Map<String, ClassEntity> classesByName = new HashMap<>();
@@ -42,7 +43,7 @@ public class MRI extends Algorithm {
     }
 
     @Override
-    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+    protected List<Refactoring> calculateRefactorings(ExecutionContext context) {
         final EntitySearchResult searchResult = context.getEntities();
         units.clear();
         classes.clear();
@@ -57,7 +58,7 @@ public class MRI extends Algorithm {
                 .peek(entity -> classesByName.put(entity.getName(), entity))
                 .forEach(classes::add);
 
-        final Map<String, String> refactorings = new HashMap<>();
+        final List<Refactoring> refactorings = new ArrayList<>();
 
         int progress = 0;
         for (Entity currentEntity : units) {
@@ -78,7 +79,7 @@ public class MRI extends Algorithm {
             if (currentEntity.getCategory() == MetricCategory.Method) {
                 processMethod(refactorings, currentEntity, nearestClass);
             } else {
-                refactorings.put(currentEntity.getName(), nearestClass.getName());
+                refactorings.add(new Refactoring(currentEntity.getName(), nearestClass.getName(), ACCURACY));
             }
         }
 
@@ -104,10 +105,10 @@ public class MRI extends Algorithm {
         return first.distance > second.distance ? second : first;
     }
 
-    private void processMethod(Map<String, String> refactorings, Entity method, ClassEntity nearestClass) {
+    private void processMethod(List<Refactoring> refactorings, Entity method, ClassEntity nearestClass) {
         if (method.isMovable()) {
             final ClassEntity containingClass = classesByName.get(method.getClassName());
-            refactorings.put(method.getName(), nearestClass.getClassName());
+            refactorings.add(new Refactoring(method.getName(), nearestClass.getClassName(), ACCURACY));
             containingClass.removeFromClass(method.getName());
             nearestClass.addToClass(method.getName());
         }

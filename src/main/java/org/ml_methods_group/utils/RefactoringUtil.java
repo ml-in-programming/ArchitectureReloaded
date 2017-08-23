@@ -25,6 +25,7 @@ import com.intellij.refactoring.makeStatic.MakeStaticHandler;
 import com.intellij.refactoring.move.moveInstanceMethod.MoveInstanceMethodDialog;
 import com.intellij.refactoring.move.moveMembers.MoveMembersDialog;
 import org.jetbrains.annotations.NotNull;
+import org.ml_methods_group.algorithm.Refactoring;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -42,8 +43,11 @@ public final class RefactoringUtil {
     private RefactoringUtil() {
     }
 
-    public static void moveRefactoring(@NotNull Map<String, String> refactorings,
+    public static void moveRefactoring(@NotNull List<Refactoring> refactorings,
                                        @NotNull AnalysisScope scope) {
+        if (!checkValid(refactorings)) {
+            throw new IllegalArgumentException("Units in refactorings list must be unique!");
+        }
         final Map<PsiClass, List<PsiElement>> groupedRefactorings = prepareRefactorings(refactorings, scope);
         ApplicationManager.getApplication().runReadAction(() -> {
             for (Entry<PsiClass, List<PsiElement>> refactoring : groupedRefactorings.entrySet()) {
@@ -114,19 +118,21 @@ public final class RefactoringUtil {
         return true;
     }
 
-    public static List<String> getWarnings(List<String> units, List<String> targets, AnalysisScope scope) {
-        final Set<String> allUnits = new HashSet<>(units);
+    public static Map<Refactoring, String> getWarnings(List<Refactoring> refactorings, AnalysisScope scope) {
+        final Set<String> allUnits = refactorings.stream()
+                .map(Refactoring::getUnit)
+                .collect(Collectors.toSet());
         final Map<String, PsiElement> psiElements = PsiSearchUtil.findAllElements(allUnits, scope, Function.identity());
-        List<String> warnings = new ArrayList<>();
-        for (int i = 0; i < units.size(); i++) {
-            final PsiElement element = psiElements.get(units.get(i));
-            final String target = targets.get(i);
+        Map<Refactoring, String> warnings = new HashMap<>();
+        for (Refactoring refactoring : refactorings) {
+            final PsiElement element = psiElements.get(refactoring.getUnit());
+            final String target = refactoring.getTarget();
             String warning = "";
             if (element != null) {
                 warning = ApplicationManager.getApplication()
                         .runReadAction((Computable<String>) () -> getWarning(element, target));
             }
-            warnings.add(warning);
+            warnings.put(refactoring, warning);
         }
         return warnings;
     }
@@ -151,18 +157,31 @@ public final class RefactoringUtil {
         return "";
     }
 
-    private static Map<PsiClass, List<PsiElement>> prepareRefactorings(Map<String, String> refactorings,
+    private static Map<PsiClass, List<PsiElement>> prepareRefactorings(List<Refactoring> refactorings,
                                                                        AnalysisScope scope) {
         final Set<String> names = new HashSet<>();
-        names.addAll(refactorings.values());
-        names.addAll(refactorings.keySet());
+        refactorings.stream()
+                .peek(refactoring -> names.add(refactoring.getUnit()))
+                .forEach(refactoring -> names.add(refactoring.getTarget()));
         final Map<String, PsiElement> elements = findAllElements(names, scope, Function.identity());
         final HashMap<PsiClass, List<PsiElement>> result = new HashMap<>();
-        for (Entry<String, String> refactoring : refactorings.entrySet()) {
-            final PsiClass target = (PsiClass) elements.get(refactoring.getValue());
-            final PsiElement element = elements.get(refactoring.getKey());
+        for (Refactoring refactoring : refactorings) {
+            final PsiClass target = (PsiClass) elements.get(refactoring.getTarget());
+            final PsiElement element = elements.get(refactoring.getUnit());
             result.computeIfAbsent(target, x -> new ArrayList<>()).add(element);
         }
         return result;
+    }
+
+    public static boolean checkValid(Collection<Refactoring> refactorings) {
+        final long uniqueUnits = refactorings.stream()
+                .map(Refactoring::getUnit)
+                .distinct()
+                .count();
+        return uniqueUnits == refactorings.size();
+    }
+
+    public static Map<String, String> toMap(List<Refactoring> refactorings) {
+        return refactorings.stream().collect(Collectors.toMap(Refactoring::getUnit, Refactoring::getTarget));
     }
 }

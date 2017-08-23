@@ -20,16 +20,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
-import java.util.Map;
+import java.util.List;
 
 public class AlgorithmResult {
-    private final Map<String, String> refactorings;
+    private final List<Refactoring> refactorings;
     private final String algorithmName;
     private final long executionTime;
     private final int threadUsed;
     private final Exception exception;
 
-    AlgorithmResult(@NotNull Map<String, String> refactorings, String algorithmName, long executionTime,
+    AlgorithmResult(@NotNull List<Refactoring> refactorings, String algorithmName, long executionTime,
                     int threadUsed) {
         this.refactorings = refactorings;
         this.algorithmName = algorithmName;
@@ -39,15 +39,15 @@ public class AlgorithmResult {
     }
 
     AlgorithmResult(String algorithmName, @NotNull Exception exception) {
-        this.refactorings = Collections.emptyMap();
+        this.refactorings = Collections.emptyList();
         this.algorithmName = algorithmName;
         this.executionTime = 0;
         this.threadUsed = 0;
         this.exception = exception;
     }
 
-    public Map<String, String> getRefactorings() {
-        return Collections.unmodifiableMap(refactorings);
+    public List<Refactoring> getRefactorings() {
+        return Collections.unmodifiableList(refactorings);
     }
 
     public String getAlgorithmName() {

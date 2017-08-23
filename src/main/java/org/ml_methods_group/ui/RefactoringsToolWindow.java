@@ -28,14 +28,13 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.AlgorithmResult;
+import org.ml_methods_group.algorithm.Refactoring;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -62,7 +61,7 @@ public final class RefactoringsToolWindow implements Disposable {
         myToolWindow.setAvailable(false, null);
     }
 
-    private void addTab(String tabName, @NotNull Map<String, String> refactorings) {
+    private void addTab(String tabName, @NotNull List<Refactoring> refactorings) {
         final JComponent component = new ClassRefactoringPanel(refactorings, scope);
         final ActionToolbar toolbar = createToolbar();
         final JPanel contentPanel = new JPanel(new BorderLayout());
@@ -105,22 +104,23 @@ public final class RefactoringsToolWindow implements Disposable {
     }
 
     private void intersect(Set<String> algorithms) {
-        HashMap<String, String> intersection = null;
-        for (AlgorithmResult result : results) {
-            if (!algorithms.contains(result.getAlgorithmName())) {
-                continue;
-            }
-            final Map<String, String> refactorings = result.getRefactorings();
-            if (intersection == null) {
-                intersection = new HashMap<>(refactorings);
-            }
-            intersection.entrySet().retainAll(refactorings.entrySet());
-        }
-        if (intersection != null) {
-            final String tabName = algorithms.stream()
-                    .collect(Collectors.joining(" & "));
-            addTab(tabName, intersection);
-        }
+        //todo
+//        HashMap<Refactoring, Double> intersection = null;
+//        for (AlgorithmResult result : results) {
+//            if (!algorithms.contains(result.getAlgorithmName())) {
+//                continue;
+//            }
+//            final Map<Refactoring, Double> refactorings = result.getRefactorings();
+//            if (intersection == null) {
+//                intersection = new HashMap<>(refactorings);
+//            }
+//            intersection.entrySet().retainAll(refactorings.entrySet());
+//        }
+//        if (intersection != null) {
+//            final String tabName = algorithms.stream()
+//                    .collect(Collectors.joining(" & "));
+//            addTab(tabName, intersection);
+//        }
     }
 
     private class IntersectAction extends AnAction {

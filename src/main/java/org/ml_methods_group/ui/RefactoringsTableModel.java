@@ -18,15 +18,16 @@ package org.ml_methods_group.ui;
 
 import com.intellij.ui.BooleanTableCellRenderer;
 import org.jetbrains.annotations.Nullable;
+import org.ml_methods_group.algorithm.Refactoring;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -38,21 +39,14 @@ public class RefactoringsTableModel extends AbstractTableModel {
     static final int MOVE_TO_COLUMN_INDEX = 2;
     private static final int COLUMNS_COUNT = 3;
 
-    private final List<String> units = new ArrayList<>();
-    private final List<String> movements = new ArrayList<>();
+    private final List<Refactoring> refactorings = new ArrayList<>();
     private final boolean[] isSelected;
     private final boolean[] isActive;
 
-    RefactoringsTableModel(Map<String, String> refactorings) {
-        for (Entry<String, String> refactoring : refactorings.entrySet()) {
-            if (refactoring.getKey() == null || refactoring.getValue() == null) {
-                continue;
-            }
-            units.add(refactoring.getKey());
-            movements.add(refactoring.getValue());
-        }
-        isSelected = new boolean[units.size()];
-        isActive = new boolean[units.size()];
+    RefactoringsTableModel(List<Refactoring> refactorings) {
+        this.refactorings.addAll(refactorings);
+        isSelected = new boolean[refactorings.size()];
+        isActive = new boolean[refactorings.size()];
         Arrays.fill(isActive, true);
     }
 
@@ -66,12 +60,12 @@ public class RefactoringsTableModel extends AbstractTableModel {
         fireTableDataChanged();
     }
 
-    Map<String, String> pullSelected() {
-        final Map<String, String> result = IntStream.range(0, isSelected.length)
+    List<Refactoring> pullSelected() {
+        final List<Refactoring> result = IntStream.range(0, isSelected.length)
                 .filter(i -> isSelected[i] && isActive[i])
                 .peek(i -> isActive[i] = false)
-                .boxed()
-                .collect(Collectors.toMap(units::get, movements::get));
+                .mapToObj(refactorings::get)
+                .collect(Collectors.toList());
         fireTableDataChanged();
         return result;
     }
@@ -106,7 +100,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
 
     @Override
     public int getRowCount() {
-        return units.size();
+        return refactorings.size();
     }
 
 
@@ -123,9 +117,9 @@ public class RefactoringsTableModel extends AbstractTableModel {
             case SELECTION_COLUMN_INDEX:
                 return isSelected[rowIndex];
             case UNIT_COLUMN_INDEX:
-                return units.get(rowIndex);
+                return refactorings.get(rowIndex).getUnit();
             case MOVE_TO_COLUMN_INDEX:
-                return movements.get(rowIndex);
+                return refactorings.get(rowIndex).getTarget();
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + columnIndex);
     }
@@ -133,19 +127,19 @@ public class RefactoringsTableModel extends AbstractTableModel {
     String getUnitAt(int row, int column) {
         switch (column) {
             case UNIT_COLUMN_INDEX:
-                return units.get(row);
+                return refactorings.get(row).getUnit();
             case MOVE_TO_COLUMN_INDEX:
-                return movements.get(row);
+                return refactorings.get(row).getTarget();
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }
 
-    public List<String> getUnits() {
-        return Collections.unmodifiableList(units);
+    List<Refactoring> getRefactorings() {
+        return refactorings;
     }
 
-    public List<String> getMovements() {
-        return Collections.unmodifiableList(movements);
+    Refactoring getRefactoring(int row) {
+        return refactorings.get(row);
     }
 
     void setupRenderer(JTable table) {

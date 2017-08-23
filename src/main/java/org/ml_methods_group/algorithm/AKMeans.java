@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 
 public class AKMeans extends Algorithm {
     private static final Logger LOGGER = Logging.getLogger(AKMeans.class);
+    private static final double ACCURACY = 1;
 
     private final List<Entity> points = new ArrayList<>();
     private final List<Integer> indexes = new ArrayList<>();
@@ -77,10 +78,9 @@ public class AKMeans extends Algorithm {
     }
 
     @Override
-    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+    protected List<Refactoring> calculateRefactorings(ExecutionContext context) {
         init(context.getEntities());
         context.checkCanceled();
-        final Map<String, String> refactorings = new HashMap<>();
         initializeCenters();
         context.checkCanceled();
 
@@ -99,14 +99,15 @@ public class AKMeans extends Algorithm {
             }
         }
 
+        final List<Refactoring> refactorings = new ArrayList<>();
         for (Set<Entity> community : communities) {
             final String newName = receiveClassName(community);
             community.stream()
                     .filter(e -> !e.getClassName().equals(newName))
                     .filter(Entity::isMovable)
-                    .forEach(e -> refactorings.put(e.getName(), newName));
+                    .map(e -> new Refactoring(e.getName(), newName, ACCURACY))
+                    .forEach(refactorings::add);
         }
-
         return refactorings;
     }
 

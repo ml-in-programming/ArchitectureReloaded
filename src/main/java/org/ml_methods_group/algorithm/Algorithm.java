@@ -65,7 +65,7 @@ public abstract class Algorithm {
         indicator.setFraction(0);
         final ExecutionContext context =
                 new ExecutionContext(enableParallelExecution ? requireNonNull(service) : null, indicator, entities);
-        final Map<String, String> refactorings;
+        final List<Refactoring> refactorings;
         try {
             refactorings = calculateRefactorings(context);
         } catch (ProcessCanceledException e) {
@@ -74,16 +74,16 @@ public abstract class Algorithm {
             LOGGER.error(name + " finished with error: " + e);
             return new AlgorithmResult(name, e);
         }
-        final long totalTime = System.currentTimeMillis() - startTime;
+        final long time = System.currentTimeMillis() - startTime;
         indicator.popState();
-        final AlgorithmResult result = new AlgorithmResult(refactorings, name, totalTime, context.usedThreads);
+        final AlgorithmResult result = new AlgorithmResult(refactorings, name, time, context.usedThreads);
         LOGGER.info(name + " successfully finished");
         LOGGER.info(result.getReport());
         return result;
     }
 
 
-    protected abstract Map<String, String> calculateRefactorings(ExecutionContext context) throws Exception;
+    protected abstract List<Refactoring> calculateRefactorings(ExecutionContext context) throws Exception;
 
     protected void reportProgress(double progress, ExecutionContext context) {
         context.indicator.setFraction(progress);

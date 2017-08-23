@@ -22,6 +22,7 @@ import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
+import org.ml_methods_group.algorithm.Refactoring;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.PsiSearchUtil;
 import org.ml_methods_group.utils.RefactoringUtil;
@@ -52,14 +53,14 @@ class ClassRefactoringPanel extends JPanel {
     private final JButton doRefactorButton = new JButton();
     private final JLabel info = new JLabel();
 
-    private final List<String> warnings;
+    private final Map<Refactoring, String> warnings;
 
-    ClassRefactoringPanel(Map<String, String> refactorings,
+    ClassRefactoringPanel(List<Refactoring> refactorings,
                           @NotNull AnalysisScope scope) {
         this.scope = scope;
         setLayout(new BorderLayout());
         model = new RefactoringsTableModel(refactorings);
-        warnings = RefactoringUtil.getWarnings(model.getUnits(), model.getMovements(), scope);
+        warnings = RefactoringUtil.getWarnings(model.getRefactorings(), scope);
         setupGUI();
     }
 
@@ -111,8 +112,8 @@ class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setEnabled(false);
         selectAllButton.setEnabled(false);
         table.setEnabled(false);
-        final Map<String, String> movements = model.pullSelected();
-        RefactoringUtil.moveRefactoring(movements, scope);
+        final List<Refactoring> refactorings = model.pullSelected();
+        RefactoringUtil.moveRefactoring(refactorings, scope);
         table.setEnabled(true);
         doRefactorButton.setEnabled(true);
         selectAllButton.setEnabled(true);
@@ -129,7 +130,7 @@ class ClassRefactoringPanel extends JPanel {
 
     private void onSelectionChanged() {
         final int selectedRow = table.getSelectedRow();
-        info.setText(selectedRow == -1 ? "" : warnings.get(selectedRow));
+        info.setText(selectedRow == -1 ? "" : warnings.get(model.getRefactoring(selectedRow)));
     }
 
     @FunctionalInterface

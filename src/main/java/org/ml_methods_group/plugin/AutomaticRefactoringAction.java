@@ -44,6 +44,7 @@ import org.ml_methods_group.ui.AlgorithmsSelectionPanel;
 import org.ml_methods_group.ui.RefactoringsToolWindow;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.MetricsProfilesUtil;
+import org.ml_methods_group.utils.RefactoringUtil;
 
 import javax.swing.*;
 import java.awt.*;
@@ -57,7 +58,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
     private static final String REFACTORING_PROFILE_KEY = "refactoring.metrics.profile.name";
     private static final Map<String, ProgressIndicator> processes = new ConcurrentHashMap<>();
 
-    private Map<String, AlgorithmResult> results = new HashMap<>();
+    private Map<String, Map<String, String>> results = new HashMap<>();
 
     private static final Map<Project, AutomaticRefactoringAction> factory = new HashMap<>();
 
@@ -139,7 +140,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     private void updateResults(@NotNull RefactoringExecutionContext context) {
         for (AlgorithmResult result : context.getAlgorithmResults()) {
-            results.put(result.getAlgorithmName(), result);
+            results.put(result.getAlgorithmName(), RefactoringUtil.toMap(result.getRefactorings()));
         }
     }
 
@@ -147,9 +148,9 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
     private void showDialogs(@NotNull RefactoringExecutionContext context) {
         updateResults(context);
         final Set<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
-        final List<AlgorithmResult> algorithmResult = selectedAlgorithms.stream()
-                .map(results::get)
-                .filter(Objects::nonNull)
+        final List<AlgorithmResult> algorithmResult = context.getAlgorithmResults()
+                .stream()
+                .filter(result -> selectedAlgorithms.contains(result.getAlgorithmName()))
                 .collect(Collectors.toList());
         ServiceManager.getService(context.getProject(), MetricsToolWindow.class)
                 .show(context.getMetricsRun(), context.getProfile(), context.getScope(), false);
@@ -178,7 +179,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         if (!results.containsKey(algorithm)) {
             throw new IllegalArgumentException("Uncalculated algorithm requested: " + algorithm);
         }
-        return results.get(algorithm).getRefactorings();
+        return results.get(algorithm);
     }
 
     @Override

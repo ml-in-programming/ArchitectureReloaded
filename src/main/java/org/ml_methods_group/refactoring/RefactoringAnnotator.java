@@ -59,7 +59,6 @@ public class RefactoringAnnotator implements Annotator {
         if (refactorings == null || refactorings.isEmpty()) {
             return;
         }
-
         final String name = PsiSearchUtil.getHumanReadableName(element);
         if (refactorings.containsKey(name)) {
             final Annotation annotation = holder.createWarningAnnotation(
@@ -67,8 +66,7 @@ public class RefactoringAnnotator implements Annotator {
                     String.format("Can be moved to %s (%s)",
                             refactorings.get(name), algorithmName));
 
-            annotation.registerFix(new RefactorIntentionAction(algorithmName,
-                    name, refactorings.get(name), scope));
+            annotation.registerFix(new RefactorIntentionAction(name, refactorings.get(name), scope));
         }
     }
 
