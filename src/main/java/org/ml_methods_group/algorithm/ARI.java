@@ -19,6 +19,7 @@ package org.ml_methods_group.algorithm;
 import org.apache.log4j.Logger;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.config.Logging;
 
 import java.util.ArrayList;
@@ -43,9 +44,10 @@ public class ARI extends Algorithm {
     protected Map<String, String> calculateRefactorings(ExecutionContext context) {
         units.clear();
         classEntities.clear();
-        classEntities.addAll(context.entities.getClasses());
-        units.addAll(context.entities.getMethods());
-        units.addAll(context.entities.getFields());
+        final EntitySearchResult entities = context.getEntities();
+        classEntities.addAll(entities.getClasses());
+        units.addAll(entities.getMethods());
+        units.addAll(entities.getFields());
         progressCount.set(0);
         this.context = context;
         return runParallel(units, context, HashMap<String, String>::new, this::findRefactoring, Algorithm::combineMaps);

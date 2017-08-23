@@ -43,7 +43,7 @@ public class MRI extends Algorithm {
 
     @Override
     protected Map<String, String> calculateRefactorings(ExecutionContext context) {
-        final EntitySearchResult searchResult = context.entities;
+        final EntitySearchResult searchResult = context.getEntities();
         units.clear();
         classes.clear();
         Stream.of(searchResult.getFields(), searchResult.getMethods())

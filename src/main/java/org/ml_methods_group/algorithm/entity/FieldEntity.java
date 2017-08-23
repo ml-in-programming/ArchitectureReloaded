@@ -18,7 +18,6 @@ package org.ml_methods_group.algorithm.entity;
 
 import com.intellij.psi.PsiField;
 import com.sixrr.metrics.MetricCategory;
-import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.utils.MethodUtils;
 
 public class FieldEntity extends Entity {

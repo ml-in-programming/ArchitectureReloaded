@@ -156,7 +156,7 @@ public abstract class Algorithm {
     protected final class ExecutionContext {
         private final ExecutorService service;
         private final ProgressIndicator indicator;
-        public final EntitySearchResult entities;
+        private final EntitySearchResult entities;
         private int usedThreads = 1; // default thread
 
         private ExecutionContext(ExecutorService service, ProgressIndicator indicator,
@@ -164,6 +164,10 @@ public abstract class Algorithm {
             this.service = service;
             this.indicator = indicator;
             this.entities = entities;
+        }
+
+        public EntitySearchResult getEntities() {
+            return entities;
         }
 
         public void checkCanceled() {

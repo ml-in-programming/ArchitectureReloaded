@@ -57,7 +57,7 @@ public class PsiSearchUtil {
 
     public static void openDefinition(String unit, AnalysisScope scope) {
         new Task.Backgroundable(scope.getProject(), "Search Definition"){
-            PsiElement result;
+            private PsiElement result;
 
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
