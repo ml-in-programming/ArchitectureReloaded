@@ -16,54 +16,61 @@
   -->
 
 <idea-plugin url="https://github.com/ml-in-programming/architectureReloaded">
-  <name>ArchitectureReloaded</name>
-  <id>ArchitectureReloaded</id>
-  <depends>com.intellij.modules.lang</depends>
-  <description><![CDATA[
+    <name>ArchitectureReloaded</name>
+    <id>ArchitectureReloaded</id>
+    <depends>com.intellij.modules.lang</depends>
+    <description><![CDATA[
     Automated design defects detection plugin for IntelliJ IDEA. Finds possible refactorings for Java code
-    according to object-oriented metrics.
+    using machine learning algorithms.
     <br><br>
 
     <h4>Getting started</h4>
-    <p>Coming soon...</p>
+    <ol>
+        <li>Select the <code>Analyze | Search for refactorings...</code> menu item</li>
+        <li>Select the scope you want to analyze</li>
+        <li>Select algorithms to run</li>
+        <li>Click OK and wait for results</li>
+        <li>In the table below select valid refactorings and click <code>Refactor</code> button.
+            Double-clicks on table cells navigate to appropriate code fragments.</li>
+    </ol>
     ]]></description>
-  <version>0.1</version>
-  <change-notes></change-notes>
-  <idea-version since-build="139"/>
+    <version>0.1</version>
+    <change-notes></change-notes>
+    <idea-version since-build="139"/>
 
-  <depends optional="true" config-file="java-metrics.xml">com.intellij.modules.java</depends>
+    <depends optional="true" config-file="java-metrics.xml">com.intellij.modules.java</depends>
 
-  <extensionPoints>
-    <extensionPoint name="metricProvider" interface="com.sixrr.metrics.MetricProvider"/>
-  </extensionPoints>
+    <extensionPoints>
+        <extensionPoint name="metricProvider" interface="com.sixrr.metrics.MetricProvider"/>
+    </extensionPoints>
 
-  <extensions defaultExtensionNs="com.intellij">
-    <annotator language="JAVA" implementationClass="org.ml_methods_group.refactoring.RefactoringAnnotator"/>
-    <appStarter implementation="com.sixrr.metrics.offline.MetricsCommandLine"/>
-    <applicationService serviceImplementation="com.sixrr.metrics.config.MetricsReloadedConfig"/>
-    <applicationService serviceImplementation="com.sixrr.metrics.profile.MetricsProfileRepository"/>
-    <applicationService serviceImplementation="org.ml_methods_group.config.ArchitectureReloadedConfig"/>
-    <projectService serviceImplementation="org.ml_methods_group.ui.RefactoringsToolWindow"/>
-    <projectService serviceInterface="com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow"
-                    serviceImplementation="com.sixrr.metrics.ui.metricdisplay.MetricsToolWindowImpl"/>
-    <exportable serviceInterface="com.sixrr.metrics.profile.MetricsProfileRepository"/>
-  </extensions>
-  <extensions defaultExtensionNs="ArchitectureReloaded">
-    <metricProvider implementation="com.sixrr.stockmetrics.DefaultMetricProvider"/>
-  </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <annotator language="JAVA" implementationClass="org.ml_methods_group.refactoring.RefactoringAnnotator"/>
+        <appStarter implementation="com.sixrr.metrics.offline.MetricsCommandLine"/>
+        <applicationService serviceImplementation="com.sixrr.metrics.config.MetricsReloadedConfig"/>
+        <applicationService serviceImplementation="com.sixrr.metrics.profile.MetricsProfileRepository"/>
+        <applicationService serviceImplementation="org.ml_methods_group.config.ArchitectureReloadedConfig"/>
+        <projectService serviceImplementation="org.ml_methods_group.ui.RefactoringsToolWindow"/>
+        <projectService serviceInterface="com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow"
+                        serviceImplementation="com.sixrr.metrics.ui.metricdisplay.MetricsToolWindowImpl"/>
+        <exportable serviceInterface="com.sixrr.metrics.profile.MetricsProfileRepository"/>
+    </extensions>
+    <extensions defaultExtensionNs="ArchitectureReloaded">
+        <metricProvider implementation="com.sixrr.stockmetrics.DefaultMetricProvider"/>
+    </extensions>
 
-  <application-components>
-    <component>
-      <implementation-class>org.ml_methods_group.refactoring.RefactoringOnFileSaved</implementation-class>
-    </component>
-  </application-components>
+    <application-components>
+        <component>
+            <implementation-class>org.ml_methods_group.refactoring.RefactoringOnFileSaved</implementation-class>
+        </component>
+    </application-components>
 
-  <actions>
-    <group>
-      <action id="Metrics.AutomaticRefactoringAction"
-              class="org.ml_methods_group.plugin.AutomaticRefactoringAction"
-              text="Search for refactorings..."/>
-      <add-to-group group-id="InspectCodeGroup" anchor="last"/>
-    </group>
-  </actions>
+    <actions>
+        <group>
+            <action id="Metrics.AutomaticRefactoringAction"
+                    class="org.ml_methods_group.plugin.AutomaticRefactoringAction"
+                    text="Search for refactorings..."/>
+            <add-to-group group-id="InspectCodeGroup" anchor="last"/>
+        </group>
+    </actions>
 </idea-plugin>
