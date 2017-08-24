@@ -64,7 +64,7 @@ public class MRI extends Algorithm {
         for (Entity currentEntity : units) {
             context.checkCanceled();
             final Holder minHolder = runParallel(classes, context, Holder::new,
-                            (candidate, holder) -> getNearestClass(currentEntity, candidate, holder), this::min);
+                    (candidate, holder) -> getNearestClass(currentEntity, candidate, holder), this::min);
             progress++;
             reportProgress((double) progress / units.size(), context);
             if (minHolder.candidate == null) {
@@ -97,7 +97,6 @@ public class MRI extends Algorithm {
         } else if (distance - holder.distance < holder.difference) {
             holder.difference = distance - holder.distance;
         }
-
         return holder;
     }
 
@@ -108,7 +107,11 @@ public class MRI extends Algorithm {
     }
 
     private Holder min(Holder first, Holder second) {
-        return first.distance > second.distance ? second : first;
+        if (first.distance > second.distance) {
+            return min(second, first);
+        }
+        first.difference = Math.min(second.distance - first.distance, first.difference);
+        return first;
     }
 
     private void processMethod(List<Refactoring> refactorings, Entity method, Holder min) {
