@@ -21,16 +21,17 @@
     <depends>com.intellij.modules.lang</depends>
     <description><![CDATA[
     Automated design defects detection plugin for IntelliJ IDEA. Finds possible refactorings for Java code
-    using machine learning methods.
+    using machine learning algorithms.
     <br><br>
 
     <h4>Getting started</h4>
     <ol>
-        <li>In the menu "analyze" to select "Search for refactorings..."</li>
-        <li>In the dialog select the part of the project which you want to analyze</li>
-        <li>Click OK-button</li>
-        <li>Wait for results</li>
-        <li>In table mark refactorings that you like and click doRefactoring</li>
+        <li>Select the <code>Analyze | Search for refactorings...</code> menu item</li>
+        <li>Select the scope you want to analyze</li>
+        <li>Select algorithms to run</li>
+        <li>Click OK and wait for results</li>
+        <li>In the table below select valid refactorings and click <code>Refactor</code> button.
+            Double-clicks on table cells navigate to appropriate code fragments.</li>
     </ol>
     ]]></description>
     <version>0.1</version>

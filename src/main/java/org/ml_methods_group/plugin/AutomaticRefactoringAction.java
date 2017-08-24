@@ -82,7 +82,8 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
     }
 
     public AutomaticRefactoringAction() {
-        super(ArchitectureReloadedBundle.message("refactorings.search"), ArchitectureReloadedBundle.message("analizing"));
+        super(ArchitectureReloadedBundle.message("refactorings.search"),
+                ArchitectureReloadedBundle.message("analyzing"));
     }
 
     @NotNull
