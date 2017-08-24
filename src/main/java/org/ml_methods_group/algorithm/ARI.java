@@ -65,8 +65,8 @@ public class ARI extends Algorithm {
 
             final double distance = entity.distance(classEntity);
             if (distance < minDistance) {
-                minDistance = distance;
                 difference = minDistance - distance;
+                minDistance = distance;
                 targetClass = classEntity;
             } else if (distance - minDistance < difference) {
                 difference = distance - minDistance;
@@ -82,7 +82,7 @@ public class ARI extends Algorithm {
         final String targetClassName = targetClass.getName();
         if (!targetClassName.equals(entity.getClassName())) {
             accumulator.add(new Refactoring(entity.getName(), targetClassName,
-                    Math.min(difference == 0 ? 0 : difference / minDistance, 1) * ACCURACY));
+                    Math.min(difference == 0 ? 0 : 5 * difference / minDistance, 1) * ACCURACY));
         }
         return accumulator;
     }

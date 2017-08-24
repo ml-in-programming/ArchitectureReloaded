@@ -75,10 +75,10 @@ public class CCDA extends Algorithm {
             final RelevantProperties properties = entity.getRelevantProperties();
             final Set<String> neighbors = graph.getOrDefault(entity.getName(), new HashSet<>());
 
-            properties.getAllMethods()
+            properties.getMethods()
                     .forEach(name -> addNode(name, entity, neighbors));
 
-            for (String field : properties.getAllFields()) {
+            for (String field : properties.getFields()) {
                 addNode(field, entity, neighbors);
             }
 
@@ -181,8 +181,8 @@ public class CCDA extends Algorithm {
         aTo = aCoefficients.get(to) + aTo;
 
         if (!rollback) {
-            aCoefficients.add(from, aFrom);
-            aCoefficients.add(to, aTo);
+            aCoefficients.set(from, aFrom);
+            aCoefficients.set(to, aTo);
         }
 
         dq += (double) de * 1.0 / edges;
@@ -229,8 +229,8 @@ public class CCDA extends Algorithm {
 
             e /= 2;
             a += e;
-            aCoefficients.add(i, a);
             qualityIndex += ((double) e * 1.0 / edges) - Math.pow((double) a * 1.0 / edges, 2.0);
+            aCoefficients.set(i, a);
         }
 
         return qualityIndex;

@@ -49,6 +49,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
         isSelected = new boolean[refactorings.size()];
         isActive = new boolean[refactorings.size()];
         Arrays.fill(isActive, true);
+        // todo sorting
     }
 
     void selectAll() {

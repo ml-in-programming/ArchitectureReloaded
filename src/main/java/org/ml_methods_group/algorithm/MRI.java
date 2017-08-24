@@ -77,9 +77,10 @@ public class MRI extends Algorithm {
             }
 
             if (currentEntity.getCategory() == MetricCategory.Method) {
-                processMethod(refactorings, currentEntity, nearestClass);
+                processMethod(refactorings, currentEntity, minHolder);
             } else {
-                refactorings.add(new Refactoring(currentEntity.getName(), nearestClass.getName(), ACCURACY));
+                refactorings.add(new Refactoring(currentEntity.getName(), nearestClass.getName(),
+                        Math.min(minHolder.difference == 0 ? 0 : 5 * minHolder.difference / minHolder.distance, 1) * ACCURACY));
             }
         }
 
@@ -90,14 +91,19 @@ public class MRI extends Algorithm {
     private Holder getNearestClass(Entity entity, ClassEntity targetClass, Holder holder) {
         final double distance = entity.distance(targetClass);
         if (holder.distance > distance) {
+            holder.difference = holder.distance - distance;
             holder.distance = distance;
             holder.candidate = targetClass;
+        } else if (distance - holder.distance < holder.difference) {
+            holder.difference = distance - holder.distance;
         }
+
         return holder;
     }
 
     private class Holder {
         private double distance = Double.POSITIVE_INFINITY;
+        private double difference = Double.POSITIVE_INFINITY;
         private ClassEntity candidate;
     }
 
@@ -105,12 +111,13 @@ public class MRI extends Algorithm {
         return first.distance > second.distance ? second : first;
     }
 
-    private void processMethod(List<Refactoring> refactorings, Entity method, ClassEntity nearestClass) {
+    private void processMethod(List<Refactoring> refactorings, Entity method, Holder min) {
         if (method.isMovable()) {
             final ClassEntity containingClass = classesByName.get(method.getClassName());
-            refactorings.add(new Refactoring(method.getName(), nearestClass.getClassName(), ACCURACY));
+            refactorings.add(new Refactoring(method.getName(), min.candidate.getClassName(),
+                    Math.min(min.difference == 0 ? 0 : 5 * min.difference / min.distance, 1) * ACCURACY));
             containingClass.removeFromClass(method.getName());
-            nearestClass.addToClass(method.getName());
+            min.candidate.addToClass(method.getName());
         }
     }
 }
