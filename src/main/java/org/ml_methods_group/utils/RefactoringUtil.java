@@ -184,4 +184,42 @@ public final class RefactoringUtil {
     public static Map<String, String> toMap(List<Refactoring> refactorings) {
         return refactorings.stream().collect(Collectors.toMap(Refactoring::getUnit, Refactoring::getTarget));
     }
+
+    public static List<Refactoring> intersect(Collection<List<Refactoring>> refactorings) {
+        return refactorings.stream()
+                .flatMap(List::stream)
+                .collect(Collectors.groupingBy(refactoring -> refactoring.getUnit() + "&" + refactoring.getAccuracy(),
+                        Collectors.toList()))
+                .entrySet().stream()
+                .filter(entry -> entry.getValue().size() == refactorings.size())
+                .map(Entry::getValue)
+                .map(RefactoringUtil::intersect)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private static Refactoring intersect(List<Refactoring> refactorings) {
+        return refactorings.stream()
+                .min(Comparator.comparing(Refactoring::getAccuracy))
+                .orElse(null);
+    }
+
+    public static List<Refactoring> combine(Collection<List<Refactoring>> refactorings) {
+        return refactorings.stream()
+                .flatMap(List::stream)
+                .collect(Collectors.groupingBy(Refactoring::getUnit, Collectors.toList()))
+                .entrySet().stream()
+                .map(entry -> combine(entry.getValue(), entry.getKey()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private static Refactoring combine(List<Refactoring> refactorings, String unit) {
+        final Map<String, Double> target = refactorings.stream()
+                .collect(Collectors.toMap(Refactoring::getTarget, Refactoring::getAccuracy, Double::sum));
+        return target.entrySet().stream()
+                .max(Entry.comparingByValue())
+                .map(entry -> new Refactoring(unit, entry.getKey(), entry.getValue()))
+                .orElse(null);
+    }
 }

@@ -31,6 +31,7 @@ import org.ml_methods_group.algorithm.AlgorithmResult;
 import org.ml_methods_group.algorithm.Refactoring;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
+import org.ml_methods_group.utils.RefactoringUtil;
 
 import javax.swing.*;
 import java.awt.*;
@@ -87,9 +88,12 @@ public final class RefactoringsToolWindow implements Disposable {
         this.searchResult = searchResult;
         myToolWindow.getContentManager().removeAllContents(true);
         myToolWindow.setAvailable(false, null);
-        for (AlgorithmResult result : results) {
-            addTab(result.getAlgorithmName(), result.getRefactorings());
-        }
+        final List<List<Refactoring>> refactorings = results.stream()
+                .map(AlgorithmResult::getRefactorings)
+                .collect(Collectors.toList());
+        final List<Refactoring> measured = RefactoringUtil.combine(refactorings);
+        measured.removeIf(refactoring -> refactoring.getAccuracy() < 2);
+        addTab("Total", measured);
         myToolWindow.setAvailable(true, null);
         myToolWindow.show(null);
     }
@@ -105,22 +109,16 @@ public final class RefactoringsToolWindow implements Disposable {
 
     private void intersect(Set<String> algorithms) {
         //todo
-//        HashMap<Refactoring, Double> intersection = null;
-//        for (AlgorithmResult result : results) {
-//            if (!algorithms.contains(result.getAlgorithmName())) {
-//                continue;
-//            }
-//            final Map<Refactoring, Double> refactorings = result.getRefactorings();
-//            if (intersection == null) {
-//                intersection = new HashMap<>(refactorings);
-//            }
-//            intersection.entrySet().retainAll(refactorings.entrySet());
-//        }
-//        if (intersection != null) {
-//            final String tabName = algorithms.stream()
-//                    .collect(Collectors.joining(" & "));
-//            addTab(tabName, intersection);
-//        }
+        final List<List<Refactoring>> refactorings = results.stream()
+                .filter(result -> algorithms.contains(result.getAlgorithmName()))
+                .map(AlgorithmResult::getRefactorings)
+                .collect(Collectors.toList());
+        final List<Refactoring> intersection = RefactoringUtil.intersect(refactorings);
+        if (!algorithms.isEmpty() && !intersection.isEmpty()) {
+            final String tabName = algorithms.stream()
+                    .collect(Collectors.joining(" & "));
+            addTab(tabName, intersection);
+        }
     }
 
     private class IntersectAction extends AnAction {

@@ -100,9 +100,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
     @Override
     protected void analyze(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
         LOGGER.info("Run analysis (scope=" + analysisScope.getDisplayName() + ")");
-
-        final MetricsProfile metricsProfile = MetricsProfileRepository.getInstance()
-                .getCurrentProfile();
+        final MetricsProfile metricsProfile = getMetricsProfile();
         assert metricsProfile != null;
         final Collection<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
         new RefactoringExecutionContext(project, analysisScope, metricsProfile, selectedAlgorithms, this::showDialogs)
@@ -111,9 +109,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     public void analyzeBackground(@NotNull final Project project, @NotNull final AnalysisScope analysisScope,
                                   String identifier) {
-        checkRefactoringProfile();
-        final MetricsProfile metricsProfile = MetricsProfileRepository.getInstance()
-                .getProfileForName(ArchitectureReloadedBundle.message(REFACTORING_PROFILE_KEY));
+        final MetricsProfile metricsProfile = getMetricsProfile();
         assert metricsProfile != null;
         final RefactoringExecutionContext context =
                 new RefactoringExecutionContext(project, analysisScope, metricsProfile, this::updateResults);
@@ -152,8 +148,6 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 .stream()
                 .filter(result -> selectedAlgorithms.contains(result.getAlgorithmName()))
                 .collect(Collectors.toList());
-        ServiceManager.getService(context.getProject(), MetricsToolWindow.class)
-                .show(context.getMetricsRun(), context.getProfile(), context.getScope(), false);
         ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
                 .show(algorithmResult, context.getEntitySearchResult(), context.getScope());
     }
@@ -167,6 +161,12 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         }
         MetricsProfilesUtil.removeProfileForName(profileName, repository);
         repository.addProfile(MetricsProfilesUtil.createProfile(profileName, requestedSet));
+    }
+
+    private static MetricsProfile getMetricsProfile() {
+        checkRefactoringProfile();
+        final String profileName = ArchitectureReloadedBundle.message(REFACTORING_PROFILE_KEY);
+        return MetricsProfileRepository.getInstance().getProfileForName(profileName);
     }
 
     @NotNull
@@ -185,10 +185,6 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
     @Override
     @Nullable
     protected JComponent getAdditionalActionSettings(Project project, BaseAnalysisActionDialog dialog) {
-        checkRefactoringProfile();
-        final JPanel panel = new JPanel(new BorderLayout());
-        panel.add(new ProfileSelectionPanel(project), BorderLayout.SOUTH);
-        panel.add(new AlgorithmsSelectionPanel(), BorderLayout.NORTH);
-        return panel;
+        return new AlgorithmsSelectionPanel();
     }
 }
