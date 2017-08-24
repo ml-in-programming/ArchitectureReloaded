@@ -37,7 +37,8 @@ public class RefactoringsTableModel extends AbstractTableModel {
     static final int SELECTION_COLUMN_INDEX = 0;
     static final int UNIT_COLUMN_INDEX = 1;
     static final int MOVE_TO_COLUMN_INDEX = 2;
-    private static final int COLUMNS_COUNT = 3;
+    static final int WEIGHT_COLUMN_INDEX = 3;
+    private static final int COLUMNS_COUNT = 4;
 
     private final List<Refactoring> refactorings = new ArrayList<>();
     private final boolean[] isSelected;
@@ -84,6 +85,8 @@ public class RefactoringsTableModel extends AbstractTableModel {
                 return ArchitectureReloadedBundle.message(UNIT_COLUMN_TITLE_KEY);
             case MOVE_TO_COLUMN_INDEX:
                 return ArchitectureReloadedBundle.message(MOVE_TO_COLUMN_TITLE_KEY);
+            case WEIGHT_COLUMN_INDEX:
+                return "Вес";
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }
@@ -120,6 +123,8 @@ public class RefactoringsTableModel extends AbstractTableModel {
                 return refactorings.get(rowIndex).getUnit();
             case MOVE_TO_COLUMN_INDEX:
                 return refactorings.get(rowIndex).getTarget();
+            case WEIGHT_COLUMN_INDEX:
+                return refactorings.get(rowIndex).getAccuracy() + "";
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + columnIndex);
     }

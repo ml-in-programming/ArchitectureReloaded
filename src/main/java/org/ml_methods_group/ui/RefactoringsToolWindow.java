@@ -109,11 +109,13 @@ public final class RefactoringsToolWindow implements Disposable {
 
     private void intersect(Set<String> algorithms) {
         //todo
+        System.out.println("WWWW " + algorithms.size());
         final List<List<Refactoring>> refactorings = results.stream()
                 .filter(result -> algorithms.contains(result.getAlgorithmName()))
                 .map(AlgorithmResult::getRefactorings)
                 .collect(Collectors.toList());
         final List<Refactoring> intersection = RefactoringUtil.intersect(refactorings);
+        System.out.println("WW3WW " + intersection.size());
         if (!algorithms.isEmpty() && !intersection.isEmpty()) {
             final String tabName = algorithms.stream()
                     .collect(Collectors.joining(" & "));

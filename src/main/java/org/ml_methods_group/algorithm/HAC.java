@@ -24,6 +24,7 @@ import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.config.Logging;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,7 +39,6 @@ public class HAC extends Algorithm {
     private final AtomicInteger progressCounter = new AtomicInteger();
     private ExecutionContext context;
     private int idGenerator = 0;
-    private int newClassCount = 0;
 
     public HAC() {
         super("HAC", true);
@@ -50,7 +50,6 @@ public class HAC extends Algorithm {
         heap.clear();
         communities.clear();
         idGenerator = 0;
-        newClassCount = 0;
         progressCounter.set(0);
         final EntitySearchResult entities = context.getEntities();
         Stream.of(entities.getClasses(), entities.getMethods(), entities.getFields())
@@ -97,11 +96,17 @@ public class HAC extends Algorithm {
 
         final List<Refactoring> refactorings = new ArrayList<>();
         for (Community community : communities) {
-            final String newName = receiveClassName(community);
-            LOGGER.info("Generate class name for community (id = " + community.id +"): " + newName);
+            final int entitiesCount = community.entities.size();
+            if (entitiesCount == 0) {
+                continue;
+            }
+            final Entry<String, Long> dominantClass = calculateClassName(community);
+            final String className = dominantClass.getKey();
+            LOGGER.info("Generate class name for community (id = " + community.id +"): " + className);
             for (Entity entity : community.entities) {
-                if (!entity.getClassName().equals(newName)) {
-                    refactorings.add(new Refactoring(entity.getName(), newName, ACCURACY));
+                if (!entity.getClassName().equals(className)) {
+                    refactorings.add(new Refactoring(entity.getName(), className,
+                            (double) dominantClass.getValue() / entitiesCount * ACCURACY));
                 }
             }
         }
@@ -111,18 +116,12 @@ public class HAC extends Algorithm {
 
     // todo doubtful code starts
 
-    private String calculateClassName(Community community) {
+    private Entry<String, Long> calculateClassName(Community community) {
         return community.entities.stream()
                 .collect(Collectors.groupingBy(Entity::getClassName, Collectors.counting()))
                 .entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse("");
-    }
-
-    private String receiveClassName(Community community) {
-        final String name = calculateClassName(community);
-        return name.isEmpty() ? "NewClass" + newClassCount++ : name;
+                .max(Entry.comparingByValue())
+                .orElse(null);
     }
 
     // doubtful code ends

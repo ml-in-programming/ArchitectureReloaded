@@ -55,17 +55,21 @@ public class ARI extends Algorithm {
     private List<Refactoring> findRefactoring(Entity entity, List<Refactoring> accumulator) {
         reportProgress((double) progressCount.incrementAndGet() / units.size(), context);
         context.checkCanceled();
-        if (!entity.isMovable()) {
+        if (!entity.isMovable() || classEntities.size() < 2) {
             return accumulator;
         }
         double minDistance = Double.POSITIVE_INFINITY;
+        double difference = Double.POSITIVE_INFINITY;
         ClassEntity targetClass = null;
         for (final ClassEntity classEntity : classEntities) {
 
             final double distance = entity.distance(classEntity);
             if (distance < minDistance) {
                 minDistance = distance;
+                difference = minDistance - distance;
                 targetClass = classEntity;
+            } else if (distance - minDistance < difference) {
+                difference = distance - minDistance;
             }
         }
 
@@ -73,10 +77,12 @@ public class ARI extends Algorithm {
             LOGGER.warn("targetClass is null for " + entity.getName());
             return accumulator;
         }
-
+        System.out.println("diff = " + difference);
+        System.out.println("dist = " + minDistance);
         final String targetClassName = targetClass.getName();
         if (!targetClassName.equals(entity.getClassName())) {
-            accumulator.add(new Refactoring(entity.getName(), targetClassName, ACCURACY));
+            accumulator.add(new Refactoring(entity.getName(), targetClassName,
+                    Math.min(difference == 0 ? 0 : difference / minDistance, 1) * ACCURACY));
         }
         return accumulator;
     }
