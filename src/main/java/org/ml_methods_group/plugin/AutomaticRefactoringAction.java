@@ -154,6 +154,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 .collect(Collectors.toList());
         ServiceManager.getService(context.getProject(), MetricsToolWindow.class)
                 .show(context.getMetricsRun(), context.getProfile(), context.getScope(), false);
+
         ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
                 .show(algorithmResult, context.getEntitySearchResult(), context.getScope());
     }

@@ -16,38 +16,33 @@
 
 package org.ml_methods_group.algorithm.entity;
 
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsRun;
-import com.sixrr.stockmetrics.classMetrics.DepthOfInheritanceMetric;
-import com.sixrr.stockmetrics.classMetrics.FanInClassMetric;
-import com.sixrr.stockmetrics.classMetrics.FanOutClassMetric;
-import com.sixrr.stockmetrics.classMetrics.NumChildrenMetric;
-import com.sixrr.stockmetrics.methodMetrics.FanInMethodMetric;
-import com.sixrr.stockmetrics.methodMetrics.FanOutMethodMetric;
+import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
+import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.ml_methods_group.utils.PsiSearchUtil;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public abstract class Entity {
     private static final VectorCalculator CLASS_ENTITY_CALCULATOR = new VectorCalculator()
-            .addMetricDependence(DepthOfInheritanceMetric.class)
-            .addMetricDependence(NumChildrenMetric.class)
-            .addMetricDependence(FanInClassMetric.class)
-            .addMetricDependence(FanOutClassMetric.class);
+            .addMetricDependence(NumMethodsClassMetric.class)
+            .addMetricDependence(NumAttributesAddedMetric.class)
+            ;
 
     private static final VectorCalculator METHOD_ENTITY_CALCULATOR = new VectorCalculator()
-            .addMetricDependence(DepthOfInheritanceMetric.class)
-            .addMetricDependence(NumChildrenMetric.class)
-            .addMetricDependence(FanInMethodMetric.class)
-            .addMetricDependence(FanOutMethodMetric.class);
+            .addConstValue(0)
+            .addConstValue(0)
+            ;
 
     private static final VectorCalculator FIELD_ENTITY_CALCULATOR = new VectorCalculator()
-            .addMetricDependence(DepthOfInheritanceMetric.class)
-            .addMetricDependence(NumChildrenMetric.class)
-            .addPropertyDependence(RelevantProperties::numberOfMethods)
-            .addConstValue(0);
+            .addConstValue(0)
+            .addConstValue(0)
+            ;
 
     private static final int DIMENSION = CLASS_ENTITY_CALCULATOR.getDimension();
 
@@ -83,23 +78,20 @@ public abstract class Entity {
     }
 
     public double distance(Entity entity) {
-        if (relevantProperties.hasCommonPrivateMember(entity.relevantProperties)) {
-            return 0;
-        }
-
         double ans = 0.0;
+        double w = 0.0;
         for (int i = 0; i < DIMENSION; i++) {
-            ans += square(vector[i] - entity.vector[i]);
+            w += square(vector[i] + entity.vector[i]);
         }
-
+        ans += w == 0 ? 0 : 1.0 / (w + 1);
         final int rpIntersect = entity.relevantProperties.sizeOfIntersection(relevantProperties);
         if (rpIntersect == 0) {
             return Double.POSITIVE_INFINITY;
         }
-        ans += 2.0 * (1 - rpIntersect /
-                (1.0 * relevantProperties.size() + entity.relevantProperties.size() - rpIntersect));
+        // TODO: improve formula
+        ans += (1 - rpIntersect /
+                (1.0 * relevantProperties.sizeOfUnion(entity.getRelevantProperties())));
 
-        ans /= DIMENSION + 2;
         return Math.sqrt(ans);
     }
 
@@ -152,6 +144,8 @@ public abstract class Entity {
     }
 
     abstract public MetricCategory getCategory();
+
     abstract public String getClassName();
+
     abstract public Entity copy();
 }

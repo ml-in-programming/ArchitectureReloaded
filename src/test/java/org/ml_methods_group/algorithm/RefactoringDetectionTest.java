@@ -20,15 +20,15 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
-import org.ml_methods_group.algorithm.entity.Entity;
-import org.ml_methods_group.plugin.AutomaticRefactoringAction;
-import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import com.sixrr.metrics.profile.MetricsProfile;
-import com.sixrr.metrics.profile.MetricsProfileRepository;
+import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.utils.MetricsProfilesUtil;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
     private Project project;
