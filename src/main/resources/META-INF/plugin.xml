@@ -59,11 +59,11 @@
         <metricProvider implementation="com.sixrr.stockmetrics.DefaultMetricProvider"/>
     </extensions>
 
-    <application-components>
-        <component>
-            <implementation-class>org.ml_methods_group.refactoring.RefactoringOnFileSaved</implementation-class>
-        </component>
-    </application-components>
+    <!--<application-components>-->
+        <!--<component>-->
+            <!--<implementation-class>org.ml_methods_group.refactoring.RefactoringOnFileSaved</implementation-class>-->
+        <!--</component>-->
+    <!--</application-components>-->
 
     <actions>
         <group>

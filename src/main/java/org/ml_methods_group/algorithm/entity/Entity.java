@@ -88,7 +88,6 @@ public abstract class Entity {
         if (rpIntersect == 0) {
             return Double.POSITIVE_INFINITY;
         }
-        // TODO: improve formula
         ans += (1 - rpIntersect /
                 (1.0 * relevantProperties.sizeOfUnion(entity.getRelevantProperties())));
 

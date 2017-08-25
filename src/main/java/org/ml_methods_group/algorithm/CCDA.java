@@ -23,10 +23,12 @@ import org.ml_methods_group.algorithm.entity.RelevantProperties;
 import org.ml_methods_group.config.Logging;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class CCDA extends Algorithm {
     private static final Logger LOGGER = Logging.getLogger(CCDA.class);
+    private static final double ACCURACY = 1;
 
     private final Map<String, Integer> communityIds = new HashMap<>();
     private final List<String> idCommunity = new ArrayList<>();
@@ -97,7 +99,7 @@ public class CCDA extends Algorithm {
     }
 
     @Override
-    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+    protected List<Refactoring> calculateRefactorings(ExecutionContext context) {
         this.context = context;
         init();
         final Map<String, String> refactorings = new HashMap<>();
@@ -118,7 +120,9 @@ public class CCDA extends Algorithm {
             context.checkCanceled();
         }
 
-        return refactorings;
+        return refactorings.entrySet().stream()
+                .map(entry -> new Refactoring(entry.getKey(), entry.getValue(), ACCURACY))
+                .collect(Collectors.toList());
     }
 
     private Holder attempt(Entity entity, Holder optimum) {

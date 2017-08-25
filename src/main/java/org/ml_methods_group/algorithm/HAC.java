@@ -22,14 +22,18 @@ import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.config.Logging;
+import org.ml_methods_group.utils.AlgorithmsUtil;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.ml_methods_group.utils.AlgorithmsUtil.getDensityBasedAccuracyRating;
 
 public class HAC extends Algorithm {
     private static final Logger LOGGER = Logging.getLogger(HAC.class);
+    private static final double ACCURACY = 1;
 
     private final SortedSet<Triple> heap = new TreeSet<>();
     private final Map<Long, Triple> triples = new HashMap<>();
@@ -37,7 +41,6 @@ public class HAC extends Algorithm {
     private final AtomicInteger progressCounter = new AtomicInteger();
     private ExecutionContext context;
     private int idGenerator = 0;
-    private int newClassCount = 0;
 
     public HAC() {
         super("HAC", true);
@@ -49,7 +52,6 @@ public class HAC extends Algorithm {
         heap.clear();
         communities.clear();
         idGenerator = 0;
-        newClassCount = 0;
         progressCounter.set(0);
         final EntitySearchResult entities = context.getEntities();
         Stream.of(entities.getClasses(), entities.getMethods(), entities.getFields())
@@ -59,7 +61,7 @@ public class HAC extends Algorithm {
         final List<Community> communitiesAsList = new ArrayList<>(communities);
         Collections.shuffle(communitiesAsList);
         final List<Triple> toInsert =
-                runParallel(communitiesAsList, context, ArrayList::new, this::findTriples, Algorithm::combineLists);
+                runParallel(communitiesAsList, context, ArrayList::new, this::findTriples, AlgorithmsUtil::combineLists);
         toInsert.forEach(this::insertTriple);
         LOGGER.info("Built heap (" + heap.size() + " triples)");
     }
@@ -81,10 +83,9 @@ public class HAC extends Algorithm {
     }
 
     @Override
-    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+    protected List<Refactoring> calculateRefactorings(ExecutionContext context) {
         init(context);
         final int initialCommunitiesCount = communities.size();
-        final Map<String, String> refactorings = new HashMap<>();
         while (!heap.isEmpty()) {
             final Triple minTriple = heap.first();
             invalidateTriple(minTriple);
@@ -95,36 +96,25 @@ public class HAC extends Algorithm {
             context.checkCanceled();
         }
 
+        final List<Refactoring> refactorings = new ArrayList<>();
         for (Community community : communities) {
-            final String newName = receiveClassName(community);
-            LOGGER.info("Generate class name for community (id = " + community.id +"): " + newName);
+            final int entitiesCount = community.entities.size();
+            if (entitiesCount == 0) {
+                continue;
+            }
+            final Entry<String, Long> dominantClass = AlgorithmsUtil.getDominantClass(community.entities);
+            final String className = dominantClass.getKey();
+            LOGGER.info("Generate class name for community (id = " + community.id +"): " + className);
             for (Entity entity : community.entities) {
-                if (!entity.getClassName().equals(newName)) {
-                    refactorings.put(entity.getName(), newName);
+                if (!entity.getClassName().equals(className)) {
+                    refactorings.add(new Refactoring(entity.getName(), className,
+                            getDensityBasedAccuracyRating(dominantClass.getValue(),entitiesCount) * ACCURACY));
                 }
             }
         }
         Triple.clearPool();
         return refactorings;
     }
-
-    // todo doubtful code starts
-
-    private String calculateClassName(Community community) {
-        return community.entities.stream()
-                .collect(Collectors.groupingBy(Entity::getClassName, Collectors.counting()))
-                .entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse("");
-    }
-
-    private String receiveClassName(Community community) {
-        final String name = calculateClassName(community);
-        return name.isEmpty() ? "NewClass" + newClassCount++ : name;
-    }
-
-    // doubtful code ends
 
     private Community mergeCommunities(Community first, Community second) {
         final List<Entity> merged;

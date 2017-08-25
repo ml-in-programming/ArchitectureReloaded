@@ -22,7 +22,9 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.Nullable;
+import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -30,7 +32,8 @@ import java.util.Set;
 @State(name = "ArchitectureReloaded", storages = @Storage(file = "architecture.reloaded.xml"))
 public final class ArchitectureReloadedConfig implements PersistentStateComponent<ArchitectureReloadedConfig> {
 
-    private final Set<String> selectedAlgorithms = new HashSet<>();
+    private final Set<String> selectedAlgorithms =
+            new HashSet<>(Arrays.asList(RefactoringExecutionContext.getAvailableAlgorithms()));
 
     private ArchitectureReloadedConfig() {}
 

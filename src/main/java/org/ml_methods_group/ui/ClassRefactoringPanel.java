@@ -22,6 +22,7 @@ import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
+import org.ml_methods_group.algorithm.Refactoring;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.PsiSearchUtil;
 import org.ml_methods_group.utils.RefactoringUtil;
@@ -35,12 +36,14 @@ import java.util.List;
 import java.util.Map;
 
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
+import static org.ml_methods_group.ui.RefactoringsTableModel.ACCURACY_COLUMN_INDEX;
 import static org.ml_methods_group.ui.RefactoringsTableModel.SELECTION_COLUMN_INDEX;
 
 class ClassRefactoringPanel extends JPanel {
     private static final String SELECT_ALL_BUTTON_TEXT_KEY = "select.all.button";
     private static final String DESELECT_ALL_BUTTON_TEXT_KEY = "deselect.all.button";
     private static final String REFACTOR_BUTTON_TEXT_KEY = "refactor.button";
+    private static final int DEFAULT_THRESHOLD = 80; // percents
 
     @NotNull
     private final AnalysisScope scope;
@@ -50,17 +53,23 @@ class ClassRefactoringPanel extends JPanel {
     private final JButton selectAllButton = new JButton();
     private final JButton deselectAllButton = new JButton();
     private final JButton doRefactorButton = new JButton();
+    private final JLabel infoLabel = new JLabel();
+    private final JSlider thresholdSlider = new JSlider(0, 100, 0);
     private final JLabel info = new JLabel();
 
-    private final List<String> warnings;
+    private final Map<Refactoring, String> warnings;
 
-    ClassRefactoringPanel(Map<String, String> refactorings,
-                          @NotNull AnalysisScope scope) {
+    ClassRefactoringPanel(List<Refactoring> refactorings, @NotNull AnalysisScope scope) {
         this.scope = scope;
         setLayout(new BorderLayout());
-        model = new RefactoringsTableModel(refactorings);
-        warnings = RefactoringUtil.getWarnings(model.getUnits(), model.getMovements(), scope);
+        model = new RefactoringsTableModel(RefactoringUtil.filter(refactorings, scope));
+        model.filter(DEFAULT_THRESHOLD / 100.0);
+        warnings = RefactoringUtil.getWarnings(refactorings, scope);
         setupGUI();
+    }
+
+    public void setEnableHighlighting(boolean isEnabled) {
+        model.setEnableHighlighting(isEnabled);
     }
 
     private void setupGUI() {
@@ -72,13 +81,21 @@ class ClassRefactoringPanel extends JPanel {
         new TableSpeedSearch(table);
         table.setModel(model);
         model.setupRenderer(table);
-        final TableColumn selectionColumn = table.getTableHeader().getColumnModel().getColumn(0);
-        selectionColumn.setMaxWidth(30);
-        selectionColumn.setMinWidth(30);
         table.addMouseListener((DoubleClickListener) this::onDoubleClick);
         table.getSelectionModel().setSelectionMode(SINGLE_SELECTION);
         table.getSelectionModel().addListSelectionListener(e -> onSelectionChanged());
+        setupTableLayout();
         return ScrollPaneFactory.createScrollPane(table);
+    }
+
+    private void setupTableLayout() {
+        final TableColumn selectionColumn = table.getTableHeader().getColumnModel().getColumn(SELECTION_COLUMN_INDEX);
+        selectionColumn.setMaxWidth(30);
+        selectionColumn.setMinWidth(30);
+        final TableColumn accuracyColumn = table.getTableHeader().getColumnModel().getColumn(ACCURACY_COLUMN_INDEX);
+        accuracyColumn.setMaxWidth(100);
+        accuracyColumn.setMinWidth(100);
+
     }
 
     private JComponent createButtonsPanel() {
@@ -86,8 +103,23 @@ class ClassRefactoringPanel extends JPanel {
         final JPanel buttonsPanel = new JBPanel<>();
         buttonsPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 
-        final JLabel infoLabel = new JLabel("Total: " + model.getRowCount());
-        infoLabel.setMinimumSize(new Dimension(100, 30));
+        final double maxAccuracy = model.getRefactorings()
+                .stream()
+                .mapToDouble(Refactoring::getAccuracy)
+                .max()
+                .orElse(1);
+        final int recommendedPercents = (int) (maxAccuracy * 80);
+        thresholdSlider.setToolTipText("Accuracy filter");
+        thresholdSlider.addChangeListener(e -> {
+            model.filter(thresholdSlider.getValue() / 100.0);
+            infoLabel.setText("Total: " + model.getRowCount());
+            setupTableLayout();
+        });
+        thresholdSlider.setValue(recommendedPercents);
+        buttonsPanel.add(thresholdSlider);
+
+        infoLabel.setText("Total: " + model.getRowCount());
+        infoLabel.setPreferredSize(new Dimension(80, 30));
         buttonsPanel.add(infoLabel);
 
         selectAllButton.setText(ArchitectureReloadedBundle.message(SELECT_ALL_BUTTON_TEXT_KEY));
@@ -111,8 +143,8 @@ class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setEnabled(false);
         selectAllButton.setEnabled(false);
         table.setEnabled(false);
-        final Map<String, String> movements = model.pullSelected();
-        RefactoringUtil.moveRefactoring(movements, scope);
+        final List<Refactoring> refactorings = model.pullSelected();
+        RefactoringUtil.moveRefactoring(refactorings, scope);
         table.setEnabled(true);
         doRefactorButton.setEnabled(true);
         selectAllButton.setEnabled(true);
@@ -129,7 +161,7 @@ class ClassRefactoringPanel extends JPanel {
 
     private void onSelectionChanged() {
         final int selectedRow = table.getSelectedRow();
-        info.setText(selectedRow == -1 ? "" : warnings.get(selectedRow));
+        info.setText(selectedRow == -1 ? "" : warnings.get(model.getRefactoring(selectedRow)));
     }
 
     @FunctionalInterface

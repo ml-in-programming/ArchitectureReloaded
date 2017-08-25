@@ -21,15 +21,15 @@ import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.config.Logging;
+import org.ml_methods_group.utils.AlgorithmsUtil;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ARI extends Algorithm {
     private static final Logger LOGGER = Logging.getLogger(ARI.class);
+    private static final double ACCURACY = 1;
 
     private final List<Entity> units = new ArrayList<>();
     private final List<ClassEntity> classEntities = new ArrayList<>();
@@ -41,7 +41,7 @@ public class ARI extends Algorithm {
     }
 
     @Override
-    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+    protected List<Refactoring> calculateRefactorings(ExecutionContext context) {
         units.clear();
         classEntities.clear();
         final EntitySearchResult entities = context.getEntities();
@@ -50,23 +50,27 @@ public class ARI extends Algorithm {
         units.addAll(entities.getFields());
         progressCount.set(0);
         this.context = context;
-        return runParallel(units, context, HashMap<String, String>::new, this::findRefactoring, Algorithm::combineMaps);
+        return runParallel(units, context, ArrayList<Refactoring>::new, this::findRefactoring, AlgorithmsUtil::combineLists);
     }
 
-    private Map<String, String> findRefactoring(Entity entity, Map<String, String> accumulator) {
+    private List<Refactoring> findRefactoring(Entity entity, List<Refactoring> accumulator) {
         reportProgress((double) progressCount.incrementAndGet() / units.size(), context);
         context.checkCanceled();
-        if (!entity.isMovable()) {
+        if (!entity.isMovable() || classEntities.size() < 2) {
             return accumulator;
         }
         double minDistance = Double.POSITIVE_INFINITY;
+        double difference = Double.POSITIVE_INFINITY;
         ClassEntity targetClass = null;
         for (final ClassEntity classEntity : classEntities) {
 
             final double distance = entity.distance(classEntity);
             if (distance < minDistance) {
+                difference = minDistance - distance;
                 minDistance = distance;
                 targetClass = classEntity;
+            } else if (distance - minDistance < difference) {
+                difference = distance - minDistance;
             }
         }
 
@@ -74,10 +78,10 @@ public class ARI extends Algorithm {
             LOGGER.warn("targetClass is null for " + entity.getName());
             return accumulator;
         }
-
         final String targetClassName = targetClass.getName();
         if (!targetClassName.equals(entity.getClassName())) {
-            accumulator.put(entity.getName(), targetClassName);
+            accumulator.add(new Refactoring(entity.getName(), targetClassName,
+                    AlgorithmsUtil.getGapBasedAccuracyRating(minDistance, difference) * ACCURACY));
         }
         return accumulator;
     }

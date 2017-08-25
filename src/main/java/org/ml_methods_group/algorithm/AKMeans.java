@@ -20,13 +20,17 @@ import org.apache.log4j.Logger;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.config.Logging;
+import org.ml_methods_group.utils.AlgorithmsUtil;
 
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
 
+import static org.ml_methods_group.utils.AlgorithmsUtil.getDensityBasedAccuracyRating;
+
 public class AKMeans extends Algorithm {
     private static final Logger LOGGER = Logging.getLogger(AKMeans.class);
+    private static final double ACCURACY = 1;
 
     private final List<Entity> points = new ArrayList<>();
     private final List<Integer> indexes = new ArrayList<>();
@@ -34,7 +38,6 @@ public class AKMeans extends Algorithm {
     private final List<Set<Entity>> communities = new ArrayList<>();
     private final int steps;
     private int numberOfClasses = 0;
-    private int newClassCount = 0;
 
     public AKMeans(int steps) {
         super("AKMeans", true);
@@ -42,7 +45,7 @@ public class AKMeans extends Algorithm {
     }
 
     public AKMeans() {
-        this(50);
+        this(25);
     }
 
     private void init(EntitySearchResult entities) {
@@ -50,7 +53,6 @@ public class AKMeans extends Algorithm {
         points.clear();
         communities.clear();
         communityID.clear();
-        newClassCount = 0;
         numberOfClasses = entities.getClasses().size();
         Stream.of(entities.getMethods(), entities.getFields())
                 .flatMap(List::stream)
@@ -77,10 +79,9 @@ public class AKMeans extends Algorithm {
     }
 
     @Override
-    protected Map<String, String> calculateRefactorings(ExecutionContext context) {
+    protected List<Refactoring> calculateRefactorings(ExecutionContext context) {
         init(context.getEntities());
         context.checkCanceled();
-        final Map<String, String> refactorings = new HashMap<>();
         initializeCenters();
         context.checkCanceled();
 
@@ -89,7 +90,7 @@ public class AKMeans extends Algorithm {
             reportProgress((double) step / steps, context);
             context.checkCanceled();
             final Map<Integer, Integer> movements =
-                    runParallel(indexes, context, HashMap::new, this::findNearestCommunity, Algorithm::combineMaps);
+                    runParallel(indexes, context, HashMap::new, this::findNearestCommunity, AlgorithmsUtil::combineMaps);
             for (Entry<Integer, Integer> movement : movements.entrySet()) {
                 moveToCommunity(movement.getKey(), movement.getValue());
             }
@@ -99,39 +100,17 @@ public class AKMeans extends Algorithm {
             }
         }
 
+        final List<Refactoring> refactorings = new ArrayList<>();
         for (Set<Entity> community : communities) {
-            final String newName = receiveClassName(community);
+            final Entry<String, Long> dominant = AlgorithmsUtil.getDominantClass(community);
             community.stream()
-                    .filter(e -> !e.getClassName().equals(newName))
+                    .filter(e -> !e.getClassName().equals(dominant.getKey()))
                     .filter(Entity::isMovable)
-                    .forEach(e -> refactorings.put(e.getName(), newName));
+                    .map(e -> new Refactoring(e.getName(), dominant.getKey(),
+                            getDensityBasedAccuracyRating(dominant.getValue(), community.size()) * ACCURACY))
+                    .forEach(refactorings::add);
         }
-
         return refactorings;
-    }
-
-    private String receiveClassName(Set<Entity> entities) {
-        String name = "";
-        Integer maxClassCount = 0;
-        final Map<String, Integer> classCounts = new HashMap<>();
-        for (Entity entity : entities) {
-            final String className = entity.getClassName();
-            classCounts.put(className, classCounts.getOrDefault(className, 0) + 1);
-        }
-
-        for (String className : classCounts.keySet()) {
-            if (maxClassCount < classCounts.get(className)) {
-                maxClassCount = classCounts.get(className);
-                name = className;
-            }
-        }
-
-        if (name.isEmpty()) {
-            newClassCount++;
-            name = "NewClass" + newClassCount;
-        }
-        LOGGER.info("Receive class name :" + name);
-        return name;
     }
 
     private Map<Integer, Integer> findNearestCommunity(int entityID, Map<Integer, Integer> accumulator) {

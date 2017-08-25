@@ -22,20 +22,22 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.AlgorithmResult;
+import org.ml_methods_group.algorithm.Refactoring;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
+import org.ml_methods_group.utils.RefactoringUtil;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,10 +47,12 @@ public final class RefactoringsToolWindow implements Disposable {
     private static final String TITLE_KEY = "refactorings.tool.window.title";
 
     private final Project project;
+    private final List<ClassRefactoringPanel> contents = new ArrayList<>();
     private ToolWindow myToolWindow = null;
     private List<AlgorithmResult> results;
     private EntitySearchResult searchResult;
     private AnalysisScope scope;
+    private boolean enableHighlighting;
 
     private RefactoringsToolWindow(@NotNull Project project) {
         this.project = project;
@@ -62,20 +66,24 @@ public final class RefactoringsToolWindow implements Disposable {
         myToolWindow.setAvailable(false, null);
     }
 
-    private void addTab(String tabName, @NotNull Map<String, String> refactorings) {
-        final JComponent component = new ClassRefactoringPanel(refactorings, scope);
+    private void addTab(String tabName, @NotNull List<Refactoring> refactorings, boolean isClosable) {
+        final ClassRefactoringPanel panel = new ClassRefactoringPanel(refactorings, scope);
+        panel.setEnableHighlighting(enableHighlighting);
         final ActionToolbar toolbar = createToolbar();
         final JPanel contentPanel = new JPanel(new BorderLayout());
-        contentPanel.add(component, BorderLayout.CENTER);
+        contentPanel.add(panel, BorderLayout.CENTER);
         contentPanel.add(toolbar.getComponent(), BorderLayout.WEST);
         final Content content = myToolWindow.getContentManager().getFactory()
                 .createContent(contentPanel, tabName, true);
+        content.setCloseable(isClosable);
+        contents.add(panel);
         myToolWindow.getContentManager().addContent(content);
     }
 
     private ActionToolbar createToolbar() {
         final DefaultActionGroup toolbarGroup = new DefaultActionGroup();
         toolbarGroup.add(new IntersectAction());
+        toolbarGroup.add(new ColorAction());
         toolbarGroup.add(new InfoAction());
         toolbarGroup.add(new CloseAction());
         return ActionManager.getInstance()
@@ -87,10 +95,13 @@ public final class RefactoringsToolWindow implements Disposable {
         this.scope = scope;
         this.searchResult = searchResult;
         myToolWindow.getContentManager().removeAllContents(true);
+        contents.clear();
         myToolWindow.setAvailable(false, null);
-        for (AlgorithmResult result : results) {
-            addTab(result.getAlgorithmName(), result.getRefactorings());
-        }
+        final List<List<Refactoring>> refactorings = results.stream()
+                .map(AlgorithmResult::getRefactorings)
+                .collect(Collectors.toList());
+        final List<Refactoring> measured = RefactoringUtil.combine(refactorings);
+        addTab("Total", measured, false);
         myToolWindow.setAvailable(true, null);
         myToolWindow.show(null);
     }
@@ -105,21 +116,16 @@ public final class RefactoringsToolWindow implements Disposable {
     }
 
     private void intersect(Set<String> algorithms) {
-        HashMap<String, String> intersection = null;
-        for (AlgorithmResult result : results) {
-            if (!algorithms.contains(result.getAlgorithmName())) {
-                continue;
-            }
-            final Map<String, String> refactorings = result.getRefactorings();
-            if (intersection == null) {
-                intersection = new HashMap<>(refactorings);
-            }
-            intersection.entrySet().retainAll(refactorings.entrySet());
-        }
-        if (intersection != null) {
+        final List<List<Refactoring>> refactorings = results.stream()
+                .filter(result -> algorithms.contains(result.getAlgorithmName()))
+                .map(AlgorithmResult::getRefactorings)
+                .collect(Collectors.toList());
+        // todo may be should use combine instead of intersect
+        final List<Refactoring> intersection = RefactoringUtil.intersect(refactorings);
+        if (!algorithms.isEmpty()) {
             final String tabName = algorithms.stream()
                     .collect(Collectors.joining(" & "));
-            addTab(tabName, intersection);
+            addTab(tabName, intersection, true);
         }
     }
 
@@ -158,6 +164,27 @@ public final class RefactoringsToolWindow implements Disposable {
                 final DialogWrapper dialog = new ExecutionInfoDialog(project, searchResult, results);
                 dialog.show();
             }
+        }
+    }
+
+    private class ColorAction extends ToggleAction {
+        private static final String COLOR_ACTION_ICON_PATH = "/images/color.png";
+
+        ColorAction() {
+            super(ArchitectureReloadedBundle.message("color.action.text"),
+                    ArchitectureReloadedBundle.message("color.action.description"),
+                    IconLoader.getIcon(COLOR_ACTION_ICON_PATH));
+        }
+
+        @Override
+        public boolean isSelected(AnActionEvent e) {
+            return enableHighlighting;
+        }
+
+        @Override
+        public void setSelected(AnActionEvent e, boolean state) {
+            enableHighlighting = state;
+            contents.forEach(panel -> panel.setEnableHighlighting(enableHighlighting));
         }
     }
 
