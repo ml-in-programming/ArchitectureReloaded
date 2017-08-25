@@ -65,20 +65,20 @@ public class EntitySearcher {
 
     private EntitySearchResult runCalculations(MetricsRun metricsRun) {
         indicator.pushState();
-        indicator.setText("Search entities");
+        indicator.setText("Searching entities");
         indicator.setIndeterminate(true);
-        LOGGER.info("Index entities...");
+        LOGGER.info("Indexing entities...");
         scope.accept(new UnitsFinder());
         indicator.setIndeterminate(false);
-        LOGGER.info("Calculate properties...");
-        indicator.setText("Calculate properties");
+        LOGGER.info("Calculating properties...");
+        indicator.setText("Calculating properties");
         scope.accept(new PropertiesCalculator());
         indicator.popState();
         return prepareResult(metricsRun);
     }
 
     private EntitySearchResult prepareResult(MetricsRun metricsRun) {
-        LOGGER.info("Prepare results...");
+        LOGGER.info("Preparing results...");
         final List<ClassEntity> classes = new ArrayList<>();
         final List<MethodEntity> methods = new ArrayList<>();
         final List<FieldEntity> fields = new ArrayList<>();
@@ -117,7 +117,7 @@ public class EntitySearcher {
         public void visitFile(PsiFile file) {
             indicator.checkCanceled();
             if (strategy.acceptFile(file)) {
-                LOGGER.info("Index " + file.getName());
+                LOGGER.info("Indexing " + file.getName());
                 super.visitFile(file);
             }
         }
