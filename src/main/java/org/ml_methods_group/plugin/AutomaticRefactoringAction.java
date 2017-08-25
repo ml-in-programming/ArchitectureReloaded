@@ -25,13 +25,9 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManagerListener;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.profile.MetricsProfile;
 import com.sixrr.metrics.profile.MetricsProfileRepository;
-import com.sixrr.metrics.ui.dialogs.ProfileSelectionPanel;
-import com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow;
-import com.sixrr.metrics.utils.MetricsReloadedBundle;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,9 +43,7 @@ import org.ml_methods_group.utils.MetricsProfilesUtil;
 import org.ml_methods_group.utils.RefactoringUtil;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.*;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -62,23 +56,23 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     private static final Map<Project, AutomaticRefactoringAction> factory = new HashMap<>();
 
-    private static ProjectManagerListener listener = new ProjectManagerListener() {
-        @Override
-        public void projectOpened(Project project) {
-            getInstance(project).analyzeBackground(project, new AnalysisScope(project),
-                    project.getName() + project.getLocationHash() + "|opened");
-        }
-
-        @Override
-        public void projectClosed(Project project) {
-            deleteInstance(project);
-        }
-    };
-
-    static {
-        // todo fix bug: IndexNotReadyException
-//        ProjectManager.getInstance().addProjectManagerListener(listener);
-    }
+//    private static ProjectManagerListener listener = new ProjectManagerListener() {
+//        @Override
+//        public void projectOpened(Project project) {
+//            getInstance(project).analyzeBackground(project, new AnalysisScope(project),
+//                    project.getName() + project.getLocationHash() + "|opened");
+//        }
+//
+//        @Override
+//        public void projectClosed(Project project) {
+//            deleteInstance(project);
+//        }
+//    };
+//
+//    static {
+//        // todo fix bug: IndexNotReadyException
+////        ProjectManager.getInstance().addProjectManagerListener(listener);
+//    }
 
     public AutomaticRefactoringAction() {
         super(ArchitectureReloadedBundle.message("refactorings.search"),
@@ -94,9 +88,9 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         return factory.get(project);
     }
 
-    private static void deleteInstance(@NotNull Project project) {
-        factory.remove(project);
-    }
+//    private static void deleteInstance(@NotNull Project project) {
+//        factory.remove(project);
+//    }
 
     @Override
     protected void analyze(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {

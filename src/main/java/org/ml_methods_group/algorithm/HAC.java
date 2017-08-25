@@ -27,7 +27,6 @@ import org.ml_methods_group.utils.AlgorithmsUtil;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.ml_methods_group.utils.AlgorithmsUtil.getDensityBasedAccuracyRating;

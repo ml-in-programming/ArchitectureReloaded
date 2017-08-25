@@ -37,7 +37,6 @@ import org.ml_methods_group.utils.RefactoringUtil;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;

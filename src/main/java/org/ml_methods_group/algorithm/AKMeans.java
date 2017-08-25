@@ -24,7 +24,6 @@ import org.ml_methods_group.utils.AlgorithmsUtil;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.ml_methods_group.utils.AlgorithmsUtil.getDensityBasedAccuracyRating;
@@ -39,7 +38,6 @@ public class AKMeans extends Algorithm {
     private final List<Set<Entity>> communities = new ArrayList<>();
     private final int steps;
     private int numberOfClasses = 0;
-    private int newClassCount = 0;
 
     public AKMeans(int steps) {
         super("AKMeans", true);
@@ -47,7 +45,7 @@ public class AKMeans extends Algorithm {
     }
 
     public AKMeans() {
-        this(50);
+        this(25);
     }
 
     private void init(EntitySearchResult entities) {
@@ -55,7 +53,6 @@ public class AKMeans extends Algorithm {
         points.clear();
         communities.clear();
         communityID.clear();
-        newClassCount = 0;
         numberOfClasses = entities.getClasses().size();
         Stream.of(entities.getMethods(), entities.getFields())
                 .flatMap(List::stream)
@@ -114,14 +111,6 @@ public class AKMeans extends Algorithm {
                     .forEach(refactorings::add);
         }
         return refactorings;
-    }
-
-    private Entry<String, Long> calculateClassName(Set<Entity> entities) {
-        return entities.stream()
-                .collect(Collectors.groupingBy(Entity::getClassName, Collectors.counting()))
-                .entrySet().stream()
-                .max(Entry.comparingByValue())
-                .orElse(null);
     }
 
     private Map<Integer, Integer> findNearestCommunity(int entityID, Map<Integer, Integer> accumulator) {

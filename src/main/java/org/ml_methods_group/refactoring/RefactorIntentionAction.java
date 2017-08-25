@@ -24,20 +24,18 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
-import org.ml_methods_group.algorithm.Refactoring;
-import org.ml_methods_group.utils.RefactoringUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
+import org.ml_methods_group.algorithm.Refactoring;
+import org.ml_methods_group.utils.RefactoringUtil;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 public class RefactorIntentionAction extends BaseIntentionAction {
     private final AnalysisScope scope;
     private final Refactoring refactoring;
 
-    public RefactorIntentionAction(String unit, String to, AnalysisScope scope) {
+    RefactorIntentionAction(String unit, String to, AnalysisScope scope) {
         this.scope = scope;
         this.refactoring = new Refactoring(unit, to, 0);
     }

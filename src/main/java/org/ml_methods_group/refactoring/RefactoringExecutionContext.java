@@ -181,11 +181,6 @@ public class RefactoringExecutionContext {
     }
 
     @NotNull
-    public MetricsRunImpl getMetricsRun() {
-        return metricsRun;
-    }
-
-    @NotNull
     public MetricsProfile getProfile() {
         return profile;
     }
