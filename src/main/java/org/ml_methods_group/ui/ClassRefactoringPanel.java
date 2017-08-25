@@ -42,6 +42,7 @@ class ClassRefactoringPanel extends JPanel {
     private static final String SELECT_ALL_BUTTON_TEXT_KEY = "select.all.button";
     private static final String DESELECT_ALL_BUTTON_TEXT_KEY = "deselect.all.button";
     private static final String REFACTOR_BUTTON_TEXT_KEY = "refactor.button";
+    private static final int DEFAULT_THRESHOLD = 80; // percents
 
     @NotNull
     private final AnalysisScope scope;
@@ -51,16 +52,23 @@ class ClassRefactoringPanel extends JPanel {
     private final JButton selectAllButton = new JButton();
     private final JButton deselectAllButton = new JButton();
     private final JButton doRefactorButton = new JButton();
+    final JLabel infoLabel = new JLabel();
+    private final JSlider thresholdSlider = new JSlider(0, 100, DEFAULT_THRESHOLD);
+    private final double accuracyBound;
     private final JLabel info = new JLabel();
 
     private final Map<Refactoring, String> warnings;
 
-    ClassRefactoringPanel(List<Refactoring> refactorings,
-                          @NotNull AnalysisScope scope) {
+    ClassRefactoringPanel(List<Refactoring> refactorings, @NotNull AnalysisScope scope) {
+        this.accuracyBound = refactorings.stream()
+                .mapToDouble(Refactoring::getAccuracy)
+                .max()
+                .orElse(1);
         this.scope = scope;
         setLayout(new BorderLayout());
         model = new RefactoringsTableModel(refactorings);
-        warnings = RefactoringUtil.getWarnings(model.getRefactorings(), scope);
+        model.filter(accuracyBound * DEFAULT_THRESHOLD / 100.0);
+        warnings = RefactoringUtil.getWarnings(refactorings, scope);
         setupGUI();
     }
 
@@ -73,13 +81,17 @@ class ClassRefactoringPanel extends JPanel {
         new TableSpeedSearch(table);
         table.setModel(model);
         model.setupRenderer(table);
-        final TableColumn selectionColumn = table.getTableHeader().getColumnModel().getColumn(0);
-        selectionColumn.setMaxWidth(30);
-        selectionColumn.setMinWidth(30);
         table.addMouseListener((DoubleClickListener) this::onDoubleClick);
         table.getSelectionModel().setSelectionMode(SINGLE_SELECTION);
         table.getSelectionModel().addListSelectionListener(e -> onSelectionChanged());
+        setupTableLayout();
         return ScrollPaneFactory.createScrollPane(table);
+    }
+
+    private void setupTableLayout() {
+        final TableColumn selectionColumn = table.getTableHeader().getColumnModel().getColumn(0);
+        selectionColumn.setMaxWidth(30);
+        selectionColumn.setMinWidth(30);
     }
 
     private JComponent createButtonsPanel() {
@@ -87,8 +99,16 @@ class ClassRefactoringPanel extends JPanel {
         final JPanel buttonsPanel = new JBPanel<>();
         buttonsPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 
-        final JLabel infoLabel = new JLabel("Total: " + model.getRowCount());
-        infoLabel.setMinimumSize(new Dimension(100, 30));
+        thresholdSlider.setToolTipText("Accuracy filter");
+        thresholdSlider.addChangeListener(e -> {
+            model.filter(thresholdSlider.getValue() / 100.0 * accuracyBound);
+            infoLabel.setText("Total: " + model.getRowCount());
+            setupTableLayout();
+        });
+        buttonsPanel.add(thresholdSlider);
+
+        infoLabel.setText("Total: " + model.getRowCount());
+        infoLabel.setPreferredSize(new Dimension(80, 30));
         buttonsPanel.add(infoLabel);
 
         selectAllButton.setText(ArchitectureReloadedBundle.message(SELECT_ALL_BUTTON_TEXT_KEY));

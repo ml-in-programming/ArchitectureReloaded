@@ -25,8 +25,7 @@ import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -41,6 +40,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
     private static final int COLUMNS_COUNT = 4;
 
     private final List<Refactoring> refactorings = new ArrayList<>();
+    private final List<Integer> virtualRows = new ArrayList<>();
     private final boolean[] isSelected;
     private final boolean[] isActive;
 
@@ -49,11 +49,12 @@ public class RefactoringsTableModel extends AbstractTableModel {
         isSelected = new boolean[refactorings.size()];
         isActive = new boolean[refactorings.size()];
         Arrays.fill(isActive, true);
-        // todo sorting
+        IntStream.range(0, refactorings.size())
+                .forEachOrdered(virtualRows::add);
     }
 
     void selectAll() {
-        Arrays.fill(isSelected, true);
+        virtualRows.forEach(i -> isSelected[i] = true);
         fireTableDataChanged();
     }
 
@@ -72,6 +73,15 @@ public class RefactoringsTableModel extends AbstractTableModel {
         return result;
     }
 
+    void filter(double threshold) {
+        virtualRows.clear();
+        deselectAll();
+        IntStream.range(0, refactorings.size())
+                .filter(i -> refactorings.get(i).getAccuracy() >= threshold)
+                .forEachOrdered(virtualRows::add);
+        fireTableStructureChanged();
+    }
+
     @Override
     public int getColumnCount() {
         return COLUMNS_COUNT;
@@ -87,7 +97,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
             case MOVE_TO_COLUMN_INDEX:
                 return ArchitectureReloadedBundle.message(MOVE_TO_COLUMN_TITLE_KEY);
             case WEIGHT_COLUMN_INDEX:
-                return "Вес";
+                return "Accuracy";
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }
@@ -104,19 +114,20 @@ public class RefactoringsTableModel extends AbstractTableModel {
 
     @Override
     public int getRowCount() {
-        return refactorings.size();
+        return virtualRows.size();
     }
 
 
     @Override
-    public void setValueAt(Object value, int rowIndex, int columnIndex) {
-        isSelected[rowIndex] = (Boolean) value;
-        fireTableCellUpdated(rowIndex, columnIndex);
+    public void setValueAt(Object value, int virtualRow, int columnIndex) {
+        isSelected[virtualRows.get(virtualRow)] = (Boolean) value;
+        fireTableCellUpdated(virtualRow, columnIndex);
     }
 
     @Override
     @Nullable
-    public Object getValueAt(int rowIndex, int columnIndex) {
+    public Object getValueAt(int virtualRow, int columnIndex) {
+        final int rowIndex = virtualRows.get(virtualRow);
         switch (columnIndex) {
             case SELECTION_COLUMN_INDEX:
                 return isSelected[rowIndex];
@@ -130,7 +141,8 @@ public class RefactoringsTableModel extends AbstractTableModel {
         throw new IndexOutOfBoundsException("Unexpected column index: " + columnIndex);
     }
 
-    String getUnitAt(int row, int column) {
+    String getUnitAt(int virtualRow, int column) {
+        final int row = virtualRows.get(virtualRow);
         switch (column) {
             case UNIT_COLUMN_INDEX:
                 return refactorings.get(row).getUnit();
@@ -140,12 +152,12 @@ public class RefactoringsTableModel extends AbstractTableModel {
         throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }
 
-    List<Refactoring> getRefactorings() {
-        return refactorings;
+    Set<Refactoring> getRefactorings() {
+        return new HashSet<>(refactorings);
     }
 
-    Refactoring getRefactoring(int row) {
-        return refactorings.get(row);
+    Refactoring getRefactoring(int virtualRow) {
+        return refactorings.get(virtualRows.get(virtualRow));
     }
 
     void setupRenderer(JTable table) {
@@ -160,7 +172,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSel, boolean hasFocus,
                                                            int row, int column) {
-                if (isActive[row]) {
+                if (isActive[virtualRows.get(row)]) {
                     return super.getTableCellRendererComponent(table, value, isSel, hasFocus, row, column);
                 } else {
                     return EMPTY_LABEL;
@@ -170,7 +182,8 @@ public class RefactoringsTableModel extends AbstractTableModel {
         table.setDefaultRenderer(String.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-                                                           boolean hasFocus, int row, int column) {
+                                                           boolean hasFocus, int virtualRow, int column) {
+                final int row = virtualRows.get(virtualRow);
                 if (!isActive[row]) {
                     setBackground(Color.LIGHT_GRAY);
                 } else {
@@ -180,7 +193,5 @@ public class RefactoringsTableModel extends AbstractTableModel {
                 return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             }
         });
-
-
     }
 }

@@ -62,7 +62,7 @@ public final class RefactoringsToolWindow implements Disposable {
         myToolWindow.setAvailable(false, null);
     }
 
-    private void addTab(String tabName, @NotNull List<Refactoring> refactorings) {
+    private void addTab(String tabName, @NotNull List<Refactoring> refactorings, boolean isClosable) {
         final JComponent component = new ClassRefactoringPanel(refactorings, scope);
         final ActionToolbar toolbar = createToolbar();
         final JPanel contentPanel = new JPanel(new BorderLayout());
@@ -70,6 +70,7 @@ public final class RefactoringsToolWindow implements Disposable {
         contentPanel.add(toolbar.getComponent(), BorderLayout.WEST);
         final Content content = myToolWindow.getContentManager().getFactory()
                 .createContent(contentPanel, tabName, true);
+        content.setCloseable(isClosable);
         myToolWindow.getContentManager().addContent(content);
     }
 
@@ -92,8 +93,8 @@ public final class RefactoringsToolWindow implements Disposable {
                 .map(AlgorithmResult::getRefactorings)
                 .collect(Collectors.toList());
         final List<Refactoring> measured = RefactoringUtil.combine(refactorings);
-        measured.removeIf(refactoring -> refactoring.getAccuracy() < 2);
-        addTab("Total", measured);
+//        measured.removeIf(refactoring -> refactoring.getAccuracy() < 1);
+        addTab("Total", measured, false);
         myToolWindow.setAvailable(true, null);
         myToolWindow.show(null);
     }
@@ -108,18 +109,15 @@ public final class RefactoringsToolWindow implements Disposable {
     }
 
     private void intersect(Set<String> algorithms) {
-        //todo
-        System.out.println("WWWW " + algorithms.size());
         final List<List<Refactoring>> refactorings = results.stream()
                 .filter(result -> algorithms.contains(result.getAlgorithmName()))
                 .map(AlgorithmResult::getRefactorings)
                 .collect(Collectors.toList());
         final List<Refactoring> intersection = RefactoringUtil.intersect(refactorings);
-        System.out.println("WW3WW " + intersection.size());
         if (!algorithms.isEmpty() && !intersection.isEmpty()) {
             final String tabName = algorithms.stream()
                     .collect(Collectors.joining(" & "));
-            addTab(tabName, intersection);
+            addTab(tabName, intersection, true);
         }
     }
 
