@@ -49,6 +49,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
     private final List<Integer> virtualRows = new ArrayList<>();
     private final boolean[] isSelected;
     private final boolean[] isActive;
+    private boolean enableHighlighting;
 
     RefactoringsTableModel(List<Refactoring> refactorings) {
         this.refactorings.addAll(refactorings);
@@ -66,6 +67,11 @@ public class RefactoringsTableModel extends AbstractTableModel {
 
     void deselectAll() {
         Arrays.fill(isSelected, false);
+        fireTableDataChanged();
+    }
+
+    void setEnableHighlighting(boolean isEnabled) {
+        this.enableHighlighting = isEnabled;
         fireTableDataChanged();
     }
 
@@ -180,7 +186,6 @@ public class RefactoringsTableModel extends AbstractTableModel {
                                                            int row, int column) {
                 final int realRow = virtualRows.get(row);
                 if (isActive[realRow]) {
-                    setBackground(toneFor(refactorings.get(realRow).getAccuracy()));
                     return super.getTableCellRendererComponent(table, value, isSel, hasFocus, row, column);
                 } else {
                     return EMPTY_LABEL;
@@ -194,9 +199,11 @@ public class RefactoringsTableModel extends AbstractTableModel {
                 final int row = virtualRows.get(virtualRow);
                 if (!isActive[row]) {
                     setBackground(Color.LIGHT_GRAY);
+                } else if (isSelected) {
+                    setBackground(table.getSelectionBackground());
                 } else {
-                    setBackground(isSelected ? table.getSelectionBackground() :
-                            toneFor(refactorings.get(row).getAccuracy()));
+                    setBackground(enableHighlighting ? toneFor(refactorings.get(row).getAccuracy())
+                            : table.getBackground());
                 }
                 setEnabled(isActive[row]);
                 return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);

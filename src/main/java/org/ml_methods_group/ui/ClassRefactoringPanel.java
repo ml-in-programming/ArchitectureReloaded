@@ -67,6 +67,10 @@ class ClassRefactoringPanel extends JPanel {
         setupGUI();
     }
 
+    public void setEnableHighlighting(boolean isEnabled) {
+        model.setEnableHighlighting(isEnabled);
+    }
+
     private void setupGUI() {
         add(createTablePanel(), BorderLayout.CENTER);
         add(createButtonsPanel(), BorderLayout.SOUTH);

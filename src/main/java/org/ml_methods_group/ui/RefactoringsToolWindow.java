@@ -22,6 +22,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -35,6 +36,8 @@ import org.ml_methods_group.utils.RefactoringUtil;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,10 +48,12 @@ public final class RefactoringsToolWindow implements Disposable {
     private static final String TITLE_KEY = "refactorings.tool.window.title";
 
     private final Project project;
+    private final List<ClassRefactoringPanel> contents = new ArrayList<>();
     private ToolWindow myToolWindow = null;
     private List<AlgorithmResult> results;
     private EntitySearchResult searchResult;
     private AnalysisScope scope;
+    private boolean enableHighlighting;
 
     private RefactoringsToolWindow(@NotNull Project project) {
         this.project = project;
@@ -63,20 +68,22 @@ public final class RefactoringsToolWindow implements Disposable {
     }
 
     private void addTab(String tabName, @NotNull List<Refactoring> refactorings, boolean isClosable) {
-        final JComponent component = new ClassRefactoringPanel(refactorings, scope);
+        final ClassRefactoringPanel panel = new ClassRefactoringPanel(refactorings, scope);
         final ActionToolbar toolbar = createToolbar();
         final JPanel contentPanel = new JPanel(new BorderLayout());
-        contentPanel.add(component, BorderLayout.CENTER);
+        contentPanel.add(panel, BorderLayout.CENTER);
         contentPanel.add(toolbar.getComponent(), BorderLayout.WEST);
         final Content content = myToolWindow.getContentManager().getFactory()
                 .createContent(contentPanel, tabName, true);
         content.setCloseable(isClosable);
+        contents.add(panel);
         myToolWindow.getContentManager().addContent(content);
     }
 
     private ActionToolbar createToolbar() {
         final DefaultActionGroup toolbarGroup = new DefaultActionGroup();
         toolbarGroup.add(new IntersectAction());
+        toolbarGroup.add(new ColorAction());
         toolbarGroup.add(new InfoAction());
         toolbarGroup.add(new CloseAction());
         return ActionManager.getInstance()
@@ -88,6 +95,7 @@ public final class RefactoringsToolWindow implements Disposable {
         this.scope = scope;
         this.searchResult = searchResult;
         myToolWindow.getContentManager().removeAllContents(true);
+        contents.clear();
         myToolWindow.setAvailable(false, null);
         final List<List<Refactoring>> refactorings = results.stream()
                 .map(AlgorithmResult::getRefactorings)
@@ -156,6 +164,27 @@ public final class RefactoringsToolWindow implements Disposable {
                 final DialogWrapper dialog = new ExecutionInfoDialog(project, searchResult, results);
                 dialog.show();
             }
+        }
+    }
+
+    private class ColorAction extends ToggleAction {
+        private static final String COLOR_ACTION_ICON_PATH = "/images/color.png";
+
+        ColorAction() {
+            super(ArchitectureReloadedBundle.message("color.action.text"),
+                    ArchitectureReloadedBundle.message("color.action.description"),
+                    IconLoader.getIcon(COLOR_ACTION_ICON_PATH));
+        }
+
+        @Override
+        public boolean isSelected(AnActionEvent e) {
+            return enableHighlighting;
+        }
+
+        @Override
+        public void setSelected(AnActionEvent e, boolean state) {
+            enableHighlighting = state;
+            contents.forEach(panel -> panel.setEnableHighlighting(enableHighlighting));
         }
     }
 
