@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
+import static org.ml_methods_group.ui.RefactoringsTableModel.ACCURACY_COLUMN_INDEX;
 import static org.ml_methods_group.ui.RefactoringsTableModel.SELECTION_COLUMN_INDEX;
 
 class ClassRefactoringPanel extends JPanel {
@@ -88,9 +89,13 @@ class ClassRefactoringPanel extends JPanel {
     }
 
     private void setupTableLayout() {
-        final TableColumn selectionColumn = table.getTableHeader().getColumnModel().getColumn(0);
+        final TableColumn selectionColumn = table.getTableHeader().getColumnModel().getColumn(SELECTION_COLUMN_INDEX);
         selectionColumn.setMaxWidth(30);
         selectionColumn.setMinWidth(30);
+        final TableColumn accuracyColumn = table.getTableHeader().getColumnModel().getColumn(ACCURACY_COLUMN_INDEX);
+        accuracyColumn.setMaxWidth(100);
+        accuracyColumn.setMinWidth(100);
+
     }
 
     private JComponent createButtonsPanel() {

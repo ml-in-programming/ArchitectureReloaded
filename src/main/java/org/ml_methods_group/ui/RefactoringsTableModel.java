@@ -42,7 +42,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
     static final int SELECTION_COLUMN_INDEX = 0;
     static final int ENTITY_COLUMN_INDEX = 1;
     static final int MOVE_TO_COLUMN_INDEX = 2;
-    static final int WEIGHT_COLUMN_INDEX = 3;
+    static final int ACCURACY_COLUMN_INDEX = 3;
     private static final int COLUMNS_COUNT = 4;
 
     private final List<Refactoring> refactorings = new ArrayList<>();
@@ -108,7 +108,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
                 return ArchitectureReloadedBundle.message(ENTITY_COLUMN_TITLE_KEY);
             case MOVE_TO_COLUMN_INDEX:
                 return ArchitectureReloadedBundle.message(MOVE_TO_COLUMN_TITLE_KEY);
-            case WEIGHT_COLUMN_INDEX:
+            case ACCURACY_COLUMN_INDEX:
                 return "Accuracy";
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + column);
@@ -147,8 +147,9 @@ public class RefactoringsTableModel extends AbstractTableModel {
                 return refactorings.get(rowIndex).getUnit();
             case MOVE_TO_COLUMN_INDEX:
                 return refactorings.get(rowIndex).getTarget();
-            case WEIGHT_COLUMN_INDEX:
-                return refactorings.get(rowIndex).getAccuracy() + "";
+            case ACCURACY_COLUMN_INDEX:
+                final double accuracy = refactorings.get(rowIndex).getAccuracy();
+                return String.format("%.2f", accuracy);
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + columnIndex);
     }
@@ -205,6 +206,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
                     setBackground(enableHighlighting ? toneFor(refactorings.get(row).getAccuracy())
                             : table.getBackground());
                 }
+                setHorizontalAlignment(column == ACCURACY_COLUMN_INDEX ? CENTER : LEFT);
                 setEnabled(isActive[row]);
                 return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             }
