@@ -65,9 +65,9 @@ public class EntitySearcher {
 
     private EntitySearchResult runCalculations(MetricsRun metricsRun) {
         indicator.pushState();
-        indicator.setText("Search units");
+        indicator.setText("Search entities");
         indicator.setIndeterminate(true);
-        LOGGER.info("Index units...");
+        LOGGER.info("Index entities...");
         scope.accept(new UnitsFinder());
         indicator.setIndeterminate(false);
         LOGGER.info("Calculate properties...");

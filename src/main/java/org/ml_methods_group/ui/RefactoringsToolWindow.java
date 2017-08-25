@@ -93,7 +93,6 @@ public final class RefactoringsToolWindow implements Disposable {
                 .map(AlgorithmResult::getRefactorings)
                 .collect(Collectors.toList());
         final List<Refactoring> measured = RefactoringUtil.combine(refactorings);
-//        measured.removeIf(refactoring -> refactoring.getAccuracy() < 1);
         addTab("Total", measured, false);
         myToolWindow.setAvailable(true, null);
         myToolWindow.show(null);

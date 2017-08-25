@@ -61,7 +61,7 @@ public abstract class Algorithm {
             indicator = new EmptyProgressIndicator();
         }
         indicator.pushState();
-        indicator.setText("Run " + name + "...");
+        indicator.setText("Running " + name + "...");
         indicator.setFraction(0);
         final ExecutionContext context =
                 new ExecutionContext(enableParallelExecution ? requireNonNull(service) : null, indicator, entities);

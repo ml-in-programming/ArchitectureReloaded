@@ -31,10 +31,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class RefactoringsTableModel extends AbstractTableModel {
-    private static final String UNIT_COLUMN_TITLE_KEY = "unit.column.title";
+    private static final String ENTITY_COLUMN_TITLE_KEY = "unit.column.title";
     private static final String MOVE_TO_COLUMN_TITLE_KEY = "move.to.column.title";
     static final int SELECTION_COLUMN_INDEX = 0;
-    static final int UNIT_COLUMN_INDEX = 1;
+    static final int ENTITY_COLUMN_INDEX = 1;
     static final int MOVE_TO_COLUMN_INDEX = 2;
     static final int WEIGHT_COLUMN_INDEX = 3;
     private static final int COLUMNS_COUNT = 4;
@@ -92,8 +92,8 @@ public class RefactoringsTableModel extends AbstractTableModel {
         switch (column) {
             case SELECTION_COLUMN_INDEX:
                 return "";
-            case UNIT_COLUMN_INDEX:
-                return ArchitectureReloadedBundle.message(UNIT_COLUMN_TITLE_KEY);
+            case ENTITY_COLUMN_INDEX:
+                return ArchitectureReloadedBundle.message(ENTITY_COLUMN_TITLE_KEY);
             case MOVE_TO_COLUMN_INDEX:
                 return ArchitectureReloadedBundle.message(MOVE_TO_COLUMN_TITLE_KEY);
             case WEIGHT_COLUMN_INDEX:
@@ -131,7 +131,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
         switch (columnIndex) {
             case SELECTION_COLUMN_INDEX:
                 return isSelected[rowIndex];
-            case UNIT_COLUMN_INDEX:
+            case ENTITY_COLUMN_INDEX:
                 return refactorings.get(rowIndex).getUnit();
             case MOVE_TO_COLUMN_INDEX:
                 return refactorings.get(rowIndex).getTarget();
@@ -144,7 +144,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
     String getUnitAt(int virtualRow, int column) {
         final int row = virtualRows.get(virtualRow);
         switch (column) {
-            case UNIT_COLUMN_INDEX:
+            case ENTITY_COLUMN_INDEX:
                 return refactorings.get(row).getUnit();
             case MOVE_TO_COLUMN_INDEX:
                 return refactorings.get(row).getTarget();
