@@ -24,11 +24,14 @@ import com.sixrr.metrics.profile.MetricsProfile;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.utils.MetricsProfilesUtil;
+import org.ml_methods_group.utils.RefactoringUtil;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.ml_methods_group.utils.RefactoringUtil.toMap;
 
 public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
     private Project project;
@@ -63,14 +66,14 @@ public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
         assertEquals(6, context.getMethodsCount());
         assertEquals(4, context.getFieldsCount());
 
-        final Map<String, String> refactoringsCCDA = context.getResultForName("CCDA")
-                .getRefactorings();
+        final Map<String, String> refactoringsCCDA = toMap(context.getResultForName("CCDA")
+                .getRefactorings());
         assertEquals(1, refactoringsCCDA.size());
         assertEquals("ClassB.methodB1()", refactoringsCCDA.keySet().toArray()[0]);
         assertEquals("ClassA", refactoringsCCDA.get("ClassB.methodB1()"));
 
-        final Map<String, String> refactoringsMRI = context.getResultForName("MRI")
-                .getRefactorings();
+        final Map<String, String> refactoringsMRI = toMap(context.getResultForName("MRI")
+                .getRefactorings());
         assertEquals(1, refactoringsMRI.size());
         assertEquals("ClassB.methodB1()", refactoringsMRI.keySet().toArray()[0]);
         assertEquals("ClassA", refactoringsMRI.get("ClassB.methodB1()"));
@@ -91,8 +94,8 @@ public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
 //
 //        assertEquals(new HashSet(Collections.singletonList("ClassB.methodB1()")), common);
 
-        final Map<String, String> refactoringsAKMeans = context.getResultForName("AKMeans")
-                .getRefactorings();
+        final Map<String, String> refactoringsAKMeans = toMap(context.getResultForName("AKMeans")
+                .getRefactorings());
 
 //        Set<String> refactoringsARIEC = new HashSet<>(refactoringsAKMeans.keySet());
 //        refactoringsARIEC.retainAll(refactoringsMRI.keySet());
@@ -110,15 +113,15 @@ public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
         // TODO: make AKMeans more deterministic somehow and get some assertions here
 //        assertEquals(new HashSet(Collections.singletonList("ClassB.methodB1()")), refactoringsARIEC);
 
-        final Map<String, String> refactoringsHAC = context.getResultForName("HAC")
-                .getRefactorings();
+        final Map<String, String> refactoringsHAC = toMap(context.getResultForName("HAC")
+                .getRefactorings());
 
         final Map<String, String> expectedHAC = new HashMap<>();
         expectedHAC.put("ClassB.methodB1()", "ClassA");
         assertEquals(expectedHAC, refactoringsHAC);
 
-        final Map<String, String> refactoringsARI =context.getResultForName("ARI")
-                .getRefactorings();
+        final Map<String, String> refactoringsARI = toMap(context.getResultForName("ARI")
+                .getRefactorings());
         assertEquals(expectedHAC, refactoringsARI);
     }
 }
