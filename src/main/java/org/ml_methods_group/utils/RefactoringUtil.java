@@ -24,6 +24,7 @@ import com.intellij.psi.*;
 import com.intellij.refactoring.makeStatic.MakeStaticHandler;
 import com.intellij.refactoring.move.moveInstanceMethod.MoveInstanceMethodDialog;
 import com.intellij.refactoring.move.moveMembers.MoveMembersDialog;
+import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.Refactoring;
 
@@ -181,6 +182,35 @@ public final class RefactoringUtil {
         return uniqueUnits == refactorings.size();
     }
 
+    public static List<Refactoring> filter(List<Refactoring> refactorings, AnalysisScope scope) {
+        final Set<String> allUnits = refactorings.stream()
+                .map(Refactoring::getUnit)
+                .collect(Collectors.toSet());
+        final Map<String, PsiElement> psiElements = PsiSearchUtil.findAllElements(allUnits, scope, Function.identity());
+        final List<Refactoring> validRefactorings = new ArrayList<>();
+        for (Refactoring refactoring : refactorings) {
+            final PsiElement element = psiElements.get(refactoring.getUnit());
+            if (element != null) {
+                final boolean isMovable = ApplicationManager.getApplication()
+                        .runReadAction((Computable<Boolean>) () -> isMovable(element));
+                if (isMovable) {
+                    validRefactorings.add(refactoring);
+                }
+            }
+        }
+        return validRefactorings;
+    }
+
+    private static boolean isMovable(PsiElement psiElement) {
+        if (psiElement instanceof PsiField) {
+            return MethodUtils.isStatic((PsiField) psiElement);
+        } else if (psiElement instanceof PsiMethod) {
+            final PsiMethod method = (PsiMethod) psiElement;
+            return !MethodUtils.isAbstract(method) && !PSIUtil.isOverriding(method) && !method.isConstructor();
+        }
+        return false;
+    }
+
     public static Map<String, String> toMap(List<Refactoring> refactorings) {
         return refactorings.stream().collect(Collectors.toMap(Refactoring::getUnit, Refactoring::getTarget));
     }
@@ -208,17 +238,21 @@ public final class RefactoringUtil {
                 .flatMap(List::stream)
                 .collect(Collectors.groupingBy(Refactoring::getUnit, Collectors.toList()))
                 .entrySet().stream()
-                .map(entry -> combine(entry.getValue(), entry.getKey()))
+                .map(entry -> combine(entry.getValue(), entry.getKey(), refactorings.size()))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    private static Refactoring combine(List<Refactoring> refactorings, String unit) {
+    private static Refactoring combine(List<Refactoring> refactorings, String unit, int algorithmsCount) {
         final Map<String, Double> target = refactorings.stream()
-                .collect(Collectors.toMap(Refactoring::getTarget, Refactoring::getAccuracy, Double::sum));
+                .collect(Collectors.toMap(Refactoring::getTarget, RefactoringUtil::getSquaredAccuarcy, Double::sum));
         return target.entrySet().stream()
                 .max(Entry.comparingByValue())
-                .map(entry -> new Refactoring(unit, entry.getKey(), entry.getValue()))
+                .map(entry -> new Refactoring(unit, entry.getKey(), Math.sqrt(entry.getValue() / algorithmsCount)))
                 .orElse(null);
+    }
+
+    private static double getSquaredAccuarcy(Refactoring refactoring) {
+        return refactoring.getAccuracy() * refactoring.getAccuracy();
     }
 }

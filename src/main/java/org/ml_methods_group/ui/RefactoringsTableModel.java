@@ -33,6 +33,12 @@ import java.util.stream.IntStream;
 public class RefactoringsTableModel extends AbstractTableModel {
     private static final String ENTITY_COLUMN_TITLE_KEY = "unit.column.title";
     private static final String MOVE_TO_COLUMN_TITLE_KEY = "move.to.column.title";
+
+    private static final Color GREEN = new Color(133, 255, 51);
+    private static final Color PALE_GREEN = new Color(193, 255, 139);
+    private static final Color YELLOW = new Color(255, 255, 111);
+    private static final Color RED = new Color(255, 181, 165);
+
     static final int SELECTION_COLUMN_INDEX = 0;
     static final int ENTITY_COLUMN_INDEX = 1;
     static final int MOVE_TO_COLUMN_INDEX = 2;
@@ -172,7 +178,9 @@ public class RefactoringsTableModel extends AbstractTableModel {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSel, boolean hasFocus,
                                                            int row, int column) {
-                if (isActive[virtualRows.get(row)]) {
+                final int realRow = virtualRows.get(row);
+                if (isActive[realRow]) {
+                    setBackground(toneFor(refactorings.get(realRow).getAccuracy()));
                     return super.getTableCellRendererComponent(table, value, isSel, hasFocus, row, column);
                 } else {
                     return EMPTY_LABEL;
@@ -187,11 +195,23 @@ public class RefactoringsTableModel extends AbstractTableModel {
                 if (!isActive[row]) {
                     setBackground(Color.LIGHT_GRAY);
                 } else {
-                    setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+                    setBackground(isSelected ? table.getSelectionBackground() :
+                            toneFor(refactorings.get(row).getAccuracy()));
                 }
                 setEnabled(isActive[row]);
                 return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             }
         });
+    }
+
+    private static Color toneFor(double accuracy) {
+        if (accuracy > 0.8) {
+            return GREEN;
+        } else if (accuracy > 0.6) {
+            return PALE_GREEN;
+        } else if (accuracy > 0.4) {
+            return YELLOW;
+        }
+        return RED;
     }
 }

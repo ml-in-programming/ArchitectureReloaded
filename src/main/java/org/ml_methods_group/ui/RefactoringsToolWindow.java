@@ -112,8 +112,9 @@ public final class RefactoringsToolWindow implements Disposable {
                 .filter(result -> algorithms.contains(result.getAlgorithmName()))
                 .map(AlgorithmResult::getRefactorings)
                 .collect(Collectors.toList());
+        // todo may be should use combine instead of intersect
         final List<Refactoring> intersection = RefactoringUtil.intersect(refactorings);
-        if (!algorithms.isEmpty() && !intersection.isEmpty()) {
+        if (!algorithms.isEmpty()) {
             final String tabName = algorithms.stream()
                     .collect(Collectors.joining(" & "));
             addTab(tabName, intersection, true);

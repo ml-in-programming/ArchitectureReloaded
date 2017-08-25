@@ -52,22 +52,17 @@ class ClassRefactoringPanel extends JPanel {
     private final JButton selectAllButton = new JButton();
     private final JButton deselectAllButton = new JButton();
     private final JButton doRefactorButton = new JButton();
-    final JLabel infoLabel = new JLabel();
-    private final JSlider thresholdSlider = new JSlider(0, 100, DEFAULT_THRESHOLD);
-    private final double accuracyBound;
+    private final JLabel infoLabel = new JLabel();
+    private final JSlider thresholdSlider = new JSlider(0, 100, 0);
     private final JLabel info = new JLabel();
 
     private final Map<Refactoring, String> warnings;
 
     ClassRefactoringPanel(List<Refactoring> refactorings, @NotNull AnalysisScope scope) {
-        this.accuracyBound = refactorings.stream()
-                .mapToDouble(Refactoring::getAccuracy)
-                .max()
-                .orElse(1);
         this.scope = scope;
         setLayout(new BorderLayout());
-        model = new RefactoringsTableModel(refactorings);
-        model.filter(accuracyBound * DEFAULT_THRESHOLD / 100.0);
+        model = new RefactoringsTableModel(RefactoringUtil.filter(refactorings, scope));
+        model.filter(DEFAULT_THRESHOLD / 100.0);
         warnings = RefactoringUtil.getWarnings(refactorings, scope);
         setupGUI();
     }
@@ -99,12 +94,19 @@ class ClassRefactoringPanel extends JPanel {
         final JPanel buttonsPanel = new JBPanel<>();
         buttonsPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 
+        final double maxAccuracy = model.getRefactorings()
+                .stream()
+                .mapToDouble(Refactoring::getAccuracy)
+                .max()
+                .orElse(1);
+        final int recommendedPercents = (int) (maxAccuracy * 80);
         thresholdSlider.setToolTipText("Accuracy filter");
         thresholdSlider.addChangeListener(e -> {
-            model.filter(thresholdSlider.getValue() / 100.0 * accuracyBound);
+            model.filter(thresholdSlider.getValue() / 100.0);
             infoLabel.setText("Total: " + model.getRowCount());
             setupTableLayout();
         });
+        thresholdSlider.setValue(recommendedPercents);
         buttonsPanel.add(thresholdSlider);
 
         infoLabel.setText("Total: " + model.getRowCount());
