@@ -21,6 +21,7 @@ import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.config.Logging;
+import org.ml_methods_group.utils.AlgorithmsUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +50,7 @@ public class ARI extends Algorithm {
         units.addAll(entities.getFields());
         progressCount.set(0);
         this.context = context;
-        return runParallel(units, context, ArrayList<Refactoring>::new, this::findRefactoring, Algorithm::combineLists);
+        return runParallel(units, context, ArrayList<Refactoring>::new, this::findRefactoring, AlgorithmsUtil::combineLists);
     }
 
     private List<Refactoring> findRefactoring(Entity entity, List<Refactoring> accumulator) {
@@ -77,12 +78,10 @@ public class ARI extends Algorithm {
             LOGGER.warn("targetClass is null for " + entity.getName());
             return accumulator;
         }
-        System.out.println("diff = " + difference);
-        System.out.println("dist = " + minDistance);
         final String targetClassName = targetClass.getName();
         if (!targetClassName.equals(entity.getClassName())) {
             accumulator.add(new Refactoring(entity.getName(), targetClassName,
-                    Math.min(difference == 0 ? 0 : 5 * difference / minDistance, 1) * ACCURACY));
+                    AlgorithmsUtil.getGapBasedAccuracyRating(minDistance, difference) * ACCURACY));
         }
         return accumulator;
     }

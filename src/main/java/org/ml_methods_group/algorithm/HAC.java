@@ -22,12 +22,15 @@ import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.config.Logging;
+import org.ml_methods_group.utils.AlgorithmsUtil;
 
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.ml_methods_group.utils.AlgorithmsUtil.getDensityBasedAccuracyRating;
 
 public class HAC extends Algorithm {
     private static final Logger LOGGER = Logging.getLogger(HAC.class);
@@ -59,7 +62,7 @@ public class HAC extends Algorithm {
         final List<Community> communitiesAsList = new ArrayList<>(communities);
         Collections.shuffle(communitiesAsList);
         final List<Triple> toInsert =
-                runParallel(communitiesAsList, context, ArrayList::new, this::findTriples, Algorithm::combineLists);
+                runParallel(communitiesAsList, context, ArrayList::new, this::findTriples, AlgorithmsUtil::combineLists);
         toInsert.forEach(this::insertTriple);
         LOGGER.info("Built heap (" + heap.size() + " triples)");
     }
@@ -100,31 +103,19 @@ public class HAC extends Algorithm {
             if (entitiesCount == 0) {
                 continue;
             }
-            final Entry<String, Long> dominantClass = calculateClassName(community);
+            final Entry<String, Long> dominantClass = AlgorithmsUtil.getDominantClass(community.entities);
             final String className = dominantClass.getKey();
             LOGGER.info("Generate class name for community (id = " + community.id +"): " + className);
             for (Entity entity : community.entities) {
                 if (!entity.getClassName().equals(className)) {
                     refactorings.add(new Refactoring(entity.getName(), className,
-                            (double) dominantClass.getValue() / entitiesCount * ACCURACY));
+                            getDensityBasedAccuracyRating(dominantClass.getValue(),entitiesCount) * ACCURACY));
                 }
             }
         }
         Triple.clearPool();
         return refactorings;
     }
-
-    // todo doubtful code starts
-
-    private Entry<String, Long> calculateClassName(Community community) {
-        return community.entities.stream()
-                .collect(Collectors.groupingBy(Entity::getClassName, Collectors.counting()))
-                .entrySet().stream()
-                .max(Entry.comparingByValue())
-                .orElse(null);
-    }
-
-    // doubtful code ends
 
     private Community mergeCommunities(Community first, Community second) {
         final List<Entity> merged;

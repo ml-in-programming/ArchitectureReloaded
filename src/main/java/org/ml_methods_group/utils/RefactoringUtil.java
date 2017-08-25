@@ -186,14 +186,11 @@ public final class RefactoringUtil {
     }
 
     public static List<Refactoring> intersect(Collection<List<Refactoring>> refactorings) {
-        System.out.println(refactorings.size());
         return refactorings.stream()
                 .flatMap(List::stream)
-                .peek(refactoring -> System.out.println(refactoring.getUnit() + "&" + refactoring.getTarget()))
                 .collect(Collectors.groupingBy(refactoring -> refactoring.getUnit() + "&" + refactoring.getTarget(),
                         Collectors.toList()))
                 .values().stream()
-                .peek(list -> System.out.println("> " + list.size()))
                 .filter(collection -> collection.size() == refactorings.size())
                 .map(RefactoringUtil::intersect)
                 .filter(Objects::nonNull)

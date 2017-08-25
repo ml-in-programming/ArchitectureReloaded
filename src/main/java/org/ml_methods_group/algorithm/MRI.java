@@ -23,6 +23,7 @@ import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.config.Logging;
+import org.ml_methods_group.utils.AlgorithmsUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -76,11 +77,12 @@ public class MRI extends Algorithm {
                 continue;
             }
 
+            final double accuracyRating =
+                    AlgorithmsUtil.getGapBasedAccuracyRating(minHolder.distance, minHolder.difference) * ACCURACY;
             if (currentEntity.getCategory() == MetricCategory.Method) {
-                processMethod(refactorings, currentEntity, minHolder);
+                processMethod(refactorings, currentEntity, nearestClass, accuracyRating);
             } else {
-                refactorings.add(new Refactoring(currentEntity.getName(), nearestClass.getName(),
-                        Math.min(minHolder.difference == 0 ? 0 : 5 * minHolder.difference / minHolder.distance, 1) * ACCURACY));
+                refactorings.add(new Refactoring(currentEntity.getName(), nearestClass.getName(), accuracyRating));
             }
         }
 
@@ -114,13 +116,12 @@ public class MRI extends Algorithm {
         return first;
     }
 
-    private void processMethod(List<Refactoring> refactorings, Entity method, Holder min) {
+    private void processMethod(List<Refactoring> refactorings, Entity method, ClassEntity target, double accuracy) {
         if (method.isMovable()) {
             final ClassEntity containingClass = classesByName.get(method.getClassName());
-            refactorings.add(new Refactoring(method.getName(), min.candidate.getClassName(),
-                    Math.min(min.difference == 0 ? 0 : 5 * min.difference / min.distance, 1) * ACCURACY));
+            refactorings.add(new Refactoring(method.getName(), target.getName(), accuracy));
             containingClass.removeFromClass(method.getName());
-            min.candidate.addToClass(method.getName());
+            target.addToClass(method.getName());
         }
     }
 }
