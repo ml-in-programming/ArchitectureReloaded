@@ -33,7 +33,7 @@ import java.util.stream.IntStream;
 public class RefactoringsTableModel extends AbstractTableModel {
     private static final String ENTITY_COLUMN_TITLE_KEY = "unit.column.title";
     private static final String MOVE_TO_COLUMN_TITLE_KEY = "move.to.column.title";
-    private static final String ACCURACY_COLUMN_TITLE_KEY = "move.to.column.title";
+    private static final String ACCURACY_COLUMN_TITLE_KEY = "accuracy.column.title";
 
     private static final Color GREEN = new Color(133, 255, 51);
     private static final Color PALE_GREEN = new Color(193, 255, 139);
