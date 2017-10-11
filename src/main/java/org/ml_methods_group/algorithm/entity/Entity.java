@@ -83,7 +83,7 @@ public abstract class Entity {
         for (int i = 0; i < DIMENSION; i++) {
             w += square(vector[i] + entity.vector[i]);
         }
-        ans += w == 0 ? 0 : 1.0 / (w + 1);
+        ans += 1.0 / (w + 1);
         final int rpIntersect = entity.relevantProperties.sizeOfIntersection(relevantProperties);
         if (rpIntersect == 0) {
             return Double.POSITIVE_INFINITY;
