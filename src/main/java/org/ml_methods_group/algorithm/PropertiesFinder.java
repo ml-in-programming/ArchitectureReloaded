@@ -17,6 +17,7 @@
 package org.ml_methods_group.algorithm;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.*;
@@ -113,6 +114,9 @@ public class PropertiesFinder {
     private class FileClassesCounter extends JavaElementVisitor {
         @Override
         public void visitFile(final PsiFile file) {
+            if (!JavaFileType.INSTANCE.equals(file.getFileType())) {
+                return;
+            }
             System.out.println("!#! " + file.getName());
 
             final PsiElementVisitor counter = new ClassCounter();
@@ -123,6 +127,9 @@ public class PropertiesFinder {
     private class FileVisitor extends JavaElementVisitor {
         @Override
         public void visitFile(final PsiFile file) {
+            if (!JavaFileType.INSTANCE.equals(file.getFileType())) {
+                return;
+            }
             System.out.println("!#! " + file.getName());
 
             final PsiElementVisitor counter = new ClassCounter();

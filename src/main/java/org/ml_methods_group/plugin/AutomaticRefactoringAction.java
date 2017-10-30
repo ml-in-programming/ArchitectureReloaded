@@ -76,10 +76,10 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     private void calculateRefactorings(@NotNull RefactoringExecutionContext context) {
         refactoringsCCDA = findRefactorings(context::calculateCCDA);
-        refactoringsMRI = findRefactorings(context::calculateMRI);
         refactoringsAKMeans = findRefactorings(context::calculateAKMeans);
         refactoringsHAC = findRefactorings(context::calculateHAC);
         refactoringsARI = findRefactorings(context::calculateARI);
+        refactoringsMRI = findRefactorings(context::calculateMRI);
     }
 
     private void showRefactoringsDialog(@NotNull RefactoringExecutionContext context) {
@@ -120,11 +120,5 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     public Map<String, String> getRefactoringsHAC() {
         return refactoringsHAC;
-    }
-
-    @Override
-    @Nullable
-    protected JComponent getAdditionalActionSettings(Project project, BaseAnalysisActionDialog dialog) {
-        return new ProfileSelectionPanel(project);
     }
 }
