@@ -84,6 +84,7 @@ class ClassRefactoringPanel extends JPanel {
         table.addMouseListener((DoubleClickListener) this::onDoubleClick);
         table.getSelectionModel().setSelectionMode(SINGLE_SELECTION);
         table.getSelectionModel().addListSelectionListener(e -> onSelectionChanged());
+        table.setAutoCreateRowSorter(true);
         setupTableLayout();
         return ScrollPaneFactory.createScrollPane(table);
     }
@@ -151,7 +152,7 @@ class ClassRefactoringPanel extends JPanel {
     }
 
     private void onDoubleClick() {
-        final int selectedRow = table.getSelectedRow();
+        final int selectedRow = table.getSelectedRow() == -1 ? -1 : table.convertRowIndexToModel(table.getSelectedRow());
         final int selectedColumn = table.getSelectedColumn();
         if (selectedRow == -1 || selectedColumn == -1 || selectedColumn == SELECTION_COLUMN_INDEX) {
             return;
@@ -160,7 +161,7 @@ class ClassRefactoringPanel extends JPanel {
     }
 
     private void onSelectionChanged() {
-        final int selectedRow = table.getSelectedRow();
+        final int selectedRow = table.getSelectedRow() == -1 ? -1 : table.convertRowIndexToModel(table.getSelectedRow());
         info.setText(selectedRow == -1 ? "" : warnings.get(model.getRefactoring(selectedRow)));
     }
 
