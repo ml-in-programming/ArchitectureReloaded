@@ -67,7 +67,7 @@ public final class RefactoringsToolWindow implements Disposable {
     }
 
     private void addTab(String tabName, @NotNull List<Refactoring> refactorings, boolean isClosable) {
-        final ClassRefactoringPanel panel = new ClassRefactoringPanel(refactorings, scope);
+        final ClassRefactoringPanel panel = new ClassRefactoringPanel(refactorings, results, scope);
         panel.setEnableHighlighting(enableHighlighting);
         final ActionToolbar toolbar = createToolbar();
         final JPanel contentPanel = new JPanel(new BorderLayout());

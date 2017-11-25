@@ -40,4 +40,11 @@ public class Refactoring {
     public double getAccuracy() {
         return accuracy;
     }
+
+    @Override
+    public String toString() {
+        return "unit = " + unit +
+                ", target = " + target +
+                ", accuracy = " + accuracy;
+    }
 }

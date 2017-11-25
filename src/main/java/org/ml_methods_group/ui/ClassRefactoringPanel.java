@@ -22,6 +22,7 @@ import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
+import org.ml_methods_group.algorithm.AlgorithmResult;
 import org.ml_methods_group.algorithm.Refactoring;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.PsiSearchUtil;
@@ -32,6 +33,12 @@ import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +50,7 @@ class ClassRefactoringPanel extends JPanel {
     private static final String SELECT_ALL_BUTTON_TEXT_KEY = "select.all.button";
     private static final String DESELECT_ALL_BUTTON_TEXT_KEY = "deselect.all.button";
     private static final String REFACTOR_BUTTON_TEXT_KEY = "refactor.button";
+    private static final String EXPORT_BUTTON_TEXT_KEY = "export.button";
     private static final int DEFAULT_THRESHOLD = 80; // percents
 
     @NotNull
@@ -53,18 +61,21 @@ class ClassRefactoringPanel extends JPanel {
     private final JButton selectAllButton = new JButton();
     private final JButton deselectAllButton = new JButton();
     private final JButton doRefactorButton = new JButton();
+    private final JButton exportButton = new JButton();
     private final JLabel infoLabel = new JLabel();
     private final JSlider thresholdSlider = new JSlider(0, 100, 0);
     private final JLabel info = new JLabel();
 
     private final Map<Refactoring, String> warnings;
+    private final List<AlgorithmResult> results;
 
-    ClassRefactoringPanel(List<Refactoring> refactorings, @NotNull AnalysisScope scope) {
+    ClassRefactoringPanel(List<Refactoring> refactorings, List<AlgorithmResult> results, @NotNull AnalysisScope scope) {
         this.scope = scope;
         setLayout(new BorderLayout());
         model = new RefactoringsTableModel(RefactoringUtil.filter(refactorings, scope));
         model.filter(DEFAULT_THRESHOLD / 100.0);
         warnings = RefactoringUtil.getWarnings(refactorings, scope);
+        this.results = results;
         setupGUI();
     }
 
@@ -134,6 +145,10 @@ class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setText(ArchitectureReloadedBundle.message(REFACTOR_BUTTON_TEXT_KEY));
         doRefactorButton.addActionListener(e -> refactorSelected());
         buttonsPanel.add(doRefactorButton);
+
+        exportButton.setText(ArchitectureReloadedBundle.message(EXPORT_BUTTON_TEXT_KEY));
+        exportButton.addActionListener(e -> export());
+        buttonsPanel.add(exportButton);
         panel.add(buttonsPanel, BorderLayout.EAST);
 
         panel.add(info, BorderLayout.WEST);
@@ -149,6 +164,33 @@ class ClassRefactoringPanel extends JPanel {
         table.setEnabled(true);
         doRefactorButton.setEnabled(true);
         selectAllButton.setEnabled(true);
+    }
+
+    private void export() {
+        final JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        int returnVal = fileChooser.showOpenDialog(null);
+        if (returnVal == JFileChooser.CANCEL_OPTION)
+            return;
+        try {
+            StringBuilder allResults = new StringBuilder();
+            String pathString = fileChooser.getSelectedFile().getCanonicalPath() + File.separator;
+            for (AlgorithmResult result: results) {
+                Path path = Paths.get(pathString + result.getAlgorithmName() + ".txt");
+                Files.createFile(path);
+                StringBuilder currentResults = new StringBuilder();
+                for (Refactoring refactoring: result.getRefactorings()) {
+                    currentResults.append(refactoring.toString()).append('\n');
+                }
+                Files.write(path, currentResults.toString().getBytes(), StandardOpenOption.APPEND);
+                allResults.append(currentResults);
+            }
+            Path path = Paths.get(pathString + "All.txt");
+            Files.createFile(path);
+            Files.write(path, allResults.toString().getBytes(), StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            System.out.println("Failed to create file");
+        }
     }
 
     private void onDoubleClick() {
