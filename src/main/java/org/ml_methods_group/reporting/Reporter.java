@@ -16,15 +16,27 @@
 
 package org.ml_methods_group.reporting;
 
-import com.google.gson.Gson;
 import com.intellij.openapi.application.PermanentInstallationID;
 
 public class Reporter {
-    public static <T> String createReportLine(String recorderId, String actionType, T data) {
-        String recorderVersion = "1";
+    public static String createReportLine(
+            String recorderId,
+            String recorderVersion,
+            String actionType,
+            Object data
+    ) {
+        return createReportLine(recorderId, recorderVersion, "random_session_id", -1, actionType, data);
+    }
+
+    public static String createReportLine(
+            String recorderId,
+            String recorderVersion,
+            String sessionId,
+            int bucket,
+            String actionType,
+            Object data
+    ) {
         String userId = PermanentInstallationID.get();
-        String sessionId = "random_session_id";
-        int bucket = -1;
         String json = Utils.gson.toJson(data);
         long time = System.currentTimeMillis();
         return String.format("%d\t%s\t%s\t%s\t%s\t%d\t%s\t%s",

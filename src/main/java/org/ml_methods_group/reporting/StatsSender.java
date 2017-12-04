@@ -79,7 +79,7 @@ public class StatsSender {
                 return true;
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.debug(e);
         }
         return false;
     }
