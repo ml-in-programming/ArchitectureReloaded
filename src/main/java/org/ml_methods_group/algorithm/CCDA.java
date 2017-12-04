@@ -21,6 +21,7 @@ import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.RelevantProperties;
 import org.ml_methods_group.config.Logging;
+import org.ml_methods_group.utils.AlgorithmsUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,6 +32,7 @@ public class CCDA extends Algorithm {
     private static final double ACCURACY = 1;
 
     private final Map<String, Integer> communityIds = new HashMap<>();
+    private final Map<Entity, Integer> entityCommunities = new HashMap<>();
     private final List<String> idCommunity = new ArrayList<>();
     private final List<Integer> aCoefficients = new ArrayList<>();
     private final List<Entity> nodes = new ArrayList<>();
@@ -50,18 +52,21 @@ public class CCDA extends Algorithm {
         final EntitySearchResult entities = context.getEntities();
         LOGGER.info("Init CCDA");
         communityIds.clear();
+        entityCommunities.clear();
         idCommunity.clear();
         nodes.clear();
         aCoefficients.clear();
         quality = 0.0;
         entities.getClasses().stream()
                 .peek(entity -> communityIds.put(entity.getName(), communityIds.size() + 1))
+                .peek(entity -> entityCommunities.put(entity, communityIds.get(entity.getClassName())))
                 .map(Entity::getName)
                 .forEach(idCommunity::add);
         Stream.of(entities.getFields(), entities.getMethods())
                 .flatMap(List::stream)
                 .filter(entity -> communityIds.containsKey(entity.getClassName()))
                 .peek(entity -> communityIds.put(entity.getName(), communityIds.get(entity.getClassName())))
+                .peek(entity -> entityCommunities.put(entity, communityIds.get(entity.getClassName())))
                 .forEach(nodes::add);
         aCoefficients.addAll(Collections.nCopies(idCommunity.size() + 1, 0));
         buildGraph();
@@ -114,14 +119,32 @@ public class CCDA extends Algorithm {
             refactorings.put(optimum.targetEntity.getName(), idCommunity.get(optimum.community - 1));
             move(optimum.targetEntity, optimum.community, false);
             communityIds.put(optimum.targetEntity.getName(), optimum.community);
+            entityCommunities.put(optimum.targetEntity, optimum.community);
             progress = Math.max(progress, eps / optimum.delta);
             reportProgress(0.1 + 0.9 * progress, context);
             LOGGER.info("Finish iteration. Current quality is " + quality + " (delta is " + optimum.delta + ")");
             context.checkCanceled();
         }
 
+        final Map<Integer, List<Entity>> entities = entityCommunities.entrySet().stream()
+                .collect(Collectors.groupingBy(Map.Entry::getValue))
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().stream().map(Map.Entry::getKey).collect(Collectors.toList())));
+
+        final Map<Integer, Map.Entry<String, Long>> dominants = entities.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> AlgorithmsUtil.getDominantClass(e.getValue()))
+                );
+
         return refactorings.entrySet().stream()
-                .map(entry -> new Refactoring(entry.getKey(), entry.getValue(), ACCURACY))
+                .map(entry -> {
+                    int id = communityIds.get(entry.getValue());
+                    long dominant = dominants.get(id).getValue();
+                    long size = entities.get(id).size();
+                    return new Refactoring(entry.getKey(), entry.getValue(), AlgorithmsUtil.getDensityBasedAccuracyRating(dominant, size) * ACCURACY);
+                })
                 .collect(Collectors.toList());
     }
 
