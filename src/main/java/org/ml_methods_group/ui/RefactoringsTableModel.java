@@ -90,7 +90,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
         virtualRows.clear();
         deselectAll();
         IntStream.range(0, refactorings.size())
-                .filter(i -> refactorings.get(i).getAccuracy() >= threshold)
+                .filter(i -> refactorings.get(i).getAccuracy() >= threshold && !(disableFieldRefactorings && refactorings.get(i).isField()))
                 .forEachOrdered(virtualRows::add);
         fireTableStructureChanged();
     }
