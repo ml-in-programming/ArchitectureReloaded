@@ -16,6 +16,7 @@
 
 package org.ml_methods_group.algorithm;
 
+import com.sixrr.metrics.MetricCategory;
 import org.apache.log4j.Logger;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
@@ -107,7 +108,7 @@ public class CCDA extends Algorithm {
     protected List<Refactoring> calculateRefactorings(ExecutionContext context) {
         this.context = context;
         init();
-        final Map<String, String> refactorings = new HashMap<>();
+        final Map<Entity, String> refactorings = new HashMap<>();
         context.checkCanceled();
         quality = calculateQualityIndex();
         double progress = 0;
@@ -116,7 +117,7 @@ public class CCDA extends Algorithm {
             if (optimum.delta <= eps) {
                 break;
             }
-            refactorings.put(optimum.targetEntity.getName(), idCommunity.get(optimum.community - 1));
+            refactorings.put(optimum.targetEntity, idCommunity.get(optimum.community - 1));
             move(optimum.targetEntity, optimum.community, false);
             communityIds.put(optimum.targetEntity.getName(), optimum.community);
             entityCommunities.put(optimum.targetEntity, optimum.community);
@@ -143,7 +144,7 @@ public class CCDA extends Algorithm {
                     int id = communityIds.get(entry.getValue());
                     long dominant = dominants.get(id).getValue();
                     long size = entities.get(id).size();
-                    return new Refactoring(entry.getKey(), entry.getValue(), AlgorithmsUtil.getDensityBasedAccuracyRating(dominant, size) * ACCURACY);
+                    return new Refactoring(entry.getKey().getName(), entry.getValue(), AlgorithmsUtil.getDensityBasedAccuracyRating(dominant, size) * ACCURACY, entry.getKey().getCategory().equals(MetricCategory.Package));
                 })
                 .collect(Collectors.toList());
     }

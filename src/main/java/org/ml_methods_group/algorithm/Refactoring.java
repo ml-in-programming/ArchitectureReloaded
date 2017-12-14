@@ -22,11 +22,13 @@ public class Refactoring {
     private final String unit;
     private final String target;
     private final double accuracy;
+    private final boolean isUnitField;
 
-    public Refactoring(@NotNull String unit, @NotNull String target, double accuracy) {
+    public Refactoring(@NotNull String unit, @NotNull String target, double accuracy, boolean isUnitField) {
         this.unit = unit;
         this.target = target;
         this.accuracy = accuracy;
+        this.isUnitField = isUnitField;
     }
 
     public String getUnit() {
@@ -39,6 +41,10 @@ public class Refactoring {
 
     public double getAccuracy() {
         return accuracy;
+    }
+
+    public boolean isField() {
+        return isUnitField;
     }
 
     @Override

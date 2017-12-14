@@ -16,6 +16,7 @@
 
 package org.ml_methods_group.algorithm;
 
+import com.sixrr.metrics.MetricCategory;
 import org.apache.log4j.Logger;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
@@ -81,7 +82,8 @@ public class ARI extends Algorithm {
         final String targetClassName = targetClass.getName();
         if (!targetClassName.equals(entity.getClassName())) {
             accumulator.add(new Refactoring(entity.getName(), targetClassName,
-                    AlgorithmsUtil.getGapBasedAccuracyRating(minDistance, difference) * ACCURACY));
+                    AlgorithmsUtil.getGapBasedAccuracyRating(minDistance, difference) * ACCURACY,
+                    entity.getCategory().equals(MetricCategory.Package)));
         }
         return accumulator;
     }

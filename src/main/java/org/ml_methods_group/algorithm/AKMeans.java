@@ -16,6 +16,7 @@
 
 package org.ml_methods_group.algorithm;
 
+import com.sixrr.metrics.MetricCategory;
 import org.apache.log4j.Logger;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
@@ -107,7 +108,8 @@ public class AKMeans extends Algorithm {
                     .filter(e -> !e.getClassName().equals(dominant.getKey()))
                     .filter(Entity::isMovable)
                     .map(e -> new Refactoring(e.getName(), dominant.getKey(),
-                            getDensityBasedAccuracyRating(dominant.getValue(), community.size()) * ACCURACY))
+                            getDensityBasedAccuracyRating(dominant.getValue(), community.size()) * ACCURACY,
+                            e.getCategory().equals(MetricCategory.Package)))
                     .forEach(refactorings::add);
         }
         return refactorings;

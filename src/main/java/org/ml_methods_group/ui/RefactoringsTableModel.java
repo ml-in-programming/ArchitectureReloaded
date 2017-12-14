@@ -86,7 +86,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
         return result;
     }
 
-    void filter(double threshold) {
+    void filter(boolean disableFieldRefactorings, double threshold) {
         virtualRows.clear();
         deselectAll();
         IntStream.range(0, refactorings.size())

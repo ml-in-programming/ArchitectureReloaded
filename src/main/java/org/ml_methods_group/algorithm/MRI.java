@@ -82,7 +82,8 @@ public class MRI extends Algorithm {
             if (currentEntity.getCategory() == MetricCategory.Method) {
                 processMethod(refactorings, currentEntity, nearestClass, accuracyRating);
             } else {
-                refactorings.add(new Refactoring(currentEntity.getName(), nearestClass.getName(), accuracyRating));
+                refactorings.add(new Refactoring(currentEntity.getName(), nearestClass.getName(), accuracyRating,
+                        currentEntity.getCategory().equals(MetricCategory.Package)));
             }
         }
 
@@ -119,7 +120,7 @@ public class MRI extends Algorithm {
     private void processMethod(List<Refactoring> refactorings, Entity method, ClassEntity target, double accuracy) {
         if (method.isMovable()) {
             final ClassEntity containingClass = classesByName.get(method.getClassName());
-            refactorings.add(new Refactoring(method.getName(), target.getName(), accuracy));
+            refactorings.add(new Refactoring(method.getName(), target.getName(), accuracy, false));
             containingClass.removeFromClass(method.getName());
             target.addToClass(method.getName());
         }

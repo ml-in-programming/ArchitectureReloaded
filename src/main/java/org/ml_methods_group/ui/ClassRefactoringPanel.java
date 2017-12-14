@@ -68,19 +68,28 @@ class ClassRefactoringPanel extends JPanel {
 
     private final Map<Refactoring, String> warnings;
     private final List<AlgorithmResult> results;
+    private boolean isFieldDisabled;
 
     ClassRefactoringPanel(List<Refactoring> refactorings, List<AlgorithmResult> results, @NotNull AnalysisScope scope) {
         this.scope = scope;
         setLayout(new BorderLayout());
         model = new RefactoringsTableModel(RefactoringUtil.filter(refactorings, scope));
-        model.filter(DEFAULT_THRESHOLD / 100.0);
+        model.filter(isFieldDisabled, DEFAULT_THRESHOLD / 100.0);
         warnings = RefactoringUtil.getWarnings(refactorings, scope);
         this.results = results;
+        isFieldDisabled = false;
         setupGUI();
     }
 
     public void setEnableHighlighting(boolean isEnabled) {
         model.setEnableHighlighting(isEnabled);
+    }
+
+    public void setExcludeFieldRefactorings(boolean isDisabled) {
+        isFieldDisabled = isDisabled;
+        model.filter(isDisabled, thresholdSlider.getValue() / 100.0);
+        infoLabel.setText("Total: " + model.getRowCount());
+        setupTableLayout();
     }
 
     private void setupGUI() {
@@ -107,7 +116,6 @@ class ClassRefactoringPanel extends JPanel {
         final TableColumn accuracyColumn = table.getTableHeader().getColumnModel().getColumn(ACCURACY_COLUMN_INDEX);
         accuracyColumn.setMaxWidth(100);
         accuracyColumn.setMinWidth(100);
-
     }
 
     private JComponent createButtonsPanel() {
@@ -123,7 +131,7 @@ class ClassRefactoringPanel extends JPanel {
         final int recommendedPercents = (int) (maxAccuracy * 80);
         thresholdSlider.setToolTipText("Accuracy filter");
         thresholdSlider.addChangeListener(e -> {
-            model.filter(thresholdSlider.getValue() / 100.0);
+            model.filter(isFieldDisabled, thresholdSlider.getValue() / 100.0);
             infoLabel.setText("Total: " + model.getRowCount());
             setupTableLayout();
         });
