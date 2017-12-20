@@ -69,7 +69,7 @@ public final class RefactoringsToolWindow implements Disposable {
     }
 
     private void addTab(String tabName, @NotNull List<Refactoring> refactorings, boolean isClosable) {
-        final ClassRefactoringPanel panel = new ClassRefactoringPanel(refactorings, results, scope);
+        final ClassRefactoringPanel panel = new ClassRefactoringPanel(refactorings, scope);
         panel.setEnableHighlighting(enableHighlighting);
         final ActionToolbar toolbar = createToolbar();
         final JPanel contentPanel = new JPanel(new BorderLayout());
@@ -221,7 +221,7 @@ public final class RefactoringsToolWindow implements Disposable {
         @Override
         public void setSelected(AnActionEvent e, boolean state) {
             excludeFieldRefactorings = state;
-            contents.forEach(panel -> panel.setExcludeFieldRefactorings(excludeFieldRefactorings));
+            contents.forEach(panel -> panel.excludeFieldRefactorings(excludeFieldRefactorings));
         }
     }
 }

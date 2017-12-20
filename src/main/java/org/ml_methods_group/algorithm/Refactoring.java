@@ -43,7 +43,7 @@ public class Refactoring {
         return accuracy;
     }
 
-    public boolean isField() {
+    public boolean isUnitField() {
         return isUnitField;
     }
 

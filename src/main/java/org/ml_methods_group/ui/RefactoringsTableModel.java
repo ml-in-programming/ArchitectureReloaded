@@ -27,6 +27,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -86,11 +87,11 @@ public class RefactoringsTableModel extends AbstractTableModel {
         return result;
     }
 
-    void filter(boolean disableFieldRefactorings, double threshold) {
+    void filter(Predicate<Refactoring> predicate) {
         virtualRows.clear();
         deselectAll();
         IntStream.range(0, refactorings.size())
-                .filter(i -> refactorings.get(i).getAccuracy() >= threshold && !(disableFieldRefactorings && refactorings.get(i).isField()))
+                .filter(i -> predicate.test(refactorings.get(i)))
                 .forEachOrdered(virtualRows::add);
         fireTableStructureChanged();
     }

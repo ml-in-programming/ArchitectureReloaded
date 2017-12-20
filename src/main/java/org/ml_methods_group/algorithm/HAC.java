@@ -16,7 +16,6 @@
 
 package org.ml_methods_group.algorithm;
 
-import com.sixrr.metrics.MetricCategory;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,7 +109,7 @@ public class HAC extends Algorithm {
                 if (!entity.getClassName().equals(className)) {
                     refactorings.add(new Refactoring(entity.getName(), className,
                             getDensityBasedAccuracyRating(dominantClass.getValue(),entitiesCount) * ACCURACY,
-                            entity.getCategory().equals(MetricCategory.Package)));
+                            entity.isField()));
                 }
             }
         }

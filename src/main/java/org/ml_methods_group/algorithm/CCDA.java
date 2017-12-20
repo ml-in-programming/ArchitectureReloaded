@@ -16,7 +16,6 @@
 
 package org.ml_methods_group.algorithm;
 
-import com.sixrr.metrics.MetricCategory;
 import org.apache.log4j.Logger;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
@@ -144,7 +143,9 @@ public class CCDA extends Algorithm {
                     int id = communityIds.get(entry.getValue());
                     long dominant = dominants.get(id).getValue();
                     long size = entities.get(id).size();
-                    return new Refactoring(entry.getKey().getName(), entry.getValue(), AlgorithmsUtil.getDensityBasedAccuracyRating(dominant, size) * ACCURACY, entry.getKey().getCategory().equals(MetricCategory.Package));
+                    return new Refactoring(entry.getKey().getName(), entry.getValue(),
+                            AlgorithmsUtil.getDensityBasedAccuracyRating(dominant, size) * ACCURACY,
+                            entry.getKey().isField());
                 })
                 .collect(Collectors.toList());
     }

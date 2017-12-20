@@ -83,7 +83,7 @@ public class MRI extends Algorithm {
                 processMethod(refactorings, currentEntity, nearestClass, accuracyRating);
             } else {
                 refactorings.add(new Refactoring(currentEntity.getName(), nearestClass.getName(), accuracyRating,
-                        currentEntity.getCategory().equals(MetricCategory.Package)));
+                        currentEntity.isField()));
             }
         }
 
