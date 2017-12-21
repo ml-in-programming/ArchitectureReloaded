@@ -79,7 +79,7 @@ public class AKMeans extends Algorithm {
     }
 
     @Override
-    protected List<Refactoring> calculateRefactorings(ExecutionContext context) {
+    protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) {
         init(context.getEntities());
         context.checkCanceled();
         initializeCenters();
@@ -106,6 +106,7 @@ public class AKMeans extends Algorithm {
             community.stream()
                     .filter(e -> !e.getClassName().equals(dominant.getKey()))
                     .filter(Entity::isMovable)
+                    .filter(e -> enableFieldRefactorings || !e.isField())
                     .map(e -> new Refactoring(e.getName(), dominant.getKey(),
                             getDensityBasedAccuracyRating(dominant.getValue(), community.size()) * ACCURACY,
                             e.isField()))

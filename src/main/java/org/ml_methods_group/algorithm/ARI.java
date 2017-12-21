@@ -41,13 +41,15 @@ public class ARI extends Algorithm {
     }
 
     @Override
-    protected List<Refactoring> calculateRefactorings(ExecutionContext context) {
+    protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) {
         units.clear();
         classEntities.clear();
         final EntitySearchResult entities = context.getEntities();
         classEntities.addAll(entities.getClasses());
         units.addAll(entities.getMethods());
-        units.addAll(entities.getFields());
+        if (enableFieldRefactorings) {
+            units.addAll(entities.getFields());
+        }
         progressCount.set(0);
         this.context = context;
         return runParallel(units, context, ArrayList<Refactoring>::new, this::findRefactoring, AlgorithmsUtil::combineLists);

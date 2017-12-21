@@ -44,14 +44,21 @@ public class MRI extends Algorithm {
     }
 
     @Override
-    protected List<Refactoring> calculateRefactorings(ExecutionContext context) {
+    protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) {
         final EntitySearchResult searchResult = context.getEntities();
         units.clear();
         classes.clear();
-        Stream.of(searchResult.getFields(), searchResult.getMethods())
+        Stream.of(searchResult.getMethods())
                 .flatMap(List::stream)
                 .filter(Entity::isMovable)
                 .forEach(units::add);
+
+        if(enableFieldRefactorings) {
+            Stream.of(searchResult.getFields())
+                    .flatMap(List::stream)
+                    .filter(Entity::isMovable)
+                    .forEach(units::add);
+        }
 
         searchResult.getClasses()
                 .stream()
