@@ -40,4 +40,16 @@ public class Refactoring {
     public double getAccuracy() {
         return accuracy;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj instanceof Refactoring) {
+            Refactoring other = ((Refactoring) obj);
+            return unit.equals(other.unit) && target.equals(other.target);
+        }
+        return false;
+    }
 }
