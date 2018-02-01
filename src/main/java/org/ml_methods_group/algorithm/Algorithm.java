@@ -26,7 +26,6 @@ import org.ml_methods_group.config.Logging;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -51,7 +50,7 @@ public abstract class Algorithm {
         preferredThreadsCount = Runtime.getRuntime().availableProcessors();
     }
 
-    public final AlgorithmResult execute(EntitySearchResult entities, ExecutorService service) {
+    public final AlgorithmResult execute(EntitySearchResult entities, ExecutorService service, boolean enableFieldRefactorings) {
         LOGGER.info(name + " started");
         final long startTime = System.currentTimeMillis();
         final ProgressIndicator indicator;
@@ -67,7 +66,7 @@ public abstract class Algorithm {
                 new ExecutionContext(enableParallelExecution ? requireNonNull(service) : null, indicator, entities);
         final List<Refactoring> refactorings;
         try {
-            refactorings = calculateRefactorings(context);
+            refactorings = calculateRefactorings(context, enableFieldRefactorings);
         } catch (ProcessCanceledException e) {
             throw e;
         } catch (Exception e) {
@@ -83,7 +82,7 @@ public abstract class Algorithm {
     }
 
 
-    protected abstract List<Refactoring> calculateRefactorings(ExecutionContext context) throws Exception;
+    protected abstract List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) throws Exception;
 
     protected void reportProgress(double progress, ExecutionContext context) {
         context.indicator.setFraction(progress);

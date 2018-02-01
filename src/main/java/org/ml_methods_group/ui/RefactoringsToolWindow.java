@@ -53,6 +53,8 @@ public final class RefactoringsToolWindow implements Disposable {
     private EntitySearchResult searchResult;
     private AnalysisScope scope;
     private boolean enableHighlighting;
+    private boolean excludeFieldRefactorings;
+
 
     private RefactoringsToolWindow(@NotNull Project project) {
         this.project = project;
@@ -85,6 +87,7 @@ public final class RefactoringsToolWindow implements Disposable {
         toolbarGroup.add(new IntersectAction());
         toolbarGroup.add(new ColorAction());
         toolbarGroup.add(new InfoAction());
+        toolbarGroup.add(new ExcludeFieldRefactoringsAction());
         toolbarGroup.add(new CloseAction());
         return ActionManager.getInstance()
                 .createActionToolbar(WINDOW_ID, toolbarGroup, false);
@@ -200,6 +203,25 @@ public final class RefactoringsToolWindow implements Disposable {
             myToolWindow.setAvailable(false, null);
             results = null;
             scope = null;
+        }
+    }
+
+    private class ExcludeFieldRefactoringsAction extends ToggleAction {
+        ExcludeFieldRefactoringsAction() {
+            super(ArchitectureReloadedBundle.message("exclude.field.refactorings.action.text"),
+                    ArchitectureReloadedBundle.message("exclude.field.refactorings.action.description"),
+                    AllIcons.Actions.Exclude);
+        }
+
+        @Override
+        public boolean isSelected(AnActionEvent e) {
+            return excludeFieldRefactorings;
+        }
+
+        @Override
+        public void setSelected(AnActionEvent e, boolean state) {
+            excludeFieldRefactorings = state;
+            contents.forEach(panel -> panel.excludeFieldRefactorings(excludeFieldRefactorings));
         }
     }
 }

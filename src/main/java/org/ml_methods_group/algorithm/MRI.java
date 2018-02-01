@@ -22,13 +22,11 @@ import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
+import org.ml_methods_group.algorithm.entity.FieldEntity;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.AlgorithmsUtil;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class MRI extends Algorithm {
@@ -44,11 +42,12 @@ public class MRI extends Algorithm {
     }
 
     @Override
-    protected List<Refactoring> calculateRefactorings(ExecutionContext context) {
+    protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) {
         final EntitySearchResult searchResult = context.getEntities();
         units.clear();
         classes.clear();
-        Stream.of(searchResult.getFields(), searchResult.getMethods())
+        List<FieldEntity> fields = enableFieldRefactorings ? searchResult.getFields() : Collections.emptyList();
+        Stream.of(searchResult.getMethods(), fields)
                 .flatMap(List::stream)
                 .filter(Entity::isMovable)
                 .forEach(units::add);
@@ -82,7 +81,8 @@ public class MRI extends Algorithm {
             if (currentEntity.getCategory() == MetricCategory.Method) {
                 processMethod(refactorings, currentEntity, nearestClass, accuracyRating);
             } else {
-                refactorings.add(new Refactoring(currentEntity.getName(), nearestClass.getName(), accuracyRating));
+                refactorings.add(new Refactoring(currentEntity.getName(), nearestClass.getName(), accuracyRating,
+                        currentEntity.isField()));
             }
         }
 
@@ -119,7 +119,7 @@ public class MRI extends Algorithm {
     private void processMethod(List<Refactoring> refactorings, Entity method, ClassEntity target, double accuracy) {
         if (method.isMovable()) {
             final ClassEntity containingClass = classesByName.get(method.getClassName());
-            refactorings.add(new Refactoring(method.getName(), target.getName(), accuracy));
+            refactorings.add(new Refactoring(method.getName(), target.getName(), accuracy, false));
             containingClass.removeFromClass(method.getName());
             target.addToClass(method.getName());
         }

@@ -61,22 +61,25 @@ public class RefactoringExecutionContext {
     private final List<AlgorithmResult> algorithmsResults = new ArrayList<>();
     @NotNull
     private final Collection<String> requestedAlgorithms;
+    private final boolean isFieldRefactoringAvailable;
 
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
                                        @NotNull MetricsProfile profile,
                                        @Nullable Consumer<RefactoringExecutionContext> continuation) {
-        this(project, scope, profile, Arrays.asList(getAvailableAlgorithms()), continuation);
+        this(project, scope, profile, Arrays.asList(getAvailableAlgorithms()), true, continuation);
     }
 
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
                                        @NotNull MetricsProfile profile,
                                        @NotNull Collection<String> requestedAlgorithms,
+                                       boolean isFieldRefactoringAvailable,
                                        @Nullable Consumer<RefactoringExecutionContext> continuation) {
         this.project = project;
         this.scope = scope;
         this.profile = profile;
         this.continuation = continuation;
         this.requestedAlgorithms = requestedAlgorithms;
+        this.isFieldRefactoringAvailable = isFieldRefactoringAvailable;
         metricsExecutionContext = new MetricsExecutionContextImpl(project, scope);
     }
 
@@ -132,7 +135,7 @@ public class RefactoringExecutionContext {
 
     private void calculate(Class<? extends Algorithm> algorithmClass) {
         final Algorithm algorithm = createInstance(algorithmClass);
-        final AlgorithmResult result = algorithm.execute(entitySearchResult, executorService);
+        final AlgorithmResult result = algorithm.execute(entitySearchResult, executorService, isFieldRefactoringAvailable);
         algorithmsResults.add(result);
     }
 

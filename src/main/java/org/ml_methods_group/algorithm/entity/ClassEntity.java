@@ -51,4 +51,9 @@ public class ClassEntity extends Entity {
     public ClassEntity copy() {
         return new ClassEntity(this);
     }
+
+    @Override
+    public boolean isField() {
+        return false;
+    }
 }

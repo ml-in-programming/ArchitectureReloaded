@@ -49,4 +49,9 @@ public class MethodEntity extends Entity {
     public MethodEntity copy() {
         return new MethodEntity(this);
     }
+
+    @Override
+    public boolean isField() {
+        return false;
+    }
 }

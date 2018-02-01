@@ -147,4 +147,6 @@ public abstract class Entity {
     abstract public String getClassName();
 
     abstract public Entity copy();
+
+    abstract public boolean isField();
 }

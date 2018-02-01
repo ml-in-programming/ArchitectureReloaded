@@ -27,6 +27,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -86,11 +87,11 @@ public class RefactoringsTableModel extends AbstractTableModel {
         return result;
     }
 
-    void filter(double threshold) {
+    void filter(Predicate<Refactoring> predicate) {
         virtualRows.clear();
         deselectAll();
         IntStream.range(0, refactorings.size())
-                .filter(i -> refactorings.get(i).getAccuracy() >= threshold)
+                .filter(i -> predicate.test(refactorings.get(i)))
                 .forEachOrdered(virtualRows::add);
         fireTableStructureChanged();
     }
@@ -186,7 +187,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSel, boolean hasFocus,
                                                            int row, int column) {
-                final int realRow = virtualRows.get(row);
+                final int realRow = virtualRows.get(table.convertRowIndexToModel(row));
                 if (isActive[realRow]) {
                     return super.getTableCellRendererComponent(table, value, isSel, hasFocus, row, column);
                 } else {
@@ -198,7 +199,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
                                                            boolean hasFocus, int virtualRow, int column) {
-                final int row = virtualRows.get(virtualRow);
+                final int row = virtualRows.get(table.convertRowIndexToModel(virtualRow));
                 if (!isActive[row]) {
                     setBackground(Color.LIGHT_GRAY);
                 } else if (isSelected) {
