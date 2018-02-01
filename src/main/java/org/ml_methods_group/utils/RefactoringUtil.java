@@ -66,24 +66,25 @@ public final class RefactoringUtil {
                         .map(RefactoringUtil::makeStatic) // no effect for already static members
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList());
-                final Set<PsiMember> accepted = moveMembersRefactoring(members, refactoring.getKey(), scope);
-                model.setAcceptedRefactorings(accepted.stream().map(m -> new Refactoring(PsiSearchUtil.getHumanReadableName(m), PsiSearchUtil.getHumanReadableName(refactoring.getKey()), 0)).collect(Collectors.toSet()));
+                final Set<String> accepted = moveMembersRefactoring(members, target, scope);
+                model.setAcceptedRefactorings(accepted.stream().map(m -> new Refactoring(m, PsiSearchUtil.getHumanReadableName(target), 0)).collect(Collectors.toSet()));
             }
         });
     }
 
-    private static Set<PsiMember> moveMembersRefactoring(Collection<PsiMember> elements, PsiClass targetClass,
+    private static Set<String> moveMembersRefactoring(Collection<PsiMember> elements, PsiClass targetClass,
                                                AnalysisScope scope) {
         final Map<PsiClass, Set<PsiMember>> groupByCurrentClass = elements.stream()
                 .collect(groupingBy(PsiMember::getContainingClass, Collectors.toSet()));
 
-        final Set<PsiMember> accepted = new HashSet<>();
+        final Set<String> accepted = new HashSet<>();
         for (Entry<PsiClass, Set<PsiMember>> movement : groupByCurrentClass.entrySet()) {
             MoveMembersDialog dialog = new MoveMembersDialog(scope.getProject(), movement.getKey(), targetClass,
                     movement.getValue(), null);
+            final Set<String> names = movement.getValue().stream().map(PsiSearchUtil::getHumanReadableName).collect(Collectors.toSet());
             TransactionGuard.getInstance().submitTransactionAndWait(dialog::show);
             if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
-                accepted.addAll(movement.getValue());
+                accepted.addAll(names);
             }
         }
         return accepted;

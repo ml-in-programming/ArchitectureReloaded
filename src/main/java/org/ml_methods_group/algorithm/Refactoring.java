@@ -42,6 +42,11 @@ public class Refactoring {
     }
 
     @Override
+    public int hashCode() {
+        return unit.hashCode() + target.hashCode();
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;
