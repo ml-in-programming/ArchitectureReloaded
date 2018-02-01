@@ -56,5 +56,15 @@ public class AlgorithmsSelectionPanel extends JPanel {
             checkBox.addActionListener(e -> config.setSelected(algorithm, checkBox.isSelected()));
             add(checkBox, constraints);
         }
+
+        final JComponent separatorAfterAlgorithms =
+                new TitledSeparator(ArchitectureReloadedBundle.message("other.settings"));
+        constraints.gridy++;
+        add(separatorAfterAlgorithms, constraints);
+
+        final JCheckBox checkBox = new JBCheckBox(ArchitectureReloadedBundle.message("search.for.move.field.refactorings"));
+        checkBox.addActionListener(e -> config.setFieldRefactoringsAvailable());
+        constraints.gridy++;
+        add(checkBox, constraints);
     }
 }

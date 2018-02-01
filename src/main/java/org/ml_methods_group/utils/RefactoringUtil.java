@@ -84,7 +84,7 @@ public final class RefactoringUtil {
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList());
                 final Set<String> accepted = moveMembersRefactoring(members, target, scope);
-                model.setAcceptedRefactorings(accepted.stream().map(m -> new Refactoring(m, PsiSearchUtil.getHumanReadableName(target), 0)).collect(Collectors.toSet()));
+                model.setAcceptedRefactorings(accepted.stream().map(m -> new Refactoring(m, PsiSearchUtil.getHumanReadableName(target), 0, true)).collect(Collectors.toSet()));
             }
         });
     }
@@ -277,11 +277,12 @@ public final class RefactoringUtil {
     }
 
     private static Refactoring combine(List<Refactoring> refactorings, String unit, int algorithmsCount) {
+        boolean isUnitField = refactorings.get(0).isUnitField();
         final Map<String, Double> target = refactorings.stream()
                 .collect(Collectors.toMap(Refactoring::getTarget, RefactoringUtil::getSquaredAccuarcy, Double::sum));
         return target.entrySet().stream()
                 .max(Entry.comparingByValue())
-                .map(entry -> new Refactoring(unit, entry.getKey(), Math.sqrt(entry.getValue() / algorithmsCount)))
+                .map(entry -> new Refactoring(unit, entry.getKey(), Math.sqrt(entry.getValue() / algorithmsCount), isUnitField))
                 .orElse(null);
     }
 

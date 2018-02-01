@@ -34,6 +34,7 @@ public final class ArchitectureReloadedConfig implements PersistentStateComponen
 
     private final Set<String> selectedAlgorithms =
             new HashSet<>(Arrays.asList(RefactoringExecutionContext.getAvailableAlgorithms()));
+    private boolean isFieldRefactoringAvailable = false;
 
     private ArchitectureReloadedConfig() {}
 
@@ -62,5 +63,13 @@ public final class ArchitectureReloadedConfig implements PersistentStateComponen
     @Override
     public void loadState(ArchitectureReloadedConfig state) {
         XmlSerializerUtil.copyBean(state, this);
+    }
+
+    public void setFieldRefactoringsAvailable() {
+        isFieldRefactoringAvailable = !isFieldRefactoringAvailable;
+    }
+
+    public boolean isFieldRefactoringAvailable() {
+        return isFieldRefactoringAvailable;
     }
 }

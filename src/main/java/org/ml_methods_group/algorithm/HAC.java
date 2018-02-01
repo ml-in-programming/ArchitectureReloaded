@@ -83,7 +83,7 @@ public class HAC extends Algorithm {
     }
 
     @Override
-    protected List<Refactoring> calculateRefactorings(ExecutionContext context) {
+    protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) {
         init(context);
         final int initialCommunitiesCount = communities.size();
         while (!heap.isEmpty()) {
@@ -107,8 +107,11 @@ public class HAC extends Algorithm {
             LOGGER.info("Generate class name for community (id = " + community.id +"): " + className);
             for (Entity entity : community.entities) {
                 if (!entity.getClassName().equals(className)) {
-                    refactorings.add(new Refactoring(entity.getName(), className,
-                            getDensityBasedAccuracyRating(dominantClass.getValue(),entitiesCount) * ACCURACY));
+                    if (enableFieldRefactorings || !entity.isField()) {
+                        refactorings.add(new Refactoring(entity.getName(), className,
+                                getDensityBasedAccuracyRating(dominantClass.getValue(), entitiesCount) * ACCURACY,
+                                entity.isField()));
+                    }
                 }
             }
         }

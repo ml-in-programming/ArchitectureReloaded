@@ -45,4 +45,9 @@ public class FieldEntity extends Entity {
     public FieldEntity copy() {
         return new FieldEntity(this);
     }
+
+    @Override
+    public boolean isField() {
+        return true;
+    }
 }
