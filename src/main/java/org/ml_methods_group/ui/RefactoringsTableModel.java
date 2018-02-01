@@ -88,7 +88,6 @@ public class RefactoringsTableModel extends AbstractTableModel {
     List<Refactoring> pullSelected() {
         final List<Refactoring> result = IntStream.range(0, isSelected.length)
                 .filter(i -> isSelected[i] && isActive[i])
-//                .peek(i -> isActive[i] = false)
                 .mapToObj(refactorings::get)
                 .collect(Collectors.toList());
         fireTableDataChanged();

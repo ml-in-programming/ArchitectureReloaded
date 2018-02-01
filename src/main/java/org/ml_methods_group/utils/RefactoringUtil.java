@@ -47,6 +47,23 @@ import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 public final class RefactoringUtil {
     private static Logger LOG = Logging.getLogger(RefactoringUtil.class);
 
+    private static class CachedMember {
+        public final PsiMember member;
+        public final String oldName;
+        public CachedMember(@NotNull PsiMember member, @NotNull String oldName) {
+            this.member = member;
+            this.oldName = oldName;
+        }
+
+        public PsiMember getMember() {
+            return member;
+        }
+
+        public String getOldName() {
+            return oldName;
+        }
+    }
+
     private RefactoringUtil() {
     }
 
@@ -60,7 +77,7 @@ public final class RefactoringUtil {
         ApplicationManager.getApplication().runReadAction(() -> {
             for (Entry<PsiClass, List<PsiElement>> refactoring : groupedRefactorings.entrySet()) {
                 final PsiClass target = refactoring.getKey();
-                final List<PsiMember> members = refactoring.getValue().stream()
+                final List<CachedMember> members = refactoring.getValue().stream()
                         .sequential()
                         .filter(unit -> !(unit instanceof PsiMethod) || !moveInstanceMethod((PsiMethod) unit, target))
                         .map(RefactoringUtil::makeStatic) // no effect for already static members
@@ -72,16 +89,17 @@ public final class RefactoringUtil {
         });
     }
 
-    private static Set<String> moveMembersRefactoring(Collection<PsiMember> elements, PsiClass targetClass,
+    private static Set<String> moveMembersRefactoring(Collection<CachedMember> elements, PsiClass targetClass,
                                                AnalysisScope scope) {
-        final Map<PsiClass, Set<PsiMember>> groupByCurrentClass = elements.stream()
-                .collect(groupingBy(PsiMember::getContainingClass, Collectors.toSet()));
+        final Map<PsiClass, Set<CachedMember>> groupByCurrentClass = elements.stream()
+                .collect(groupingBy((CachedMember cm) -> cm.member.getContainingClass(), Collectors.toSet()));
 
         final Set<String> accepted = new HashSet<>();
-        for (Entry<PsiClass, Set<PsiMember>> movement : groupByCurrentClass.entrySet()) {
+        for (Entry<PsiClass, Set<CachedMember>> movement : groupByCurrentClass.entrySet()) {
+            final Set<String> names = movement.getValue().stream().map(CachedMember::getOldName).collect(Collectors.toSet());
+            final Set<PsiMember> members = movement.getValue().stream().map(CachedMember::getMember).collect(Collectors.toSet());
             MoveMembersDialog dialog = new MoveMembersDialog(scope.getProject(), movement.getKey(), targetClass,
-                    movement.getValue(), null);
-            final Set<String> names = movement.getValue().stream().map(PsiSearchUtil::getHumanReadableName).collect(Collectors.toSet());
+                    members, null);
             TransactionGuard.getInstance().submitTransactionAndWait(dialog::show);
             if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
                 accepted.addAll(names);
@@ -90,13 +108,14 @@ public final class RefactoringUtil {
         return accepted;
     }
 
-    private static PsiMember makeStatic(PsiElement element) {
+    private static CachedMember makeStatic(PsiElement element) {
         if (!(element instanceof PsiMember)) {
             return null;
         }
         final PsiMember member = (PsiMember) element;
+        final String oldName = PsiSearchUtil.getHumanReadableName(member);
         if (isStatic(member)) {
-            return member;
+            return new CachedMember(member, oldName);
         }
         if (!(member instanceof PsiMethod)) {
             return null;
@@ -106,7 +125,7 @@ public final class RefactoringUtil {
             return null;
         }
         TransactionGuard.getInstance().submitTransactionAndWait(() -> MakeStaticHandler.invoke(method));
-        return isStatic(member) ? member : null;
+        return isStatic(member) ? new CachedMember(member, oldName) : null;
     }
 
     private static PsiVariable[] getAvailableVariables(PsiMethod method, String target) {
