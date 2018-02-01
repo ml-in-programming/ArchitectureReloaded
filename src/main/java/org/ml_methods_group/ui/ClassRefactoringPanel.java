@@ -33,6 +33,7 @@ import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -177,7 +178,16 @@ class ClassRefactoringPanel extends JPanel {
     }
 
     private void export() {
-        ExportResultsUtil.export(refactorings);
+        final JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        int returnVal = fileChooser.showOpenDialog(null);
+        if (returnVal == JFileChooser.CANCEL_OPTION)
+            return;
+        try {
+            ExportResultsUtil.exportToFile(refactorings, fileChooser.getSelectedFile().getCanonicalPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void onDoubleClick() {

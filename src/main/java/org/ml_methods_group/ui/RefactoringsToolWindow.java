@@ -87,8 +87,8 @@ public final class RefactoringsToolWindow implements Disposable {
         toolbarGroup.add(new IntersectAction());
         toolbarGroup.add(new ColorAction());
         toolbarGroup.add(new InfoAction());
-        toolbarGroup.add(new CloseAction());
         toolbarGroup.add(new ExcludeFieldRefactoringsAction());
+        toolbarGroup.add(new CloseAction());
         return ActionManager.getInstance()
                 .createActionToolbar(WINDOW_ID, toolbarGroup, false);
     }

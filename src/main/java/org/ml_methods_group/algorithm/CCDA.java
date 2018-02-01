@@ -151,7 +151,7 @@ public class CCDA extends Algorithm {
                         return null;
                     }
                 })
-                .filter(e -> e != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 

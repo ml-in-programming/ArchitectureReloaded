@@ -22,13 +22,11 @@ import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
+import org.ml_methods_group.algorithm.entity.FieldEntity;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.AlgorithmsUtil;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class MRI extends Algorithm {
@@ -48,17 +46,11 @@ public class MRI extends Algorithm {
         final EntitySearchResult searchResult = context.getEntities();
         units.clear();
         classes.clear();
-        Stream.of(searchResult.getMethods())
+        List<FieldEntity> fields = enableFieldRefactorings ? searchResult.getFields() : Collections.emptyList();
+        Stream.of(searchResult.getMethods(), fields)
                 .flatMap(List::stream)
                 .filter(Entity::isMovable)
                 .forEach(units::add);
-
-        if(enableFieldRefactorings) {
-            Stream.of(searchResult.getFields())
-                    .flatMap(List::stream)
-                    .filter(Entity::isMovable)
-                    .forEach(units::add);
-        }
 
         searchResult.getClasses()
                 .stream()
