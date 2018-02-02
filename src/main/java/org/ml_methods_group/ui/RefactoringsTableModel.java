@@ -17,6 +17,7 @@
 package org.ml_methods_group.ui;
 
 import com.intellij.ui.BooleanTableCellRenderer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.Refactoring;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
@@ -77,10 +78,17 @@ public class RefactoringsTableModel extends AbstractTableModel {
         fireTableDataChanged();
     }
 
+    public void setAcceptedRefactorings(@NotNull Set<Refactoring> accepted) {
+        virtualRows.forEach(i -> {
+            if (accepted.contains(refactorings.get(i))) {
+                isActive[i] = false;
+            }
+        });
+    }
+
     List<Refactoring> pullSelected() {
         final List<Refactoring> result = IntStream.range(0, isSelected.length)
                 .filter(i -> isSelected[i] && isActive[i])
-                .peek(i -> isActive[i] = false)
                 .mapToObj(refactorings::get)
                 .collect(Collectors.toList());
         fireTableDataChanged();

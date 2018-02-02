@@ -48,6 +48,23 @@ public class Refactoring {
     }
 
     @Override
+    public int hashCode() {
+        return unit.hashCode() + target.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj instanceof Refactoring) {
+            Refactoring other = ((Refactoring) obj);
+            return unit.equals(other.unit) && target.equals(other.target);
+        }
+        return false;
+    }
+
+    @Override
     public String toString() {
         return "unit = " + unit +
                 ", target = " + target +

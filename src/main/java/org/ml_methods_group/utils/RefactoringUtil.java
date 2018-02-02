@@ -19,14 +19,19 @@ package org.ml_methods_group.utils;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.refactoring.makeStatic.MakeStaticHandler;
 import com.intellij.refactoring.move.moveInstanceMethod.MoveInstanceMethodDialog;
 import com.intellij.refactoring.move.moveMembers.MoveMembersDialog;
 import com.sixrr.metrics.utils.MethodUtils;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.Refactoring;
+import org.ml_methods_group.config.Logging;
+import org.ml_methods_group.ui.RefactoringsTableModel;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -40,12 +45,31 @@ import static org.ml_methods_group.utils.PsiSearchUtil.findAllElements;
 import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
 public final class RefactoringUtil {
+    private static Logger LOG = Logging.getLogger(RefactoringUtil.class);
+
+    private static class CachedMember {
+        public final PsiMember member;
+        public final String oldName;
+        public CachedMember(@NotNull PsiMember member, @NotNull String oldName) {
+            this.member = member;
+            this.oldName = oldName;
+        }
+
+        public PsiMember getMember() {
+            return member;
+        }
+
+        public String getOldName() {
+            return oldName;
+        }
+    }
 
     private RefactoringUtil() {
     }
 
     public static void moveRefactoring(@NotNull List<Refactoring> refactorings,
-                                       @NotNull AnalysisScope scope) {
+                                       @NotNull AnalysisScope scope,
+                                       @Nullable RefactoringsTableModel model) {
         if (!checkValid(refactorings)) {
             throw new IllegalArgumentException("Units in refactorings list must be unique!");
         }
@@ -53,36 +77,45 @@ public final class RefactoringUtil {
         ApplicationManager.getApplication().runReadAction(() -> {
             for (Entry<PsiClass, List<PsiElement>> refactoring : groupedRefactorings.entrySet()) {
                 final PsiClass target = refactoring.getKey();
-                final List<PsiMember> members = refactoring.getValue().stream()
+                final List<CachedMember> members = refactoring.getValue().stream()
                         .sequential()
                         .filter(unit -> !(unit instanceof PsiMethod) || !moveInstanceMethod((PsiMethod) unit, target))
                         .map(RefactoringUtil::makeStatic) // no effect for already static members
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList());
-                moveMembersRefactoring(members, refactoring.getKey(), scope);
+                final Set<String> accepted = moveMembersRefactoring(members, target, scope);
+                model.setAcceptedRefactorings(accepted.stream().map(m -> new Refactoring(m, PsiSearchUtil.getHumanReadableName(target), 0, true)).collect(Collectors.toSet()));
             }
         });
     }
 
-    private static void moveMembersRefactoring(Collection<PsiMember> elements, PsiClass targetClass,
+    private static Set<String> moveMembersRefactoring(Collection<CachedMember> elements, PsiClass targetClass,
                                                AnalysisScope scope) {
-        final Map<PsiClass, Set<PsiMember>> groupByCurrentClass = elements.stream()
-                .collect(groupingBy(PsiMember::getContainingClass, Collectors.toSet()));
+        final Map<PsiClass, Set<CachedMember>> groupByCurrentClass = elements.stream()
+                .collect(groupingBy((CachedMember cm) -> cm.member.getContainingClass(), Collectors.toSet()));
 
-        for (Entry<PsiClass, Set<PsiMember>> movement : groupByCurrentClass.entrySet()) {
+        final Set<String> accepted = new HashSet<>();
+        for (Entry<PsiClass, Set<CachedMember>> movement : groupByCurrentClass.entrySet()) {
+            final Set<String> names = movement.getValue().stream().map(CachedMember::getOldName).collect(Collectors.toSet());
+            final Set<PsiMember> members = movement.getValue().stream().map(CachedMember::getMember).collect(Collectors.toSet());
             MoveMembersDialog dialog = new MoveMembersDialog(scope.getProject(), movement.getKey(), targetClass,
-                    movement.getValue(), null);
+                    members, null);
             TransactionGuard.getInstance().submitTransactionAndWait(dialog::show);
+            if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
+                accepted.addAll(names);
+            }
         }
+        return accepted;
     }
 
-    private static PsiMember makeStatic(PsiElement element) {
+    private static CachedMember makeStatic(PsiElement element) {
         if (!(element instanceof PsiMember)) {
             return null;
         }
         final PsiMember member = (PsiMember) element;
+        final String oldName = PsiSearchUtil.getHumanReadableName(member);
         if (isStatic(member)) {
-            return member;
+            return new CachedMember(member, oldName);
         }
         if (!(member instanceof PsiMethod)) {
             return null;
@@ -92,7 +125,7 @@ public final class RefactoringUtil {
             return null;
         }
         TransactionGuard.getInstance().submitTransactionAndWait(() -> MakeStaticHandler.invoke(method));
-        return isStatic(member) ? member : null;
+        return isStatic(member) ? new CachedMember(member, oldName) : null;
     }
 
     private static PsiVariable[] getAvailableVariables(PsiMethod method, String target) {
