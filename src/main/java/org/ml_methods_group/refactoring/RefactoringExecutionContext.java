@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.*;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.EntitySearcher;
+import org.ml_methods_group.algorithm.entity.RmmrEntitySearcher;
 import org.ml_methods_group.config.Logging;
 
 import java.util.*;
@@ -44,7 +45,7 @@ public class RefactoringExecutionContext {
     private static final Logger LOGGER = Logging.getLogger(RefactoringExecutionContext.class);
 
     private static final List<Class<? extends Algorithm>> ALGORITHMS = Arrays.asList(ARI.class, AKMeans.class,
-            CCDA.class, HAC.class, MRI.class);
+            CCDA.class, HAC.class, MRI.class, RMMR.class);
 
     @NotNull
     private final MetricsRunImpl metricsRun = new MetricsRunImpl();
@@ -109,9 +110,15 @@ public class RefactoringExecutionContext {
         metricsRun.setProfileName(profile.getName());
         metricsRun.setContext(scope);
         metricsRun.setTimestamp(new TimeStamp());
-        entitySearchResult = ApplicationManager.getApplication()
-                .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
         for (String algorithm : requestedAlgorithms) {
+            switch (algorithm) {
+                case RMMR.NAME:
+                    entitySearchResult = ApplicationManager.getApplication()
+                            .runReadAction((Computable<EntitySearchResult>) () -> RmmrEntitySearcher.analyze(scope));
+                default:
+                    entitySearchResult = ApplicationManager.getApplication()
+                            .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
+            }
             calculateAlgorithmForName(algorithm);
         }
         indicator.setText("Finish refactorings search...");
