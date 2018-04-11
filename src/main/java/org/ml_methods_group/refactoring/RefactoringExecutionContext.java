@@ -115,6 +115,7 @@ public class RefactoringExecutionContext {
                 case RMMR.NAME:
                     entitySearchResult = ApplicationManager.getApplication()
                             .runReadAction((Computable<EntitySearchResult>) () -> RmmrEntitySearcher.analyze(scope));
+                    break;
                 default:
                     entitySearchResult = ApplicationManager.getApplication()
                             .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));

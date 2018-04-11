@@ -16,9 +16,7 @@ public class RMMR extends Algorithm {
     public static final String NAME = "RMMR";
 
     private static final Logger LOGGER = Logging.getLogger(MRI.class);
-    private static final double ACCURACY = 1;
 
-    private final Map<String, ClassEntity> classByMethodOrField = new HashMap<>();
     private final Map<ClassEntity, Set<MethodEntity>> methodsByClass = new HashMap<>();
     private final List<MethodEntity> units = new ArrayList<>();
     private final List<ClassEntity> classEntities = new ArrayList<>();
@@ -32,18 +30,13 @@ public class RMMR extends Algorithm {
     @Override
     protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) throws Exception {
         if (enableFieldRefactorings) {
-            // TODO: write to LOGGER or throw Exception? Change UI: disable field checkbox if onlye RMMR is chosen.
+            // TODO: write to LOGGER or throw Exception? Change UI: disable field checkbox if only RMMR is chosen.
             LOGGER.error("Field refactorings are not supported",
                     new UnsupportedOperationException("Field refactorings are not supported"));
         }
         this.context = context;
         init();
         return runParallel(units, context, ArrayList::new, this::findRefactoring, AlgorithmsUtil::combineLists);
-        /*
-        List<Refactoring> accum = new LinkedList<>();
-        units.forEach(methodEntity -> findRefactoring(methodEntity, accum));
-        return accum;
-        */
     }
 
     private void init() {
@@ -51,7 +44,6 @@ public class RMMR extends Algorithm {
         LOGGER.info("Init RMMR");
         units.clear();
         classEntities.clear();
-        classByMethodOrField.clear();
 
         classEntities.addAll(entities.getClasses());
         units.addAll(entities.getMethods());
@@ -64,18 +56,7 @@ public class RMMR extends Algorithm {
             if (methodClass.size() != 1) {
                 LOGGER.error("Found more than 1 class that has this method");
             }
-            classByMethodOrField.put(methodEntity.getName(), methodClass.get(0));
             methodsByClass.computeIfAbsent(methodClass.get(0), anyKey -> new HashSet<>()).add(methodEntity);
-        });
-
-        entities.getFields().forEach(fieldEntity -> {
-            List<ClassEntity> fieldClass = entities.getClasses().stream()
-                    .filter(classEntity -> fieldEntity.getClassName().equals(classEntity.getName()))
-                    .collect(Collectors.toList());
-            if (fieldClass.size() != 1) {
-                LOGGER.error("Found more than 1 class that has this field");
-            }
-            classByMethodOrField.put(fieldEntity.getName(), fieldClass.get(0));
         });
     }
 
@@ -104,10 +85,9 @@ public class RMMR extends Algorithm {
             return accumulator;
         }
         final String targetClassName = targetClass.getName();
+        double accuracy = (1 - minDistance) * difference;  // TODO: Maybe consider amount of entities?
         if (!targetClassName.equals(entity.getClassName())) {
-            accumulator.add(new Refactoring(entity.getName(), targetClassName,
-                    AlgorithmsUtil.getGapBasedAccuracyRating(minDistance, difference) * ACCURACY,
-                    entity.isField()));
+            accumulator.add(new Refactoring(entity.getName(), targetClassName, accuracy, entity.isField()));
         }
         return accumulator;
     }
@@ -125,20 +105,16 @@ public class RMMR extends Algorithm {
             }
         }
 
-        // TODO: is it correct to return infinity?
-        return number == 0 ? Double.POSITIVE_INFINITY : sumOfDistances / number;
+        return number == 0 ? 1 : sumOfDistances / number;
     }
 
     private double getDistance(MethodEntity methodEntity1, MethodEntity methodEntity2) {
-        return 1 - (double)
-                intersection(
-                        methodEntity1.getRelevantProperties().getClasses(),
-                        methodEntity2.getRelevantProperties().getClasses()
-                ).size() /
-                union(
-                        methodEntity1.getRelevantProperties().getClasses(),
-                        methodEntity2.getRelevantProperties().getClasses()
-                ).size();
+        // TODO: Maybe add to methodEntity2 source class where it is located?
+        int sizeOfIntersection = intersection(methodEntity1.getRelevantProperties().getClasses(),
+                methodEntity2.getRelevantProperties().getClasses()).size();
+        int sizeOfUnion = union(methodEntity1.getRelevantProperties().getClasses(),
+                methodEntity2.getRelevantProperties().getClasses()).size();
+        return sizeOfIntersection == 0 ? 1 : 1 - (double) sizeOfIntersection / sizeOfUnion;
     }
 
     private <T> Set<T> intersection(Set<T> set1, Set<T> set2) {

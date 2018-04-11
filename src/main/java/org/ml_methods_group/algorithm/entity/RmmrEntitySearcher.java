@@ -75,8 +75,7 @@ public class RmmrEntitySearcher {
         LOGGER.info("Generated " + classes.size() + " class entities");
         LOGGER.info("Generated " + methods.size() + " method entities");
         LOGGER.info("Generated " + 0 + " field entities. Fields are not supported.");
-        // TODO: empty ArrayList of fields or null?
-        return new EntitySearchResult(classes, methods, new ArrayList<>(), System.currentTimeMillis() - startTime);
+        return new EntitySearchResult(classes, methods, Collections.emptyList(), System.currentTimeMillis() - startTime);
     }
 
 
@@ -94,6 +93,7 @@ public class RmmrEntitySearcher {
         public void visitClass(PsiClass aClass) {
             indicator.checkCanceled();
             //classForName.put(getHumanReadableName(aClass), aClass);
+            //TODO: maybe qualified name? Otherwise name collision may occur.
             classForName.put(aClass.getName(), aClass);
             if (!strategy.acceptClass(aClass)) {
                 return;
@@ -129,14 +129,13 @@ public class RmmrEntitySearcher {
                 return;
             }
             final RelevantProperties methodProperties = methodEntity.getRelevantProperties();
-            // TODO: Need for stack? Could be a lot of currentMethods?
             if (currentMethod == null) {
                 currentMethod = methodEntity;
             }
 
             for (PsiParameter attribute : method.getParameterList().getParameters()) {
                 PsiType attributeType = attribute.getType();
-                if (attribute instanceof PsiClassType) {
+                if (attributeType instanceof PsiClassType) {
                     String className = ((PsiClassType) attributeType).getClassName();
                     if (isClassInScope(className)) {
                         methodProperties.addClass(classForName.get(className));
@@ -148,6 +147,21 @@ public class RmmrEntitySearcher {
                 currentMethod = null;
             }
             reportPropertiesCalculated();
+        }
+
+        @Override
+        public void visitNewExpression(PsiNewExpression expression) {
+            indicator.checkCanceled();
+            String className = null;
+            PsiType type = expression.getType();
+            if (type instanceof PsiClassType) {
+                className = ((PsiClassType) expression.getType()).getClassName();
+            }
+            final PsiClass usedClass = classForName.get(className);
+            if (currentMethod != null && className != null && isClassInScope(usedClass)) {
+                currentMethod.getRelevantProperties().addClass(usedClass);
+            }
+            super.visitNewExpression(expression);
         }
 
         @Override
