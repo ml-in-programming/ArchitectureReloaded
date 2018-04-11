@@ -27,6 +27,7 @@ import org.ml_methods_group.utils.MetricsProfilesUtil;
 import org.ml_methods_group.utils.RefactoringUtil;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,6 +58,7 @@ public class RefactoringDetectionTest extends LightCodeInsightFixtureTestCase {
         profile = MetricsProfilesUtil.createProfile("test_profile", Entity.getRequestedMetrics());
 
         new RefactoringExecutionContext(project, analysisScope, profile,
+                Arrays.asList("ARI", "CCDA", "HAC", "MRI", "AKMeans"), true,
                 RefactoringDetectionTest::calculateMoveMethodRefactorings)
                 .executeSynchronously();
     }
