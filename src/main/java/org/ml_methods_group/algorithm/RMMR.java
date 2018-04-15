@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 public class RMMR extends Algorithm {
     public static final String NAME = "RMMR";
 
-    private static final Logger LOGGER = Logging.getLogger(MRI.class);
+    private static final Logger LOGGER = Logging.getLogger(RMMR.class);
 
     private final Map<ClassEntity, Set<MethodEntity>> methodsByClass = new HashMap<>();
     private final List<MethodEntity> units = new ArrayList<>();
@@ -50,13 +50,13 @@ public class RMMR extends Algorithm {
         progressCount.set(0);
 
         entities.getMethods().forEach(methodEntity -> {
-            List<ClassEntity> methodClass = entities.getClasses().stream()
+            List<ClassEntity> methodClassEntity = entities.getClasses().stream()
                     .filter(classEntity -> methodEntity.getClassName().equals(classEntity.getName()))
                     .collect(Collectors.toList());
-            if (methodClass.size() != 1) {
+            if (methodClassEntity.size() != 1) {
                 LOGGER.error("Found more than 1 class that has this method");
             }
-            methodsByClass.computeIfAbsent(methodClass.get(0), anyKey -> new HashSet<>()).add(methodEntity);
+            methodsByClass.computeIfAbsent(methodClassEntity.get(0), anyKey -> new HashSet<>()).add(methodEntity);
         });
     }
 
@@ -110,11 +110,11 @@ public class RMMR extends Algorithm {
 
     private double getDistance(MethodEntity methodEntity1, MethodEntity methodEntity2) {
         // TODO: Maybe add to methodEntity2 source class where it is located?
-        int sizeOfIntersection = intersection(methodEntity1.getRelevantProperties().getClasses(),
-                methodEntity2.getRelevantProperties().getClasses()).size();
-        int sizeOfUnion = union(methodEntity1.getRelevantProperties().getClasses(),
-                methodEntity2.getRelevantProperties().getClasses()).size();
-        return sizeOfIntersection == 0 ? 1 : 1 - (double) sizeOfIntersection / sizeOfUnion;
+        Set<String> method1Classes = methodEntity1.getRelevantProperties().getClasses();
+        Set<String> method2Classes = methodEntity2.getRelevantProperties().getClasses();
+        int sizeOfIntersection = intersection(method1Classes, method2Classes).size();
+        int sizeOfUnion = union(method1Classes, method2Classes).size();
+        return (sizeOfIntersection == 0) ? 1 : 1 - (double) sizeOfIntersection / sizeOfUnion;
     }
 
     private <T> Set<T> intersection(Set<T> set1, Set<T> set2) {

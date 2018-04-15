@@ -83,10 +83,11 @@ public class RmmrEntitySearcher {
         @Override
         public void visitFile(PsiFile file) {
             indicator.checkCanceled();
-            if (strategy.acceptFile(file)) {
-                LOGGER.info("Indexing " + file.getName());
-                super.visitFile(file);
+            if (!strategy.acceptFile(file)) {
+                return;
             }
+            LOGGER.info("Indexing " + file.getName());
+            super.visitFile(file);
         }
 
         @Override
@@ -155,7 +156,7 @@ public class RmmrEntitySearcher {
             String className = null;
             PsiType type = expression.getType();
             if (type instanceof PsiClassType) {
-                className = ((PsiClassType) expression.getType()).getClassName();
+                className = ((PsiClassType) type).getClassName();
             }
             final PsiClass usedClass = classForName.get(className);
             if (currentMethod != null && className != null && isClassInScope(usedClass)) {
