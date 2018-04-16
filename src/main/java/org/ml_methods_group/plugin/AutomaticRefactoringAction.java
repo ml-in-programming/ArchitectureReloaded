@@ -33,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.AlgorithmResult;
 import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.QMoveClassEntity;
 import org.ml_methods_group.config.ArchitectureReloadedConfig;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
@@ -150,6 +151,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     private static void checkRefactoringProfile() {
         final Set<Class<? extends Metric>> requestedSet = Entity.getRequestedMetrics();
+        requestedSet.addAll(QMoveClassEntity.getRequestedMetrics());
         final String profileName = ArchitectureReloadedBundle.message(REFACTORING_PROFILE_KEY);
         final MetricsProfileRepository repository = MetricsProfileRepository.getInstance();
         if (MetricsProfilesUtil.checkMetricsList(profileName, requestedSet, repository)) {

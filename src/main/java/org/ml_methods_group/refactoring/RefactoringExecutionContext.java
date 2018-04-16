@@ -33,6 +33,8 @@ import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.*;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.EntitySearcher;
+import org.ml_methods_group.algorithm.entity.QMoveEntitySearchResult;
+import org.ml_methods_group.algorithm.entity.QMoveEntitySearcher;
 import org.ml_methods_group.config.Logging;
 
 import java.util.*;
@@ -44,7 +46,7 @@ public class RefactoringExecutionContext {
     private static final Logger LOGGER = Logging.getLogger(RefactoringExecutionContext.class);
 
     private static final List<Class<? extends Algorithm>> ALGORITHMS = Arrays.asList(ARI.class, AKMeans.class,
-            CCDA.class, HAC.class, MRI.class);
+            CCDA.class, HAC.class, MRI.class, QMove.class);
 
     @NotNull
     private final MetricsRunImpl metricsRun = new MetricsRunImpl();
@@ -112,7 +114,17 @@ public class RefactoringExecutionContext {
         entitySearchResult = ApplicationManager.getApplication()
                 .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
         for (String algorithm : requestedAlgorithms) {
-            calculateAlgorithmForName(algorithm);
+            if(algorithm.equals("QMove")){
+                System.err.println("In QMove");
+                QMoveEntitySearchResult qMoveEntitySearchResult = ApplicationManager.getApplication()
+                        .runReadAction((Computable<QMoveEntitySearchResult>) ()
+                                -> QMoveEntitySearcher.analyze(scope, metricsRun));
+                final Algorithm qMoveAlgorithm = new QMove();
+                final AlgorithmResult result = qMoveAlgorithm.execute(qMoveEntitySearchResult, executorService, isFieldRefactoringAvailable);
+            }
+            else{
+                calculateAlgorithmForName(algorithm);
+            }
         }
         indicator.setText("Finish refactorings search...");
     }

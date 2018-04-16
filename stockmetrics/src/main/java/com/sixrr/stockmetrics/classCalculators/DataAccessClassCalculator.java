@@ -21,7 +21,6 @@ import com.intellij.psi.*;
 import java.util.Arrays;
 
 public class DataAccessClassCalculator extends ClassCalculator {
-
     @Override
     protected PsiElementVisitor createVisitor() {
         return new Visitor();

@@ -16,7 +16,12 @@
 
 package org.ml_methods_group.algorithm;
 
+
 import org.ml_methods_group.algorithm.entity.*;
+import org.ml_methods_group.config.Logging;
+import org.ml_methods_group.utils.AlgorithmsUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,19 +29,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class QOMMR extends Algorithm {
+public class QMove extends Algorithm {
+    private static final Logger LOGGER = LoggerFactory.getLogger(QMove.class);
     private List<MethodEntity> methodEntities = new ArrayList<>();
     private final List<QMoveClassEntity> classes = new ArrayList<>();
-    private final Map<String, ClassEntity> classesByName = new HashMap<>();
-    QOMMR() {
-        super("Quality-orientated Move Method Refactoring", false);
+    private final Map<String, QMoveClassEntity> qMoveClassesByName = new HashMap<>();
+    private final Map<String, QMoveClassEntity> classesByName = new HashMap<>();
+    public QMove() {
+        super("Quality-orientated Move Method Refactoring", true);
     }
 
     @Override
     protected List<Refactoring> calculateRefactorings(
             ExecutionContext context, boolean enableFieldRefactorings) throws Exception {
-
-        final EntitySearchResult searchResult = context.getEntities();
+        System.err.println("algorithm started");
+        final QMoveEntitySearchResult searchResult = (QMoveEntitySearchResult)context.getEntities();
         methodEntities.clear();
         classes.clear();
         Stream.of(searchResult.getMethods())
@@ -44,37 +51,39 @@ public class QOMMR extends Algorithm {
                 .filter(Entity::isMovable)
                 .forEach(methodEntities::add);
 
-        searchResult.getClasses()
+       searchResult.getqMoveClasses()
                 .stream()
-                .map(ClassEntity::copy) // create local copies
-                .peek(entity -> classesByName.put(entity.getName(), entity))
+                .peek(entity -> qMoveClassesByName.put(entity.getName(), entity))
                 .forEach(classes::add);
-        for(MethodEntity methodEntity : methodEntities){
-            //getTargets
 
-
-        }
+        runParallel(methodEntities, context, ArrayList::new,
+                this::findBestMoveForMethod,
+                AlgorithmsUtil::combineLists);
         return null;
     }
 
 
-    //number of classes -- projectMetrics.NumClassesProjectMetrics.java
-    //PolymorphismFactorProjectMetric
-    //NumInterfacesImplementedMetrics ?? super class
-    //NumPrivateAttributes / NumAttributes
-    //Number of classes where this class is used.
-    /*
-    Computes the relatedness among methods of the class based upon the
-     parameter list of the methods. The metrics is computed using the
-     summation of the intersection of parameters of a method with the
-     maximum independent set of all parameter types in the class.
-     */
-    //Number of declarations with user classes
-    //
-    /*
-   MethodInheritanceFactorProjectMetrics
-     */
-    //number of polymorphic methods ??
-    //number of public methods
-    //number of methods
+
+    private List<Refactoring> findBestMoveForMethod(MethodEntity method,
+                                                         List<Refactoring> refactorings){
+        System.err.printf("Find best move for %s\n", method.getName());
+        double bestFitness = Double.NEGATIVE_INFINITY;
+        QMoveClassEntity targetForThisMethod = null;
+        for(QMoveClassEntity targetClass : classes){
+            QMoveClassEntity containingClass = qMoveClassesByName.get(
+                    method.getClassName());
+            containingClass.removeFromClass(method.getName());
+            targetClass.addToClass(method.getName());
+            double newFitness = targetClass.fitness();
+            //System.err.println(newFitness);
+            if(newFitness > bestFitness){
+                bestFitness = newFitness;
+                targetForThisMethod =  targetClass;
+            }
+            targetClass.removeFromClass(method.getName());
+            containingClass.addToClass(method.getName());
+        }
+        return refactorings;
+    }
+
 }
