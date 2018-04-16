@@ -16,15 +16,18 @@
 
 package org.ml_methods_group.algorithm;
 
-import org.ml_methods_group.algorithm.entity.Entity;
-import org.ml_methods_group.algorithm.entity.MethodEntity;
+import org.ml_methods_group.algorithm.entity.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.stream.Stream;
 
 public class QOMMR extends Algorithm {
-    private ExecutionContext context;
-    private List<MethodEntity> methodEntities;
+    private List<MethodEntity> methodEntities = new ArrayList<>();
+    private final List<QMoveClassEntity> classes = new ArrayList<>();
+    private final Map<String, ClassEntity> classesByName = new HashMap<>();
     QOMMR() {
         super("Quality-orientated Move Method Refactoring", false);
     }
@@ -32,14 +35,28 @@ public class QOMMR extends Algorithm {
     @Override
     protected List<Refactoring> calculateRefactorings(
             ExecutionContext context, boolean enableFieldRefactorings) throws Exception {
+
+        final EntitySearchResult searchResult = context.getEntities();
         methodEntities.clear();
-        methodEntities = context.getEntities().getMethods().
-                stream().filter(Entity::isMovable).map(MethodEntity::copy).collect(Collectors.toList());
+        classes.clear();
+        Stream.of(searchResult.getMethods())
+                .flatMap(List::stream)
+                .filter(Entity::isMovable)
+                .forEach(methodEntities::add);
+
+        searchResult.getClasses()
+                .stream()
+                .map(ClassEntity::copy) // create local copies
+                .peek(entity -> classesByName.put(entity.getName(), entity))
+                .forEach(classes::add);
         for(MethodEntity methodEntity : methodEntities){
-            //if
+            //getTargets
+
+
         }
         return null;
     }
+
 
     //number of classes -- projectMetrics.NumClassesProjectMetrics.java
     //PolymorphismFactorProjectMetric
