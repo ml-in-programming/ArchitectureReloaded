@@ -54,15 +54,23 @@ public abstract class Entity {
 
     private final RelevantProperties relevantProperties;
     private final String name;
+
+    public PsiElement getElement() {
+        return element;
+    }
+
+    private PsiElement element;
     private double[] vector;
     protected boolean isMovable = true;
 
     public Entity(PsiElement element) {
+        this.element = element;
         this.name = PsiSearchUtil.getHumanReadableName(element);
         relevantProperties = new RelevantProperties();
     }
 
     protected Entity(Entity original) {
+        this.element = original.element;
         relevantProperties = original.relevantProperties.copy();
         name = original.name;
         vector = Arrays.copyOf(original.vector, original.vector.length);

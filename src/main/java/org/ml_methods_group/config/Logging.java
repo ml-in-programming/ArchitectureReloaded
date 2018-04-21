@@ -16,16 +16,22 @@
 
 package org.ml_methods_group.config;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.log4j.*;
+
+import java.io.IOException;
 
 public class Logging {
     public static Logger getLogger(Class<?> aClass) {
         final Logger logger = Logger.getLogger(aClass);
         logger.setLevel(Level.DEBUG);
         logger.addAppender(new ConsoleAppender(new PatternLayout("%p [%c.%M] - %m%n")));
+        return logger;
+    }
+
+    public static Logger getRefactoringLogger(Class<?> aClass) throws IOException {
+        final Logger logger = Logger.getLogger(aClass.getName() + "-refactoring");
+        logger.setLevel(Level.INFO);
+        logger.addAppender(new FileAppender(new PatternLayout("%p [%c.%M] - %m%n"), "~/ArchitectureReloaded/log/refactorings.log", true));
         return logger;
     }
 }

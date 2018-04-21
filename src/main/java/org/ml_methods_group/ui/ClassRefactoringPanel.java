@@ -21,8 +21,10 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.Refactoring;
+import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.ExportResultsUtil;
 import org.ml_methods_group.utils.PsiSearchUtil;
@@ -34,6 +36,9 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -65,6 +70,14 @@ class ClassRefactoringPanel extends JPanel {
     private final Map<Refactoring, String> warnings;
     private boolean isFieldDisabled;
     private final List<Refactoring> refactorings;
+    private Logger logger;
+    {
+        try {
+            logger = Logging.getRefactoringLogger(ClassRefactoringPanel.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     ClassRefactoringPanel(List<Refactoring> refactorings, @NotNull AnalysisScope scope) {
         this.scope = scope;
@@ -171,6 +184,14 @@ class ClassRefactoringPanel extends JPanel {
         selectAllButton.setEnabled(false);
         table.setEnabled(false);
         final List<Refactoring> refactorings = model.pullSelected();
+        for (Refactoring refactoring : refactorings) {
+            logger.info("-------");
+            logger.info(refactoring.toString());
+            logger.info("Is field - " + refactoring.isUnitField());
+            DateFormat  dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            Date date = new Date();
+            logger.info(dateFormat.format(date));
+        }
         RefactoringUtil.moveRefactoring(refactorings, scope, model);
         table.setEnabled(true);
         doRefactorButton.setEnabled(true);

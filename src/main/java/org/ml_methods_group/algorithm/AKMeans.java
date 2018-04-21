@@ -109,7 +109,7 @@ public class AKMeans extends Algorithm {
                     .filter(e -> enableFieldRefactorings || !e.isField())
                     .map(e -> new Refactoring(e.getName(), dominant.getKey(),
                             getDensityBasedAccuracyRating(dominant.getValue(), community.size()) * ACCURACY,
-                            e.isField()))
+                            e.isField(), e.getElement()))
                     .forEach(refactorings::add);
         }
         return refactorings;

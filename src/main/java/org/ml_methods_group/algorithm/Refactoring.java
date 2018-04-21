@@ -16,6 +16,7 @@
 
 package org.ml_methods_group.algorithm;
 
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
 public class Refactoring {
@@ -24,11 +25,25 @@ public class Refactoring {
     private final double accuracy;
     private final boolean isUnitField;
 
+    public PsiElement getElement() {
+        return element;
+    }
+
+    private PsiElement element;
+
     public Refactoring(@NotNull String unit, @NotNull String target, double accuracy, boolean isUnitField) {
         this.unit = unit;
         this.target = target;
         this.accuracy = accuracy;
         this.isUnitField = isUnitField;
+    }
+
+    public Refactoring(@NotNull String unit, @NotNull String target, double accuracy, boolean isUnitField, PsiElement element) {
+        this.unit = unit;
+        this.target = target;
+        this.accuracy = accuracy;
+        this.isUnitField = isUnitField;
+        this.element = element;
     }
 
     public String getUnit() {

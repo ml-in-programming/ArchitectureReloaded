@@ -50,6 +50,7 @@ public final class RefactoringUtil {
     private static class CachedMember {
         public final PsiMember member;
         public final String oldName;
+
         public CachedMember(@NotNull PsiMember member, @NotNull String oldName) {
             this.member = member;
             this.oldName = oldName;
@@ -90,7 +91,7 @@ public final class RefactoringUtil {
     }
 
     private static Set<String> moveMembersRefactoring(Collection<CachedMember> elements, PsiClass targetClass,
-                                               AnalysisScope scope) {
+                                                      AnalysisScope scope) {
         final Map<PsiClass, Set<CachedMember>> groupByCurrentClass = elements.stream()
                 .collect(groupingBy((CachedMember cm) -> cm.member.getContainingClass(), Collectors.toSet()));
 
