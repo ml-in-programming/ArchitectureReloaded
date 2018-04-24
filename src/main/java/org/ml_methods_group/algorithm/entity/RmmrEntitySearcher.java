@@ -134,6 +134,7 @@ public class RmmrEntitySearcher {
                 currentMethod = methodEntity;
             }
 
+            /* Adding to Conceptual Set classes of method params.
             for (PsiParameter attribute : method.getParameterList().getParameters()) {
                 PsiType attributeType = attribute.getType();
                 if (attributeType instanceof PsiClassType) {
@@ -143,11 +144,42 @@ public class RmmrEntitySearcher {
                     }
                 }
             }
+            */
+
             super.visitMethod(method);
             if (currentMethod == methodEntity) {
                 currentMethod = null;
             }
             reportPropertiesCalculated();
+        }
+
+        @Override
+        public void visitReferenceExpression(PsiReferenceExpression expression) {
+            indicator.checkCanceled();
+            final PsiElement expressionElement = expression.resolve();
+            if (expressionElement instanceof PsiField) {
+                PsiField attribute = (PsiField) expressionElement;
+                final PsiClass attributeClass = attribute.getContainingClass();
+                if (currentMethod != null && isClassInScope(attributeClass)) {
+                    currentMethod.getRelevantProperties().addClass(attributeClass);
+                }
+            }
+            super.visitReferenceExpression(expression);
+
+            /* Puts classes of fields not containing classes.
+            indicator.checkCanceled();
+            final PsiElement expressionElement = expression.resolve();
+            if (expressionElement instanceof PsiField) {
+                PsiType attributeType = ((PsiField) expressionElement).getType();
+                if (attributeType instanceof PsiClassType) {
+                    String attributeClass = ((PsiClassType) attributeType).getClassName();
+                    if (currentMethod != null && isClassInScope(attributeClass)) {
+                        currentMethod.getRelevantProperties().addClass(classForName.get(attributeClass));
+                    }
+                }
+            }
+            super.visitReferenceExpression(expression);
+             */
         }
 
         @Override
@@ -167,7 +199,7 @@ public class RmmrEntitySearcher {
 
         @Override
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
-            // Do not find constructors. It does not consider them as method calls.
+            // Does not find constructors (new expressions). It does not consider them as method calls.
             indicator.checkCanceled();
             final PsiMethod called = expression.resolveMethod();
             final PsiClass usedClass = called != null ? called.getContainingClass() : null;

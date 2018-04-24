@@ -5,12 +5,10 @@ import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.MethodEntity;
 import org.ml_methods_group.config.Logging;
-import org.ml_methods_group.utils.AlgorithmsUtil;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class RMMR extends Algorithm {
     public static final String NAME = "RMMR";
@@ -23,7 +21,7 @@ public class RMMR extends Algorithm {
     private final AtomicInteger progressCount = new AtomicInteger();
     private ExecutionContext context;
 
-    public RMMR() {
+    RMMR() {
         super(NAME, true);
     }
 
@@ -36,7 +34,11 @@ public class RMMR extends Algorithm {
         }
         this.context = context;
         init();
-        return runParallel(units, context, ArrayList::new, this::findRefactoring, AlgorithmsUtil::combineLists);
+
+        List<Refactoring> accum = new LinkedList<>();
+        units.forEach(methodEntity -> findRefactoring(methodEntity, accum));
+        return accum;
+        //return runParallel(units, context, ArrayList::new, this::findRefactoring, AlgorithmsUtil::combineLists);
     }
 
     private void init() {
@@ -68,9 +70,13 @@ public class RMMR extends Algorithm {
         }
         double minDistance = Double.POSITIVE_INFINITY;
         double difference = Double.POSITIVE_INFINITY;
+        double distanceWithSourceClass = 1;
         ClassEntity targetClass = null;
         for (final ClassEntity classEntity : classEntities) {
             final double distance = getDistance(entity, classEntity);
+            if (classEntity.getName().equals(entity.getClassName())) {
+                distanceWithSourceClass = distance;
+            }
             if (distance < minDistance) {
                 difference = minDistance - distance;
                 minDistance = distance;
@@ -85,8 +91,9 @@ public class RMMR extends Algorithm {
             return accumulator;
         }
         final String targetClassName = targetClass.getName();
-        double accuracy = (1 - minDistance) * difference;  // TODO: Maybe consider amount of entities?
-        if (!targetClassName.equals(entity.getClassName())) {
+        double differenceWithSourceClass = distanceWithSourceClass - minDistance;
+        double accuracy = 0.7 * (1 - minDistance) * differenceWithSourceClass + 0.3 * difference; // TODO: Maybe consider amount of entities?
+        if (accuracy >= 0.01 && !targetClassName.equals(entity.getClassName())) {
             accumulator.add(new Refactoring(entity.getName(), targetClassName, accuracy, entity.isField()));
         }
         return accumulator;
