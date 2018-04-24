@@ -15,21 +15,48 @@ import org.ml_methods_group.config.Logging;
 
 import java.util.*;
 
+/**
+ * Implementation of {@link Entity} searcher for RMMR algorithm.
+ */
 public class RmmrEntitySearcher {
     private static final Logger LOGGER = Logging.getLogger(EntitySearcher.class);
 
+    /**
+     * Map: name of class -> {@link PsiClass} instance.
+     */
     private final Map<String, PsiClass> classForName = new HashMap<>();
+    /**
+     * Map: {@link PsiMethod} instance -> corresponding {@link MethodEntity}.
+     */
     private final Map<PsiMethod, MethodEntity> entities = new HashMap<>();
+    /**
+     * Map: {@link PsiClass} instance -> corresponding {@link ClassEntity}.
+     */
     private final Map<PsiClass, ClassEntity> classEntities = new HashMap<>();
+    /**
+     * Scope where entities will be searched.
+     */
     private final AnalysisScope scope;
-    private final long startTime;
-    private final FinderStrategy strategy;
+    /**
+     * Time when started search for entities.
+     */
+    private final long startTime = System.currentTimeMillis();
+    /**
+     * Strategy: which classes, methods and etc. to accept. For details see {@link RmmrStrategy}.
+     */
+    private final FinderStrategy strategy = RmmrStrategy.getInstance();
+    /**
+     * UI progress indicator.
+     */
     private final ProgressIndicator indicator;
 
+    /**
+     * Constructor which initializes indicator, startTime and saves given scope.
+     *
+     * @param scope where to search for entities.
+     */
     private RmmrEntitySearcher(AnalysisScope scope) {
         this.scope = scope;
-        strategy = RmmrStrategy.getInstance();
-        startTime = System.currentTimeMillis();
         if (ProgressManager.getInstance().hasProgressIndicator()) {
             indicator = ProgressManager.getInstance().getProgressIndicator();
         } else {
@@ -37,12 +64,21 @@ public class RmmrEntitySearcher {
         }
     }
 
+    /**
+     * Finds and returns entities in given scope.
+     * @param scope where to search.
+     * @return search results described by {@link EntitySearchResult} object.
+     */
     @NotNull
     public static EntitySearchResult analyze(AnalysisScope scope) {
         final RmmrEntitySearcher finder = new RmmrEntitySearcher(scope);
         return finder.runCalculations();
     }
 
+    /**
+     * Runs all calculations for searching.
+     * @return search results described by {@link EntitySearchResult} object.
+     */
     @NotNull
     private EntitySearchResult runCalculations() {
         indicator.pushState();
@@ -58,6 +94,10 @@ public class RmmrEntitySearcher {
         return prepareResult();
     }
 
+    /**
+     * Creates {@link EntitySearchResult} instance based on found entities (sorts by classes, methods and etc.).
+     * @return search results described by {@link EntitySearchResult} object.
+     */
     @NotNull
     private EntitySearchResult prepareResult() {
         LOGGER.info("Preparing results...");
@@ -79,6 +119,9 @@ public class RmmrEntitySearcher {
     }
 
 
+    /**
+     * Finds all units (classes, methods and etc.) in the scope based on {@link RmmrStrategy} that will be considered in searching process.
+     */
     private class UnitsFinder extends JavaRecursiveElementVisitor {
         @Override
         public void visitFile(PsiFile file) {
@@ -95,11 +138,11 @@ public class RmmrEntitySearcher {
             indicator.checkCanceled();
             //classForName.put(getHumanReadableName(aClass), aClass);
             //TODO: maybe qualified name? Otherwise name collision may occur.
-            classForName.put(aClass.getName(), aClass);
+            classForName.put(aClass.getName(), aClass); // Classes for ConceptualSet.
             if (!strategy.acceptClass(aClass)) {
                 return;
             }
-            classEntities.put(aClass, new ClassEntity(aClass));
+            classEntities.put(aClass, new ClassEntity(aClass)); // Classes where method can be moved.
             super.visitClass(aClass);
         }
 
@@ -115,10 +158,16 @@ public class RmmrEntitySearcher {
     }
 
 
+    /**
+     * Calculates conceptual sets for all methods found by {@link UnitsFinder}.
+     */
     // TODO: calculate properties for constructors? If yes, then we need to separate methods to check on refactoring (entities) and methods for calculating metric (to gather properties).
     private class PropertiesCalculator extends JavaRecursiveElementVisitor {
         private int propertiesCalculated = 0;
 
+        /**
+         * Current method: if not null then we are parsing this method now and we need to update conceptual set of this method.
+         */
         private MethodEntity currentMethod;
 
         @Override
@@ -129,7 +178,6 @@ public class RmmrEntitySearcher {
                 super.visitMethod(method);
                 return;
             }
-            final RelevantProperties methodProperties = methodEntity.getRelevantProperties();
             if (currentMethod == null) {
                 currentMethod = methodEntity;
             }
@@ -179,7 +227,7 @@ public class RmmrEntitySearcher {
                 }
             }
             super.visitReferenceExpression(expression);
-             */
+            */
         }
 
         @Override
@@ -214,11 +262,6 @@ public class RmmrEntitySearcher {
             if (indicator != null) {
                 indicator.setFraction((double) propertiesCalculated / entities.size());
             }
-        }
-
-        @Contract(pure = true)
-        private boolean isClassInScope(String aClass) {
-            return classForName.containsKey(aClass);
         }
 
         @Contract("null -> false")

@@ -8,9 +8,19 @@ import com.sixrr.metrics.utils.ClassUtils;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Describes strategy for searching entities.
+ * For example: we do not accept enum classes because method couldn't (very rarely) be moved there.
+ * This implementation is singleton object.
+ */
 public class RmmrStrategy implements FinderStrategy {
     private static RmmrStrategy INSTANCE = new RmmrStrategy();
 
+    /**
+     * Get instance of singleton object.
+     *
+     * @return instance of this class.
+     */
     @NotNull
     public static RmmrStrategy getInstance() {
         return INSTANCE;
