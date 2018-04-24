@@ -16,35 +16,27 @@
 
 package com.sixrr.stockmetrics.classCalculators;
 
-import com.intellij.psi.*;
+import com.intellij.psi.JavaRecursiveElementVisitor;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.PsiMethod;
+import com.sixrr.metrics.utils.MethodUtils;
+import com.sixrr.stockmetrics.projectCalculators.ProjectCalculator;
+import com.sixrr.stockmetrics.utils.CyclomaticComplexityUtil;
 
-import java.util.Arrays;
+public class NumAncestorsClassCalculator extends ClassCalculator {
 
-public class DataAccessClassCalculator extends ClassCalculator {
+
     @Override
     protected PsiElementVisitor createVisitor() {
         return new Visitor();
     }
 
     private class Visitor extends JavaRecursiveElementVisitor {
+
         @Override
         public void visitClass(PsiClass aClass) {
-            super.visitClass(aClass);
-            if (!isConcreteClass(aClass)) {
-                return;
-            }
-            PsiField[] fields = aClass.getFields();
-            if(fields.length == 0){
-                postMetric(aClass, 0);
-                return;
-            }
-            double numberOfPrivateFields =
-                    Arrays.stream(
-                            fields).filter(
-                            x -> x.hasModifierProperty(
-                                    PsiModifier.PRIVATE)).count();
-            postMetric(aClass, numberOfPrivateFields
-                    / fields.length);
+            postMetric(aClass, aClass.getExtendsListTypes().length);
         }
     }
 }

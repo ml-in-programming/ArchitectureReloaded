@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package com.sixrr.stockmetrics.projectCalculators;
+package com.sixrr.stockmetrics.classCalculators;
 
 import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementVisitor;
+import com.sixrr.stockmetrics.projectCalculators.ElementCountProjectCalculator;
 
 import java.util.stream.Stream;
 
-public class NumPolymorphicMethodsProjectCalculator extends ElementCountProjectCalculator {
+public class NumPolymorphicMethodsProjectCalculator extends ClassCalculator {
     @Override
     protected PsiElementVisitor createVisitor() {
         return new Visitor();
@@ -31,7 +32,7 @@ public class NumPolymorphicMethodsProjectCalculator extends ElementCountProjectC
     private class Visitor extends JavaRecursiveElementVisitor {
         @Override
         public void visitClass(PsiClass aClass) {
-            incrementCount((int) Stream.of(aClass.getMethods()).
+            postMetric(aClass, (int) Stream.of(aClass.getMethods()).
                     filter(x -> x.findSuperMethods().length != 0).count());
         }
     }

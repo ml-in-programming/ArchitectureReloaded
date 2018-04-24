@@ -18,7 +18,7 @@ package com.sixrr.stockmetrics.projectMetrics;
 
 import com.sixrr.metrics.MetricCalculator;
 import com.sixrr.metrics.MetricType;
-import com.sixrr.stockmetrics.projectCalculators.NumPolymorphicMethodsProjectCalculator;
+import com.sixrr.stockmetrics.classCalculators.NumPolymorphicMethodsProjectCalculator;
 import org.jetbrains.annotations.NotNull;
 
 public class NumPolymorphicMethodsProjectMetric extends ProjectMetric {

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.sixrr.stockmetrics.projectMetrics;
+package com.sixrr.stockmetrics.classMetrics;
 
 import com.sixrr.metrics.MetricCalculator;
 import com.sixrr.metrics.MetricType;
-import com.sixrr.stockmetrics.projectCalculators.AverageNumOfAncestorsProjectCalculator;
+import com.sixrr.stockmetrics.classCalculators.MeasureOfAggregationClassCalculator;
 import org.jetbrains.annotations.NotNull;
 
-public class AverageNumOfAncestorsProjectMetric extends ProjectMetric {
+public class MeasureOfAggregationClassMetric extends ClassMetric {
     /**
      * The user-visible name of the metric.  This need not be unique globally, but should be unique within a metric category
      *
@@ -30,7 +30,7 @@ public class AverageNumOfAncestorsProjectMetric extends ProjectMetric {
     @NotNull
     @Override
     public String getDisplayName() {
-        return "Average number of ancestors";
+        return "Measure of Aggregation";
     }
 
     /**
@@ -41,7 +41,7 @@ public class AverageNumOfAncestorsProjectMetric extends ProjectMetric {
     @NotNull
     @Override
     public String getAbbreviation() {
-        return "ANA";
+        return "MOA";
     }
 
     /**
@@ -52,7 +52,7 @@ public class AverageNumOfAncestorsProjectMetric extends ProjectMetric {
     @NotNull
     @Override
     public MetricType getType() {
-        return MetricType.Average;
+        return MetricType.Count;
     }
 
     /**
@@ -63,6 +63,6 @@ public class AverageNumOfAncestorsProjectMetric extends ProjectMetric {
     @NotNull
     @Override
     public MetricCalculator createCalculator() {
-        return new AverageNumOfAncestorsProjectCalculator();
+        return new MeasureOfAggregationClassCalculator();
     }
 }

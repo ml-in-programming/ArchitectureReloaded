@@ -14,35 +14,23 @@
  * limitations under the License.
  */
 
-package com.sixrr.stockmetrics.projectCalculators;
+package com.sixrr.stockmetrics.classCalculators;
 
 import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementVisitor;
-import com.intellij.psi.PsiMethod;
-import com.sixrr.metrics.utils.MethodUtils;
-import com.sixrr.stockmetrics.utils.CyclomaticComplexityUtil;
+import com.sixrr.metrics.utils.ClassUtils;
 
-public class AverageNumOfAncestorsProjectCalculator extends ProjectCalculator {
-    private int totalNumOfAncestors = 0;
-    private int numOfClasses = 0;
-
-    @Override
-    public void endMetricsRun() {
-        postMetric(totalNumOfAncestors, numOfClasses);
-    }
-
+public class IsRootOfHierarchyClassCalculator extends ClassCalculator {
     @Override
     protected PsiElementVisitor createVisitor() {
         return new Visitor();
     }
 
     private class Visitor extends JavaRecursiveElementVisitor {
-
         @Override
         public void visitClass(PsiClass aClass) {
-            totalNumOfAncestors += aClass.getExtendsListTypes().length;
-            numOfClasses++;
+            postMetric(aClass, ClassUtils.isRoot(aClass) ? 1 : 0);
         }
     }
 }

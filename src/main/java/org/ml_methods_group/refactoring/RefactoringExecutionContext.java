@@ -115,7 +115,6 @@ public class RefactoringExecutionContext {
                 .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
         for (String algorithm : requestedAlgorithms) {
             if(algorithm.equals("QMove")){
-                System.err.println("In QMove");
                 QMoveEntitySearchResult qMoveEntitySearchResult = ApplicationManager.getApplication()
                         .runReadAction((Computable<QMoveEntitySearchResult>) ()
                                 -> QMoveEntitySearcher.analyze(scope, metricsRun));

@@ -355,7 +355,7 @@ public class JavaMetricProvider implements MetricProvider {
         metrics.add(new PolymorphismFactorProjectMetric());
         metrics.add(new TotalCyclomaticComplexityProjectMetric());
         //mine
-        metrics.add(new NumHierarchiesProjectMetric());
+        metrics.add(new IsRootOfHierarchyClassMetric());
         metrics.add(new NumPolymorphicMethodsProjectMetric());
         metrics.add(new AverageCyclomaticComplexityProjectMetric());
         metrics.add(new MeasureOfFunctionalAbstractionMetric());

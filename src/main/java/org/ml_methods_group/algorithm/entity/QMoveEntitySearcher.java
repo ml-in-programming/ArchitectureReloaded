@@ -47,7 +47,6 @@ public class QMoveEntitySearcher  {
     private final ProgressIndicator indicator;
 
     private QMoveEntitySearcher(AnalysisScope scope) {
-        System.err.println("In QMoveEntitySearcher");
         this.scope = scope;
         strategy = NewStrategy.getInstance();
         startTime = System.currentTimeMillis();
@@ -108,6 +107,7 @@ public class QMoveEntitySearcher  {
         }
         LOGGER.info("Properties calculated");
         LOGGER.info("Generated " + classes.size() + " class entities");
+        LOGGER.info("Generated " + qMoveClasses.size() + "QMove class entities");
         LOGGER.info("Generated " + methods.size() + " method entities");
         LOGGER.info("Generated " + fields.size() + " field entities");
         return new QMoveEntitySearchResult(classes, methods, fields, System.currentTimeMillis() - startTime, qMoveClasses);

@@ -14,55 +14,36 @@
  * limitations under the License.
  */
 
-package com.sixrr.stockmetrics.projectMetrics;
+package com.sixrr.stockmetrics.classMetrics;
 
 import com.sixrr.metrics.MetricCalculator;
 import com.sixrr.metrics.MetricType;
-import com.sixrr.stockmetrics.projectCalculators.MeasureOfAggregationProjectCalculator;
+import com.sixrr.stockmetrics.classCalculators.IsRootOfHierarchyClassCalculator;
 import org.jetbrains.annotations.NotNull;
 
-public class MeasureOfAggregationProjectMetric extends ProjectMetric{
-    /**
-     * The user-visible name of the metric.  This need not be unique globally, but should be unique within a metric category
-     *
-     * @return the display name for the metric.
-     */
+public class IsRootOfHierarchyClassMetric extends ClassMetric {
+
     @NotNull
     @Override
     public String getDisplayName() {
-        return "Measure of Aggregation";
+        return "Number of hierarchies";
     }
 
-    /**
-     * The user-visible abbreviation of the metric.  This need not be unique globally, but should be unique within a metric category
-     *
-     * @return the abbreviation for the metric.
-     */
     @NotNull
     @Override
     public String getAbbreviation() {
-        return "MOA";
+        return "NOH";
     }
 
-    /**
-     * The type of the metric, indicating whether the number returned is a score, a count, or an average.
-     *
-     * @return the metric type
-     */
     @NotNull
     @Override
     public MetricType getType() {
         return MetricType.Count;
     }
 
-    /**
-     * Create a calculator for this method.  The calculator returned is used for the duration of one entire metrics run.
-     *
-     * @return a calculator for this metric.
-     */
     @NotNull
     @Override
     public MetricCalculator createCalculator() {
-        return new MeasureOfAggregationProjectCalculator();
+        return new IsRootOfHierarchyClassCalculator();
     }
 }

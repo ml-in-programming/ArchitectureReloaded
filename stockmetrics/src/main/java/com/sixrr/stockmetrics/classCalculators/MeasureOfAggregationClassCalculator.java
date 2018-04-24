@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.sixrr.stockmetrics.projectCalculators;
+package com.sixrr.stockmetrics.classCalculators;
 
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.progress.ProgressManager;
@@ -24,6 +24,7 @@ import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.util.indexing.FileBasedIndex;
+import com.sixrr.stockmetrics.projectCalculators.ElementCountProjectCalculator;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -31,7 +32,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class MeasureOfAggregationProjectCalculator extends ElementCountProjectCalculator {
+public class MeasureOfAggregationClassCalculator extends ClassCalculator {
     private Set<PsiClass> userDefinedClasses = new HashSet<>();
 
     @Override
@@ -43,7 +44,7 @@ public class MeasureOfAggregationProjectCalculator extends ElementCountProjectCa
     private class Visitor extends JavaRecursiveElementVisitor {
         @Override
         public void visitClass(PsiClass aClass) {
-            incrementCount((int)Stream.of(aClass.getFields()).map(PsiVariable::getType).
+            postMetric(aClass, (int)Stream.of(aClass.getFields()).map(PsiVariable::getType).
                     map(PsiTypesUtil::getPsiClass).filter(Objects::nonNull).
                     filter(x -> userDefinedClasses.contains(x)).count());
         }

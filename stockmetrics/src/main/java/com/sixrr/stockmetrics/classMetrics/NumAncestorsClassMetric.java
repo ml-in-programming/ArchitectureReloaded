@@ -14,36 +14,55 @@
  * limitations under the License.
  */
 
-package com.sixrr.stockmetrics.projectMetrics;
+package com.sixrr.stockmetrics.classMetrics;
 
 import com.sixrr.metrics.MetricCalculator;
 import com.sixrr.metrics.MetricType;
-import com.sixrr.stockmetrics.projectCalculators.NumHierarchiesProjectCalculator;
+import com.sixrr.stockmetrics.classCalculators.NumAncestorsClassCalculator;
 import org.jetbrains.annotations.NotNull;
 
-public class NumHierarchiesProjectMetric extends ProjectMetric {
-
+public class NumAncestorsClassMetric extends ClassMetric {
+    /**
+     * The user-visible name of the metric.  This need not be unique globally, but should be unique within a metric category
+     *
+     * @return the display name for the metric.
+     */
     @NotNull
     @Override
     public String getDisplayName() {
-        return "Number of hierarchies";
+        return "Number of ancestors";
     }
 
+    /**
+     * The user-visible abbreviation of the metric.  This need not be unique globally, but should be unique within a metric category
+     *
+     * @return the abbreviation for the metric.
+     */
     @NotNull
     @Override
     public String getAbbreviation() {
-        return "NOH";
+        return "NOA";
     }
 
+    /**
+     * The type of the metric, indicating whether the number returned is a score, a count, or an average.
+     *
+     * @return the metric type
+     */
     @NotNull
     @Override
     public MetricType getType() {
         return MetricType.Count;
     }
 
+    /**
+     * Create a calculator for this method.  The calculator returned is used for the duration of one entire metrics run.
+     *
+     * @return a calculator for this metric.
+     */
     @NotNull
     @Override
     public MetricCalculator createCalculator() {
-        return new NumHierarchiesProjectCalculator();
+        return new NumAncestorsClassCalculator();
     }
 }
