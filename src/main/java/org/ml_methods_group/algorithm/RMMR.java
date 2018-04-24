@@ -40,7 +40,7 @@ public class RMMR extends Algorithm {
      */
     private ExecutionContext context;
 
-    RMMR() {
+    public RMMR() {
         super(NAME, true);
     }
 
