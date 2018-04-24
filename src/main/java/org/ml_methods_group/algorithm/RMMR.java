@@ -5,6 +5,7 @@ import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.MethodEntity;
 import org.ml_methods_group.config.Logging;
+import org.ml_methods_group.utils.AlgorithmsUtil;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,7 +31,7 @@ public class RMMR extends Algorithm {
      */
     private final List<MethodEntity> units = new ArrayList<>();
     /**
-     * Classes where method will be considered for moving.
+     * Classes to which method will be considered for moving.
      */
     private final List<ClassEntity> classEntities = new ArrayList<>();
     private final AtomicInteger progressCount = new AtomicInteger();
@@ -53,10 +54,12 @@ public class RMMR extends Algorithm {
         this.context = context;
         init();
 
+        /*
         List<Refactoring> accum = new LinkedList<>();
         units.forEach(methodEntity -> findRefactoring(methodEntity, accum));
         return accum;
-        //return runParallel(units, context, ArrayList::new, this::findRefactoring, AlgorithmsUtil::combineLists);
+        */
+        return runParallel(units, context, ArrayList::new, this::findRefactoring, AlgorithmsUtil::combineLists);
     }
 
     /**
