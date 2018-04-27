@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package com.sixrr.stockmetrics.projectCalculators;
+package com.sixrr.stockmetrics.classCalculators;
 
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiUtil;
+import com.sixrr.stockmetrics.projectCalculators.ProjectCalculator;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class DirectClassCouplingProjectCalculator extends ProjectCalculator {
-    private int numClasses;
-    private int totalNumClassesDependencies;
+public class DirectClassCouplingCalculator extends ClassCalculator {
     @Override
     protected PsiElementVisitor createVisitor() {
         return new Visitor();
@@ -33,7 +32,6 @@ public class DirectClassCouplingProjectCalculator extends ProjectCalculator {
     private class Visitor extends JavaRecursiveElementVisitor {
         @Override
         public void visitClass(PsiClass aClass) {
-            numClasses++;
             Set<PsiClass> classes = new HashSet<>();
             PsiField[] fields = aClass.getFields();
             for (PsiField field : fields) {
@@ -63,12 +61,8 @@ public class DirectClassCouplingProjectCalculator extends ProjectCalculator {
                     classes.add(classInType);
                 }
             }
-            totalNumClassesDependencies += classes.size();
+            postMetric(aClass, classes.size());
         }
     }
 
-    @Override
-    public void endMetricsRun() {
-        postMetric(totalNumClassesDependencies, numClasses);
-    }
 }

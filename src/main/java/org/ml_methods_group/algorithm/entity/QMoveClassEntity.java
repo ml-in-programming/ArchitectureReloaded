@@ -49,7 +49,7 @@ public class QMoveClassEntity extends ClassEntity {
             .addMetricDependence(NumAncestorsClassMetric.class) //Abstraction 3
             .addMetricDependence(IsRootOfHierarchyClassMetric.class) //Hierarchies 4
             .addMetricDependence(DataAccessClassMetric.class) //Encapsulation 5
-            .addMetricDependence(DirectClassCouplingProjectMetric.class) //Coupling 6
+            .addMetricDependence(DirectClassCouplingMetric.class) //Coupling 6
             .addMetricDependence(NumPublicMethodsClassMetric.class) //Messaging 7
             .addMetricDependence(CohesionAmongMethodsOfClassMetric.class) //Cohesion 8
             .addMetricDependence(MeasureOfAggregationClassMetric.class); //Composition 9

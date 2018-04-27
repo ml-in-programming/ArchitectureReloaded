@@ -359,7 +359,7 @@ public class JavaMetricProvider implements MetricProvider {
         metrics.add(new NumPolymorphicMethodsProjectMetric());
         metrics.add(new AverageCyclomaticComplexityProjectMetric());
         metrics.add(new MeasureOfFunctionalAbstractionMetric());
-        metrics.add(new DirectClassCouplingProjectMetric());
+        metrics.add(new DirectClassCouplingMetric());
     }
 
     @NotNull
