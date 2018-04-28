@@ -17,6 +17,7 @@
 package org.ml_methods_group.ui;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.psi.*;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBPanel;
@@ -41,6 +42,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
@@ -179,6 +181,11 @@ class ClassRefactoringPanel extends JPanel {
         return panel;
     }
 
+    private static int countLines(String str){
+        String[] lines = str.split("\r\n|\r|\n");
+        return  lines.length;
+    }
+
     private void refactorSelected() {
         doRefactorButton.setEnabled(false);
         selectAllButton.setEnabled(false);
@@ -188,6 +195,69 @@ class ClassRefactoringPanel extends JPanel {
             logger.info("-------");
             logger.info(refactoring.toString());
             logger.info("Is field - " + refactoring.isUnitField());
+            if (!refactoring.isUnitField()) {
+                PsiMethod psiMethod = (PsiMethod) refactoring.getElement();
+                String name = psiMethod.getName();
+                PsiStatement[] statements = Objects.requireNonNull(psiMethod.getBody()).getStatements();
+                int numberOfStatements = 0;
+                final int numberOfAsserts[] = new int[1];
+                final int numberOfLoops[] = new int[1];
+                final int numberOfLocalVariables[] = new int[1];
+                for (PsiStatement statement : statements){
+                    statement.accept(new JavaRecursiveElementVisitor() {
+
+                        @Override
+                        public void visitLocalVariable(PsiLocalVariable variable) {
+                            super.visitLocalVariable(variable);
+                            numberOfLocalVariables[0]++;
+                        }
+
+                        @Override
+                        public void visitDoWhileStatement(PsiDoWhileStatement statement) {
+                            super.visitDoWhileStatement(statement);
+                            numberOfLoops[0]++;
+                        }
+
+                        @Override
+                        public void visitForStatement(PsiForStatement statement) {
+                            super.visitForStatement(statement);
+                            numberOfLoops[0]++;
+                        }
+
+                        @Override
+                        public void visitForeachStatement(PsiForeachStatement statement) {
+                            super.visitForeachStatement(statement);
+                            numberOfLoops[0]++;
+                        }
+
+                        @Override
+                        public void visitWhileStatement(PsiWhileStatement statement) {
+                            super.visitWhileStatement(statement);
+                            numberOfLoops[0]++;
+                        }
+
+                        @Override
+                        public void visitAssertStatement(PsiAssertStatement statement) {
+                            super.visitAssertStatement(statement);
+                            numberOfAsserts[0]++;
+                        }
+
+
+                    });
+                    numberOfStatements += countLines(statement.getText().replaceAll("(?m)^[ \t]*\r?\n", ""));
+                }
+                logger.info("Number of local variables = " + numberOfLocalVariables[0]);
+                logger.info("Number of loops = " + numberOfLoops[0]);
+                logger.info("Number of asserts = " + numberOfAsserts[0]);
+                logger.info("Number of lines = " + numberOfStatements);
+                logger.info("Is static = " + psiMethod.getModifierList().hasExplicitModifier("static"));
+                logger.info("Is private = " + psiMethod.getModifierList().hasExplicitModifier("private"));
+                logger.info("Number of parameters = " + psiMethod.getParameterList().getParametersCount());
+                logger.info("Return type = " + psiMethod.getReturnType());
+                logger.info("Is constructor = " + psiMethod.isConstructor());
+                logger.info("Throws an exception = " + (psiMethod.getThrowsList().getReferencedTypes().length != 0));
+                logger.info("Method's name is (" + name + ") length = " + name.length());
+            }
             DateFormat  dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             Date date = new Date();
             logger.info(dateFormat.format(date));

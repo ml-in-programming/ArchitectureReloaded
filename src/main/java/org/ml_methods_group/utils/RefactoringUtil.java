@@ -35,7 +35,9 @@ import org.ml_methods_group.ui.RefactoringsTableModel;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -277,13 +279,21 @@ public final class RefactoringUtil {
                 .collect(Collectors.toList());
     }
 
+    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return t -> seen.add(keyExtractor.apply(t));
+    }
+
     private static Refactoring combine(List<Refactoring> refactorings, String unit, int algorithmsCount) {
         boolean isUnitField = refactorings.get(0).isUnitField();
         final Map<String, Double> target = refactorings.stream()
                 .collect(Collectors.toMap(Refactoring::getTarget, RefactoringUtil::getSquaredAccuarcy, Double::sum));
+        final Map<String, PsiElement> element = refactorings.stream()
+                .filter(distinctByKey(Refactoring::getTarget))
+                .collect(Collectors.toMap(Refactoring::getTarget, Refactoring::getElement));
         return target.entrySet().stream()
                 .max(Entry.comparingByValue())
-                .map(entry -> new Refactoring(unit, entry.getKey(), Math.sqrt(entry.getValue() / algorithmsCount), isUnitField))
+                .map(entry -> new Refactoring(unit, entry.getKey(), Math.sqrt(entry.getValue() / algorithmsCount), isUnitField, element.get(entry.getKey())))
                 .orElse(null);
     }
 
