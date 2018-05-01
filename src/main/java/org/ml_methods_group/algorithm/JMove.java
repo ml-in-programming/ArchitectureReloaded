@@ -16,7 +16,7 @@
 
 package org.ml_methods_group.algorithm;
 
-import com.intellij.openapi.module.impl.scopes.LibraryScope;
+
 import com.intellij.psi.PsiType;
 import com.intellij.psi.PsiReferenceList;
 import org.jetbrains.annotations.NotNull;
