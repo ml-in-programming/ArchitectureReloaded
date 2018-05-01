@@ -17,8 +17,6 @@
 package org.ml_methods_group.algorithm;
 
 import com.intellij.openapi.module.impl.scopes.LibraryScope;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.PsiReferenceList;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +25,6 @@ import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.MethodEntity;
 
 import java.util.*;
-import java.util.function.BinaryOperator;
 
 public class JMove extends Algorithm {
     private final int MIN_NUMBER_OF_CANDIDATE_CLASSES = 3;
@@ -44,19 +41,35 @@ public class JMove extends Algorithm {
         List<ClassEntity> allClasses = context.getEntities().getClasses(); // get all classes ??
         List<Refactoring> refactorings = new ArrayList<>();
 
+        Map<String, ClassEntity> nameToClassEntity = new HashMap<>();
+        Map<String, MethodEntity> nameToMethodEntity = new HashMap<>();
+
+        for(ClassEntity classEntity : allClasses) {
+            nameToClassEntity.put(classEntity.getName(), classEntity); //I see no other way to find containing ClassEntity for MethodEntity
+        }
+
+        for(MethodEntity methodEntity : allMethods) {
+            nameToMethodEntity.put(methodEntity.getName(), methodEntity); //same
+        }
+
+
         for(MethodEntity curMethod : allMethods) {
             Dependencies curDependencies = new Dependencies(curMethod);
             if(curDependencies.cardinality() < MIN_NUMBER_OF_DEPENDENCIES)
                 continue;
-            PsiClass curClass = curMethod.getPsiMethod().getContainingClass(); // the class of cф3цurMethod
-            double curSimilarity = calculateSimilarity(curMethod, curClass);
+            ClassEntity curClass = nameToClassEntity.get(curMethod.getClassName()); //ClassEntity of curMethod (potentially working)
+            double curSimilarity = calculateSimilarity(curMethod, curClass, nameToMethodEntity);
             Map<ClassEntity, Double> potentialClasses = new HashMap<>();
             for(ClassEntity potentialClass : allClasses) {
-                double potentialClassSimilarity = calculateSimilarity(curMethod, potentialClass.getPsiClass());
+                double potentialClassSimilarity = calculateSimilarity(curMethod, potentialClass, nameToMethodEntity);
                 if(potentialClassSimilarity > curSimilarity) {
                     potentialClasses.put(potentialClass, potentialClassSimilarity);
                 }
             }
+
+            if(potentialClasses.size() < MIN_NUMBER_OF_CANDIDATE_CLASSES)
+                continue;
+
             ClassEntity bestClass = findBestClass(potentialClasses);
             if(bestClass != null) {
                 double diff = (potentialClasses.get(bestClass) - curSimilarity)/potentialClasses.get(bestClass); //may be
@@ -67,17 +80,19 @@ public class JMove extends Algorithm {
         return refactorings;
     }
 
-    private double calculateSimilarity(@NotNull MethodEntity methodEntity, @NotNull PsiClass psiClass) {
+    private double calculateSimilarity(@NotNull MethodEntity methodEntity, @NotNull ClassEntity classEntity, Map<String, MethodEntity> nameToMethodEntity) {
         double similarity = 0;
-        PsiMethod classMethods[] = psiClass.getMethods(); //all methods of psiClass
-        for(PsiMethod curMethod : classMethods) {
-            if(!methodEntity.getName().equals(curMethod.getName()))
-                similarity += methodSimilarity(methodEntity, new MethodEntity(curMethod)); //todo find out if creating new MethodEntity will fill RelevantProperties(probably not)
+        Set<String> methodNames = classEntity.getRelevantProperties().getMethods();
+
+        for(String curMethodName : methodNames) {
+            MethodEntity curMethod = nameToMethodEntity.get(curMethodName);
+            if(!methodEntity.getName().equals(curMethodName))
+                similarity += methodSimilarity(methodEntity, curMethod);
         }
-        if(methodEntity.getClassName().equals(psiClass.getName()))
-            return similarity / classMethods.length;
+        if(methodEntity.getClassName().equals(classEntity.getName()))
+            return similarity / methodNames.size();
         else
-            return  similarity / (classMethods.length - 1);
+            return  similarity / (methodNames.size() - 1);
     }
 
     private double methodSimilarity (MethodEntity methodFst, MethodEntity methodSnd) {
@@ -90,7 +105,7 @@ public class JMove extends Algorithm {
         return (double)depCardinalityIntersection/(depCardinalityFst + depCardinalitySnd - depCardinalityIntersection); // Jaccard Coefficient
     }
 
-    protected class Dependencies {
+    private class Dependencies {
         // here are lists that need to be made:
 
         //method calls
