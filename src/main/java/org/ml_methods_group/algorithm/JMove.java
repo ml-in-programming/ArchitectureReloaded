@@ -18,7 +18,8 @@ package org.ml_methods_group.algorithm;
 
 
 import com.intellij.psi.PsiType;
-import com.intellij.psi.PsiReferenceList;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiClassType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
@@ -117,13 +118,13 @@ public class JMove extends Algorithm {
         private Set<String> instances;
 
         //return types
-        private PsiType returnType; //use PsiMethod PsiType getReturnType()
+        private PsiType returnType;
 
         //exceptions
-        private PsiReferenceList exceptions; //use PsiMethod PsiReferenceList getThrowsList()
+        private Set<String> exceptions;
 
         //annotations
-        private List<String> annotations;
+        private Set<String> annotations;
 
         //todo ignore primitive types and types and annotations from java.lang and java.util
 
@@ -131,8 +132,18 @@ public class JMove extends Algorithm {
             methodCalls = m.getRelevantProperties().getMethods();
             instances = m.getRelevantProperties().getMethods();
             returnType = m.getPsiMethod().getReturnType();
-            exceptions = m.getPsiMethod().getThrowsList();
-            //todo initialize annotations
+
+            exceptions = new HashSet<>();
+            PsiClassType[] referencedTypes = m.getPsiMethod().getThrowsList().getReferencedTypes();
+            for(PsiClassType classType : referencedTypes) {
+                exceptions.add(classType.getClassName()); //may be not that name todo: check
+            }
+
+            annotations = new HashSet<>();
+            PsiAnnotation[] psiAnnotations = m.getPsiMethod().getModifierList().getAnnotations();
+            for(PsiAnnotation psiAnnotation : psiAnnotations) {
+                annotations.add(psiAnnotation.getQualifiedName()); //may be not that name todo: check
+            }
         }
 
 
@@ -141,27 +152,33 @@ public class JMove extends Algorithm {
             return    methodCalls.size()
                     + instances.size()
                     + 1 //returnType
-                    + exceptions.getReferencedTypes().length
+                    + exceptions.size()
                     + annotations.size();
         }
 
         private int calculateIntersectionCardinality(@NotNull Dependencies depSnd) {
-            int result = 0;
+            int intersectionCardinality = 0;
 
             Set<String> methodCallIntersection = new HashSet<>(methodCalls);
             methodCallIntersection.retainAll(depSnd.methodCalls);
-            result += methodCallIntersection.size();
+            intersectionCardinality += methodCallIntersection.size();
 
             Set<String> instancesIntersection = new HashSet<>(instances);
             instancesIntersection.retainAll(depSnd.instances);
-            result += instancesIntersection.size();
+            intersectionCardinality += instancesIntersection.size();
 
             if(returnType.toString().equals(depSnd.returnType.toString()))
-                result++;
+                intersectionCardinality++;
 
-            //todo find intersection of exceptions and annotations
+            Set<String> exceptionsIntersection = new HashSet<>(exceptions);
+            exceptionsIntersection.retainAll(depSnd.exceptions);
+            intersectionCardinality += exceptionsIntersection.size();
 
-            return result;
+            Set<String> annotationsIntersection = new HashSet<>(exceptions);
+            annotationsIntersection.retainAll(depSnd.exceptions);
+            intersectionCardinality += annotationsIntersection.size();
+
+            return intersectionCardinality;
         }
 
     }
