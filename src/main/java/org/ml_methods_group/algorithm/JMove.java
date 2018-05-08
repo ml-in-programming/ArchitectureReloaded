@@ -17,52 +17,62 @@
 package org.ml_methods_group.algorithm;
 
 
-import com.intellij.psi.PsiType;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClassType;
+import com.intellij.psi.JavaRecursiveElementVisitor;
+import com.intellij.psi.PsiLocalVariable;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.MethodEntity;
+import org.ml_methods_group.config.Logging;
 
 import java.util.*;
 
 public class JMove extends Algorithm {
+    private static final Logger LOGGER = Logging.getLogger(JMove.class);
     private final int MIN_NUMBER_OF_CANDIDATE_CLASSES = 3;
     private final int MIN_NUMBER_OF_DEPENDENCIES = 4;
     private final double MIN_DIFF_BETWEEN_SIMILARITY_COEFF_PERS = 0.25;
 
-    JMove() {
+    public JMove() {
         super("JMove", false);
     }
 
     @Override
     protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) {
-        List<MethodEntity> allMethods = context.getEntities().getMethods(); // get all methods ??
-        List<ClassEntity> allClasses = context.getEntities().getClasses(); // get all classes ??
+        LOGGER.info("Starting calculating refactorings");
+        List<MethodEntity> allMethods = context.getEntities().getMethods();
+        List<ClassEntity> allClasses = context.getEntities().getClasses();
+        LOGGER.info("Found " + allMethods.size() + " methods and " + allClasses.size() + " classes");
         List<Refactoring> refactorings = new ArrayList<>();
 
         Map<String, ClassEntity> nameToClassEntity = new HashMap<>();
-        Map<String, MethodEntity> nameToMethodEntity = new HashMap<>();
+        Map<String, Dependencies> nameToDependencies = new HashMap<>();
 
         for(ClassEntity classEntity : allClasses) {
-            nameToClassEntity.put(classEntity.getName(), classEntity); //I see no other way to find containing ClassEntity for MethodEntity
+            nameToClassEntity.put(classEntity.getName(), classEntity);
         }
 
         for(MethodEntity methodEntity : allMethods) {
-            nameToMethodEntity.put(methodEntity.getName(), methodEntity); //same
+            nameToDependencies.put(methodEntity.getName(), new Dependencies(methodEntity));
         }
 
 
         for(MethodEntity curMethod : allMethods) {
-            Dependencies curDependencies = new Dependencies(curMethod);
+            if(!curMethod.isMovable())
+                continue;
+            LOGGER.info("Checking " + curMethod.getName());
+
+            Dependencies curDependencies = nameToDependencies.get(curMethod.getName());
             if(curDependencies.cardinality() < MIN_NUMBER_OF_DEPENDENCIES)
                 continue;
-            ClassEntity curClass = nameToClassEntity.get(curMethod.getClassName()); //ClassEntity of curMethod (potentially working)
-            double curSimilarity = calculateSimilarity(curMethod, curClass, nameToMethodEntity);
+            ClassEntity curClass = nameToClassEntity.get(curMethod.getClassName());
+            double curSimilarity = calculateSimilarity(curMethod, curClass, nameToDependencies);
             Map<ClassEntity, Double> potentialClasses = new HashMap<>();
             for(ClassEntity potentialClass : allClasses) {
-                double potentialClassSimilarity = calculateSimilarity(curMethod, potentialClass, nameToMethodEntity);
+                double potentialClassSimilarity = calculateSimilarity(curMethod, potentialClass, nameToDependencies);
                 if(potentialClassSimilarity > curSimilarity) {
                     potentialClasses.put(potentialClass, potentialClassSimilarity);
                 }
@@ -73,22 +83,21 @@ public class JMove extends Algorithm {
 
             ClassEntity bestClass = findBestClass(potentialClasses);
             if(bestClass != null) {
-                double diff = (potentialClasses.get(bestClass) - curSimilarity)/potentialClasses.get(bestClass); //may be
+                double diff = (potentialClasses.get(bestClass) - curSimilarity)/potentialClasses.get(bestClass); //may be idk
                 if(diff >= MIN_DIFF_BETWEEN_SIMILARITY_COEFF_PERS)
-                    refactorings.add(new Refactoring(curMethod.getName(), bestClass.getName(), diff, false)); //accuracy ~ difference between coeff ??
+                    refactorings.add(new Refactoring(curMethod.getName(), bestClass.getName(), diff, false)); //accuracy ~ difference between coeff ?? idk
             }
         }
         return refactorings;
     }
 
-    private double calculateSimilarity(@NotNull MethodEntity methodEntity, @NotNull ClassEntity classEntity, Map<String, MethodEntity> nameToMethodEntity) {
+    private double calculateSimilarity(@NotNull MethodEntity methodEntity, @NotNull ClassEntity classEntity, Map<String, Dependencies> nameToDependencies) {
         double similarity = 0;
         Set<String> methodNames = classEntity.getRelevantProperties().getMethods();
 
         for(String curMethodName : methodNames) {
-            MethodEntity curMethod = nameToMethodEntity.get(curMethodName);
             if(!methodEntity.getName().equals(curMethodName))
-                similarity += methodSimilarity(methodEntity, curMethod);
+                similarity += methodSimilarity(nameToDependencies.get(methodEntity.getName()), nameToDependencies.get(curMethodName));
         }
         if(methodEntity.getClassName().equals(classEntity.getName()))
             return similarity / methodNames.size();
@@ -96,10 +105,7 @@ public class JMove extends Algorithm {
             return  similarity / (methodNames.size() - 1);
     }
 
-    private double methodSimilarity (MethodEntity methodFst, MethodEntity methodSnd) {
-        Dependencies depFst = new Dependencies(methodFst);
-        Dependencies depSnd = new Dependencies(methodSnd);
-
+    private double methodSimilarity (@NotNull Dependencies depFst,@NotNull Dependencies depSnd) {
         int depCardinalityFst = depFst.cardinality();
         int depCardinalitySnd = depSnd.cardinality();
         int depCardinalityIntersection = depFst.calculateIntersectionCardinality(depSnd);
@@ -113,12 +119,15 @@ public class JMove extends Algorithm {
         private Set<String> methodCalls;
 
         //field accesses
-        //object instantiations
-        //local declarations
+
         private Set<String> instances;
 
+        //object instantiations
+        //local declarations
+        private  Set<String> localVariables; //idk
+
         //return types
-        private PsiType returnType;
+        private String returnType;
 
         //exceptions
         private Set<String> exceptions;
@@ -128,22 +137,32 @@ public class JMove extends Algorithm {
 
         //todo ignore primitive types and types and annotations from java.lang and java.util
 
-        private Dependencies(@NotNull MethodEntity m) {
-            methodCalls = m.getRelevantProperties().getMethods();
-            instances = m.getRelevantProperties().getMethods();
-            returnType = m.getPsiMethod().getReturnType();
+        private Dependencies(@NotNull MethodEntity methodForDependencies) {
+            methodCalls = methodForDependencies.getRelevantProperties().getMethods();
+            instances = methodForDependencies.getRelevantProperties().getFields();
+            returnType = methodForDependencies.getPsiMethod().getReturnType().toString();
 
             exceptions = new HashSet<>();
-            PsiClassType[] referencedTypes = m.getPsiMethod().getThrowsList().getReferencedTypes();
+            PsiClassType[] referencedTypes = methodForDependencies.getPsiMethod().getThrowsList().getReferencedTypes();
             for(PsiClassType classType : referencedTypes) {
                 exceptions.add(classType.getClassName()); //may be not that name todo: check
             }
 
             annotations = new HashSet<>();
-            PsiAnnotation[] psiAnnotations = m.getPsiMethod().getModifierList().getAnnotations();
+            PsiAnnotation[] psiAnnotations = methodForDependencies.getPsiMethod().getModifierList().getAnnotations();
             for(PsiAnnotation psiAnnotation : psiAnnotations) {
                 annotations.add(psiAnnotation.getQualifiedName()); //may be not that name todo: check
             }
+
+            localVariables = new HashSet<>();
+            methodForDependencies.getPsiMethod().accept(new JavaRecursiveElementVisitor() {
+                @Override
+                public void visitLocalVariable(PsiLocalVariable variable) {
+                    super.visitLocalVariable(variable);
+                    localVariables.add(variable.getType().getCanonicalText()); //idk
+                    //System.out.println("Found a variable at offset " + variable.getTextRange().getStartOffset());
+                }
+            });
         }
 
 
@@ -151,7 +170,8 @@ public class JMove extends Algorithm {
 
             return    methodCalls.size()
                     + instances.size()
-                    + 1 //returnType
+                    + localVariables.size()
+                    + 1 //returnType //fixme: may be null if I learn to ignore
                     + exceptions.size()
                     + annotations.size();
         }
@@ -167,7 +187,7 @@ public class JMove extends Algorithm {
             instancesIntersection.retainAll(depSnd.instances);
             intersectionCardinality += instancesIntersection.size();
 
-            if(returnType.toString().equals(depSnd.returnType.toString()))
+            if(returnType.equals(depSnd.returnType))
                 intersectionCardinality++;
 
             Set<String> exceptionsIntersection = new HashSet<>(exceptions);
@@ -177,6 +197,10 @@ public class JMove extends Algorithm {
             Set<String> annotationsIntersection = new HashSet<>(exceptions);
             annotationsIntersection.retainAll(depSnd.exceptions);
             intersectionCardinality += annotationsIntersection.size();
+
+            Set<String> localVariablesIntersection = new HashSet<>(localVariables);
+            localVariablesIntersection.retainAll(depSnd.localVariables);
+            intersectionCardinality += localVariablesIntersection.size();
 
             return intersectionCardinality;
         }
