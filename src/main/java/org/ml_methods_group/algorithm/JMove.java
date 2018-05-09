@@ -17,10 +17,7 @@
 package org.ml_methods_group.algorithm;
 
 
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiClassType;
-import com.intellij.psi.JavaRecursiveElementVisitor;
-import com.intellij.psi.PsiLocalVariable;
+import com.intellij.psi.*;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,7 +70,7 @@ public class JMove extends Algorithm {
             Map<ClassEntity, Double> potentialClasses = new HashMap<>();
             for(ClassEntity potentialClass : allClasses) {
                 double potentialClassSimilarity = calculateSimilarity(curMethod, potentialClass, nameToDependencies);
-                if(potentialClassSimilarity > curSimilarity) {
+                if (potentialClassSimilarity > curSimilarity) {
                     potentialClasses.put(potentialClass, potentialClassSimilarity);
                 }
             }
@@ -113,18 +110,18 @@ public class JMove extends Algorithm {
     }
 
     private class Dependencies {
-        // here are lists that need to be made:
 
         //method calls
         private Set<String> methodCalls;
 
         //field accesses
-
-        private Set<String> instances;
+        private Set<String> fieldAccesses;
 
         //object instantiations
+        private Set<String> objectInstantiations; //idk
+
         //local declarations
-        private  Set<String> localVariables; //idk
+        private  Set<String> localDeclarations; //idk
 
         //return types
         private String returnType;
@@ -139,7 +136,7 @@ public class JMove extends Algorithm {
 
         private Dependencies(@NotNull MethodEntity methodForDependencies) {
             methodCalls = methodForDependencies.getRelevantProperties().getMethods();
-            instances = methodForDependencies.getRelevantProperties().getFields();
+            fieldAccesses = methodForDependencies.getRelevantProperties().getFields();
             returnType = methodForDependencies.getPsiMethod().getReturnType().toString();
 
             exceptions = new HashSet<>();
@@ -154,23 +151,39 @@ public class JMove extends Algorithm {
                 annotations.add(psiAnnotation.getQualifiedName()); //may be not that name todo: check
             }
 
-            localVariables = new HashSet<>();
+            localDeclarations = new HashSet<>();
+            objectInstantiations = new HashSet<>();
             methodForDependencies.getPsiMethod().accept(new JavaRecursiveElementVisitor() {
                 @Override
                 public void visitLocalVariable(PsiLocalVariable variable) {
                     super.visitLocalVariable(variable);
-                    localVariables.add(variable.getType().getCanonicalText()); //idk
+                    localDeclarations.add(variable.getType().getCanonicalText()); //idk
                     //System.out.println("Found a variable at offset " + variable.getTextRange().getStartOffset());
                 }
+                @Override
+                public void visitNewExpression(PsiNewExpression expression) {
+                    super.visitNewExpression(expression);
+                    objectInstantiations.add(expression.getClassOrAnonymousClassReference().getQualifiedName());
+                }
             });
+
+//            newStatements = new HashSet<>();
+//            methodForDependencies.getPsiMethod().accept(new JavaRecursiveElementVisitor() {
+//                @Override
+//                public void visitNewExpression(PsiNewExpression expression) {
+//                    super.visitNewExpression(expression);
+//                    newStatements.add(expression.getText());
+//                }
+//            });
         }
 
 
-        private int cardinality() {
+        private int cardinality() { //idk may be I just need to do one whole set
 
             return    methodCalls.size()
-                    + instances.size()
-                    + localVariables.size()
+                    + fieldAccesses.size()
+                    + objectInstantiations.size()
+                    + localDeclarations.size()
                     + 1 //returnType //fixme: may be null if I learn to ignore
                     + exceptions.size()
                     + annotations.size();
@@ -183,8 +196,8 @@ public class JMove extends Algorithm {
             methodCallIntersection.retainAll(depSnd.methodCalls);
             intersectionCardinality += methodCallIntersection.size();
 
-            Set<String> instancesIntersection = new HashSet<>(instances);
-            instancesIntersection.retainAll(depSnd.instances);
+            Set<String> instancesIntersection = new HashSet<>(fieldAccesses);
+            instancesIntersection.retainAll(depSnd.fieldAccesses);
             intersectionCardinality += instancesIntersection.size();
 
             if(returnType.equals(depSnd.returnType))
@@ -198,8 +211,8 @@ public class JMove extends Algorithm {
             annotationsIntersection.retainAll(depSnd.exceptions);
             intersectionCardinality += annotationsIntersection.size();
 
-            Set<String> localVariablesIntersection = new HashSet<>(localVariables);
-            localVariablesIntersection.retainAll(depSnd.localVariables);
+            Set<String> localVariablesIntersection = new HashSet<>(localDeclarations);
+            localVariablesIntersection.retainAll(depSnd.localDeclarations);
             intersectionCardinality += localVariablesIntersection.size();
 
             return intersectionCardinality;
