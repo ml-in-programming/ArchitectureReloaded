@@ -22,11 +22,13 @@ import com.sixrr.metrics.utils.MethodUtils;
 import org.ml_methods_group.utils.PSIUtil;
 
 public class MethodEntity extends Entity {
+    private PsiMethod psiMethod;
 
     MethodEntity(PsiMethod method) {
         super(method);
         isMovable = !PSIUtil.isOverriding(method) &&
                 !MethodUtils.isAbstract(method) && !method.isConstructor();
+        psiMethod = method;
     }
 
     private MethodEntity(MethodEntity original) {
@@ -53,5 +55,9 @@ public class MethodEntity extends Entity {
     @Override
     public boolean isField() {
         return false;
+    }
+
+    public PsiMethod getPsiMethod() {
+        return psiMethod;
     }
 }

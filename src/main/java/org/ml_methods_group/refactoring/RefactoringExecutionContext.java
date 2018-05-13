@@ -31,6 +31,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.*;
+import org.ml_methods_group.algorithm.ExtractClass;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.EntitySearcher;
 import org.ml_methods_group.config.Logging;
@@ -44,7 +45,7 @@ public class RefactoringExecutionContext {
     private static final Logger LOGGER = Logging.getLogger(RefactoringExecutionContext.class);
 
     private static final List<Class<? extends Algorithm>> ALGORITHMS = Arrays.asList(ARI.class, AKMeans.class,
-            CCDA.class, HAC.class, MRI.class);
+            CCDA.class, HAC.class, MRI.class, ExtractClass.class);
 
     @NotNull
     private final MetricsRunImpl metricsRun = new MetricsRunImpl();
