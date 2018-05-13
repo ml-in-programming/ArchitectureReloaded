@@ -118,10 +118,10 @@ public class JMove extends Algorithm {
         private Set<String> fieldAccesses;
 
         //object instantiations
-        private Set<String> objectInstantiations; //idk
+        private Set<String> objectInstantiations;
 
         //local declarations
-        private  Set<String> localDeclarations; //idk
+        private  Set<String> localDeclarations;
 
         //return types
         private String returnType;
@@ -132,23 +132,34 @@ public class JMove extends Algorithm {
         //annotations
         private Set<String> annotations;
 
-        //todo ignore primitive types and types and annotations from java.lang and java.util
+        //ignoring primitive types and types and annotations from java.lang and java.util
 
-        private Dependencies(@NotNull MethodEntity methodForDependencies) {
-            methodCalls = methodForDependencies.getRelevantProperties().getMethods();
-            fieldAccesses = methodForDependencies.getRelevantProperties().getFields();
-            returnType = methodForDependencies.getPsiMethod().getReturnType().toString();
+        protected Dependencies(@NotNull MethodEntity methodForDependencies) {
+            methodCalls = methodForDependencies.getRelevantProperties().getMethods(); // todo delete the method itself, add classes not methods
+            fieldAccesses = methodForDependencies.getRelevantProperties().getFields(); //todo add classes not fields
 
-            exceptions = new HashSet<>();
+            if(methodForDependencies.getPsiMethod().getReturnType() instanceof PsiPrimitiveType
+                    || methodForDependencies.getPsiMethod().getReturnType().getCanonicalText().startsWith("java.lang.")
+                    ||methodForDependencies.getPsiMethod().getReturnType().getCanonicalText().startsWith("java.util.") )
+                returnType = null;
+            else
+                returnType = methodForDependencies.getPsiMethod().getReturnType().getCanonicalText();
+
+
+            exceptions = new HashSet<>(); //todo check for internal exception handling may be
             PsiClassType[] referencedTypes = methodForDependencies.getPsiMethod().getThrowsList().getReferencedTypes();
             for(PsiClassType classType : referencedTypes) {
-                exceptions.add(classType.getClassName()); //may be not that name todo: check
+                if(!(classType.getCanonicalText().startsWith("java.lang.")
+                    || classType.getCanonicalText().startsWith("java.util.")))
+                    exceptions.add(classType.getCanonicalText());
             }
 
             annotations = new HashSet<>();
             PsiAnnotation[] psiAnnotations = methodForDependencies.getPsiMethod().getModifierList().getAnnotations();
             for(PsiAnnotation psiAnnotation : psiAnnotations) {
-                annotations.add(psiAnnotation.getQualifiedName()); //may be not that name todo: check
+                if(!psiAnnotation.getQualifiedName().startsWith("java.lang.") ||
+                        psiAnnotation.getQualifiedName().startsWith("java.util."))
+                annotations.add(psiAnnotation.getQualifiedName());
             }
 
             localDeclarations = new HashSet<>();
@@ -157,26 +168,29 @@ public class JMove extends Algorithm {
                 @Override
                 public void visitLocalVariable(PsiLocalVariable variable) {
                     super.visitLocalVariable(variable);
-                    localDeclarations.add(variable.getType().getCanonicalText()); //idk
-                    //System.out.println("Found a variable at offset " + variable.getTextRange().getStartOffset());
+                    if(!(variable.getType() instanceof PsiPrimitiveType ||
+                            variable.getType().getCanonicalText().startsWith("java.lang.") ||
+                            variable.getType().getCanonicalText().startsWith("java.util.")))
+                        localDeclarations.add(variable.getType().getCanonicalText()); //idk
                 }
                 @Override
                 public void visitNewExpression(PsiNewExpression expression) {
                     super.visitNewExpression(expression);
-                    objectInstantiations.add(expression.getClassOrAnonymousClassReference().getQualifiedName());
+                    if(!(expression.getClassOrAnonymousClassReference().getQualifiedName().startsWith("java.lang.") ||
+                            expression.getClassOrAnonymousClassReference().getQualifiedName().startsWith("java.util.")))
+                        objectInstantiations.add(expression.getClassOrAnonymousClassReference().getQualifiedName());
                 }
-            });
-
-//            newStatements = new HashSet<>();
-//            methodForDependencies.getPsiMethod().accept(new JavaRecursiveElementVisitor() {
-//                @Override
-//                public void visitNewExpression(PsiNewExpression expression) {
-//                    super.visitNewExpression(expression);
-//                    newStatements.add(expression.getText());
+//                @Override idk this way I will find all annotations may be I shouldn't
+//                public void visitAnnotation(PsiAnnotation annotation) {
+//                    super.visitAnnotation(annotation);
+//                    if(!annotation.getQualifiedName().startsWith("java.lang.") ||
+//                            annotation.getQualifiedName().startsWith("java.util."))
+//                        annotations.add(annotation.getQualifiedName());
 //                }
-//            });
-        }
 
+
+            });
+        }
 
         private int cardinality() { //idk may be I just need to do one whole set
 
@@ -184,7 +198,7 @@ public class JMove extends Algorithm {
                     + fieldAccesses.size()
                     + objectInstantiations.size()
                     + localDeclarations.size()
-                    + 1 //returnType //fixme: may be null if I learn to ignore
+                    + 1 //returnType //fixme may be null if I learn to ignore
                     + exceptions.size()
                     + annotations.size();
         }
