@@ -139,45 +139,36 @@ public class JMove extends Algorithm {
 
             // classes of fields that the method accesses
             for(String fieldName : methodForDependencies.getRelevantProperties().getFields()) {
-                PsiType pt = nameToClassEntity.get(fieldName.substring(0, fieldName.lastIndexOf('.'))).getPsiClass().findFieldByName(fieldName.substring(fieldName.lastIndexOf('.') + 1), false).getType();
-                if(!(pt instanceof PsiPrimitiveType)
-                        || pt.getCanonicalText().startsWith("java.lang.")
-                        || pt.getCanonicalText().startsWith("java.util."))
-                    all.add(pt.getCanonicalText());
+                PsiType psiType = nameToClassEntity.get(fieldName.substring(0, fieldName.lastIndexOf('.'))).getPsiClass().findFieldByName(fieldName.substring(fieldName.lastIndexOf('.') + 1), false).getType();
+                if(!(psiType instanceof PsiPrimitiveType) || fromUtilOrLang(psiType.getCanonicalText()))
+                    all.add(psiType.getCanonicalText());
             }
 
             //return type
-            if(methodForDependencies.getPsiMethod().getReturnType() instanceof PsiPrimitiveType //return type
-                    || methodForDependencies.getPsiMethod().getReturnType().getCanonicalText().startsWith("java.lang.")
-                    ||methodForDependencies.getPsiMethod().getReturnType().getCanonicalText().startsWith("java.util.") )
-                all.add(methodForDependencies.getPsiMethod().getReturnType().getCanonicalText()); //idk what is going on here fixme
+            PsiType returnType = methodForDependencies.getPsiMethod().getReturnType();
+            if(!(returnType instanceof PsiPrimitiveType ||fromUtilOrLang(returnType.getCanonicalText())))
+                all.add(returnType.getCanonicalText());
 
 
             //exceptions
             //idk check for internal exception handling may be
             PsiClassType[] referencedTypes = methodForDependencies.getPsiMethod().getThrowsList().getReferencedTypes();
             for(PsiClassType classType : referencedTypes) {
-                if(!(classType.getCanonicalText().startsWith("java.lang.")
-                    || classType.getCanonicalText().startsWith("java.util.")))
+                if(!(fromUtilOrLang(classType.getCanonicalText())))
                     all.add(classType.getCanonicalText());
-
             }
 
             //annotations
             PsiAnnotation[] psiAnnotations = methodForDependencies.getPsiMethod().getModifierList().getAnnotations();
             for(PsiAnnotation psiAnnotation : psiAnnotations) {
-                if(!psiAnnotation.getQualifiedName().startsWith("java.lang.") ||
-                        psiAnnotation.getQualifiedName().startsWith("java.util."))
+                if(!fromUtilOrLang(psiAnnotation.getQualifiedName()))
                 all.add(psiAnnotation.getQualifiedName());
             }
 
             //formal parameters
             for(PsiParameter  parameter: methodForDependencies.getPsiMethod().getParameterList().getParameters()) {
-                if(!((parameter.getType() instanceof PsiPrimitiveType)
-                || parameter.getType().getCanonicalText().startsWith("java.lang")
-                || parameter.getType().getCanonicalText().startsWith("java.util")))
+                if(!((parameter.getType() instanceof PsiPrimitiveType) || fromUtilOrLang(parameter.getType().getCanonicalText())))
                     all.add(parameter.getType().getCanonicalText());
-
             }
 
 
@@ -185,19 +176,14 @@ public class JMove extends Algorithm {
                 @Override
                 public void visitLocalVariable(PsiLocalVariable variable) {
                     super.visitLocalVariable(variable);
-                    if(!(variable.getType() instanceof PsiPrimitiveType ||
-                            variable.getType().getCanonicalText().startsWith("java.lang.") ||
-                            variable.getType().getCanonicalText().startsWith("java.util."))) {
+                    if(!(variable.getType() instanceof PsiPrimitiveType || fromUtilOrLang(variable.getType().getCanonicalText())))
                         all.add(variable.getType().getCanonicalText());
-                    }
                 }
                 @Override
                 public void visitNewExpression(PsiNewExpression expression) {
                     super.visitNewExpression(expression);
-                    if (!(expression.getClassOrAnonymousClassReference().getQualifiedName().startsWith("java.lang.") ||
-                            expression.getClassOrAnonymousClassReference().getQualifiedName().startsWith("java.util."))) {
+                    if (!(fromUtilOrLang(expression.getClassOrAnonymousClassReference().getQualifiedName())))
                         all.add(expression.getClassOrAnonymousClassReference().getQualifiedName());
-                    }
                 }
 
                 //                @Override idk this way I will find all annotations may be I shouldn't
@@ -212,12 +198,12 @@ public class JMove extends Algorithm {
             });
         }
 
-        private int cardinality() {
+        public int cardinality() {
 
             return all.size();
         }
 
-        private int calculateIntersectionCardinality(@NotNull Dependencies depSnd) {
+        public int calculateIntersectionCardinality(@NotNull Dependencies depSnd) {
 
             Set<String> intersection = new HashSet<>(all);
             intersection.retainAll(depSnd.all);
@@ -279,5 +265,12 @@ public class JMove extends Algorithm {
         if(psiMethod.getParameterList().getParametersCount() == 1 && numSt == 1)
             return true;
         return false;
+    }
+
+    private boolean fromUtilOrLang (String fullName) {
+        if(fullName.startsWith("java.lang.") || fullName.startsWith("java.util."))
+            return true;
+        else
+            return false;
     }
 }
