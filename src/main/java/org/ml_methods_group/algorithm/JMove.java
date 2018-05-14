@@ -53,7 +53,7 @@ public class JMove extends Algorithm {
         }
 
         for(MethodEntity methodEntity : allMethods) {
-            nameToDependencies.put(methodEntity.getName(), new Dependencies(methodEntity));
+            nameToDependencies.put(methodEntity.getName(), new Dependencies(methodEntity, nameToClassEntity));
         }
 
 
@@ -87,6 +87,7 @@ public class JMove extends Algorithm {
                 if(diff >= MIN_DIFF_BETWEEN_SIMILARITY_COEFF_PERS)
                     refactorings.add(new Refactoring(curMethod.getName(), bestClass.getName(), diff, false)); //accuracy ~ difference between coeff ?? idk
             }
+            //todo may be i should check weither it is possible to make this refactoring oops
         }
         return refactorings;
     }
@@ -115,75 +116,91 @@ public class JMove extends Algorithm {
     private class Dependencies {
 
         //method calls
-        private Set<String> methodCalls;
-
         //field accesses
-        private Set<String> fieldAccesses;
-
         //object instantiations
-        private Set<String> objectInstantiations;
-
         //local declarations
-        private  Set<String> localDeclarations;
-
-        //return types
-        private String returnType;
-
+        // formal parameters
+        //return type
         //exceptions
-        private Set<String> exceptions;
-
         //annotations
-        private Set<String> annotations;
+
+        private Set<String> all;
 
         //ignoring primitive types and types and annotations from java.lang and java.util
 
-        protected Dependencies(@NotNull MethodEntity methodForDependencies) {
-            methodCalls = methodForDependencies.getRelevantProperties().getMethods(); // todo delete the method itself, add classes not methods
-            fieldAccesses = methodForDependencies.getRelevantProperties().getFields(); //todo add classes not fields
+        protected Dependencies(@NotNull MethodEntity methodForDependencies, @NotNull Map<String, ClassEntity> nameToClassEntity  ) {
+            all = new HashSet<>(); //todo use
 
-            if(methodForDependencies.getPsiMethod().getReturnType() instanceof PsiPrimitiveType
+            //classes of methods that are called inside this method
+            for(String methodName : methodForDependencies.getRelevantProperties().getMethods()) {
+                if(!methodName.equals(methodForDependencies.getName())) //because it's somehow always there
+                    all.add(methodName.substring(0, methodName.lastIndexOf('.')));
+            }
+
+            // classes of fields that the method accesses
+            for(String fieldName : methodForDependencies.getRelevantProperties().getFields()) {
+                PsiType pt = nameToClassEntity.get(fieldName.substring(0, fieldName.lastIndexOf('.'))).getPsiClass().findFieldByName(fieldName.substring(fieldName.lastIndexOf('.') + 1), false).getType();
+                if(!(pt instanceof PsiPrimitiveType)
+                        || pt.getCanonicalText().startsWith("java.lang.")
+                        || pt.getCanonicalText().startsWith("java.util."))
+                    all.add(pt.getCanonicalText());
+            }
+
+            //return type
+            if(methodForDependencies.getPsiMethod().getReturnType() instanceof PsiPrimitiveType //return type
                     || methodForDependencies.getPsiMethod().getReturnType().getCanonicalText().startsWith("java.lang.")
                     ||methodForDependencies.getPsiMethod().getReturnType().getCanonicalText().startsWith("java.util.") )
-                returnType = null;
-            else
-                returnType = methodForDependencies.getPsiMethod().getReturnType().getCanonicalText();
+                all.add(methodForDependencies.getPsiMethod().getReturnType().getCanonicalText()); //idk what is going on here fixme
 
 
-            exceptions = new HashSet<>(); //todo check for internal exception handling may be
+            //exceptions
+            //idk check for internal exception handling may be
             PsiClassType[] referencedTypes = methodForDependencies.getPsiMethod().getThrowsList().getReferencedTypes();
             for(PsiClassType classType : referencedTypes) {
                 if(!(classType.getCanonicalText().startsWith("java.lang.")
                     || classType.getCanonicalText().startsWith("java.util.")))
-                    exceptions.add(classType.getCanonicalText());
+                    all.add(classType.getCanonicalText());
+
             }
 
-            annotations = new HashSet<>();
+            //annotations
             PsiAnnotation[] psiAnnotations = methodForDependencies.getPsiMethod().getModifierList().getAnnotations();
             for(PsiAnnotation psiAnnotation : psiAnnotations) {
                 if(!psiAnnotation.getQualifiedName().startsWith("java.lang.") ||
                         psiAnnotation.getQualifiedName().startsWith("java.util."))
-                annotations.add(psiAnnotation.getQualifiedName());
+                all.add(psiAnnotation.getQualifiedName());
             }
 
-            localDeclarations = new HashSet<>();
-            objectInstantiations = new HashSet<>();
+            //formal parameters
+            for(PsiParameter  parameter: methodForDependencies.getPsiMethod().getParameterList().getParameters()) {
+                if(!((parameter.getType() instanceof PsiPrimitiveType)
+                || parameter.getType().getCanonicalText().startsWith("java.lang")
+                || parameter.getType().getCanonicalText().startsWith("java.util")))
+                    all.add(parameter.getType().getCanonicalText());
+
+            }
+
+
             methodForDependencies.getPsiMethod().accept(new JavaRecursiveElementVisitor() {
                 @Override
                 public void visitLocalVariable(PsiLocalVariable variable) {
                     super.visitLocalVariable(variable);
                     if(!(variable.getType() instanceof PsiPrimitiveType ||
                             variable.getType().getCanonicalText().startsWith("java.lang.") ||
-                            variable.getType().getCanonicalText().startsWith("java.util.")))
-                        localDeclarations.add(variable.getType().getCanonicalText()); //idk
+                            variable.getType().getCanonicalText().startsWith("java.util."))) {
+                        all.add(variable.getType().getCanonicalText());
+                    }
                 }
                 @Override
                 public void visitNewExpression(PsiNewExpression expression) {
                     super.visitNewExpression(expression);
-                    if(!(expression.getClassOrAnonymousClassReference().getQualifiedName().startsWith("java.lang.") ||
-                            expression.getClassOrAnonymousClassReference().getQualifiedName().startsWith("java.util.")))
-                        objectInstantiations.add(expression.getClassOrAnonymousClassReference().getQualifiedName());
+                    if (!(expression.getClassOrAnonymousClassReference().getQualifiedName().startsWith("java.lang.") ||
+                            expression.getClassOrAnonymousClassReference().getQualifiedName().startsWith("java.util."))) {
+                        all.add(expression.getClassOrAnonymousClassReference().getQualifiedName());
+                    }
                 }
-//                @Override idk this way I will find all annotations may be I shouldn't
+
+                //                @Override idk this way I will find all annotations may be I shouldn't
 //                public void visitAnnotation(PsiAnnotation annotation) {
 //                    super.visitAnnotation(annotation);
 //                    if(!annotation.getQualifiedName().startsWith("java.lang.") ||
@@ -195,44 +212,40 @@ public class JMove extends Algorithm {
             });
         }
 
-        private int cardinality() { //idk may be I just need to do one whole set
+        private int cardinality() {
 
-            return    methodCalls.size()
-                    + fieldAccesses.size()
-                    + objectInstantiations.size()
-                    + localDeclarations.size()
-                    + 1 //returnType //fixme may be null if I learn to ignore
-                    + exceptions.size()
-                    + annotations.size();
+            return all.size();
         }
 
         private int calculateIntersectionCardinality(@NotNull Dependencies depSnd) {
-            int intersectionCardinality = 0;
 
-            Set<String> methodCallIntersection = new HashSet<>(methodCalls);
-            methodCallIntersection.retainAll(depSnd.methodCalls);
-            intersectionCardinality += methodCallIntersection.size();
+            Set<String> intersection = new HashSet<>(all);
+            intersection.retainAll(depSnd.all);
 
-            Set<String> instancesIntersection = new HashSet<>(fieldAccesses);
-            instancesIntersection.retainAll(depSnd.fieldAccesses);
-            intersectionCardinality += instancesIntersection.size();
+//            Set<String> methodCallIntersection = new HashSet<>(methodCalls);
+//            methodCallIntersection.retainAll(depSnd.methodCalls);
+//            intersectionCardinality += methodCallIntersection.size();
+//
+//            Set<String> instancesIntersection = new HashSet<>(fieldAccesses);
+//            instancesIntersection.retainAll(depSnd.fieldAccesses);
+//            intersectionCardinality += instancesIntersection.size();
+//
+//            if(returnType.equals(depSnd.returnType))
+//                intersectionCardinality++;
+//
+//            Set<String> exceptionsIntersection = new HashSet<>(exceptions);
+//            exceptionsIntersection.retainAll(depSnd.exceptions);
+//            intersectionCardinality += exceptionsIntersection.size();
+//
+//            Set<String> annotationsIntersection = new HashSet<>(exceptions);
+//            annotationsIntersection.retainAll(depSnd.exceptions);
+//            intersectionCardinality += annotationsIntersection.size();
+//
+//            Set<String> localVariablesIntersection = new HashSet<>(localDeclarations);
+//            localVariablesIntersection.retainAll(depSnd.localDeclarations);
+//            intersectionCardinality += localVariablesIntersection.size();
 
-            if(returnType.equals(depSnd.returnType))
-                intersectionCardinality++;
-
-            Set<String> exceptionsIntersection = new HashSet<>(exceptions);
-            exceptionsIntersection.retainAll(depSnd.exceptions);
-            intersectionCardinality += exceptionsIntersection.size();
-
-            Set<String> annotationsIntersection = new HashSet<>(exceptions);
-            annotationsIntersection.retainAll(depSnd.exceptions);
-            intersectionCardinality += annotationsIntersection.size();
-
-            Set<String> localVariablesIntersection = new HashSet<>(localDeclarations);
-            localVariablesIntersection.retainAll(depSnd.localDeclarations);
-            intersectionCardinality += localVariablesIntersection.size();
-
-            return intersectionCardinality;
+            return intersection.size();
         }
 
     }
