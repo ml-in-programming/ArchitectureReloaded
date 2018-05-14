@@ -60,12 +60,15 @@ public class JMove extends Algorithm {
         for(MethodEntity curMethod : allMethods) {
             if(!curMethod.isMovable())
                 continue;
-            LOGGER.info("Checking " + curMethod.getName());
+            LOGGER.info("Checking " + curMethod.getName()); // todo some logging
 
             Dependencies curDependencies = nameToDependencies.get(curMethod.getName());
-            if(curDependencies.cardinality() < MIN_NUMBER_OF_DEPENDENCIES)
-                continue;
             ClassEntity curClass = nameToClassEntity.get(curMethod.getClassName());
+            if(curDependencies.cardinality() < MIN_NUMBER_OF_DEPENDENCIES //experimental
+                    || curClass.getRelevantProperties().getMethods().size() == 1 //because we calculate similarity between this method and all remaining in curClass
+                    || isGetter(curMethod) //this methods are rarely implemented in the wrong classes
+                    || isSetter(curMethod)) //todo: check if we need this check here and not in other place
+                continue;
             double curSimilarity = calculateSimilarity(curMethod, curClass, nameToDependencies);
             Map<ClassEntity, Double> potentialClasses = new HashMap<>();
             for(ClassEntity potentialClass : allClasses) {
@@ -247,5 +250,21 @@ public class JMove extends Algorithm {
             }
         }
         return bestClass;
+    }
+
+    private boolean isGetter (@NotNull MethodEntity methodEntity) {
+        PsiMethod psiMethod = methodEntity.getPsiMethod();
+        int numSt = psiMethod.getBody().getStatements().length;
+        if(psiMethod.getParameterList().getParametersCount() == 0 && numSt == 1)
+            return true;
+        return false;
+    }
+
+    private boolean isSetter(@NotNull MethodEntity methodEntity) {
+        PsiMethod psiMethod = methodEntity.getPsiMethod();
+        int numSt = psiMethod.getBody().getStatements().length;
+        if(psiMethod.getParameterList().getParametersCount() == 1 && numSt == 1)
+            return true;
+        return false;
     }
 }
