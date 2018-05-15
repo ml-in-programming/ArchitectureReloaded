@@ -35,7 +35,7 @@ public class NumPublicMethodsClassCalculator extends ClassCalculator {
             }
             postMetric(aClass, Arrays.stream(
                     aClass.getMethods()).filter(
-                            x -> x.hasModifierProperty(
+                            x -> !x.isConstructor() && x.hasModifierProperty(
                                     PsiModifier.PUBLIC)).count());
         }
     }

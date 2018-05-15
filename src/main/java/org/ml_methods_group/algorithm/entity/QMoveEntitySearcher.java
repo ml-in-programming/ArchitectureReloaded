@@ -81,7 +81,6 @@ public class QMoveEntitySearcher  {
         final List<ClassEntity> classes = new ArrayList<>();
         final List<MethodEntity> methods = new ArrayList<>();
         final List<FieldEntity> fields = new ArrayList<>();
-        final List<QMoveClassEntity> qMoveClasses = new ArrayList<>();
         final List<Entity> validEntities = new ArrayList<>();
         for (Entity entity : entities.values()) {
             indicator.checkCanceled();
@@ -95,7 +94,6 @@ public class QMoveEntitySearcher  {
             switch (entity.getCategory()) {
                 case Class:
                     classes.add((ClassEntity) entity);
-                    qMoveClasses.add((QMoveClassEntity) entity);
                     break;
                 case Method:
                     methods.add((MethodEntity) entity);
@@ -107,10 +105,9 @@ public class QMoveEntitySearcher  {
         }
         LOGGER.info("Properties calculated");
         LOGGER.info("Generated " + classes.size() + " class entities");
-        LOGGER.info("Generated " + qMoveClasses.size() + "QMove class entities");
         LOGGER.info("Generated " + methods.size() + " method entities");
         LOGGER.info("Generated " + fields.size() + " field entities");
-        return new QMoveEntitySearchResult(classes, methods, fields, System.currentTimeMillis() - startTime, qMoveClasses);
+        return new QMoveEntitySearchResult(classes, methods, fields, System.currentTimeMillis() - startTime, scope);
     }
 
     private class UnitsFinder extends JavaRecursiveElementVisitor {
@@ -132,6 +129,7 @@ public class QMoveEntitySearcher  {
                 return;
             }
             entities.put(aClass, new QMoveClassEntity(aClass));
+            QMoveClassEntity.userDefinedClasses.add(aClass);
             super.visitClass(aClass);
         }
 
@@ -151,7 +149,7 @@ public class QMoveEntitySearcher  {
                 return;
             }
             indicator.checkCanceled();
-            entities.put(method, new MethodEntity(method));
+            entities.put(method, new QMoveMethodEntity(method));
             super.visitMethod(method);
         }
     }

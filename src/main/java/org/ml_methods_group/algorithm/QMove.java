@@ -17,18 +17,25 @@
 package org.ml_methods_group.algorithm;
 
 
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiVariable;
+import com.intellij.refactoring.move.moveInstanceMethod.MoveInstanceMethodDialog;
+import com.intellij.refactoring.move.moveInstanceMethod.MoveInstanceMethodHandler;
+import com.intellij.refactoring.move.moveInstanceMethod.MoveInstanceMethodProcessor;
+import com.intellij.util.VisibilityUtil;
+import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.entity.*;
-import org.ml_methods_group.config.Logging;
-import org.ml_methods_group.utils.AlgorithmsUtil;
+import org.ml_methods_group.utils.RefactoringUtil;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
+import static com.intellij.testFramework.LightPlatformTestCase.getProject;
+import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
+
 public class QMove extends Algorithm {
-    private List<MethodEntity> methodEntities = new ArrayList<>();
+    private List<QMoveMethodEntity> methodEntities = new ArrayList<>();
     private final List<QMoveClassEntity> classes = new ArrayList<>();
     private final Map<String, QMoveClassEntity> qMoveClassesByName = new HashMap<>();
     private double complexity;
@@ -42,6 +49,7 @@ public class QMove extends Algorithm {
     private double composition;
     private double inheritance;
     private double size;
+    private QMoveEntitySearchResult searchResult;
     public QMove() {
         super("Quality-orientated Move Method Refactoring", true);
     }
@@ -49,44 +57,52 @@ public class QMove extends Algorithm {
     @Override
     protected List<Refactoring> calculateRefactorings(
             ExecutionContext context, boolean enableFieldRefactorings) throws Exception {
-        final QMoveEntitySearchResult searchResult = (QMoveEntitySearchResult)context.getEntities();
+        searchResult = (QMoveEntitySearchResult)context.getEntities();
         methodEntities.clear();
         classes.clear();
         Stream.of(searchResult.getMethods())
                 .flatMap(List::stream)
                 .filter(Entity::isMovable)
+                .map(x -> (QMoveMethodEntity)x)
                 .forEach(methodEntities::add);
 
-        searchResult.getqMoveClasses()
+        searchResult.getClasses()
                 .stream()
+                .map(x -> (QMoveClassEntity)x)
                 .peek(entity -> qMoveClassesByName.put(entity.getName(), entity))
                 .forEach(classes::add);
 
         ArrayList<Refactoring> refactorings = new ArrayList<>();
-        for(MethodEntity methodEntity : methodEntities){
+
+        for(QMoveMethodEntity methodEntity : methodEntities){
             findBestMoveForMethod(methodEntity, refactorings);
+        }
+        for(Refactoring refactoring : refactorings){
+            System.err.println(refactoring.getTarget() +
+                    " " + refactoring.getUnit() + " " + refactoring.getAccuracy());
         }
         return refactorings;
     }
 
 
 
-    private List<Refactoring> findBestMoveForMethod(MethodEntity method,
+    private List<Refactoring> findBestMoveForMethod(QMoveMethodEntity method,
                                                     List<Refactoring> refactorings){
         double bestFitness = fitness();
         QMoveClassEntity targetForThisMethod = null;
         for(QMoveClassEntity targetClass : classes){
             QMoveClassEntity containingClass = qMoveClassesByName.get(
                     method.getClassName());
-            containingClass.removeFromClass(method.getName());
-            targetClass.addMethod(method.getName());
+            if(containingClass.equals(targetClass)){
+                continue;
+            }
+            moveMethod(method.getPsiMethod(), targetClass, containingClass);
             double newFitness = fitness();
             if(newFitness > bestFitness){
                 bestFitness = newFitness;
                 targetForThisMethod =  targetClass;
             }
-            targetClass.removeFromClass(method.getName());
-            containingClass.addToClass(method.getName());
+            moveMethod(method.getPsiMethod(), containingClass, targetClass);
             double fitness = fitness();
         }
         if(targetForThisMethod != null){
@@ -146,5 +162,22 @@ public class QMove extends Algorithm {
         calculateMetrics();
         return reusability() + flexibility() + understandability() +
                 functionality() + extendibility() + effectiveness();
+    }
+
+    private void moveMethod(PsiMethod method, QMoveClassEntity target, QMoveClassEntity containingClass){
+        containingClass.removeMethod(method);
+        target.addMethod(method);
+        for(QMoveClassEntity entity : classes){
+            if(entity.getName().equals(target.getName()) ||
+                    entity.getName().equals(containingClass.getName())){
+                continue;
+            }
+            if(entity.getPsiClass().isInheritor(target.getPsiClass(), true)){
+                entity.recalculateInheritance(true);
+            }
+            if(entity.getPsiClass().isInheritor(containingClass.getPsiClass(), true)){
+                entity.recalculateInheritance(false);
+            }
+        }
     }
 }

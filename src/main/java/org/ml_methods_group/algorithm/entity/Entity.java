@@ -58,8 +58,8 @@ public abstract class Entity {
     protected boolean isMovable = true;
 
     public Entity(PsiElement element) {
-        this.name = PsiSearchUtil.getHumanReadableName(element);
-        relevantProperties = new RelevantProperties();
+       this.name = PsiSearchUtil.getHumanReadableName(element);
+       relevantProperties = new RelevantProperties();
     }
 
     protected Entity(Entity original) {

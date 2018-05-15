@@ -34,7 +34,7 @@ public class DataAccessClassCalculator extends ClassCalculator {
                 return;
             }
             PsiField[] fields = aClass.getFields();
-            if(fields.length == 0){
+            if (fields.length == 0) {
                 postMetric(aClass, 0);
                 return;
             }

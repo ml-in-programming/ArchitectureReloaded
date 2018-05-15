@@ -16,21 +16,26 @@
 
 package org.ml_methods_group.algorithm.entity;
 
-import com.intellij.psi.PsiClass;
+import com.intellij.psi.*;
+import com.intellij.psi.util.PsiUtil;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.stockmetrics.classMetrics.*;
 import com.sixrr.stockmetrics.projectMetrics.*;
 import org.jetbrains.annotations.NotNull;
+import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class QMoveClassEntity extends ClassEntity {
+    static Set<PsiClass> userDefinedClasses = new HashSet<>();
     private double complexity;
     private double polymorphism;
     private double abstraction;
@@ -42,10 +47,14 @@ public class QMoveClassEntity extends ClassEntity {
     private double composition;
     private double inheritance;
 
+    private int numOfAllMethods;
+    private PsiClass psiClass;
+    private Map<String, PsiMethod> methods;
+
     private static final VectorCalculator QMOOD_CALCULATOR = new VectorCalculator()
             .addMetricDependence(NumMethodsClassMetric.class) //Complexity 0
-            .addMetricDependence(MeasureOfFunctionalAbstractionMetric.class)  //Inheritance 1
-            .addMetricDependence(NumPolymorphicMethodsProjectMetric.class)  //Polymorphism 2
+            .addMetricDependence(NumOperationsInheritedMetric.class)  //Inheritance 1
+            .addMetricDependence(NumOperationsOverriddenMetric.class)  //Polymorphism 2
             .addMetricDependence(NumAncestorsClassMetric.class) //Abstraction 3
             .addMetricDependence(IsRootOfHierarchyClassMetric.class) //Hierarchies 4
             .addMetricDependence(DataAccessClassMetric.class) //Encapsulation 5
@@ -56,8 +65,10 @@ public class QMoveClassEntity extends ClassEntity {
 
     QMoveClassEntity(PsiClass psiClass) {
         super(psiClass);
+        this.psiClass = psiClass;
+        methods = Stream.of(psiClass.getMethods())
+                .collect(Collectors.toMap(PsiSearchUtil::getHumanReadableName, Function.identity()));
     }
-
 
     @Override
     void calculateVector(MetricsRun metricsRun) {
@@ -72,6 +83,7 @@ public class QMoveClassEntity extends ClassEntity {
         cohesion = vector[8];
         composition = vector[9];
         inheritance = vector[1];
+        numOfAllMethods = psiClass.getAllMethods().length;
     }
 
     @Override
@@ -128,7 +140,10 @@ public class QMoveClassEntity extends ClassEntity {
     }
 
     public double getInheritance() {
-        return inheritance;
+        if(numOfAllMethods == 0){
+            return 0;
+        }
+        return inheritance / numOfAllMethods;
     }
 
     public double getMessaging() {
@@ -143,47 +158,81 @@ public class QMoveClassEntity extends ClassEntity {
         return QMOOD_CALCULATOR.getRequestedMetrics();
     }
 
-    public void addMethod(String method){
-        getRelevantProperties().addMethod(method);
+    public void addMethod(PsiMethod method) {
+        methods.put(PsiSearchUtil.getHumanReadableName(method), method);
         complexity++;
+        if(method.hasModifierProperty(PsiModifier.PUBLIC)){
+            messaging++;
+        }
         recalculateCoupling();
         recalculateCohesion();
+        numOfAllMethods++;
     }
 
-    public void removeMethod(String method){
-        getRelevantProperties().removeMethod(method);
+    public void removeMethod(PsiMethod method){
+        methods.remove(PsiSearchUtil.getHumanReadableName(method));
         complexity--;
+        if(method.hasModifierProperty(PsiModifier.PUBLIC)){
+            messaging--;
+        }
         recalculateCoupling();
         recalculateCohesion();
+        numOfAllMethods--;
     }
 
     private void recalculateCoupling() {
-        Set<String> relatedClasses = new HashSet<>();
-        relatedClasses.addAll(
-                getRelevantProperties().getFields().stream().map(
-                        this::extractClassnameFromField)
-                        .filter(x -> !Objects.equals(x, "")).
-                        collect(Collectors.toSet()));
-        relatedClasses.addAll(
-                getRelevantProperties().getMethods().stream()
-                        .flatMap(this::extractParametersFromMethod)
-                        .filter(x -> !Objects.equals(x, ""))
-                .collect(Collectors.toSet()));
-        coupling = relatedClasses.size();
+            Set<PsiClass> classes = new HashSet<>();
+            PsiField[] fields = psiClass.getFields();
+            for (PsiField field : fields) {
+                if (!field.isPhysical()) {
+                    continue;
+                }
+                PsiType type = field.getType().getDeepComponentType();
+                PsiClass classInType = PsiUtil.resolveClassInType(type);
+                if (classInType == null) {
+                    continue;
+                }
+                classes.add(classInType);
+            }
+            for (Map.Entry<String, PsiMethod> method : methods.entrySet()) {
+                PsiParameter[] parameters = method.getValue().getParameterList().getParameters();
+                for (PsiParameter parameter : parameters) {
+                    PsiTypeElement typeElement = parameter.getTypeElement();
+                    if (typeElement == null) {
+                        continue;
+                    }
+                    PsiType type = typeElement.getType().getDeepComponentType();
+                    PsiClass classInType = PsiUtil.resolveClassInType(type);
+                    if (classInType == null) {
+                        continue;
+                    }
+                    classes.add(classInType);
+                }
+            }
+            coupling = classes.size();
     }
 
+
     private void recalculateCohesion(){
-        int totalSize =
-                getRelevantProperties().getMethods().stream()
-                        .flatMap(this::extractParametersFromMethod).collect(
-                                Collectors.toSet()
-                ).size();
-        double sum = getRelevantProperties().getMethods().stream()
-                .mapToDouble(x -> extractParametersFromMethod(x).collect(
-                        Collectors.toSet()
-                ).size()).sum();
-        cohesion = totalSize == 0 ? 0 : sum / (totalSize *
-                getRelevantProperties().getMethods().size());
+        double sumIntersection = 0;
+        int numMethods = 0;
+        Set<PsiType> parameters = new HashSet<>();
+        for(Map.Entry<String, PsiMethod> methodEntry : methods.entrySet()){
+            PsiMethod method = methodEntry.getValue();
+            if(method.isConstructor() || method.hasModifierProperty(PsiModifier.STATIC)){
+                continue;
+            }
+            numMethods++;
+            Set<PsiType> parametersInMethod = Stream.of(method.getParameterList()).
+                    flatMap(x -> Stream.of(x.getParameters())).
+                    map(PsiVariable::getType).collect(Collectors.toSet());
+            sumIntersection += parametersInMethod.size();
+            parameters.addAll(parametersInMethod);
+        }
+        if(parameters.size() == 0){
+            return;
+        }
+        cohesion = sumIntersection / numMethods * parameters.size();
     }
 
     private String extractClassnameFromField(String s){
@@ -196,5 +245,20 @@ public class QMoveClassEntity extends ClassEntity {
     private Stream<String> extractParametersFromMethod(String s){
         String params = s.substring(s.indexOf("(") + 1, s.indexOf(")"));
         return Stream.of(params.split(","));
+    }
+
+    public void recalculateInheritance(boolean increment){
+        if(increment){
+            inheritance++;
+            numOfAllMethods++;
+        }
+        else{
+            inheritance--;
+            numOfAllMethods--;
+        }
+    }
+
+    public PsiClass getPsiClass() {
+        return psiClass;
     }
 }

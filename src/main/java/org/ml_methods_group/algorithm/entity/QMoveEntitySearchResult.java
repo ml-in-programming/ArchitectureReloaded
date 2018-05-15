@@ -16,6 +16,8 @@
 
 package org.ml_methods_group.algorithm.entity;
 
+import com.intellij.analysis.AnalysisScope;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
@@ -23,17 +25,17 @@ import java.util.stream.Stream;
 public class QMoveEntitySearchResult extends EntitySearchResult {
     private final List<MethodEntity> methods;
     private final List<FieldEntity> fields;
-    private final List<QMoveClassEntity> qMoveClasses;
     private final int propertiesCount;
     private final long searchTime;
+    private final AnalysisScope scope;
 
     public QMoveEntitySearchResult(List<ClassEntity> classes, List<MethodEntity> methods, List<FieldEntity> fields,
-                              long searchTime, List<QMoveClassEntity> qMoveClassEntities) {
+                              long searchTime, AnalysisScope scope) {
         super(classes, methods, fields, searchTime);
         this.methods = methods;
         this.fields = fields;
         this.searchTime = searchTime;
-        qMoveClasses = qMoveClassEntities;
+        this.scope = scope;
         propertiesCount = Stream.of(classes, methods, fields)
                 .flatMap(List::stream)
                 .map(Entity::getRelevantProperties)
@@ -41,8 +43,8 @@ public class QMoveEntitySearchResult extends EntitySearchResult {
                 .sum();
     }
 
-    public List<QMoveClassEntity> getqMoveClasses() {
-        return Collections.unmodifiableList(qMoveClasses);
+    public AnalysisScope getScope() {
+        return scope;
     }
 
     public List<MethodEntity> getMethods() {
