@@ -1,0 +1,64 @@
+/*
+ * Copyright 2018 Machine Learning Methods in Software Engineering Group of JetBrains Research
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.ml_methods_group.utils;
+
+import com.intellij.psi.*;
+import com.intellij.psi.util.PsiUtil;
+
+import java.util.Map;
+
+public class QMoveUtil {
+    public static void calculateRelatedClasses(PsiMethod method, Map<PsiClass, Integer> relatedClasses){
+        PsiParameter[] parameters = method.getParameterList().getParameters();
+        for (PsiParameter parameter : parameters) {
+            PsiTypeElement typeElement = parameter.getTypeElement();
+            if (typeElement == null) {
+                continue;
+            }
+            PsiType type = typeElement.getType().getDeepComponentType();
+            PsiClass classInType = PsiUtil.resolveClassInType(type);
+            if (classInType == null) {
+                continue;
+            }
+            relatedClasses.put(classInType,
+                    relatedClasses.getOrDefault(classInType, 0) + 1);
+        }
+    }
+
+    public static <T> void  removeFromUnion(Map<T, Integer> union, Map<T, Integer> set){
+        for(Map.Entry<T, Integer> item : set.entrySet()){
+            int remove = item.getValue();
+            T key = item.getKey();
+            int present = union.get(key);
+            if(remove == present){
+                union.remove(key);
+            }
+            else {
+                union.put(key, present - remove);
+            }
+        }
+    }
+
+    public static <T> void addToUnion(Map<T, Integer> union, Map<T, Integer> set){
+        for(Map.Entry<T, Integer> item : set.entrySet()){
+            int add = item.getValue();
+           T key = item.getKey();
+            int present = union.getOrDefault(key, 0);
+            union.put(key, present + add);
+        }
+    }
+}

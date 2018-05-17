@@ -22,14 +22,10 @@ import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.stockmetrics.classMetrics.*;
-import com.sixrr.stockmetrics.projectMetrics.*;
-import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.utils.PsiSearchUtil;
+import org.ml_methods_group.utils.QMoveUtil;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,6 +46,7 @@ public class QMoveClassEntity extends ClassEntity {
     private int numOfAllMethods;
     private PsiClass psiClass;
     private Map<String, PsiMethod> methods;
+    private Map<PsiClass, Integer> relatedClasses = new HashMap<>();
 
     private static final VectorCalculator QMOOD_CALCULATOR = new VectorCalculator()
             .addMetricDependence(NumMethodsClassMetric.class) //Complexity 0
@@ -58,7 +55,7 @@ public class QMoveClassEntity extends ClassEntity {
             .addMetricDependence(NumAncestorsClassMetric.class) //Abstraction 3
             .addMetricDependence(IsRootOfHierarchyClassMetric.class) //Hierarchies 4
             .addMetricDependence(DataAccessClassMetric.class) //Encapsulation 5
-            .addMetricDependence(DirectClassCouplingMetric.class) //Coupling 6
+            //.addMetricDependence(DirectClassCouplingMetric.class) //Coupling 6
             .addMetricDependence(NumPublicMethodsClassMetric.class) //Messaging 7
             .addMetricDependence(CohesionAmongMethodsOfClassMetric.class) //Cohesion 8
             .addMetricDependence(MeasureOfAggregationClassMetric.class); //Composition 9
@@ -78,12 +75,12 @@ public class QMoveClassEntity extends ClassEntity {
         abstraction = vector[3];
         hierarchies = vector[4];
         encapsulation = vector[5];
-        coupling = vector[6];
-        messaging = vector[7];
-        cohesion = vector[8];
-        composition = vector[9];
+        messaging = vector[6];
+        cohesion = vector[7];
+        composition = vector[8];
         inheritance = vector[1];
         numOfAllMethods = psiClass.getAllMethods().length;
+        coupling = calculateRelatedClasses();
     }
 
     @Override
@@ -158,30 +155,41 @@ public class QMoveClassEntity extends ClassEntity {
         return QMOOD_CALCULATOR.getRequestedMetrics();
     }
 
-    public void addMethod(PsiMethod method) {
-        methods.put(PsiSearchUtil.getHumanReadableName(method), method);
+    public void addMethod(QMoveMethodEntity entity) {
+        PsiMethod method = entity.getPsiMethod();
+        methods.put(entity.getName(), method);
         complexity++;
         if(method.hasModifierProperty(PsiModifier.PUBLIC)){
             messaging++;
         }
-        recalculateCoupling();
+        recalculateCoupling(entity, true);
         recalculateCohesion();
         numOfAllMethods++;
     }
 
-    public void removeMethod(PsiMethod method){
-        methods.remove(PsiSearchUtil.getHumanReadableName(method));
+    public void removeMethod(QMoveMethodEntity methodEntity){
+        methods.remove(methodEntity.getName());
         complexity--;
+        PsiMethod method = methodEntity.getPsiMethod();
         if(method.hasModifierProperty(PsiModifier.PUBLIC)){
             messaging--;
         }
-        recalculateCoupling();
+        recalculateCoupling(methodEntity, false);
         recalculateCohesion();
         numOfAllMethods--;
     }
 
-    private void recalculateCoupling() {
-            Set<PsiClass> classes = new HashSet<>();
+    private void recalculateCoupling(QMoveMethodEntity entity, boolean add) {
+        if(add){
+            QMoveUtil.addToUnion(relatedClasses, entity.getRelatedClasses());
+        }
+        else {
+            QMoveUtil.removeFromUnion(relatedClasses, entity.getRelatedClasses());
+        }
+        coupling = relatedClasses.size();
+    }
+
+    private int calculateRelatedClasses() {
             PsiField[] fields = psiClass.getFields();
             for (PsiField field : fields) {
                 if (!field.isPhysical()) {
@@ -192,24 +200,13 @@ public class QMoveClassEntity extends ClassEntity {
                 if (classInType == null) {
                     continue;
                 }
-                classes.add(classInType);
+                relatedClasses.put(classInType,
+                        relatedClasses.getOrDefault(classInType, 0));
             }
             for (Map.Entry<String, PsiMethod> method : methods.entrySet()) {
-                PsiParameter[] parameters = method.getValue().getParameterList().getParameters();
-                for (PsiParameter parameter : parameters) {
-                    PsiTypeElement typeElement = parameter.getTypeElement();
-                    if (typeElement == null) {
-                        continue;
-                    }
-                    PsiType type = typeElement.getType().getDeepComponentType();
-                    PsiClass classInType = PsiUtil.resolveClassInType(type);
-                    if (classInType == null) {
-                        continue;
-                    }
-                    classes.add(classInType);
-                }
+                QMoveUtil.calculateRelatedClasses(method.getValue(), relatedClasses);
             }
-            coupling = classes.size();
+            return relatedClasses.size();
     }
 
 
@@ -233,18 +230,6 @@ public class QMoveClassEntity extends ClassEntity {
             return;
         }
         cohesion = sumIntersection / numMethods * parameters.size();
-    }
-
-    private String extractClassnameFromField(String s){
-        String[] strings = s.split("\\.");
-        assert strings.length > 1;
-        return strings[strings.length - 2];
-    }
-
-    @NotNull
-    private Stream<String> extractParametersFromMethod(String s){
-        String params = s.substring(s.indexOf("(") + 1, s.indexOf(")"));
-        return Stream.of(params.split(","));
     }
 
     public void recalculateInheritance(boolean increment){

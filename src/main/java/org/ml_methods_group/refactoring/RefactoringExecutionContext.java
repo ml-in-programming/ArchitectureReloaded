@@ -120,6 +120,7 @@ public class RefactoringExecutionContext {
                                 -> QMoveEntitySearcher.analyze(scope, metricsRun));
                 final Algorithm qMoveAlgorithm = new QMove();
                 final AlgorithmResult result = qMoveAlgorithm.execute(qMoveEntitySearchResult, executorService, isFieldRefactoringAvailable);
+                algorithmsResults.add(result);
             }
             else{
                 calculateAlgorithmForName(algorithm);

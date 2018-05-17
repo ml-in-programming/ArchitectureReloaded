@@ -16,16 +16,23 @@
 
 package org.ml_methods_group.algorithm.entity;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMethod;
+import com.intellij.psi.*;
+import com.intellij.psi.util.PsiUtil;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.ml_methods_group.utils.PSIUtil;
+import org.ml_methods_group.utils.QMoveUtil;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class QMoveMethodEntity extends MethodEntity {
     private final PsiMethod psiMethod;
+    private boolean containsPrivateCalls;
+    private boolean isContainsOnlyPublicCalls;
+
+    private Map<PsiClass, Integer> relatedClasses = new HashMap<>();
 
     QMoveMethodEntity(PsiMethod method) {
         super(method);
@@ -33,7 +40,9 @@ public class QMoveMethodEntity extends MethodEntity {
     }
 
     @Override
-    void calculateVector(MetricsRun metricsRun) { }
+    void calculateVector(MetricsRun metricsRun) {
+        QMoveUtil.calculateRelatedClasses(psiMethod, relatedClasses);
+    }
 
     public PsiMethod getPsiMethod() {
         return psiMethod;
@@ -66,5 +75,9 @@ public class QMoveMethodEntity extends MethodEntity {
             getAllInnerClasses(psiClass, innerClasses);
         }
         return innerClasses;
+    }
+
+    Map<PsiClass, Integer> getRelatedClasses() {
+        return relatedClasses;
     }
 }
