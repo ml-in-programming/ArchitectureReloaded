@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class QMoveClassEntity extends ClassEntity {
-    static Set<PsiClass> userDefinedClasses = new HashSet<>();
+    static Map<PsiClass, List<QMoveMethodEntity>> allNoneStaticMethods = new HashMap<>();
     private double complexity;
     private double polymorphism;
     private double abstraction;
@@ -43,10 +43,13 @@ public class QMoveClassEntity extends ClassEntity {
     private double composition;
     private double inheritance;
 
-    private int numOfAllMethods;
+    private double numOfAllMethods;
+    private int numOfNoneStaticMethods;
     private PsiClass psiClass;
+    private double sumIntersection;
     private Map<String, PsiMethod> methods;
     private Map<PsiClass, Integer> relatedClasses = new HashMap<>();
+    private Map<PsiType, Integer> parametersOfMethods = new HashMap<>();
 
     private static final VectorCalculator QMOOD_CALCULATOR = new VectorCalculator()
             .addMetricDependence(NumMethodsClassMetric.class) //Complexity 0
@@ -63,8 +66,6 @@ public class QMoveClassEntity extends ClassEntity {
     QMoveClassEntity(PsiClass psiClass) {
         super(psiClass);
         this.psiClass = psiClass;
-        methods = Stream.of(psiClass.getMethods())
-                .collect(Collectors.toMap(PsiSearchUtil::getHumanReadableName, Function.identity()));
     }
 
     @Override
@@ -79,8 +80,14 @@ public class QMoveClassEntity extends ClassEntity {
         cohesion = vector[7];
         composition = vector[8];
         inheritance = vector[1];
-        numOfAllMethods = psiClass.getAllMethods().length;
-        coupling = calculateRelatedClasses();
+
+        numOfAllMethods = inheritance + complexity;
+
+        Stream.of(psiClass.getAllMethods()).forEach(x -> System.out.println(x.getName()));
+        methods = Stream.of(psiClass.getMethods()).collect(
+                Collectors.toMap(PsiSearchUtil::getHumanReadableName, Function.identity())
+        );
+        coupling = calculateCoupling();
     }
 
     @Override
@@ -117,6 +124,12 @@ public class QMoveClassEntity extends ClassEntity {
     }
 
     public double getCohesion() {
+        if(parametersOfMethods.isEmpty()){
+            double coh = calculateCohesion();
+            if(coh != cohesion){
+                System.err.println("Wrong cohesion");
+            }
+        }
         return cohesion;
     }
 
@@ -163,8 +176,29 @@ public class QMoveClassEntity extends ClassEntity {
             messaging++;
         }
         recalculateCoupling(entity, true);
-        recalculateCohesion();
+        recalculateCohesion(entity, true);
         numOfAllMethods++;
+    }
+
+    private void recalculateCohesion(QMoveMethodEntity entity, boolean add) {
+        if(entity.getPsiMethod().hasModifierProperty(PsiModifier.STATIC)){
+            return;
+        }
+        if(add){
+            numOfNoneStaticMethods++;
+            sumIntersection += entity.getParameters().size();
+            QMoveUtil.addToUnion(parametersOfMethods, entity.getParameters());
+        }
+        else {
+            numOfNoneStaticMethods--;
+            sumIntersection -= entity.getParameters().size();
+            QMoveUtil.removeFromUnion(parametersOfMethods, entity.getParameters());
+        }
+        if(parametersOfMethods.size() == 0){
+            cohesion = 0;
+            return;
+        }
+        cohesion = sumIntersection / numOfNoneStaticMethods * parametersOfMethods.size();
     }
 
     public void removeMethod(QMoveMethodEntity methodEntity){
@@ -175,7 +209,7 @@ public class QMoveClassEntity extends ClassEntity {
             messaging--;
         }
         recalculateCoupling(methodEntity, false);
-        recalculateCohesion();
+        recalculateCohesion(methodEntity, false);
         numOfAllMethods--;
     }
 
@@ -189,7 +223,8 @@ public class QMoveClassEntity extends ClassEntity {
         coupling = relatedClasses.size();
     }
 
-    private int calculateRelatedClasses() {
+    private int calculateCoupling() {
+        QMoveUtil.incrementMapValue(psiClass, relatedClasses);
             PsiField[] fields = psiClass.getFields();
             for (PsiField field : fields) {
                 if (!field.isPhysical()) {
@@ -200,8 +235,7 @@ public class QMoveClassEntity extends ClassEntity {
                 if (classInType == null) {
                     continue;
                 }
-                relatedClasses.put(classInType,
-                        relatedClasses.getOrDefault(classInType, 0));
+                QMoveUtil.incrementMapValue(classInType, relatedClasses);
             }
             for (Map.Entry<String, PsiMethod> method : methods.entrySet()) {
                 QMoveUtil.calculateRelatedClasses(method.getValue(), relatedClasses);
@@ -210,26 +244,25 @@ public class QMoveClassEntity extends ClassEntity {
     }
 
 
-    private void recalculateCohesion(){
-        double sumIntersection = 0;
-        int numMethods = 0;
-        Set<PsiType> parameters = new HashSet<>();
+    private double calculateCohesion(){
+        sumIntersection = allNoneStaticMethods.entrySet().stream()
+                .filter(x -> x.getKey().equals(psiClass))
+                .map(Map.Entry::getValue)
+                .flatMap(List::stream)
+                .peek(x -> System.err.println(x.getName()))
+                .mapToInt(x -> x.getParameters().size()).sum();
         for(Map.Entry<String, PsiMethod> methodEntry : methods.entrySet()){
             PsiMethod method = methodEntry.getValue();
             if(method.isConstructor() || method.hasModifierProperty(PsiModifier.STATIC)){
                 continue;
             }
-            numMethods++;
-            Set<PsiType> parametersInMethod = Stream.of(method.getParameterList()).
-                    flatMap(x -> Stream.of(x.getParameters())).
-                    map(PsiVariable::getType).collect(Collectors.toSet());
-            sumIntersection += parametersInMethod.size();
-            parameters.addAll(parametersInMethod);
+            QMoveUtil.calculateMethodParameters(method, parametersOfMethods);
+            numOfNoneStaticMethods++;
         }
-        if(parameters.size() == 0){
-            return;
+        if(parametersOfMethods.size() == 0){
+            return 0;
         }
-        cohesion = sumIntersection / numMethods * parameters.size();
+        return  sumIntersection / numOfNoneStaticMethods * parametersOfMethods.size();
     }
 
     public void recalculateInheritance(boolean increment){

@@ -20,6 +20,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.util.PsiUtil;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class QMoveUtil {
     public static void calculateRelatedClasses(PsiMethod method, Map<PsiClass, Integer> relatedClasses){
@@ -34,8 +35,7 @@ public class QMoveUtil {
             if (classInType == null) {
                 continue;
             }
-            relatedClasses.put(classInType,
-                    relatedClasses.getOrDefault(classInType, 0) + 1);
+            incrementMapValue(classInType, relatedClasses);
         }
     }
 
@@ -56,9 +56,20 @@ public class QMoveUtil {
     public static <T> void addToUnion(Map<T, Integer> union, Map<T, Integer> set){
         for(Map.Entry<T, Integer> item : set.entrySet()){
             int add = item.getValue();
-           T key = item.getKey();
+            T key = item.getKey();
             int present = union.getOrDefault(key, 0);
             union.put(key, present + add);
         }
+    }
+
+    public static <T> void incrementMapValue(T t, Map<T, Integer> map){
+            map.put(t,
+                    map.getOrDefault(t, 0) + 1);
+    }
+
+    public static void calculateMethodParameters(PsiMethod method, Map<PsiType, Integer> parameters){
+        Stream.of(method.getParameterList()).
+                flatMap(x -> Stream.of(x.getParameters())).
+                map(PsiVariable::getType).forEach(x -> incrementMapValue(x, parameters));
     }
 }

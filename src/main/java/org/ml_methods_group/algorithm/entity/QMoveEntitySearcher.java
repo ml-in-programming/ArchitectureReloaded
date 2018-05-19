@@ -87,6 +87,7 @@ public class QMoveEntitySearcher  {
             try {
                 entity.calculateVector(metricsRun);
             } catch (Exception e) {
+                e.printStackTrace();
                 LOGGER.warn("Failed to calculate vector for " + entity.getName());
                 continue;
             }
@@ -97,6 +98,14 @@ public class QMoveEntitySearcher  {
                     break;
                 case Method:
                     methods.add((MethodEntity) entity);
+                    if(((QMoveMethodEntity)entity).getPsiMethod().hasModifierProperty(PsiModifier.STATIC)){
+                        break;
+                    }
+                    PsiClass containingClass = ((QMoveMethodEntity)entity).getPsiMethod().getContainingClass();
+                    if(!QMoveClassEntity.allNoneStaticMethods.containsKey(containingClass)){
+                        QMoveClassEntity.allNoneStaticMethods.put(containingClass, new ArrayList<>());
+                    }
+                    QMoveClassEntity.allNoneStaticMethods.get(containingClass).add((QMoveMethodEntity) entity);
                     break;
                 default:
                     fields.add((FieldEntity) entity);
@@ -129,7 +138,6 @@ public class QMoveEntitySearcher  {
                 return;
             }
             entities.put(aClass, new QMoveClassEntity(aClass));
-            QMoveClassEntity.userDefinedClasses.add(aClass);
             super.visitClass(aClass);
         }
 

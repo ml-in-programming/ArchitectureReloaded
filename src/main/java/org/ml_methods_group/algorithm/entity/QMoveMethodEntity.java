@@ -33,6 +33,8 @@ public class QMoveMethodEntity extends MethodEntity {
     private boolean isContainsOnlyPublicCalls;
 
     private Map<PsiClass, Integer> relatedClasses = new HashMap<>();
+    private Map<PsiType, Integer> parameters = new HashMap<>();
+
 
     QMoveMethodEntity(PsiMethod method) {
         super(method);
@@ -42,10 +44,16 @@ public class QMoveMethodEntity extends MethodEntity {
     @Override
     void calculateVector(MetricsRun metricsRun) {
         QMoveUtil.calculateRelatedClasses(psiMethod, relatedClasses);
+        QMoveUtil.calculateMethodParameters(psiMethod, parameters);
+        //assert res == parameters.size();
     }
 
-    public PsiMethod getPsiMethod() {
+    PsiMethod getPsiMethod() {
         return psiMethod;
+    }
+
+    Map<PsiType, Integer> getParameters(){
+        return parameters;
     }
 
     public boolean isValidMoveToClass(PsiClass targetClass){

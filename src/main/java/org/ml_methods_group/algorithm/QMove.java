@@ -65,7 +65,7 @@ public class QMove extends Algorithm {
                 .map(x -> (QMoveClassEntity)x)
                 .peek(entity -> qMoveClassesByName.put(entity.getName(), entity))
                 .forEach(classes::add);
-
+        calculateMetrics();
         ArrayList<Refactoring> refactorings = new ArrayList<>();
 
         for(QMoveMethodEntity methodEntity : methodEntities){
@@ -82,7 +82,8 @@ public class QMove extends Algorithm {
 
     private List<Refactoring> findBestMoveForMethod(QMoveMethodEntity method,
                                                     List<Refactoring> refactorings){
-        double bestFitness = fitness();
+        double initFitness = fitness();
+        double bestFitness = initFitness;
         QMoveClassEntity targetForThisMethod = null;
         for(QMoveClassEntity targetClass : classes){
             QMoveClassEntity containingClass = qMoveClassesByName.get(
@@ -98,6 +99,9 @@ public class QMove extends Algorithm {
             }
             moveMethod(method, containingClass, targetClass);
             double fitness = fitness();
+            if(fitness != initFitness){
+                System.err.println("ERROR");
+            }
         }
         if(targetForThisMethod != null){
             refactorings.add(new Refactoring(method.getName(),
@@ -118,6 +122,17 @@ public class QMove extends Algorithm {
         messaging = classes.stream().mapToDouble(QMoveClassEntity::getMessaging).sum();
         cohesion = classes.stream().mapToDouble(QMoveClassEntity::getCohesion).sum();
         composition = classes.stream().mapToDouble(QMoveClassEntity::getComposition).sum();
+        inheritance = classes.stream().mapToDouble(QMoveClassEntity::getInheritance).sum();
+    }
+
+    private void recalculateMetrics(){
+        double coup = coupling;
+        coupling = classes.stream().mapToDouble(QMoveClassEntity::getCoupling).sum();
+        double mess = messaging;
+        messaging = classes.stream().mapToDouble(QMoveClassEntity::getMessaging).sum();
+        double coh = cohesion;
+        cohesion = classes.stream().mapToDouble(QMoveClassEntity::getCohesion).sum();
+        double inh = inheritance;
         inheritance = classes.stream().mapToDouble(QMoveClassEntity::getInheritance).sum();
     }
 
@@ -153,7 +168,7 @@ public class QMove extends Algorithm {
     }
 
     private double fitness(){
-        calculateMetrics();
+        recalculateMetrics();
         return reusability() + flexibility() + understandability() +
                 functionality() + extendibility() + effectiveness();
     }
