@@ -137,8 +137,7 @@ public class RmmrEntitySearcher {
         public void visitClass(PsiClass aClass) {
             indicator.checkCanceled();
             //classForName.put(getHumanReadableName(aClass), aClass);
-            //TODO: maybe qualified name? Otherwise name collision may occur.
-            classForName.put(aClass.getName(), aClass); // Classes for ConceptualSet.
+            classForName.put(aClass.getQualifiedName(), aClass); // Classes for ConceptualSet.
             if (!strategy.acceptClass(aClass)) {
                 return;
             }
@@ -233,13 +232,9 @@ public class RmmrEntitySearcher {
         @Override
         public void visitNewExpression(PsiNewExpression expression) {
             indicator.checkCanceled();
-            String className = null;
             PsiType type = expression.getType();
-            if (type instanceof PsiClassType) {
-                className = ((PsiClassType) type).getClassName();
-            }
-            final PsiClass usedClass = classForName.get(className);
-            if (currentMethod != null && className != null && isClassInScope(usedClass)) {
+            PsiClass usedClass = type instanceof PsiClassType ? ((PsiClassType) type).resolve() : null;
+            if (currentMethod != null && isClassInScope(usedClass)) {
                 currentMethod.getRelevantProperties().addClass(usedClass);
             }
             super.visitNewExpression(expression);
@@ -251,7 +246,7 @@ public class RmmrEntitySearcher {
             indicator.checkCanceled();
             final PsiMethod called = expression.resolveMethod();
             final PsiClass usedClass = called != null ? called.getContainingClass() : null;
-            if (currentMethod != null && called != null && isClassInScope(usedClass)) {
+            if (currentMethod != null && isClassInScope(usedClass)) {
                 currentMethod.getRelevantProperties().addClass(usedClass);
             }
             super.visitMethodCallExpression(expression);
@@ -266,7 +261,7 @@ public class RmmrEntitySearcher {
 
         @Contract("null -> false")
         private boolean isClassInScope(final @Nullable PsiClass aClass) {
-            return aClass != null && classForName.containsKey(aClass.getName());
+            return aClass != null && classForName.containsKey(aClass.getQualifiedName());
         }
     }
 }

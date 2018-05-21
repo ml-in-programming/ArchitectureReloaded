@@ -1,4 +1,4 @@
-package testClasses.moveMethod.RMMR.exact1Accuracy;
+package testClasses.moveMethod.RMMR.not0Accuracy;
 
 class Car {
     void getDistance() {

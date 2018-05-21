@@ -92,7 +92,9 @@ public final class MethodUtils {
                 out.append(',');
             }
             final PsiType parameterType = parameters[i].getType();
-            final String parameterTypeText = parameterType.getPresentableText();
+            // TODO: include qualified name
+            // final String parameterTypeText = parameterType.getPresentableText();
+            final String parameterTypeText = parameterType.getCanonicalText();
             out.append(parameterTypeText);
         }
         out.append(')');

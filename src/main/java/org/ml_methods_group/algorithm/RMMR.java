@@ -45,7 +45,7 @@ public class RMMR extends Algorithm {
     }
 
     @Override
-    protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) throws Exception {
+    protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) {
         if (enableFieldRefactorings) {
             // TODO: write to LOGGER or throw Exception? Change UI: disable field checkbox if only RMMR is chosen.
             LOGGER.error("Field refactorings are not supported",
@@ -104,9 +104,11 @@ public class RMMR extends Algorithm {
         double difference = Double.POSITIVE_INFINITY;
         double distanceWithSourceClass = 1;
         ClassEntity targetClass = null;
+        ClassEntity sourceClass = null;
         for (final ClassEntity classEntity : classEntities) {
             final double distance = getDistance(entity, classEntity);
             if (classEntity.getName().equals(entity.getClassName())) {
+                sourceClass = classEntity;
                 distanceWithSourceClass = distance;
             }
             if (distance < minDistance) {
@@ -124,7 +126,15 @@ public class RMMR extends Algorithm {
         }
         final String targetClassName = targetClass.getName();
         double differenceWithSourceClass = distanceWithSourceClass - minDistance;
-        double accuracy = 0.7 * (1 - minDistance) * differenceWithSourceClass + 0.3 * difference; // TODO: Maybe consider amount of entities?
+        int numberOfMethodsInSourceClass = methodsByClass.get(sourceClass).size();
+        int numberOfMethodsInTargetClass = methodsByClass.get(targetClass).size();
+        // considers amount of entities.
+        double sourceClassCoefficient = 1 - 1.0 / (2 * numberOfMethodsInSourceClass * numberOfMethodsInSourceClass);
+        double targetClassCoefficient = 1 - 1.0 / (4 * numberOfMethodsInTargetClass * numberOfMethodsInTargetClass);
+        double differenceWithSourceClassCoefficient = (1 - minDistance) * differenceWithSourceClass;
+        double accuracy = (0.7 * differenceWithSourceClassCoefficient + 0.3 * difference) *
+                sourceClassCoefficient * targetClassCoefficient;
+        // accuracy = 1;
         if (accuracy >= 0.01 && !targetClassName.equals(entity.getClassName())) {
             accumulator.add(new Refactoring(entity.getName(), targetClassName, accuracy, entity.isField()));
         }

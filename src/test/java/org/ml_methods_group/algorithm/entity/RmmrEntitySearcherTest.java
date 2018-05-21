@@ -14,7 +14,7 @@ public class RmmrEntitySearcherTest extends LightCodeInsightFixtureTestCase {
         return "testdata/moveMethod/movieRentalStore";
     }
 
-    public void testAnalyze() throws Exception {
+    public void testAnalyze() {
         final VirtualFile customer = myFixture.copyFileToProject("Customer.java");
         final VirtualFile movie = myFixture.copyFileToProject("Movie.java");
         final VirtualFile rental = myFixture.copyFileToProject("Rental.java");
@@ -35,7 +35,7 @@ public class RmmrEntitySearcherTest extends LightCodeInsightFixtureTestCase {
         checkConceptualSetForClass("Customer", expectedConceptualSets);
     }
 
-    private void checkMovie() throws Exception {
+    private void checkMovie() {
         Map<String, Set<String>> expectedConceptualSets = new HashMap<>();
         expectedConceptualSets.put("Movie.getPriceCode()", new HashSet<>(Collections.singletonList("Movie")));
         expectedConceptualSets.put("Movie.setPriceCode(int)", new HashSet<>(Collections.singletonList("Movie")));
@@ -43,7 +43,7 @@ public class RmmrEntitySearcherTest extends LightCodeInsightFixtureTestCase {
         checkConceptualSetForClass("Movie", expectedConceptualSets);
     }
 
-    private void checkRental() throws Exception {
+    private void checkRental() {
         Map<String, Set<String>> expectedConceptualSets = new HashMap<>();
         expectedConceptualSets.put("Rental.getDaysRented()", new HashSet<>(Collections.singletonList("Rental")));
         checkConceptualSetForClass("Rental", expectedConceptualSets);
