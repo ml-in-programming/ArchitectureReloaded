@@ -29,7 +29,7 @@ import java.util.*;
 
 public class JMove extends Algorithm {
     private static final Logger LOGGER = Logging.getLogger(JMove.class);
-    private final int MIN_NUMBER_OF_CANDIDATE_CLASSES = 3;
+    private final int MIN_NUMBER_OF_CANDIDATE_CLASSES = 3; //experimentally found thresholds
     private final int MIN_NUMBER_OF_DEPENDENCIES = 4;
     private final double MIN_DIFF_BETWEEN_SIMILARITY_COEFF_PERS = 0.25;
 
@@ -39,28 +39,33 @@ public class JMove extends Algorithm {
 
     @Override
     protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) {
-        LOGGER.info("Starting calculating refactorings");
         List<MethodEntity> allMethods = context.getEntities().getMethods();
         List<ClassEntity> allClasses = context.getEntities().getClasses();
-        LOGGER.info("Found " + allMethods.size() + " methods and " + allClasses.size() + " classes");
         List<Refactoring> refactorings = new ArrayList<>();
 
         Map<String, ClassEntity> nameToClassEntity = new HashMap<>();
         Map<String, Dependencies> nameToDependencies = new HashMap<>();
 
+        int numberOfMethodInClasses
+
         for(ClassEntity classEntity : allClasses) {
             nameToClassEntity.put(classEntity.getName(), classEntity);
         }
 
+        LOGGER.info("Calculating Dependencies for Method Entities...");
         for(MethodEntity methodEntity : allMethods) {
+            if(methodEntity == null) {
+                LOGGER.warn("There is a null Method Entity");
+                continue;
+            }
             nameToDependencies.put(methodEntity.getName(), new Dependencies(methodEntity, nameToClassEntity));
         }
 
-
+        LOGGER.info("Finding refactorings...");
         for(MethodEntity curMethod : allMethods) {
-            if(!curMethod.isMovable())
+            if(curMethod == null || !curMethod.isMovable())
                 continue;
-            LOGGER.info("Checking " + curMethod.getName()); // todo some logging
+            LOGGER.info("Checking " + curMethod.getName());
 
             Dependencies curDependencies = nameToDependencies.get(curMethod.getName());
             ClassEntity curClass = nameToClassEntity.get(curMethod.getClassName());
@@ -98,7 +103,14 @@ public class JMove extends Algorithm {
 
         for(String curMethodName : methodNames) {
             if(!methodEntity.getName().equals(curMethodName))
-                similarity += methodSimilarity(nameToDependencies.get(methodEntity.getName()), nameToDependencies.get(curMethodName));
+                try {
+                    similarity += methodSimilarity(nameToDependencies.get(methodEntity.getName()), nameToDependencies.get(curMethodName));
+                }
+                catch(IllegalArgumentException e) {
+                    LOGGER.warn(e.getMessage()
+                            + "\n Error happened when trying to calculate similarity between "
+                            + methodEntity.getName() + " and " + curMethodName);
+                }
         }
         if(methodEntity.getClassName().equals(classEntity.getName()))
             return similarity / methodNames.size();
@@ -129,7 +141,7 @@ public class JMove extends Algorithm {
         //ignoring primitive types and types and annotations from java.lang and java.util
 
         protected Dependencies(@NotNull MethodEntity methodForDependencies, @NotNull Map<String, ClassEntity> nameToClassEntity  ) {
-            all = new HashSet<>(); //todo use
+            all = new HashSet<>();
 
             //classes of methods that are called inside this method
             for(String methodName : methodForDependencies.getRelevantProperties().getMethods()) {
@@ -139,15 +151,26 @@ public class JMove extends Algorithm {
 
             // classes of fields that the method accesses
             for(String fieldName : methodForDependencies.getRelevantProperties().getFields()) {
-                PsiType psiType = nameToClassEntity.get(fieldName.substring(0, fieldName.lastIndexOf('.'))).getPsiClass().findFieldByName(fieldName.substring(fieldName.lastIndexOf('.') + 1), false).getType();
-                if(!(psiType instanceof PsiPrimitiveType) || fromUtilOrLang(psiType.getCanonicalText()))
-                    all.add(psiType.getCanonicalText());
+                try {
+                    PsiType psiType = nameToClassEntity.get(fieldName.substring(0, fieldName.lastIndexOf('.'))).getPsiClass().findFieldByName(fieldName.substring(fieldName.lastIndexOf('.') + 1), false).getType();
+                    if (!(psiType instanceof PsiPrimitiveType) || fromUtilOrLang(psiType.getCanonicalText()))
+                        all.add(psiType.getCanonicalText());
+                }
+                catch(NullPointerException e) {
+                    LOGGER.warn("Trouble with field " + fieldName + " in method " + methodForDependencies.getName());
+                }
             }
 
             //return type
             PsiType returnType = methodForDependencies.getPsiMethod().getReturnType();
-            if(!(returnType instanceof PsiPrimitiveType ||fromUtilOrLang(returnType.getCanonicalText())))
-                all.add(returnType.getCanonicalText());
+            try {
+                if(!(returnType instanceof PsiPrimitiveType ||fromUtilOrLang(returnType.getCanonicalText())))
+                    all.add(returnType.getCanonicalText());
+            }
+            catch (NullPointerException e) {
+                LOGGER.warn("Cannot get name of return type of method " + methodForDependencies.getName());
+            }
+
 
 
             //exceptions
@@ -161,8 +184,13 @@ public class JMove extends Algorithm {
             //annotations
             PsiAnnotation[] psiAnnotations = methodForDependencies.getPsiMethod().getModifierList().getAnnotations();
             for(PsiAnnotation psiAnnotation : psiAnnotations) {
-                if(!fromUtilOrLang(psiAnnotation.getQualifiedName()))
-                all.add(psiAnnotation.getQualifiedName());
+                try {
+                    if (!fromUtilOrLang(psiAnnotation.getQualifiedName()))
+                        all.add(psiAnnotation.getQualifiedName());
+                }
+                catch(NullPointerException e) {
+                    LOGGER.warn("Cannot get annotation name for method " + methodForDependencies.getName());
+                }
             }
 
             //formal parameters
@@ -176,14 +204,24 @@ public class JMove extends Algorithm {
                 @Override
                 public void visitLocalVariable(PsiLocalVariable variable) {
                     super.visitLocalVariable(variable);
-                    if(!(variable.getType() instanceof PsiPrimitiveType || fromUtilOrLang(variable.getType().getCanonicalText())))
-                        all.add(variable.getType().getCanonicalText());
+                    try {
+                        if (!(variable.getType() instanceof PsiPrimitiveType || fromUtilOrLang(variable.getType().getCanonicalText())))
+                            all.add(variable.getType().getCanonicalText());
+                    }
+                    catch(NullPointerException e) {
+                        LOGGER.warn("Cannot get name for local variable in method " + methodForDependencies.getName());
+                    }
                 }
                 @Override
                 public void visitNewExpression(PsiNewExpression expression) {
                     super.visitNewExpression(expression);
-                    if (!(fromUtilOrLang(expression.getClassOrAnonymousClassReference().getQualifiedName())))
-                        all.add(expression.getClassOrAnonymousClassReference().getQualifiedName());
+                    try {
+                        if (!(fromUtilOrLang(expression.getClassOrAnonymousClassReference().getQualifiedName())))
+                            all.add(expression.getClassOrAnonymousClassReference().getQualifiedName());
+                    }
+                    catch(NullPointerException e) {
+                        LOGGER.warn("Cannot get name for class in new expression for method " + methodForDependencies.getName());
+                    }
                 }
 
                 //                @Override idk this way I will find all annotations may be I shouldn't
@@ -253,24 +291,29 @@ public class JMove extends Algorithm {
 
     private boolean isGetter (@NotNull MethodEntity methodEntity) {
         PsiMethod psiMethod = methodEntity.getPsiMethod();
-        int numSt = psiMethod.getBody().getStatements().length;
-        if(psiMethod.getParameterList().getParametersCount() == 0 && numSt == 1)
-            return true;
-        return false;
+        try {
+            int numSt = psiMethod.getBody().getStatements().length;
+            return psiMethod.getParameterList().getParametersCount() == 0 && numSt == 1;
+        }
+        catch(NullPointerException e) {
+            LOGGER.warn("Cannot find out if method " + methodEntity.getName() + " is getter method. Assuming that it is not.");
+            return false;
+        }
     }
 
     private boolean isSetter(@NotNull MethodEntity methodEntity) {
         PsiMethod psiMethod = methodEntity.getPsiMethod();
-        int numSt = psiMethod.getBody().getStatements().length;
-        if(psiMethod.getParameterList().getParametersCount() == 1 && numSt == 1)
-            return true;
-        return false;
+        try {
+            int numSt = psiMethod.getBody().getStatements().length;
+            return psiMethod.getParameterList().getParametersCount() == 1 && numSt == 1;
+        }
+        catch (NullPointerException e) {
+            LOGGER.warn("Cannot find out if method " + methodEntity.getName() + " is setter method. Assuming that it is not.");
+            return false;
+        }
     }
 
     private boolean fromUtilOrLang (String fullName) {
-        if(fullName.startsWith("java.lang.") || fullName.startsWith("java.util."))
-            return true;
-        else
-            return false;
+        return fullName.startsWith("java.lang.") || fullName.startsWith("java.util.");
     }
 }
