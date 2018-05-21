@@ -17,6 +17,10 @@ import java.util.stream.Collectors;
  */
 public class RMMR extends Algorithm {
     /**
+     * Describes minimal accuracy that algorithm accepts.
+     */
+    private final static double MIN_ACCURACY = 0.01;
+    /**
      * Internal name of the algorithm in the program.
      */
     public static final String NAME = "RMMR";
@@ -135,7 +139,7 @@ public class RMMR extends Algorithm {
         double accuracy = (0.7 * differenceWithSourceClassCoefficient + 0.3 * difference) *
                 sourceClassCoefficient * targetClassCoefficient;
         // accuracy = 1;
-        if (accuracy >= 0.01 && !targetClassName.equals(entity.getClassName())) {
+        if (accuracy >= MIN_ACCURACY && !targetClassName.equals(entity.getClassName())) {
             accumulator.add(new Refactoring(entity.getName(), targetClassName, accuracy, entity.isField()));
         }
         return accumulator;
