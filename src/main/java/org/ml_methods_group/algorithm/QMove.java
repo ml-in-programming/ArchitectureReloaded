@@ -43,7 +43,7 @@ public class QMove extends Algorithm {
     private double composition;
     private double inheritance;
     private double size;
-    private QMoveEntitySearchResult searchResult;
+
     public QMove() {
         super("QMove", true);
     }
@@ -51,7 +51,7 @@ public class QMove extends Algorithm {
     @Override
     protected List<Refactoring> calculateRefactorings(
             ExecutionContext context, boolean enableFieldRefactorings) throws Exception {
-        searchResult = (QMoveEntitySearchResult)context.getEntities();
+        QMoveEntitySearchResult searchResult = (QMoveEntitySearchResult) context.getEntities();
         methodEntities.clear();
         classes.clear();
         Stream.of(searchResult.getMethods())
@@ -63,6 +63,7 @@ public class QMove extends Algorithm {
         searchResult.getClasses()
                 .stream()
                 .map(x -> (QMoveClassEntity)x)
+                .peek(x -> x.calculateCohesion(methodEntities))
                 .peek(entity -> qMoveClassesByName.put(entity.getName(), entity))
                 .forEach(classes::add);
         calculateMetrics();
@@ -82,8 +83,7 @@ public class QMove extends Algorithm {
 
     private List<Refactoring> findBestMoveForMethod(QMoveMethodEntity method,
                                                     List<Refactoring> refactorings){
-        double initFitness = fitness();
-        double bestFitness = initFitness;
+        double bestFitness = fitness();
         QMoveClassEntity targetForThisMethod = null;
         for(QMoveClassEntity targetClass : classes){
             QMoveClassEntity containingClass = qMoveClassesByName.get(
@@ -91,16 +91,10 @@ public class QMove extends Algorithm {
             if(containingClass.equals(targetClass)){
                 continue;
             }
-            moveMethod(method, targetClass, containingClass);
-            double newFitness = fitness();
+            double newFitness = moveMethod(method, targetClass, containingClass);
             if(newFitness > bestFitness){
                 bestFitness = newFitness;
                 targetForThisMethod =  targetClass;
-            }
-            moveMethod(method, containingClass, targetClass);
-            double fitness = fitness();
-            if(fitness != initFitness){
-                System.err.println("ERROR");
             }
         }
         if(targetForThisMethod != null){
@@ -122,17 +116,6 @@ public class QMove extends Algorithm {
         messaging = classes.stream().mapToDouble(QMoveClassEntity::getMessaging).sum();
         cohesion = classes.stream().mapToDouble(QMoveClassEntity::getCohesion).sum();
         composition = classes.stream().mapToDouble(QMoveClassEntity::getComposition).sum();
-        inheritance = classes.stream().mapToDouble(QMoveClassEntity::getInheritance).sum();
-    }
-
-    private void recalculateMetrics(){
-        double coup = coupling;
-        coupling = classes.stream().mapToDouble(QMoveClassEntity::getCoupling).sum();
-        double mess = messaging;
-        messaging = classes.stream().mapToDouble(QMoveClassEntity::getMessaging).sum();
-        double coh = cohesion;
-        cohesion = classes.stream().mapToDouble(QMoveClassEntity::getCohesion).sum();
-        double inh = inheritance;
         inheritance = classes.stream().mapToDouble(QMoveClassEntity::getInheritance).sum();
     }
 
@@ -168,25 +151,51 @@ public class QMove extends Algorithm {
     }
 
     private double fitness(){
-        recalculateMetrics();
         return reusability() + flexibility() + understandability() +
                 functionality() + extendibility() + effectiveness();
     }
 
-    private void moveMethod(QMoveMethodEntity method, QMoveClassEntity target, QMoveClassEntity containingClass){
-        containingClass.removeMethod(method);
-        target.addMethod(method);
+    private double moveMethod(QMoveMethodEntity method,
+                            QMoveClassEntity target,
+                            QMoveClassEntity containingClass){
+        //recalculating cohesion
+        double removeFromCohesion = target.getCohesion();
+        removeFromCohesion += containingClass.getCohesion();
+        double addToCohesion = target.recalculateCohesion(method, true);
+        addToCohesion += containingClass.recalculateCohesion(method, false);
+        double oldCohesion = cohesion;
+        cohesion -= removeFromCohesion;
+        cohesion += addToCohesion;
+
+        //recalculating coupling
+        double removeFromCoupling = target.getCoupling();
+        removeFromCoupling += containingClass.getCoupling();
+        double addToCoupling = target.recalculateCoupling(method, true);
+        addToCoupling += containingClass.recalculateCoupling(method, false);
+        double oldCoupling = coupling;
+        coupling -= removeFromCoupling;
+        coupling += addToCoupling;
+
+        //recalculating inheritance
+        double oldInheritance = inheritance;
         for(QMoveClassEntity entity : classes){
             if(entity.getName().equals(target.getName()) ||
                     entity.getName().equals(containingClass.getName())){
                 continue;
             }
             if(entity.getPsiClass().isInheritor(target.getPsiClass(), true)){
-                entity.recalculateInheritance(true);
+                inheritance -= entity.getInheritance();
+                inheritance += entity.recalculateInheritance(true);
             }
             if(entity.getPsiClass().isInheritor(containingClass.getPsiClass(), true)){
-                entity.recalculateInheritance(false);
+                inheritance -= entity.getInheritance();
+                inheritance += entity.recalculateInheritance(false);
             }
         }
+        double fitness = fitness();
+        cohesion = oldCohesion;
+        coupling = oldCoupling;
+        inheritance = oldInheritance;
+        return fitness;
     }
 }

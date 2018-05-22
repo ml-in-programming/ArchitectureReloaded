@@ -183,7 +183,7 @@ public class QMoveEntitySearcher  {
                 super.visitClass(aClass);
                 return;
             }
-            final RelevantProperties classProperties = entity.getRelevantProperties();
+          /*  final RelevantProperties classProperties = entity.getRelevantProperties();
             classProperties.addClass(aClass, strategy.getWeight(aClass, aClass));
             if (strategy.processSupers()) {
                 for (PsiClass superClass : PSIUtil.getAllSupers(aClass)) {
@@ -199,7 +199,7 @@ public class QMoveEntitySearcher  {
                     .forEach(m -> classProperties.addMethod(m, strategy.getWeight(aClass, m)));
             Arrays.stream(aClass.getFields())
                     .filter(f -> isProperty(aClass, f))
-                    .forEach(f -> classProperties.addField(f, strategy.getWeight(aClass, f)));
+                    .forEach(f -> classProperties.addField(f, strategy.getWeight(aClass, f)));*/
             reportPropertiesCalculated();
             super.visitClass(aClass);
         }
@@ -222,7 +222,7 @@ public class QMoveEntitySearcher  {
                 return;
 
             }
-            final RelevantProperties methodProperties = entity.getRelevantProperties();
+            /*final RelevantProperties methodProperties = entity.getRelevantProperties();
             methodProperties.addMethod(method, strategy.getWeight(method, method));
             Optional.ofNullable(method.getContainingClass())
                     .ifPresent(c -> methodProperties.addClass(c, strategy.getWeight(method, c)));
@@ -236,7 +236,7 @@ public class QMoveEntitySearcher  {
                         .forEach(superMethod -> superMethod
                                 .getRelevantProperties()
                                 .addOverrideMethod(method, strategy.getWeight(superMethod, method)));
-            }
+            }*/
             reportPropertiesCalculated();
             super.visitMethod(method);
             if (currentMethod == method) {
@@ -264,7 +264,7 @@ public class QMoveEntitySearcher  {
             super.visitReferenceExpression(expression);
         }
 
-        @Override
+        /*@Override
         public void visitField(PsiField field) {
             indicator.checkCanceled();
             final Entity entity = entities.get(field);
@@ -284,7 +284,7 @@ public class QMoveEntitySearcher  {
             }
             reportPropertiesCalculated();
             super.visitField(field);
-        }
+        }*/
 
         @Override
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {

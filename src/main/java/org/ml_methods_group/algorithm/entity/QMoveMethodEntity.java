@@ -45,7 +45,6 @@ public class QMoveMethodEntity extends MethodEntity {
     void calculateVector(MetricsRun metricsRun) {
         QMoveUtil.calculateRelatedClasses(psiMethod, relatedClasses);
         QMoveUtil.calculateMethodParameters(psiMethod, parameters);
-        //assert res == parameters.size();
     }
 
     PsiMethod getPsiMethod() {

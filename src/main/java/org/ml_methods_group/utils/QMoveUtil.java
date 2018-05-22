@@ -39,27 +39,29 @@ public class QMoveUtil {
         }
     }
 
-    public static <T> void  removeFromUnion(Map<T, Integer> union, Map<T, Integer> set){
+    public static <T> int  removeFromUnion(Map<T, Integer> union, Map<T, Integer> set){
+        int res = union.size();
         for(Map.Entry<T, Integer> item : set.entrySet()){
             int remove = item.getValue();
             T key = item.getKey();
             int present = union.get(key);
             if(remove == present){
-                union.remove(key);
-            }
-            else {
-                union.put(key, present - remove);
+                res--;
             }
         }
+        return res;
     }
 
-    public static <T> void addToUnion(Map<T, Integer> union, Map<T, Integer> set){
+    public static <T> int addToUnion(Map<T, Integer> union, Map<T, Integer> set){
+        int res = union.size();
         for(Map.Entry<T, Integer> item : set.entrySet()){
             int add = item.getValue();
             T key = item.getKey();
-            int present = union.getOrDefault(key, 0);
-            union.put(key, present + add);
+            if(!union.containsKey(key)){
+                res++;
+            }
         }
+        return res;
     }
 
     public static <T> void incrementMapValue(T t, Map<T, Integer> map){
