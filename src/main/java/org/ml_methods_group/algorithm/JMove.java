@@ -20,7 +20,6 @@ package org.ml_methods_group.algorithm;
 import com.intellij.psi.*;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.MethodEntity;
 import org.ml_methods_group.config.Logging;
@@ -33,8 +32,11 @@ public class JMove extends Algorithm {
     private final int MIN_NUMBER_OF_DEPENDENCIES = 4;
     private final double MIN_DIFF_BETWEEN_SIMILARITY_COEFF_PERS = 0.25;
 
+//    Set<String> methodNamesWithNoDependencies;
+
     public JMove() {
         super("JMove", false);
+//        methodNamesWithNoDependencies = new HashSet<>();
     }
 
     @Override
@@ -46,13 +48,15 @@ public class JMove extends Algorithm {
         Map<String, ClassEntity> nameToClassEntity = new HashMap<>();
         Map<String, Dependencies> nameToDependencies = new HashMap<>();
 
-        int numberOfMethodInClasses
+//        int numberOfMethodInClasses = 0; // for debug
 
         for(ClassEntity classEntity : allClasses) {
             nameToClassEntity.put(classEntity.getName(), classEntity);
+//            numberOfMethodInClasses += classEntity.getRelevantProperties().getMethods().size();
         }
-
+//        LOGGER.info("The size of allMethods list: " + allMethods.size() + "\n The number of methods from allClasses: " + numberOfMethodInClasses );
         LOGGER.info("Calculating Dependencies for Method Entities...");
+
         for(MethodEntity methodEntity : allMethods) {
             if(methodEntity == null) {
                 LOGGER.warn("There is a null Method Entity");
@@ -69,31 +73,43 @@ public class JMove extends Algorithm {
 
             Dependencies curDependencies = nameToDependencies.get(curMethod.getName());
             ClassEntity curClass = nameToClassEntity.get(curMethod.getClassName());
-            if(curDependencies.cardinality() < MIN_NUMBER_OF_DEPENDENCIES //experimental
+            if(curDependencies.cardinality() < MIN_NUMBER_OF_DEPENDENCIES
                     || curClass.getRelevantProperties().getMethods().size() == 1 //because we calculate similarity between this method and all remaining in curClass
                     || isGetter(curMethod) //this methods are rarely implemented in the wrong classes
                     || isSetter(curMethod)) //todo: check if we need this check here and not in other place
                 continue;
             double curSimilarity = calculateSimilarity(curMethod, curClass, nameToDependencies);
-            Map<ClassEntity, Double> potentialClasses = new HashMap<>();
+            ClassEntity bestClass = null;
+            double bestClassSimilarity = curSimilarity;
+            int numberOfPotentialClasses = 0;
             for(ClassEntity potentialClass : allClasses) {
                 double potentialClassSimilarity = calculateSimilarity(curMethod, potentialClass, nameToDependencies);
                 if (potentialClassSimilarity > curSimilarity) {
-                    potentialClasses.put(potentialClass, potentialClassSimilarity);
+                    numberOfPotentialClasses++;
+                    if(potentialClassSimilarity > bestClassSimilarity) {
+                        bestClassSimilarity = potentialClassSimilarity;
+                        bestClass = potentialClass;
+                    }
                 }
             }
 
-            if(potentialClasses.size() < MIN_NUMBER_OF_CANDIDATE_CLASSES)
+            if(numberOfPotentialClasses < MIN_NUMBER_OF_CANDIDATE_CLASSES)
                 continue;
 
-            ClassEntity bestClass = findBestClass(potentialClasses);
             if(bestClass != null) {
-                double diff = (potentialClasses.get(bestClass) - curSimilarity)/potentialClasses.get(bestClass); //may be idk
+                double diff = (bestClassSimilarity - curSimilarity)/bestClassSimilarity; //may be idk
                 if(diff >= MIN_DIFF_BETWEEN_SIMILARITY_COEFF_PERS)
-                    refactorings.add(new Refactoring(curMethod.getName(), bestClass.getName(), diff, false)); //accuracy ~ difference between coeff ?? idk
+                    refactorings.add(new Refactoring(curMethod.getName(), bestClass.getName(), bestClassSimilarity, false)); //accuracy idk
             }
             //todo may be i should check weither it is possible to make this refactoring oops
         }
+//        LOGGER.info("The size of allMethods list: " + allMethods.size() + "\n The number of methods from allClasses: " + numberOfMethodInClasses );
+//        LOGGER.info("Dependencies not found for " + methodNamesWithNoDependencies.size() + " methods");
+//        LOGGER.info("Here they are:");
+//        for(String methodName : methodNamesWithNoDependencies) {
+//            LOGGER.info(methodName);
+//        }
+//        methodNamesWithNoDependencies.clear();
         return refactorings;
     }
 
@@ -102,11 +118,18 @@ public class JMove extends Algorithm {
         Set<String> methodNames = classEntity.getRelevantProperties().getMethods();
 
         for(String curMethodName : methodNames) {
-            if(!methodEntity.getName().equals(curMethodName))
+            if(!methodEntity.getPsiMethod().getModifierList().hasExplicitModifier("abstract")
+                    && !methodEntity.getName().equals(curMethodName) )
                 try {
                     similarity += methodSimilarity(nameToDependencies.get(methodEntity.getName()), nameToDependencies.get(curMethodName));
                 }
                 catch(IllegalArgumentException e) {
+//                    if(nameToDependencies.get(methodEntity.getName()) == null) {
+//                        methodNamesWithNoDependencies.add(methodEntity.getName());
+//                    }
+//                    if(nameToDependencies.get(curMethodName) == null) {
+//                        methodNamesWithNoDependencies.add(curMethodName);
+//                    }
                     LOGGER.warn(e.getMessage()
                             + "\n Error happened when trying to calculate similarity between "
                             + methodEntity.getName() + " and " + curMethodName);
@@ -245,48 +268,9 @@ public class JMove extends Algorithm {
 
             Set<String> intersection = new HashSet<>(all);
             intersection.retainAll(depSnd.all);
-
-//            Set<String> methodCallIntersection = new HashSet<>(methodCalls);
-//            methodCallIntersection.retainAll(depSnd.methodCalls);
-//            intersectionCardinality += methodCallIntersection.size();
-//
-//            Set<String> instancesIntersection = new HashSet<>(fieldAccesses);
-//            instancesIntersection.retainAll(depSnd.fieldAccesses);
-//            intersectionCardinality += instancesIntersection.size();
-//
-//            if(returnType.equals(depSnd.returnType))
-//                intersectionCardinality++;
-//
-//            Set<String> exceptionsIntersection = new HashSet<>(exceptions);
-//            exceptionsIntersection.retainAll(depSnd.exceptions);
-//            intersectionCardinality += exceptionsIntersection.size();
-//
-//            Set<String> annotationsIntersection = new HashSet<>(exceptions);
-//            annotationsIntersection.retainAll(depSnd.exceptions);
-//            intersectionCardinality += annotationsIntersection.size();
-//
-//            Set<String> localVariablesIntersection = new HashSet<>(localDeclarations);
-//            localVariablesIntersection.retainAll(depSnd.localDeclarations);
-//            intersectionCardinality += localVariablesIntersection.size();
-
             return intersection.size();
         }
 
-    }
-
-    @Nullable
-    private ClassEntity findBestClass(@NotNull Map<ClassEntity, Double> potentialClasses) { //choose movable class with the biggest coefficient
-        if(potentialClasses.size() < MIN_NUMBER_OF_CANDIDATE_CLASSES)
-            return null;
-        ClassEntity bestClass = null;
-        Double bestCoefficient = 0.0;
-        for(Map.Entry<ClassEntity, Double> entry : potentialClasses.entrySet()) {
-            if(entry.getValue() > bestCoefficient) {
-                bestCoefficient = entry.getValue();
-                bestClass = entry.getKey();
-            }
-        }
-        return bestClass;
     }
 
     private boolean isGetter (@NotNull MethodEntity methodEntity) {
