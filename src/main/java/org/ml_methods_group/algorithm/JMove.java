@@ -135,7 +135,7 @@ public class JMove extends Algorithm {
                             + methodEntity.getName() + " and " + curMethodName);
                 }
         }
-        if(methodEntity.getClassName().equals(classEntity.getName()))
+        if(!methodEntity.getClassName().equals(classEntity.getName()))
             return similarity / methodNames.size();
         else
             return  similarity / (methodNames.size() - 1);
