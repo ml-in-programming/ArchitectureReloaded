@@ -22,69 +22,71 @@ import com.sixrr.metrics.metricModel.MetricsRun;
 import org.ml_methods_group.utils.PSIUtil;
 import org.ml_methods_group.utils.QMoveUtil;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class QMoveMethodEntity extends MethodEntity {
-    private final PsiMethod psiMethod;
-    private boolean containsPrivateCalls;
-    private boolean isContainsOnlyPublicCalls;
-
-    private Map<PsiClass, Integer> relatedClasses = new HashMap<>();
-    private Map<PsiType, Integer> parameters = new HashMap<>();
-
+    private QMoveClassEntity containingClass;
+    private QMoveRelevantProperties properties = new QMoveRelevantProperties();
+    private MoveAbility moveAbility;
 
     QMoveMethodEntity(PsiMethod method) {
         super(method);
-        this.psiMethod = method;
     }
 
     @Override
     void calculateVector(MetricsRun metricsRun) {
-        QMoveUtil.calculateRelatedClasses(psiMethod, relatedClasses);
-        QMoveUtil.calculateMethodParameters(psiMethod, parameters);
+        moveAbility = MoveAbility.ANY_CLASS;
+        if(properties.isContainsProtectedCalls()){
+            moveAbility = MoveAbility.INHERITOR;
+        }
+        if(properties.isContainsPrivateCalls()){
+            moveAbility = MoveAbility.INNER_OR_OUTER;
+        }
     }
 
-    PsiMethod getPsiMethod() {
-        return psiMethod;
+
+    public List<Set<QMoveClassEntity>> getTargets(){
+        List<Set<QMoveClassEntity>> list = new ArrayList<>();
+        list.add(properties.getInnerClasses());
+        list.add(properties.getOuterClasses());
+        if(moveAbility != MoveAbility.INNER_OR_OUTER){
+            list.add(properties.getInheritors());
+        }
+        return list;
     }
 
-    Map<PsiType, Integer> getParameters(){
-        return parameters;
-    }
 
-    public boolean isValidMoveToClass(PsiClass targetClass){
-        if(!isMovable){
+    public boolean isValidMoveToClass(QMoveClassEntity targetClass) {
+        if (!isMovable) {
             return false;
         }
-        PsiClass containingClass = psiMethod.getContainingClass();
-        if(getAllInnerClasses(targetClass, new HashSet<>()).
-                contains(containingClass)
-                || getAllInnerClasses(containingClass, new HashSet<>()).
-                contains(targetClass)){
+        if (properties.getInnerClasses().contains(targetClass)
+                || targetClass.getProperties()
+                .getInnerClasses().contains(containingClass)) {
             return true;
         }
-        if(PSIUtil.getAllSupers(targetClass).contains(containingClass)){
-
+        if (properties.isContainsPrivateCalls()) {
+            return false;
         }
-        else {
-
-        }
-        return true;
+        return !properties.isContainsProtectedCalls()
+                || targetClass.getProperties().getSupers().contains(containingClass);
     }
 
-
-    private Set<PsiClass> getAllInnerClasses(PsiClass aClass, Set<PsiClass> innerClasses){
-        innerClasses.add(aClass);
-        for(PsiClass psiClass : aClass.getInnerClasses()){
-            getAllInnerClasses(psiClass, innerClasses);
-        }
-        return innerClasses;
+    public QMoveRelevantProperties getProperties() {
+        return properties;
     }
 
-    Map<PsiClass, Integer> getRelatedClasses() {
-        return relatedClasses;
+    void setContainingClass(QMoveClassEntity containingClass) {
+        this.containingClass = containingClass;
+    }
+
+    public MoveAbility getMoveAbility() {
+        return moveAbility;
+    }
+
+    public enum MoveAbility {
+        ANY_CLASS,
+        INHERITOR,
+        INNER_OR_OUTER
     }
 }

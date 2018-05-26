@@ -16,25 +16,17 @@
 
 package org.ml_methods_group.algorithm.entity;
 
-import com.intellij.psi.*;
-import com.intellij.psi.util.PsiUtil;
+import com.intellij.psi.PsiClass;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.stockmetrics.classMetrics.*;
-import org.ml_methods_group.utils.PsiSearchUtil;
 import org.ml_methods_group.utils.QMoveUtil;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class QMoveClassEntity extends ClassEntity {
-    static Map<PsiClass, List<QMoveMethodEntity>> allNoneStaticMethods = new HashMap<>();
+    protected QMoveRelevantProperties properties = new QMoveRelevantProperties();
     private double complexity;
     private double polymorphism;
     private double abstraction;
@@ -47,12 +39,16 @@ public class QMoveClassEntity extends ClassEntity {
     private double inheritance;
 
     private double numOfAllMethods;
-    private int numOfNoneStaticMethods;
     private PsiClass psiClass;
-    private double sumIntersection;
-    private Map<String, PsiMethod> methods;
-    private Map<PsiClass, Integer> relatedClasses = new HashMap<>();
-    private Map<PsiType, Integer> parametersOfMethods = new HashMap<>();
+
+
+    public Set<QMoveClassEntity> getInheritors(){
+        return properties.getInheritors();
+    }
+
+    QMoveRelevantProperties getProperties(){
+        return properties;
+    }
 
     private static final VectorCalculator QMOOD_CALCULATOR = new VectorCalculator()
             .addMetricDependence(NumMethodsClassMetric.class) //Complexity 0
@@ -61,10 +57,11 @@ public class QMoveClassEntity extends ClassEntity {
             .addMetricDependence(NumAncestorsClassMetric.class) //Abstraction 3
             .addMetricDependence(IsRootOfHierarchyClassMetric.class) //Hierarchies 4
             .addMetricDependence(DataAccessClassMetric.class) //Encapsulation 5
-            //.addMetricDependence(DirectClassCouplingMetric.class) //Coupling 6
-            .addMetricDependence(NumPublicMethodsClassMetric.class) //Messaging 7
-            .addMetricDependence(CohesionAmongMethodsOfClassMetric.class) //Cohesion 8
-            .addMetricDependence(MeasureOfAggregationClassMetric.class); //Composition 9
+            .addMetricDependence(NumPublicMethodsClassMetric.class); //Messaging 6
+           // .addMetricDependence(CohesionAmongMethodsOfClassMetric.class) //Cohesion 8
+    //.addMetricDependence(DirectClassCouplingMetric.class) //Coupling 9
+            //.addMetricDependence(MeasureOfAggregationClassMetric.class); //Composition 10
+
 
     QMoveClassEntity(PsiClass psiClass) {
         super(psiClass);
@@ -75,20 +72,21 @@ public class QMoveClassEntity extends ClassEntity {
     void calculateVector(MetricsRun metricsRun) {
         double[] vector = QMOOD_CALCULATOR.calculateVector(metricsRun, this);
         complexity = vector[0];
+        inheritance = vector[1];
         polymorphism = vector[2];
         abstraction = vector[3];
         hierarchies = vector[4];
         encapsulation = vector[5];
         messaging = vector[6];
-        cohesion = vector[7];
-        composition = vector[8];
-        inheritance = vector[1];
 
         numOfAllMethods = inheritance + complexity;
-        methods = Stream.of(psiClass.getMethods()).collect(
-                Collectors.toMap(PsiSearchUtil::getHumanReadableName, Function.identity())
-        );
-        coupling = calculateCoupling();
+
+        coupling = properties.getRelatedClasses().size();
+
+        cohesion = properties.getSumIntersection() != 0 ? properties.getSumIntersection() /
+                (properties.getParametersOfMethods().size() * properties.getNumOfMethods()) : 0;
+
+        composition = properties.getNumUserDefinedClasses();
     }
 
     @Override
@@ -105,15 +103,6 @@ public class QMoveClassEntity extends ClassEntity {
     @Override
     public boolean isField() {
         return false;
-    }
-
-    @Override
-    public void removeFromClass(String method) {
-        getRelevantProperties().removeMethod(method);
-    }
-
-    public void addToClass(String method) {
-        getRelevantProperties().addMethod(method);
     }
 
     public double getComplexity() {
@@ -164,74 +153,34 @@ public class QMoveClassEntity extends ClassEntity {
     }
 
     public double recalculateCohesion(QMoveMethodEntity entity, boolean add) {
-        if (entity.getPsiMethod().hasModifierProperty(PsiModifier.STATIC)) {
-            return cohesion;
-        }
-        int newNumOfNoneStaticMethods = numOfNoneStaticMethods;
-        double newSumIntersection = sumIntersection;
+        int numMethods = properties.getNumOfMethods();
+        double sumIntersection = properties.getSumIntersection();
         int union;
         if (add) {
-            newNumOfNoneStaticMethods++;
-            newSumIntersection += entity.getParameters().size();
-            union = QMoveUtil.addToUnion(parametersOfMethods, entity.getParameters());
+            numMethods++;
+            sumIntersection += entity.getProperties().getSumIntersection();
+            union = QMoveUtil.addToUnion(properties.getParametersOfMethods(),
+                    entity.getProperties().getParametersOfMethods());
         } else {
-            newNumOfNoneStaticMethods--;
-            newSumIntersection -= entity.getParameters().size();
-            union = QMoveUtil.removeFromUnion(parametersOfMethods, entity.getParameters());
+            numMethods--;
+            sumIntersection -= entity.getProperties().getSumIntersection();
+            union = QMoveUtil.removeFromUnion(properties.getParametersOfMethods(),
+                    entity.getProperties().getParametersOfMethods());
         }
         if (union == 0) {
             return 0;
         }
-        return newSumIntersection / (newNumOfNoneStaticMethods * union);
+        return sumIntersection / (numMethods * union);
     }
-
 
     public double recalculateCoupling(QMoveMethodEntity entity, boolean add) {
         if (add) {
-            return QMoveUtil.addToUnion(relatedClasses, entity.getRelatedClasses());
+            return QMoveUtil.addToUnion(properties.getRelatedClasses(),
+                    entity.getProperties().getRelatedClasses());
         } else {
-            return QMoveUtil.removeFromUnion(relatedClasses, entity.getRelatedClasses());
+            return QMoveUtil.removeFromUnion(properties.getRelatedClasses(),
+                    entity.getProperties().getRelatedClasses());
         }
-    }
-
-    private int calculateCoupling() {
-        QMoveUtil.incrementMapValue(psiClass, relatedClasses);
-        PsiField[] fields = psiClass.getFields();
-        for (PsiField field : fields) {
-            if (!field.isPhysical()) {
-                continue;
-            }
-            PsiType type = field.getType().getDeepComponentType();
-            PsiClass classInType = PsiUtil.resolveClassInType(type);
-            if (classInType == null) {
-                continue;
-            }
-            QMoveUtil.incrementMapValue(classInType, relatedClasses);
-        }
-        for (Map.Entry<String, PsiMethod> method : methods.entrySet()) {
-            QMoveUtil.calculateRelatedClasses(method.getValue(), relatedClasses);
-        }
-        return relatedClasses.size();
-    }
-
-
-    public double calculateCohesion(List<QMoveMethodEntity> methods) {
-        sumIntersection = methods.stream()
-                .filter(x -> x.getClassName().equals(getName()))
-                .map(QMoveMethodEntity::getPsiMethod)
-                .mapToInt(x -> x.getParameterList().getParameters().length).sum();
-        for (QMoveMethodEntity methodEntry : methods) {
-            PsiMethod method = methodEntry.getPsiMethod();
-            if (method.isConstructor() || method.hasModifierProperty(PsiModifier.STATIC)) {
-                continue;
-            }
-            QMoveUtil.calculateMethodParameters(method, parametersOfMethods);
-            numOfNoneStaticMethods++;
-        }
-        if (parametersOfMethods.size() == 0) {
-            return 0;
-        }
-        return sumIntersection / (numOfNoneStaticMethods * parametersOfMethods.size());
     }
 
     public double recalculateInheritance(boolean increment) {
@@ -242,7 +191,5 @@ public class QMoveClassEntity extends ClassEntity {
         }
     }
 
-    public PsiClass getPsiClass() {
-        return psiClass;
-    }
+
 }

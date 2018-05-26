@@ -98,14 +98,6 @@ public class QMoveEntitySearcher  {
                     break;
                 case Method:
                     methods.add((MethodEntity) entity);
-                    if(((QMoveMethodEntity)entity).getPsiMethod().hasModifierProperty(PsiModifier.STATIC)){
-                        break;
-                    }
-                    PsiClass containingClass = ((QMoveMethodEntity)entity).getPsiMethod().getContainingClass();
-                    if(!QMoveClassEntity.allNoneStaticMethods.containsKey(containingClass)){
-                        QMoveClassEntity.allNoneStaticMethods.put(containingClass, new ArrayList<>());
-                    }
-                    QMoveClassEntity.allNoneStaticMethods.get(containingClass).add((QMoveMethodEntity) entity);
                     break;
                 default:
                     fields.add((FieldEntity) entity);
@@ -178,28 +170,33 @@ public class QMoveEntitySearcher  {
         @Override
         public void visitClass(PsiClass aClass) {
             indicator.checkCanceled();
-            final Entity entity = entities.get(aClass);
+            final QMoveClassEntity entity = (QMoveClassEntity) entities.get(aClass);
             if (entity == null) {
                 super.visitClass(aClass);
                 return;
             }
-          /*  final RelevantProperties classProperties = entity.getRelevantProperties();
-            classProperties.addClass(aClass, strategy.getWeight(aClass, aClass));
-            if (strategy.processSupers()) {
-                for (PsiClass superClass : PSIUtil.getAllSupers(aClass)) {
-                    if (superClass.isInterface()) {
-                        classProperties.addClass(superClass, strategy.getWeight(aClass, superClass));
-                    } else {
-                        propertiesFor(superClass).ifPresent(p -> p.addClass(aClass, strategy.getWeight(superClass, aClass)));
+            entity.getProperties().addToRelatedClasses(aClass);
+            for(PsiClass superClass : PSIUtil.getAllSupers(aClass)){
+                if(isClassInProject(superClass)){
+                    QMoveClassEntity superClassEntity = (QMoveClassEntity) entities.get(superClass);
+                    if(superClassEntity == null){
+                        continue;
                     }
+                    superClassEntity.getProperties().getInheritors().add(entity);
+                    entity.getProperties().getSupers().add(superClassEntity);
                 }
             }
-            Arrays.stream(aClass.getMethods())
-                    .filter(m -> isProperty(aClass, m))
-                    .forEach(m -> classProperties.addMethod(m, strategy.getWeight(aClass, m)));
-            Arrays.stream(aClass.getFields())
-                    .filter(f -> isProperty(aClass, f))
-                    .forEach(f -> classProperties.addField(f, strategy.getWeight(aClass, f)));*/
+
+            for(PsiClass innerClass : aClass.getInnerClasses()){
+                if(isClassInProject(innerClass)){
+                    QMoveClassEntity innerClassEntity = (QMoveClassEntity) entities.get(innerClass);
+                    if(innerClassEntity == null){
+                        continue;
+                    }
+                    entity.getProperties().getInnerClasses().add(innerClassEntity);
+                    innerClassEntity.getProperties().getOuterClasses().add(entity);
+                }
+            }
             reportPropertiesCalculated();
             super.visitClass(aClass);
         }
@@ -216,27 +213,57 @@ public class QMoveEntitySearcher  {
         @Override
         public void visitMethod(PsiMethod method) {
             indicator.checkCanceled();
-            final Entity entity = entities.get(method);
+            final QMoveMethodEntity entity = (QMoveMethodEntity) entities.get(method);
             if (entity == null) {
                 super.visitMethod(method);
                 return;
 
             }
-            /*final RelevantProperties methodProperties = entity.getRelevantProperties();
-            methodProperties.addMethod(method, strategy.getWeight(method, method));
-            Optional.ofNullable(method.getContainingClass())
-                    .ifPresent(c -> methodProperties.addClass(c, strategy.getWeight(method, c)));
             if (currentMethod == null) {
                 currentMethod = method;
             }
-            if (strategy.processSupers()) {
-                PSIUtil.getAllSupers(method).stream()
-                        .map(entities::get)
-                        .filter(Objects::nonNull)
-                        .forEach(superMethod -> superMethod
-                                .getRelevantProperties()
-                                .addOverrideMethod(method, strategy.getWeight(superMethod, method)));
-            }*/
+            QMoveClassEntity containingClass = (QMoveClassEntity) entities.get(method.getContainingClass());
+            if(containingClass != null){
+                entity.setContainingClass(containingClass);
+                containingClass.getProperties().incrementNumOfMethods();
+                for(PsiParameter parameter : method.getParameterList().getParameters()){
+                    PsiTypeElement typeElement = parameter.getTypeElement();
+                    if (typeElement == null) {
+                        continue;
+                    }
+                    PsiType type = typeElement.getType().getDeepComponentType();
+                    //parameters of methods for cohesion
+                    entity.getProperties().addToParameters(type);
+                    containingClass.getProperties().addToParameters(type);
+
+                    PsiClass classInType = PsiUtil.resolveClassInType(type);
+                    if (classInType == null) {
+                        continue;
+                    }
+                    //coupling
+                    entity.getProperties().addToRelatedClasses(classInType);
+                    containingClass.getProperties().addToRelatedClasses(classInType);
+                    //composition
+                    if(isClassInProject(classInType)){
+                        containingClass.getProperties().incrementUserDefinedClasses();
+                    }
+                }
+                //cohesion
+                int sumIntersection = entity.getProperties().setMethodSumIntersection();
+                containingClass.getProperties().increaseSumIntersection(sumIntersection);
+
+                entity.getProperties().setInnerClasses(
+                        containingClass.getProperties().getInnerClasses());
+
+                entity.getProperties().setInheritors(
+                        containingClass.getProperties().getInheritors());
+
+                entity.getProperties().setOuterClasses(
+                        containingClass.getProperties().getOuterClasses());
+
+                entity.getProperties().setSupers(
+                        containingClass.getProperties().getSupers());
+            }
             reportPropertiesCalculated();
             super.visitMethod(method);
             if (currentMethod == method) {
@@ -245,26 +272,6 @@ public class QMoveEntitySearcher  {
         }
 
         @Override
-        public void visitReferenceExpression(PsiReferenceExpression expression) {
-            indicator.checkCanceled();
-            PsiElement element = expression.resolve();
-            if (currentMethod != null && element instanceof PsiField
-                    && isClassInProject(((PsiField) element).getContainingClass()) && strategy.isRelation(expression)) {
-                final PsiField field = (PsiField) element;
-                propertiesFor(currentMethod)
-                        .ifPresent(p -> p.addField(field, strategy.getWeight(currentMethod, field)));
-//                propertiesFor(field)
-//                        .ifPresent(p -> p.addMethod(currentMethod, strategy.getWeight(field, currentMethod)));
-                final PsiClass fieldClass = PsiUtil.resolveClassInType(field.getType());
-                if (isClassInProject(fieldClass)) {
-                    propertiesFor(currentMethod)
-                            .ifPresent(p -> p.addClass(fieldClass, strategy.getWeight(currentMethod, fieldClass)));
-                }
-            }
-            super.visitReferenceExpression(expression);
-        }
-
-        /*@Override
         public void visitField(PsiField field) {
             indicator.checkCanceled();
             final Entity entity = entities.get(field);
@@ -272,32 +279,59 @@ public class QMoveEntitySearcher  {
                 super.visitField(field);
                 return;
             }
-            RelevantProperties fieldProperties = entity.getRelevantProperties();
-            fieldProperties.addField(field, strategy.getWeight(field, field));
+
             final PsiClass containingClass = field.getContainingClass();
             if (containingClass != null) {
-                fieldProperties.addClass(containingClass, strategy.getWeight(field, containingClass));
                 final PsiClass fieldClass = PsiUtil.resolveClassInType(field.getType());
+                if(fieldClass != null){
+                    ((QMoveClassEntity)entities.get(containingClass))
+                            .getProperties().addToRelatedClasses(fieldClass);
+                }
                 if (isClassInProject(fieldClass)) {
-                    entities.get(containingClass).getRelevantProperties().addClass(fieldClass, strategy.getWeight(containingClass, fieldClass));
+                    ((QMoveClassEntity)entities.get(containingClass))
+                            .getProperties().incrementUserDefinedClasses();
                 }
             }
             reportPropertiesCalculated();
             super.visitField(field);
-        }*/
+        }
+
+
+        @Override
+        public void visitReferenceExpression(PsiReferenceExpression expression) {
+            indicator.checkCanceled();
+            PsiElement element = expression.resolve();
+            if (currentMethod != null && element instanceof PsiField) {
+                final PsiField field = (PsiField) element;
+                if(field.hasModifierProperty(PsiModifier.PRIVATE)){
+                    ((QMoveMethodEntity)entities.get(currentMethod))
+                            .getProperties().setContainsPrivateCalls(true);
+                }
+
+                if(field.hasModifierProperty(PsiModifier.PROTECTED)){
+                    ((QMoveMethodEntity)entities.get(currentMethod))
+                            .getProperties().setContainsProtectedCalls(true);
+                }
+            }
+            super.visitReferenceExpression(expression);
+        }
 
         @Override
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
             indicator.checkCanceled();
             final PsiMethod called = expression.resolveMethod();
             final PsiClass usedClass = called != null ? called.getContainingClass() : null;
-            if (currentMethod != null && called != null && isClassInProject(usedClass)
-                    && strategy.isRelation(expression)) {
-                propertiesFor(currentMethod)
-                        .ifPresent(p -> {
-                            p.addMethod(called, strategy.getWeight(currentMethod, called));
-                            p.addClass(usedClass, strategy.getWeight(currentMethod, usedClass));
-                        });
+            if (currentMethod != null && called != null) {
+                if(called.hasModifierProperty(PsiModifier.PRIVATE)){
+                    ((QMoveMethodEntity)entities.get(currentMethod))
+                            .getProperties().setContainsPrivateCalls(true);
+                }
+
+                if(called.hasModifierProperty(PsiModifier.PROTECTED)){
+                    ((QMoveMethodEntity)entities.get(currentMethod))
+                            .getProperties().setContainsProtectedCalls(true);
+                }
+
             }
             super.visitMethodCallExpression(expression);
         }

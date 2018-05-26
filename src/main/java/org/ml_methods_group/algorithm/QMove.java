@@ -21,28 +21,20 @@ import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.QMoveClassEntity;
 import org.ml_methods_group.algorithm.entity.QMoveEntitySearchResult;
 import org.ml_methods_group.algorithm.entity.QMoveMethodEntity;
+import org.ml_methods_group.utils.AlgorithmsUtil;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 public class QMove extends Algorithm {
     private List<QMoveMethodEntity> methodEntities = new ArrayList<>();
     private final List<QMoveClassEntity> classes = new ArrayList<>();
     private final Map<String, QMoveClassEntity> qMoveClassesByName = new HashMap<>();
-    private double complexity;
-    private double polymorphism;
-    private double abstraction;
-    private double hierarchies;
-    private double encapsulation;
-    private double coupling;
-    private double messaging;
-    private double cohesion;
-    private double composition;
-    private double inheritance;
-    private double size;
+    private QMoveMetric metric = new QMoveMetric();
+    private ExecutionContext context;
+    private AtomicInteger progress = new AtomicInteger();
+    private long start;
 
     public QMove() {
         super("QMove", true);
@@ -51,151 +43,213 @@ public class QMove extends Algorithm {
     @Override
     protected List<Refactoring> calculateRefactorings(
             ExecutionContext context, boolean enableFieldRefactorings) throws Exception {
+        this.context = context;
         QMoveEntitySearchResult searchResult = (QMoveEntitySearchResult) context.getEntities();
         methodEntities.clear();
         classes.clear();
+        progress.set(0);
         Stream.of(searchResult.getMethods())
                 .flatMap(List::stream)
                 .filter(Entity::isMovable)
-                .map(x -> (QMoveMethodEntity)x)
+                .map(x -> (QMoveMethodEntity) x)
                 .forEach(methodEntities::add);
-
         searchResult.getClasses()
                 .stream()
-                .map(x -> (QMoveClassEntity)x)
-                .peek(x -> x.calculateCohesion(methodEntities))
+                .map(x -> (QMoveClassEntity) x)
                 .peek(entity -> qMoveClassesByName.put(entity.getName(), entity))
                 .forEach(classes::add);
         calculateMetrics();
-        ArrayList<Refactoring> refactorings = new ArrayList<>();
-
-        for(QMoveMethodEntity methodEntity : methodEntities){
+        System.err.println("started");
+        start = System.currentTimeMillis();
+        /*for (QMoveMethodEntity methodEntity : methodEntities) {
             findBestMoveForMethod(methodEntity, refactorings);
-        }
-        for(Refactoring refactoring : refactorings){
-            System.err.println(refactoring.getTarget() +
-                    " " + refactoring.getUnit() + " " + refactoring.getAccuracy());
-        }
-        return refactorings;
+        }*/
+        return runParallel(methodEntities, context, ArrayList::new,
+                this::findBestMoveForMethod, AlgorithmsUtil::combineLists);
     }
-
 
 
     private List<Refactoring> findBestMoveForMethod(QMoveMethodEntity method,
-                                                    List<Refactoring> refactorings){
-        double bestFitness = fitness();
-        QMoveClassEntity targetForThisMethod = null;
-        for(QMoveClassEntity targetClass : classes){
-            QMoveClassEntity containingClass = qMoveClassesByName.get(
-                    method.getClassName());
-            if(containingClass.equals(targetClass)){
-                continue;
-            }
-            double newFitness = moveMethod(method, targetClass, containingClass);
-            if(newFitness > bestFitness){
-                bestFitness = newFitness;
-                targetForThisMethod =  targetClass;
+                                                    List<Refactoring> refactorings) {
+        reportProgress((double) progress.incrementAndGet() / methodEntities.size(), context);
+        QMoveMetric copy = new QMoveMetric(metric);
+        context.checkCanceled();
+        ResultHolder resultHolder = new ResultHolder(null, 0);
+        start = System.currentTimeMillis();
+        if (method.getMoveAbility() == QMoveMethodEntity.MoveAbility.ANY_CLASS) {
+            System.err.println(method.getName());
+            resultHolder = checkMoveForClasses(method, classes, copy);
+
+        } else {
+            for (Set<QMoveClassEntity> targets : method.getTargets()) {
+                ResultHolder holder = checkMoveForClasses(method, targets, copy);
+                if (resultHolder.fitness < holder.fitness) {
+                    resultHolder = holder;
+                }
             }
         }
-        if(targetForThisMethod != null){
+        System.err.println(System.currentTimeMillis() - start);
+        if (resultHolder.target != null) {
             refactorings.add(new Refactoring(method.getName(),
-                    targetForThisMethod.getName(), bestFitness / fitness() - 1, false));
+                    resultHolder.target.getName(), 0.5,
+                    false));
         }
         return refactorings;
     }
 
-
-    private void calculateMetrics(){
-        size = classes.size();
-        complexity = methodEntities.size();
-        polymorphism = classes.stream().mapToDouble(QMoveClassEntity::getPolymorphism).sum();
-        abstraction = classes.stream().mapToDouble(QMoveClassEntity::getAbstraction).sum() / size;
-        hierarchies = classes.stream().mapToDouble(QMoveClassEntity::getHierarchies).sum();
-        encapsulation = classes.stream().mapToDouble(QMoveClassEntity::getEncapsulation).sum();
-        coupling = classes.stream().mapToDouble(QMoveClassEntity::getCoupling).sum();
-        messaging = classes.stream().mapToDouble(QMoveClassEntity::getMessaging).sum();
-        cohesion = classes.stream().mapToDouble(QMoveClassEntity::getCohesion).sum();
-        composition = classes.stream().mapToDouble(QMoveClassEntity::getComposition).sum();
-        inheritance = classes.stream().mapToDouble(QMoveClassEntity::getInheritance).sum();
+    private ResultHolder checkMoveForClasses(QMoveMethodEntity method,
+                                             Collection<QMoveClassEntity> classes, QMoveMetric metricCopy) {
+        double bestFitness = 0;
+        QMoveClassEntity targetForThisMethod = null;
+        for (QMoveClassEntity targetClass : classes) {
+            QMoveClassEntity containingClass = qMoveClassesByName.get(
+                    method.getClassName());
+            if (containingClass.equals(targetClass) ||
+                    !method.isValidMoveToClass(targetClass)) {
+                continue;
+            }
+            double newFitness = moveMethod(method, targetClass, containingClass, metric);
+            if (newFitness > bestFitness) {
+                bestFitness = newFitness;
+                targetForThisMethod = targetClass;
+            }
+        }
+        return new ResultHolder(targetForThisMethod, bestFitness);
     }
 
-    private double reusability() {
-        return -0.25 * coupling + 0.25 * cohesion + 0.5 * messaging
-                + 0.5 * size;
-    }
 
-    private double flexibility() {
-        return 0.25 * encapsulation - 0.25 * coupling + 0.5 * composition
-                + 0.5 * polymorphism;
-    }
-
-    private double understandability() {
-        return 0.33 * abstraction + 0.33 * encapsulation - 0.33 * coupling
-                + 0.33 * cohesion - 0.33 * polymorphism - 0.33 * complexity
-                - 0.33 * size;
-    }
-
-    private double functionality() {
-        return +0.12 * cohesion + 0.22 * polymorphism + 0.22 * messaging
-                + 0.22 * size + 0.22 * hierarchies;
-    }
-
-    private double extendibility() {
-        return 0.5 * abstraction - 0.5 * coupling + 0.5 * inheritance
-                + 0.5 * polymorphism;
-    }
-
-    private double effectiveness() {
-        return 0.2 * abstraction + 0.2 * encapsulation + 0.2 * composition
-                + 0.2 * inheritance + 0.2 * polymorphism;
-    }
-
-    private double fitness(){
-        return reusability() + flexibility() + understandability() +
-                functionality() + extendibility() + effectiveness();
+    private void calculateMetrics() {
+        metric.size = classes.size();
+        metric.complexity = methodEntities.size();
+        metric.polymorphism = classes.stream().mapToDouble(QMoveClassEntity::getPolymorphism).sum();
+        metric.abstraction = classes.stream().mapToDouble(QMoveClassEntity::getAbstraction).sum() / metric.size;
+        metric.hierarchies = classes.stream().mapToDouble(QMoveClassEntity::getHierarchies).sum();
+        metric.encapsulation = classes.stream().mapToDouble(QMoveClassEntity::getEncapsulation).sum();
+        metric.coupling = classes.stream().mapToDouble(QMoveClassEntity::getCoupling).sum();
+        metric.messaging = classes.stream().mapToDouble(QMoveClassEntity::getMessaging).sum();
+        metric.cohesion = classes.stream().mapToDouble(QMoveClassEntity::getCohesion).sum();
+        metric.composition = classes.stream().mapToDouble(QMoveClassEntity::getComposition).sum();
+        metric.inheritance = classes.stream().mapToDouble(QMoveClassEntity::getInheritance).sum();
     }
 
     private double moveMethod(QMoveMethodEntity method,
-                            QMoveClassEntity target,
-                            QMoveClassEntity containingClass){
+                              QMoveClassEntity target,
+                              QMoveClassEntity containingClass, QMoveMetric metric) {
         //recalculating cohesion
         double removeFromCohesion = target.getCohesion();
         removeFromCohesion += containingClass.getCohesion();
         double addToCohesion = target.recalculateCohesion(method, true);
         addToCohesion += containingClass.recalculateCohesion(method, false);
-        double oldCohesion = cohesion;
-        cohesion -= removeFromCohesion;
-        cohesion += addToCohesion;
+        double oldCohesion = metric.cohesion;
+        metric.cohesion -= removeFromCohesion;
+        metric.cohesion += addToCohesion;
 
         //recalculating coupling
         double removeFromCoupling = target.getCoupling();
         removeFromCoupling += containingClass.getCoupling();
         double addToCoupling = target.recalculateCoupling(method, true);
         addToCoupling += containingClass.recalculateCoupling(method, false);
-        double oldCoupling = coupling;
-        coupling -= removeFromCoupling;
-        coupling += addToCoupling;
+        double oldCoupling = metric.coupling;
+        metric.coupling -= removeFromCoupling;
+        metric.coupling += addToCoupling;
 
         //recalculating inheritance
-        double oldInheritance = inheritance;
-        for(QMoveClassEntity entity : classes){
-            if(entity.getName().equals(target.getName()) ||
-                    entity.getName().equals(containingClass.getName())){
-                continue;
-            }
-            if(entity.getPsiClass().isInheritor(target.getPsiClass(), true)){
-                inheritance -= entity.getInheritance();
-                inheritance += entity.recalculateInheritance(true);
-            }
-            if(entity.getPsiClass().isInheritor(containingClass.getPsiClass(), true)){
-                inheritance -= entity.getInheritance();
-                inheritance += entity.recalculateInheritance(false);
-            }
+        double oldInheritance = metric.inheritance;
+        for (QMoveClassEntity entity : target.getInheritors()) {
+            metric.inheritance -= entity.getInheritance();
+            metric.inheritance += entity.recalculateInheritance(true);
         }
-        double fitness = fitness();
-        cohesion = oldCohesion;
-        coupling = oldCoupling;
-        inheritance = oldInheritance;
+        for (QMoveClassEntity entity : containingClass.getInheritors()) {
+            metric.inheritance -= entity.getInheritance();
+            metric.inheritance += entity.recalculateInheritance(false);
+        }
+        double fitness = metric.fitness(this.metric);
+        metric.cohesion = oldCohesion;
+        metric.coupling = oldCoupling;
+        metric.inheritance = oldInheritance;
         return fitness;
+    }
+
+    private static class QMoveMetric {
+        private QMoveMetric() {
+        }
+
+        private QMoveMetric(QMoveMetric other) {
+            cohesion = other.cohesion;
+            complexity = other.complexity;
+            coupling = other.coupling;
+            encapsulation = other.encapsulation;
+            polymorphism = other.polymorphism;
+            abstraction = other.abstraction;
+            hierarchies = other.hierarchies;
+            messaging = other.messaging;
+            composition = other.composition;
+            inheritance = other.inheritance;
+            size = other.size;
+        }
+
+        private double complexity;
+        private double polymorphism;
+        private double abstraction;
+        private double hierarchies;
+        private double encapsulation;
+        private double coupling;
+        private double messaging;
+        private double cohesion;
+        private double composition;
+        private double inheritance;
+        private double size;
+
+        private double effectiveness() {
+            return 0.2 * abstraction + 0.2 * encapsulation + 0.2 * composition
+                    + 0.2 * inheritance + 0.2 * polymorphism;
+        }
+
+        private double extendibility() {
+            return 0.5 * abstraction - 0.5 * coupling + 0.5 * inheritance
+                    + 0.5 * polymorphism;
+        }
+
+        private double functionality() {
+            return +0.12 * cohesion + 0.22 * polymorphism + 0.22 * messaging
+                    + 0.22 * size + 0.22 * hierarchies;
+        }
+
+        private double understandability() {
+            return 0.33 * abstraction + 0.33 * encapsulation - 0.33 * coupling
+                    + 0.33 * cohesion - 0.33 * polymorphism - 0.33 * complexity
+                    - 0.33 * size;
+        }
+
+        private double reusability() {
+            return -0.25 * coupling + 0.25 * cohesion + 0.5 * messaging
+                    + 0.5 * size;
+        }
+
+        private double flexibility() {
+            return 0.25 * encapsulation - 0.25 * coupling + 0.5 * composition
+                    + 0.5 * polymorphism;
+        }
+
+        private double fitness(QMoveMetric other) {
+            if (flexibility() < other.flexibility() ||
+                    understandability() < other.understandability()
+                    || extendibility() < other.extendibility()) {
+                return Double.NEGATIVE_INFINITY;
+            }
+            return flexibility() + understandability() + extendibility()
+                    - other.extendibility() - other.flexibility() - other.understandability();
+        }
+
+    }
+
+    private static class ResultHolder {
+        private ResultHolder(QMoveClassEntity target, double fitness) {
+            this.fitness = fitness;
+            this.target = target;
+        }
+
+        private QMoveClassEntity target;
+        private double fitness;
     }
 }
