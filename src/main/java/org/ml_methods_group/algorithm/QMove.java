@@ -61,11 +61,13 @@ public class QMove extends Algorithm {
         calculateMetrics();
         System.err.println("started");
         start = System.currentTimeMillis();
-        /*for (QMoveMethodEntity methodEntity : methodEntities) {
+       /* List<Refactoring> refactorings = new ArrayList<>();
+        for (QMoveMethodEntity methodEntity : methodEntities) {
             findBestMoveForMethod(methodEntity, refactorings);
         }*/
         return runParallel(methodEntities, context, ArrayList::new,
-                this::findBestMoveForMethod, AlgorithmsUtil::combineLists);
+               this::findBestMoveForMethod, AlgorithmsUtil::combineLists);
+       // return refactorings;
     }
 
 
@@ -91,7 +93,7 @@ public class QMove extends Algorithm {
         System.err.println(System.currentTimeMillis() - start);
         if (resultHolder.target != null) {
             refactorings.add(new Refactoring(method.getName(),
-                    resultHolder.target.getName(), 0.5,
+                    resultHolder.target.getName(), resultHolder.fitness,
                     false));
         }
         return refactorings;
@@ -108,7 +110,7 @@ public class QMove extends Algorithm {
                     !method.isValidMoveToClass(targetClass)) {
                 continue;
             }
-            double newFitness = moveMethod(method, targetClass, containingClass, metric);
+            double newFitness = moveMethod(method, targetClass, containingClass, metricCopy);
             if (newFitness > bestFitness) {
                 bestFitness = newFitness;
                 targetForThisMethod = targetClass;
@@ -134,39 +136,41 @@ public class QMove extends Algorithm {
 
     private double moveMethod(QMoveMethodEntity method,
                               QMoveClassEntity target,
-                              QMoveClassEntity containingClass, QMoveMetric metric) {
+                              QMoveClassEntity containingClass, QMoveMetric copyMetric) {
         //recalculating cohesion
         double removeFromCohesion = target.getCohesion();
         removeFromCohesion += containingClass.getCohesion();
         double addToCohesion = target.recalculateCohesion(method, true);
         addToCohesion += containingClass.recalculateCohesion(method, false);
-        double oldCohesion = metric.cohesion;
-        metric.cohesion -= removeFromCohesion;
-        metric.cohesion += addToCohesion;
+        double oldCohesion = copyMetric.cohesion;
+        copyMetric.cohesion -= removeFromCohesion;
+        copyMetric.cohesion += addToCohesion;
 
         //recalculating coupling
         double removeFromCoupling = target.getCoupling();
         removeFromCoupling += containingClass.getCoupling();
         double addToCoupling = target.recalculateCoupling(method, true);
         addToCoupling += containingClass.recalculateCoupling(method, false);
-        double oldCoupling = metric.coupling;
-        metric.coupling -= removeFromCoupling;
-        metric.coupling += addToCoupling;
-
+        double oldCoupling = copyMetric.coupling;
+        copyMetric.coupling -= removeFromCoupling;
+        copyMetric.coupling += addToCoupling;
+        if(metric.coupling != oldCoupling){
+            System.err.println("wtf");
+        }
         //recalculating inheritance
-        double oldInheritance = metric.inheritance;
+        double oldInheritance = copyMetric.inheritance;
         for (QMoveClassEntity entity : target.getInheritors()) {
-            metric.inheritance -= entity.getInheritance();
-            metric.inheritance += entity.recalculateInheritance(true);
+            copyMetric.inheritance -= entity.getInheritance();
+            copyMetric.inheritance += entity.recalculateInheritance(true);
         }
         for (QMoveClassEntity entity : containingClass.getInheritors()) {
-            metric.inheritance -= entity.getInheritance();
-            metric.inheritance += entity.recalculateInheritance(false);
+            copyMetric.inheritance -= entity.getInheritance();
+            copyMetric.inheritance += entity.recalculateInheritance(false);
         }
-        double fitness = metric.fitness(this.metric);
-        metric.cohesion = oldCohesion;
-        metric.coupling = oldCoupling;
-        metric.inheritance = oldInheritance;
+        double fitness = copyMetric.fitness(this.metric);
+        copyMetric.cohesion = oldCohesion;
+        copyMetric.coupling = oldCoupling;
+        copyMetric.inheritance = oldInheritance;
         return fitness;
     }
 

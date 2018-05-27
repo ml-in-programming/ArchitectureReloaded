@@ -23,22 +23,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public class QMoveUtil {
-    public static void calculateRelatedClasses(PsiMethod method, Map<PsiClass, Integer> relatedClasses){
-        PsiParameter[] parameters = method.getParameterList().getParameters();
-        for (PsiParameter parameter : parameters) {
-            PsiTypeElement typeElement = parameter.getTypeElement();
-            if (typeElement == null) {
-                continue;
-            }
-            PsiType type = typeElement.getType().getDeepComponentType();
-            PsiClass classInType = PsiUtil.resolveClassInType(type);
-            if (classInType == null) {
-                continue;
-            }
-            incrementMapValue(classInType, relatedClasses);
-        }
-    }
-
     public static <T> int  removeFromUnion(Map<T, Integer> union, Map<T, Integer> set){
         int res = union.size();
         for(Map.Entry<T, Integer> item : set.entrySet()){
@@ -55,7 +39,6 @@ public class QMoveUtil {
     public static <T> int addToUnion(Map<T, Integer> union, Map<T, Integer> set){
         int res = union.size();
         for(Map.Entry<T, Integer> item : set.entrySet()){
-            int add = item.getValue();
             T key = item.getKey();
             if(!union.containsKey(key)){
                 res++;
@@ -67,11 +50,5 @@ public class QMoveUtil {
     public static <T> void incrementMapValue(T t, Map<T, Integer> map){
             map.put(t,
                     map.getOrDefault(t, 0) + 1);
-    }
-
-    public static void calculateMethodParameters(PsiMethod method, Map<PsiType, Integer> parameters){
-        Stream.of(method.getParameterList()).
-                flatMap(x -> Stream.of(x.getParameters())).
-                map(PsiVariable::getType).forEach(x -> incrementMapValue(x, parameters));
     }
 }
