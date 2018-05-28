@@ -26,9 +26,9 @@ import static org.ml_methods_group.utils.QMoveUtil.incrementMapValue;
 class QMoveRelevantProperties  {
     //cohesion
     private double sumIntersection;
-    private Map<PsiType, Integer> parametersOfMethods = new HashMap<>();
+    private Map<String, Integer> parametersOfMethods = new HashMap<>();
     //coupling
-    private Map<PsiClass, Integer> relatedClasses = new HashMap<>();
+    private Map<String, Integer> relatedClasses = new HashMap<>();
 
     private Set<QMoveClassEntity> outerClasses = new HashSet<>();
     private Set<QMoveClassEntity> innerClasses = new HashSet<>();
@@ -44,11 +44,13 @@ class QMoveRelevantProperties  {
     }
 
     void addToParameters(PsiType psiType){
-        incrementMapValue(psiType, parametersOfMethods);
+        incrementMapValue(psiType.getPresentableText(),
+                parametersOfMethods);
     }
 
     void addToRelatedClasses(PsiClass psiClass){
-        incrementMapValue(psiClass, relatedClasses);
+        incrementMapValue(psiClass.getQualifiedName(),
+                relatedClasses);
     }
 
     void increaseSumIntersection(int val){
@@ -59,11 +61,11 @@ class QMoveRelevantProperties  {
         sumIntersection = parametersOfMethods.size();
         return parametersOfMethods.size();
     }
-    Map<PsiType, Integer> getParametersOfMethods() {
+    Map<String, Integer> getParametersOfMethods() {
         return parametersOfMethods;
     }
 
-    Map<PsiClass, Integer> getRelatedClasses() {
+    Map<String, Integer> getRelatedClasses() {
         return relatedClasses;
     }
 

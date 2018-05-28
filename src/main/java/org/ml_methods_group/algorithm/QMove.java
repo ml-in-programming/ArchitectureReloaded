@@ -25,6 +25,7 @@ import org.ml_methods_group.utils.AlgorithmsUtil;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 public class QMove extends Algorithm {
@@ -34,7 +35,7 @@ public class QMove extends Algorithm {
     private QMoveMetric metric = new QMoveMetric();
     private ExecutionContext context;
     private AtomicInteger progress = new AtomicInteger();
-    private long start;
+    private AtomicLong start = new AtomicLong();
 
     public QMove() {
         super("QMove", true);
@@ -60,14 +61,14 @@ public class QMove extends Algorithm {
                 .forEach(classes::add);
         calculateMetrics();
         System.err.println("started");
-        start = System.currentTimeMillis();
-       /* List<Refactoring> refactorings = new ArrayList<>();
+        start.set(System.currentTimeMillis());
+        /*List<Refactoring> refactorings = new ArrayList<>();
         for (QMoveMethodEntity methodEntity : methodEntities) {
             findBestMoveForMethod(methodEntity, refactorings);
         }*/
         return runParallel(methodEntities, context, ArrayList::new,
                this::findBestMoveForMethod, AlgorithmsUtil::combineLists);
-       // return refactorings;
+        //return refactorings;
     }
 
 
@@ -77,7 +78,7 @@ public class QMove extends Algorithm {
         QMoveMetric copy = new QMoveMetric(metric);
         context.checkCanceled();
         ResultHolder resultHolder = new ResultHolder(null, 0);
-        start = System.currentTimeMillis();
+        start.set(System.currentTimeMillis());
         if (method.getMoveAbility() == QMoveMethodEntity.MoveAbility.ANY_CLASS) {
             System.err.println(method.getName());
             resultHolder = checkMoveForClasses(method, classes, copy);
@@ -90,7 +91,7 @@ public class QMove extends Algorithm {
                 }
             }
         }
-        System.err.println(System.currentTimeMillis() - start);
+        System.err.println(start.addAndGet(-System.currentTimeMillis()));
         if (resultHolder.target != null) {
             refactorings.add(new Refactoring(method.getName(),
                     resultHolder.target.getName(), resultHolder.fitness,
