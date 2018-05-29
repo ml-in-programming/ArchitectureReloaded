@@ -1,6 +1,7 @@
 package org.ml_methods_group.algorithm;
 
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.MethodEntity;
@@ -49,7 +50,8 @@ public class RMMR extends Algorithm {
     }
 
     @Override
-    protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) {
+    @NotNull
+    protected List<Refactoring> calculateRefactorings(@NotNull ExecutionContext context, boolean enableFieldRefactorings) {
         if (enableFieldRefactorings) {
             // TODO: write to LOGGER or throw Exception? Change UI: disable field checkbox if only RMMR is chosen.
             LOGGER.error("Field refactorings are not supported",
@@ -98,7 +100,8 @@ public class RMMR extends Algorithm {
      * @param accumulator list of refactorings, if method must be moved, refactoring for it will be added to this accumulator.
      * @return changed or unchanged accumulator.
      */
-    private List<Refactoring> findRefactoring(MethodEntity entity, List<Refactoring> accumulator) {
+    @NotNull
+    private List<Refactoring> findRefactoring(@NotNull MethodEntity entity, @NotNull List<Refactoring> accumulator) {
         reportProgress((double) progressCount.incrementAndGet() / units.size(), context);
         context.checkCanceled();
         if (!entity.isMovable() || classEntities.size() < 2) {
@@ -136,10 +139,17 @@ public class RMMR extends Algorithm {
         double sourceClassCoefficient = 1 - 1.0 / (2 * numberOfMethodsInSourceClass * numberOfMethodsInSourceClass);
         double targetClassCoefficient = 1 - 1.0 / (4 * numberOfMethodsInTargetClass * numberOfMethodsInTargetClass);
         double differenceWithSourceClassCoefficient = (1 - minDistance) * differenceWithSourceClass;
-        double accuracy = (0.7 * differenceWithSourceClassCoefficient + 0.3 * difference) *
-                sourceClassCoefficient * targetClassCoefficient;
-        // accuracy = 1;
-        if (accuracy >= MIN_ACCURACY && !targetClassName.equals(entity.getClassName())) {
+        double powerCoefficient = 1 - 1.0 / (2 * entity.getRelevantProperties().getClasses().size());
+        double accuracy = (0.6 * distanceWithSourceClass + 0.3 * (1 - minDistance) + 0.1 * differenceWithSourceClass) * powerCoefficient;
+        if (entity.getClassName().contains("Util") || entity.getClassName().contains("Factory") ||
+                entity.getClassName().contains("Builder")) {
+            if (accuracy > 0.75) {
+                accuracy /= 2;
+            } else if (accuracy < 0.25) {
+                accuracy *= 2;
+            }
+        }
+        if (differenceWithSourceClass != 0 && accuracy >= MIN_ACCURACY && !targetClassName.equals(entity.getClassName())) {
             accumulator.add(new Refactoring(entity.getName(), targetClassName, accuracy, entity.isField()));
         }
         return accumulator;
@@ -153,7 +163,7 @@ public class RMMR extends Algorithm {
      * @param classEntity class to calculate distance.
      * @return distance between the method and the class.
      */
-    private double getDistance(MethodEntity methodEntity, ClassEntity classEntity) {
+    private double getDistance(@NotNull MethodEntity methodEntity, @NotNull ClassEntity classEntity) {
         int number = 0;
         double sumOfDistances = 0;
 
@@ -177,7 +187,7 @@ public class RMMR extends Algorithm {
      * @param methodEntity2 method to calculate distance.
      * @return distance between two given methods.
      */
-    private double getDistance(MethodEntity methodEntity1, MethodEntity methodEntity2) {
+    private double getDistance(@NotNull MethodEntity methodEntity1, @NotNull MethodEntity methodEntity2) {
         // TODO: Maybe add to methodEntity2 source class where it is located?
         Set<String> method1Classes = methodEntity1.getRelevantProperties().getClasses();
         Set<String> method2Classes = methodEntity2.getRelevantProperties().getClasses();
@@ -186,13 +196,15 @@ public class RMMR extends Algorithm {
         return (sizeOfUnion == 0) ? 1 : 1 - (double) sizeOfIntersection / sizeOfUnion;
     }
 
-    private <T> Set<T> intersection(Set<T> set1, Set<T> set2) {
+    @NotNull
+    private <T> Set<T> intersection(@NotNull Set<T> set1, @NotNull Set<T> set2) {
         Set<T> intersection = new HashSet<>(set1);
         intersection.retainAll(set2);
         return intersection;
     }
 
-    private <T> Set<T> union(Set<T> set1, Set<T> set2) {
+    @NotNull
+    private <T> Set<T> union(@NotNull Set<T> set1, @NotNull Set<T> set2) {
         Set<T> union = new HashSet<>(set1);
         union.addAll(set2);
         return union;

@@ -229,6 +229,7 @@ public class RmmrEntitySearcher {
             */
         }
 
+        /*
         @Override
         public void visitNewExpression(PsiNewExpression expression) {
             indicator.checkCanceled();
@@ -239,6 +240,7 @@ public class RmmrEntitySearcher {
             }
             super.visitNewExpression(expression);
         }
+        */
 
         @Override
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
