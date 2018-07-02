@@ -94,7 +94,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 //    private static void deleteInstance(@NotNull Project project) {
 //        factory.remove(project);
 //    }
-
+    
     @Override
     public void actionPerformed(AnActionEvent e) {
         Project project = e.getData(CommonDataKeys.PROJECT);
@@ -103,12 +103,12 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         }
 
         AnalysisUIOptions UIOptions = AnalysisUIOptions.getInstance(project);
-        boolean analyzeTestSourcesFlagValue = UIOptions.ANALYZE_TEST_SOURCES;
+        boolean previousValue = UIOptions.ANALYZE_TEST_SOURCES;
         UIOptions.ANALYZE_TEST_SOURCES = false;
 
         super.actionPerformed(e);
 
-        UIOptions.ANALYZE_TEST_SOURCES = analyzeTestSourcesFlagValue;
+        UIOptions.ANALYZE_TEST_SOURCES = previousValue;
     }
 
     @Override
