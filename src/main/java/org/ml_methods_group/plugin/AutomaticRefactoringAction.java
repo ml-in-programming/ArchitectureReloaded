@@ -94,7 +94,12 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 //    private static void deleteInstance(@NotNull Project project) {
 //        factory.remove(project);
 //    }
-    
+
+    /**
+     * Entry point of this action. Sets project global flag
+     * {@link AnalysisUIOptions#ANALYZE_TEST_SOURCES} to false in order to skip analysis of tests
+     * in some cases. Restores this flag back after action has been executed.
+     */
     @Override
     public void actionPerformed(AnActionEvent e) {
         Project project = e.getData(CommonDataKeys.PROJECT);
