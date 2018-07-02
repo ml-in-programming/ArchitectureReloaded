@@ -190,4 +190,20 @@ public abstract class AbstractAlgorithmTest extends LightCodeInsightFixtureTestC
         expected.put(getPackageName() + ".ClassC.methodToMove()", getPackageName() + ".ClassA");
         assertEquals(expected, refactorings);
     }
+
+    void checkMobilePhoneNoFeatureEnvy(@NotNull RefactoringExecutionContext context) {
+        AbstractAlgorithmTest.checkStructure(context, 2, 5, 2);
+
+        final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
+        assertEquals(0, refactorings.size());
+    }
+
+    void checkMobilePhoneWithFeatureEnvy(@NotNull RefactoringExecutionContext context) {
+        AbstractAlgorithmTest.checkStructure(context, 2, 4, 2);
+
+        final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
+        final Map<String, String> expected = new HashMap<>();
+        expected.put(getPackageName() + ".Customer.getMobilePhoneNumber()", getPackageName() + ".Phone");
+        assertEquals(expected, refactorings);
+    }
 }

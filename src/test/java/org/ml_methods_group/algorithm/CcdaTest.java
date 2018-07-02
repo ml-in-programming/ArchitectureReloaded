@@ -77,4 +77,15 @@ public class CcdaTest extends AbstractAlgorithmTest {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java", "ClassC.java");
         createContext(scope, algorithmName, this::checkTriangularDependence).executeSynchronously();
     }
+
+    public void testMobilePhoneNoFeatureEnvy() {
+        AnalysisScope scope = createScope("Customer.java", "Phone.java");
+        createContext(scope, algorithmName, this::checkMobilePhoneNoFeatureEnvy).executeSynchronously();
+    }
+
+    // TODO: test fails, but is correct. Not fails if no search for field refactorings.
+    public void failing_testMobilePhoneWithFeatureEnvy() {
+        AnalysisScope scope = createScope("Customer.java", "Phone.java");
+        createContext(scope, algorithmName, this::checkMobilePhoneWithFeatureEnvy).executeSynchronously();
+    }
 }
