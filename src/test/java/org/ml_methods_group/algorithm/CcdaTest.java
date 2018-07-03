@@ -56,7 +56,7 @@ public class CcdaTest extends AlgorithmAbstractTest {
         createContext(scope, algorithmName, this::checkDontMoveConstructor).executeSynchronously();
     }
 
-    // TODO: test fails, but is correct
+    // TODO: Not currently supported
     public void failing_testDontMoveOverridden() {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java");
         createContext(scope, algorithmName, this::checkDontMoveOverridden).executeSynchronously();
@@ -82,13 +82,13 @@ public class CcdaTest extends AlgorithmAbstractTest {
         createContext(scope, algorithmName, this::checkRecursiveMethod).executeSynchronously();
     }
 
-    // TODO: test fails, but is correct
+    // TODO: Not currently supported
     public void failing_testReferencesOnly() {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java");
         createContext(scope, algorithmName, this::checkReferencesOnly).executeSynchronously();
     }
 
-    // TODO: test fails, but is correct
+    // TODO: Not currently supported
     public void failing_testTriangularDependence() {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java", "ClassC.java");
         createContext(scope, algorithmName, this::checkTriangularDependence).executeSynchronously();
@@ -99,7 +99,7 @@ public class CcdaTest extends AlgorithmAbstractTest {
         createContext(scope, algorithmName, this::checkMobilePhoneNoFeatureEnvy).executeSynchronously();
     }
 
-    // TODO: test fails, but is correct. Not fails if no search for field refactorings.
+    // TODO: Not currently supported
     public void failing_testMobilePhoneWithFeatureEnvy() {
         AnalysisScope scope = createScope("Customer.java", "Phone.java");
         createContext(scope, algorithmName, this::checkMobilePhoneWithFeatureEnvy).executeSynchronously();
