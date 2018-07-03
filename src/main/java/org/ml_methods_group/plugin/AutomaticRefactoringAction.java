@@ -17,10 +17,13 @@
 package org.ml_methods_group.plugin;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.analysis.AnalysisUIOptions;
 import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.ide.plugins.PluginManager;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
@@ -91,6 +94,27 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 //    private static void deleteInstance(@NotNull Project project) {
 //        factory.remove(project);
 //    }
+
+    /**
+     * Entry point of this action. Sets project global flag
+     * {@link AnalysisUIOptions#ANALYZE_TEST_SOURCES} to false in order to skip analysis of tests
+     * in some cases. Restores this flag back after action has been executed.
+     */
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+        Project project = e.getData(CommonDataKeys.PROJECT);
+        if (project == null) {
+            return;
+        }
+
+        AnalysisUIOptions UIOptions = AnalysisUIOptions.getInstance(project);
+        boolean previousValue = UIOptions.ANALYZE_TEST_SOURCES;
+        UIOptions.ANALYZE_TEST_SOURCES = false;
+
+        super.actionPerformed(e);
+
+        UIOptions.ANALYZE_TEST_SOURCES = previousValue;
+    }
 
     @Override
     protected void analyze(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
