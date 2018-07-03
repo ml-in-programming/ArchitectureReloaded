@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package staticFactoryMethods;
+package staticFactoryMethodsWeak;
 
 class Color {
     private final int hex;

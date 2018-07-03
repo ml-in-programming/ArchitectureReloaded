@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package staticFactoryMethods;
+package staticFactoryMethodsWeak;
 
 import java.util.ArrayList;
 
@@ -33,6 +33,11 @@ class Dog {
         children.add(new Dog(Color.makeFromRGB("101010"), 20));
         children.add(new Dog(Color.makeFromPalette(20, 20, 20), 30));
         children.forEach(this::feedChild);
+        children.forEach(this::feedChild);
+        children.forEach(this::feedChild);
+        feedChild(children.get(0));
+        feedChild(children.get(1));
+        feedChild(children.get(2));
         return children;
     }
 

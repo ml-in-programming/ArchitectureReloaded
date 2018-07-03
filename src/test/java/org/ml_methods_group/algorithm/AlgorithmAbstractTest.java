@@ -256,7 +256,14 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
     }
 
     protected void checkStaticFactoryMethods(@NotNull RefactoringExecutionContext context) {
-        checkStructure(context, 3, 5, 5);
+        checkStructure(context, 3, 7, 5);
+
+        final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
+        assertEquals(0, refactorings.size());
+    }
+
+    protected void checkStaticFactoryMethodsWeak(@NotNull RefactoringExecutionContext context) {
+        checkStructure(context, 3, 7, 5);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         assertEquals(0, refactorings.size());

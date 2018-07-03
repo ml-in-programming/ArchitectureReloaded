@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ml_methods_group.algorithm.staticFactoryMethods;
+package staticFactoryMethods;
 
 import java.util.ArrayList;
 
@@ -32,6 +32,11 @@ class Cat {
         children.add(new Cat(Color.makeFromHex(0), 10));
         children.add(new Cat(Color.makeFromRGB("101010"), 20));
         children.add(new Cat(Color.makeFromPalette(20, 20, 20), 30));
+        children.forEach(this::feedChild);
         return children;
+    }
+
+    public void feedChild(Cat cat) {
+        cat.weight++;
     }
 }
