@@ -2,7 +2,7 @@ package org.ml_methods_group.algorithm;
 
 import com.intellij.analysis.AnalysisScope;
 
-public class HacTest extends AbstractAlgorithmTest {
+public class HacTest extends AlgorithmAbstractTest {
     private static final String algorithmName = "HAC";
 
     @Override
@@ -90,5 +90,15 @@ public class HacTest extends AbstractAlgorithmTest {
     public void failing_testMobilePhoneWithFeatureEnvy() {
         AnalysisScope scope = createScope("Customer.java", "Phone.java");
         createContext(scope, algorithmName, this::checkMobilePhoneWithFeatureEnvy).executeSynchronously();
+    }
+
+    public void testMovieRentalStoreNoFeatureEnvy() {
+        AnalysisScope scope = createScope("Customer.java", "Movie.java", "Rental.java");
+        createContext(scope, algorithmName, this::checkMovieRentalStoreNoFeatureEnvy).executeSynchronously();
+    }
+
+    public void testMovieRentalStoreWithFeatureEnvy() {
+        AnalysisScope scope = createScope("Customer.java", "Movie.java", "Rental.java");
+        createContext(scope, algorithmName, this::checkMovieRentalStoreWithFeatureEnvy).executeSynchronously();
     }
 }

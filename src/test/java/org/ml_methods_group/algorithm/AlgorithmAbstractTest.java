@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 import static org.ml_methods_group.utils.RefactoringUtil.toMap;
 
-public abstract class AbstractAlgorithmTest extends LightCodeInsightFixtureTestCase {
+public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestCase {
     private static void checkStructure(@NotNull RefactoringExecutionContext context, int classes, int methods, int fields) {
         assertEquals(classes, context.getClassCount());
         assertEquals(methods, context.getMethodsCount());
@@ -54,7 +54,7 @@ public abstract class AbstractAlgorithmTest extends LightCodeInsightFixtureTestC
     abstract String getAlgorithmName();
 
     void checkMoveMethod(@NotNull RefactoringExecutionContext context) {
-        AbstractAlgorithmTest.checkStructure(context, 2, 6, 4);
+        checkStructure(context, 2, 6, 4);
 
         final Map<String, String> expected = new HashMap<>();
         expected.put(getPackageName() + ".ClassB.methodB1()", getPackageName() + ".ClassA");
@@ -63,7 +63,7 @@ public abstract class AbstractAlgorithmTest extends LightCodeInsightFixtureTestC
     }
 
     void checkCallFromNested(@NotNull RefactoringExecutionContext context) {
-        AbstractAlgorithmTest.checkStructure(context, 3, 2, 1);
+        checkStructure(context, 3, 2, 1);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         assertEquals(1, refactorings.size());
@@ -73,7 +73,7 @@ public abstract class AbstractAlgorithmTest extends LightCodeInsightFixtureTestC
     }
 
     void checkCircularDependency(@NotNull RefactoringExecutionContext context) {
-        AbstractAlgorithmTest.checkStructure(context, 3, 3, 0);
+        checkStructure(context, 3, 3, 0);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         final Set<Map<String, String>> possibleRefactorings = new HashSet<>();
@@ -93,7 +93,7 @@ public abstract class AbstractAlgorithmTest extends LightCodeInsightFixtureTestC
     }
 
     void checkCrossReferencesMethods(@NotNull RefactoringExecutionContext context) {
-        AbstractAlgorithmTest.checkStructure(context, 2, 2, 0);
+        checkStructure(context, 2, 2, 0);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         final Set<Map<String, String>> possibleRefactorings = new HashSet<>();
@@ -108,28 +108,28 @@ public abstract class AbstractAlgorithmTest extends LightCodeInsightFixtureTestC
 
     // TODO: doubts what is correct.
     void checkDontMoveAbstract(@NotNull RefactoringExecutionContext context) {
-        AbstractAlgorithmTest.checkStructure(context, 2, 2, 0);
+        checkStructure(context, 2, 2, 0);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         assertEquals(0, refactorings.size());
     }
 
     void checkDontMoveConstructor(@NotNull RefactoringExecutionContext context) {
-        AbstractAlgorithmTest.checkStructure(context, 2, 2, 1);
+        checkStructure(context, 2, 2, 1);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         assertEquals(0, refactorings.size());
     }
 
     void checkDontMoveOverridden(@NotNull RefactoringExecutionContext context) {
-        AbstractAlgorithmTest.checkStructure(context, 2, 3, 1);
+        checkStructure(context, 2, 3, 1);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         assertEquals(0, refactorings.size());
     }
 
     void checkMoveField(@NotNull RefactoringExecutionContext context) {
-        AbstractAlgorithmTest.checkStructure(context, 2, 11, 2);
+        checkStructure(context, 2, 11, 2);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         final Map<String, String> expected = new HashMap<>();
@@ -139,7 +139,7 @@ public abstract class AbstractAlgorithmTest extends LightCodeInsightFixtureTestC
     }
 
     void checkMoveTogether(@NotNull RefactoringExecutionContext context) {
-        AbstractAlgorithmTest.checkStructure(context, 2, 8, 4);
+        checkStructure(context, 2, 8, 4);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         final Map<String, String> expected = new HashMap<>();
@@ -149,7 +149,7 @@ public abstract class AbstractAlgorithmTest extends LightCodeInsightFixtureTestC
     }
 
     void checkPriority(@NotNull RefactoringExecutionContext context) {
-        AbstractAlgorithmTest.checkStructure(context, 2, 9, 0);
+        checkStructure(context, 2, 9, 0);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         final Map<String, String> expected = new HashMap<>();
@@ -158,7 +158,7 @@ public abstract class AbstractAlgorithmTest extends LightCodeInsightFixtureTestC
     }
 
     void checkRecursiveMethod(@NotNull RefactoringExecutionContext context) {
-        AbstractAlgorithmTest.checkStructure(context, 2, 5, 2);
+        checkStructure(context, 2, 5, 2);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         final Map<String, String> expected = new HashMap<>();
@@ -167,7 +167,7 @@ public abstract class AbstractAlgorithmTest extends LightCodeInsightFixtureTestC
     }
 
     void checkReferencesOnly(@NotNull RefactoringExecutionContext context) {
-        AbstractAlgorithmTest.checkStructure(context, 2, 4, 0);
+        checkStructure(context, 2, 4, 0);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         final Set<Map<String, String>> possibleRefactorings = new HashSet<>();
@@ -182,7 +182,7 @@ public abstract class AbstractAlgorithmTest extends LightCodeInsightFixtureTestC
     }
 
     void checkTriangularDependence(@NotNull RefactoringExecutionContext context) {
-        AbstractAlgorithmTest.checkStructure(context, 3, 8, 0);
+        checkStructure(context, 3, 8, 0);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         final Map<String, String> expected = new HashMap<>();
@@ -192,18 +192,34 @@ public abstract class AbstractAlgorithmTest extends LightCodeInsightFixtureTestC
     }
 
     void checkMobilePhoneNoFeatureEnvy(@NotNull RefactoringExecutionContext context) {
-        AbstractAlgorithmTest.checkStructure(context, 2, 5, 2);
+        checkStructure(context, 2, 5, 2);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         assertEquals(0, refactorings.size());
     }
 
     void checkMobilePhoneWithFeatureEnvy(@NotNull RefactoringExecutionContext context) {
-        AbstractAlgorithmTest.checkStructure(context, 2, 4, 2);
+        checkStructure(context, 2, 4, 2);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         final Map<String, String> expected = new HashMap<>();
         expected.put(getPackageName() + ".Customer.getMobilePhoneNumber()", getPackageName() + ".Phone");
+        assertEquals(expected, refactorings);
+    }
+
+    void checkMovieRentalStoreNoFeatureEnvy(@NotNull RefactoringExecutionContext context) {
+        checkStructure(context, 3, 7, 9);
+
+        final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
+        assertEquals(0, refactorings.size());
+    }
+
+    void checkMovieRentalStoreWithFeatureEnvy(@NotNull RefactoringExecutionContext context) {
+        checkStructure(context, 3, 7, 9);
+
+        final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
+        final Map<String, String> expected = new HashMap<>();
+        expected.put(getPackageName() + ".Customer.getMovie(Movie)", getPackageName() + ".Rental");
         assertEquals(expected, refactorings);
     }
 }

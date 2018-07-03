@@ -2,7 +2,7 @@ package org.ml_methods_group.algorithm;
 
 import com.intellij.analysis.AnalysisScope;
 
-public class AriTest extends AbstractAlgorithmTest {
+public class AriTest extends AlgorithmAbstractTest {
     private static final String algorithmName = "ARI";
 
     @Override
@@ -93,5 +93,16 @@ public class AriTest extends AbstractAlgorithmTest {
     public void failing_testMobilePhoneWithFeatureEnvy() {
         AnalysisScope scope = createScope("Customer.java", "Phone.java");
         createContext(scope, algorithmName, this::checkMobilePhoneWithFeatureEnvy).executeSynchronously();
+    }
+
+    public void testMovieRentalStoreNoFeatureEnvy() {
+        AnalysisScope scope = createScope("Customer.java", "Movie.java", "Rental.java");
+        createContext(scope, algorithmName, this::checkMovieRentalStoreNoFeatureEnvy).executeSynchronously();
+    }
+
+    // TODO: test fails, but is correct
+    public void failing_testMovieRentalStoreWithFeatureEnvy() {
+        AnalysisScope scope = createScope("Customer.java", "Movie.java", "Rental.java");
+        createContext(scope, algorithmName, this::checkMovieRentalStoreWithFeatureEnvy).executeSynchronously();
     }
 }
