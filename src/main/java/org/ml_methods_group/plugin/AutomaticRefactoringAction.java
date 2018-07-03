@@ -50,6 +50,13 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * This action is intended to be invoked when IDE user wants to know what refactorings he might
+ * do to improve his project.
+ * This class is a subclass of {@link BaseAnalysisAction} which means that its logical entry
+ * point is method {@link #analyze}. Nevertheless it has {@link #actionPerformed} method to
+ * achieve desired behaviour in a hacky way.
+ */
 public class AutomaticRefactoringAction extends BaseAnalysisAction {
     private static final Logger LOGGER = Logging.getLogger(AutomaticRefactoringAction.class);
     private static final String REFACTORING_PROFILE_KEY = "refactoring.metrics.profile.name";
@@ -116,6 +123,12 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         UIOptions.ANALYZE_TEST_SOURCES = previousValue;
     }
 
+    /**
+     * A logical entry point of this action.
+     *
+     * @param project current project this action is invoked for.
+     * @param analysisScope scope (set of files) that must be analysed.
+     */
     @Override
     protected void analyze(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
         LOGGER.info("Run analysis (scope=" + analysisScope.getDisplayName() + ")");
