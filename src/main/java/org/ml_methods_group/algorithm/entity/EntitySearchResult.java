@@ -20,6 +20,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
+/**
+ * A result that {@link EntitySearcher} produces. This class stores entities that were accepted by
+ * an {@link EntitySearcher} as valid.
+ */
 public class EntitySearchResult {
     private final List<ClassEntity> classes;
     private final List<MethodEntity> methods;
@@ -40,18 +44,30 @@ public class EntitySearchResult {
                 .sum();
     }
 
+    /**
+     * Returns classes stored in this result.
+     */
     public List<ClassEntity> getClasses() {
         return Collections.unmodifiableList(classes);
     }
 
+    /**
+     * Returns methods stored in this result.
+     */
     public List<MethodEntity> getMethods() {
         return Collections.unmodifiableList(methods);
     }
 
+    /**
+     * Returns fields stored in this result.
+     */
     public List<FieldEntity> getFields() {
         return Collections.unmodifiableList(fields);
     }
 
+    /**
+     * Returns total number of {@link RelevantProperties} over all entities in this result.
+     */
     public int getPropertiesCount() {
         return propertiesCount;
     }
