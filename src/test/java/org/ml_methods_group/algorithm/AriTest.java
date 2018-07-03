@@ -20,122 +20,118 @@ import com.intellij.analysis.AnalysisScope;
 
 public class AriTest extends AlgorithmAbstractTest {
     private static final String algorithmName = "ARI";
-
-    @Override
-    String getAlgorithmName() {
-        return algorithmName;
-    }
+    private static final TestCasesCheckers testCasesChecker = new TestCasesCheckers(algorithmName);
 
     public void testMoveMethod() {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java");
-        createContext(scope, algorithmName, this::checkMoveMethod).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkMoveMethod).executeSynchronously();
     }
 
     // TODO: Not currently supported
     public void failing_testCallFromNested() {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java");
-        createContext(scope, algorithmName, this::checkCallFromNested).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkCallFromNested).executeSynchronously();
     }
 
     // TODO: Not currently supported
     public void failing_testCircularDependency() {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java", "ClassC.java");
-        createContext(scope, algorithmName, this::checkCircularDependency).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkCircularDependency).executeSynchronously();
     }
 
     // TODO: Not currently supported
     public void failing_testCrossReferencesMethods() {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java");
-        createContext(scope, algorithmName, this::checkCrossReferencesMethods).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkCrossReferencesMethods).executeSynchronously();
     }
 
     public void testDontMoveAbstract() {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java");
-        createContext(scope, algorithmName, this::checkDontMoveAbstract).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkDontMoveAbstract).executeSynchronously();
     }
 
     public void testDontMoveConstructor() {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java");
-        createContext(scope, algorithmName, this::checkDontMoveConstructor).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkDontMoveConstructor).executeSynchronously();
     }
 
     public void testDontMoveOverridden() {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java");
-        createContext(scope, algorithmName, this::checkDontMoveOverridden).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkDontMoveOverridden).executeSynchronously();
     }
 
     // TODO: Not currently supported
     public void failing_testMoveField() {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java");
-        createContext(scope, algorithmName, this::checkMoveField).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkMoveField).executeSynchronously();
     }
 
     // TODO: Not currently supported
     public void failing_testMoveTogether() {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java");
-        createContext(scope, algorithmName, this::checkMoveTogether).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkMoveTogether).executeSynchronously();
     }
 
     // TODO: Not currently supported
     public void failing_testPriority() {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java");
-        createContext(scope, algorithmName, this::checkPriority).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkPriority).executeSynchronously();
     }
 
     // TODO: Not currently supported
     public void failing_testRecursiveMethod() {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java");
-        createContext(scope, algorithmName, this::checkRecursiveMethod).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkRecursiveMethod).executeSynchronously();
     }
 
     // TODO: Not currently supported
     public void failing_testReferencesOnly() {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java");
-        createContext(scope, algorithmName, this::checkReferencesOnly).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkReferencesOnly).executeSynchronously();
     }
 
     // TODO: Not currently supported
     public void failing_testTriangularDependence() {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java", "ClassC.java");
-        createContext(scope, algorithmName, this::checkTriangularDependence).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkTriangularDependence).executeSynchronously();
     }
 
     public void testMobilePhoneNoFeatureEnvy() {
         AnalysisScope scope = createScope("Customer.java", "Phone.java");
-        createContext(scope, algorithmName, this::checkMobilePhoneNoFeatureEnvy).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkMobilePhoneNoFeatureEnvy).executeSynchronously();
     }
 
     // TODO: Not currently supported
     public void failing_testMobilePhoneWithFeatureEnvy() {
         AnalysisScope scope = createScope("Customer.java", "Phone.java");
-        createContext(scope, algorithmName, this::checkMobilePhoneWithFeatureEnvy).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkMobilePhoneWithFeatureEnvy).executeSynchronously();
     }
 
     public void testMovieRentalStoreNoFeatureEnvy() {
         AnalysisScope scope = createScope("Customer.java", "Movie.java", "Rental.java");
-        createContext(scope, algorithmName, this::checkMovieRentalStoreNoFeatureEnvy).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkMovieRentalStoreNoFeatureEnvy).executeSynchronously();
     }
 
     // TODO: Not currently supported
     public void failing_testMovieRentalStoreWithFeatureEnvy() {
         AnalysisScope scope = createScope("Customer.java", "Movie.java", "Rental.java");
-        createContext(scope, algorithmName, this::checkMovieRentalStoreWithFeatureEnvy).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkMovieRentalStoreWithFeatureEnvy).executeSynchronously();
     }
 
     // TODO: Not currently supported
     public void failing_testCallFromLambda() {
         AnalysisScope scope = createScope("ClassA.java", "ClassB.java");
-        createContext(scope, algorithmName, this::checkCallFromLambda).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkCallFromLambda).executeSynchronously();
     }
 
     // TODO: Not currently supported
     public void failing_testStaticFactoryMethods() {
         AnalysisScope scope = createScope("Cat.java", "Color.java", "Dog.java");
-        createContext(scope, algorithmName, this::checkStaticFactoryMethods).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkStaticFactoryMethods).executeSynchronously();
     }
 
     public void testStaticFactoryMethodsWeak() {
         AnalysisScope scope = createScope("Cat.java", "Color.java", "Dog.java");
-        createContext(scope, algorithmName, this::checkStaticFactoryMethodsWeak).executeSynchronously();
+        createContext(scope, algorithmName, testCasesChecker::checkStaticFactoryMethodsWeak).executeSynchronously();
     }
 }
