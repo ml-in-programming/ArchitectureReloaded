@@ -29,7 +29,7 @@ public class CcdaTest extends AlgorithmAbstractTest {
     }
 
     public void testCircularDependency() {
-        executeTest(testCasesChecker::checkCallFromNested, "ClassA.java", "ClassB.java");
+        executeTest(testCasesChecker::checkCircularDependency, "ClassA.java", "ClassB.java", "ClassC.java");
     }
 
     public void testCrossReferencesMethods() {

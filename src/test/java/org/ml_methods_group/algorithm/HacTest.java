@@ -31,7 +31,7 @@ public class HacTest extends AlgorithmAbstractTest {
 
     // TODO: Not currently supported
     public void failing_testCircularDependency() {
-        executeTest(testCasesChecker::checkCallFromNested, "ClassA.java", "ClassB.java");
+        executeTest(testCasesChecker::checkCircularDependency, "ClassA.java", "ClassB.java", "ClassC.java");
     }
 
     public void testCrossReferencesMethods() {
