@@ -33,14 +33,11 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("WeakerAccess")
 public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestCase {
+    protected final TestCasesCheckers testCasesChecker = new TestCasesCheckers(getAlgorithmName());
+
     @Override
     protected String getTestDataPath() {
         return "src/test/resources/testCases/" + getTestName(true);
-    }
-
-    @NotNull
-    private String getPackageName() {
-        return getTestName(true);
     }
 
     @NotNull
@@ -62,4 +59,11 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
                 Collections.singletonList(algorithmName), true,
                 checker);
     }
+
+    protected void executeTest(Consumer<RefactoringExecutionContext> checker, String... files) {
+        AnalysisScope scope = createScope(files);
+        createContext(scope, getAlgorithmName(), checker).executeSynchronously();
+    }
+
+    protected abstract String getAlgorithmName();
 }
