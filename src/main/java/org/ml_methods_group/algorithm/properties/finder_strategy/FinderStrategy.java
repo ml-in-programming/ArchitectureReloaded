@@ -20,27 +20,53 @@ import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * An interface for a strategy that {@link org.ml_methods_group.algorithm.entity.EntitySearcher}
+ * uses. Strategy defines what kind of code entities should be skipped and what weights should
+ * be assigned to {@link org.ml_methods_group.algorithm.entity.RelevantProperties}.
+ */
 public interface FinderStrategy {
     int DEFAULT_WEIGHT = 1;
 
     /**
      * Verifies that file needs to be processed by finder.
      *
-     * @param file PsiFile to check.
+     * @param file {@link PsiFile} to check.
      * @return {@code True} if file needs to be processed.
      */
     default boolean acceptFile(final PsiFile file) {
         return file != null && file.getFileType().equals(JavaFileType.INSTANCE);
     }
 
+    /**
+     * Verifies that class needs to be processed by finder.
+     *
+     * @param aClass {@link PsiClass} to check.
+     * @return {@code True} if class needs to be processed.
+     */
     boolean acceptClass(@NotNull final PsiClass aClass);
 
+    /**
+     * Verifies that method needs to be processed by finder.
+     *
+     * @param method {@link PsiMethod} to check.
+     * @return {@code True} if method needs to be processed.
+     */
     boolean acceptMethod(@NotNull final PsiMethod method);
 
+    /**
+     * Verifies that field needs to be processed by finder.
+     *
+     * @param field {@link PsiField} to check.
+     * @return {@code True} if field needs to be processed.
+     */
     boolean acceptField(@NotNull final PsiField field);
 
     boolean isRelation(@NotNull final PsiElement element);
 
+    /**
+     * Returns {@code True} if finder should process super classes.
+     */
     boolean processSupers();
 
     int getWeight(PsiMethod from, PsiClass to);
