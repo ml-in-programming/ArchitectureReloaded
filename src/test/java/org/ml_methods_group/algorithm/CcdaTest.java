@@ -98,4 +98,9 @@ public class CcdaTest extends AlgorithmAbstractTest {
         AnalysisScope scope = createScope("Customer.java", "Movie.java", "Rental.java");
         createContext(scope, algorithmName, this::checkMovieRentalStoreWithFeatureEnvy).executeSynchronously();
     }
+
+    public void testCallFromLambda() {
+        AnalysisScope scope = createScope("ClassA.java", "ClassB.java");
+        createContext(scope, algorithmName, this::checkCallFromLambda).executeSynchronously();
+    }
 }

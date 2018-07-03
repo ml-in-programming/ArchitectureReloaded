@@ -222,4 +222,19 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
         expected.put(getPackageName() + ".Customer.getMovie(Movie)", getPackageName() + ".Rental");
         assertEquals(expected, refactorings);
     }
+
+    void checkCallFromLambda(@NotNull RefactoringExecutionContext context) {
+        checkStructure(context, 2, 4, 1);
+
+        final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
+        final Set<Map<String, String>> possibleRefactorings = new HashSet<>();
+        final Map<String, String> possibleRefactoring1 = new HashMap<>();
+        possibleRefactoring1.put(getPackageName() + ".ClassA.doSomething1()", getPackageName() + ".ClassB");
+        possibleRefactoring1.put(getPackageName() + ".ClassA.doSomething2()", getPackageName() + ".ClassB");
+        final Map<String, String> possibleRefactoring2 = new HashMap<>();
+        possibleRefactoring2.put(getPackageName() + ".ClassB.mainF()", getPackageName() + ".ClassA");
+        possibleRefactorings.add(possibleRefactoring1);
+        possibleRefactorings.add(possibleRefactoring2);
+        assertTrue(possibleRefactorings.contains(refactorings));
+    }
 }

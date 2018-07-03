@@ -101,4 +101,10 @@ public class HacTest extends AlgorithmAbstractTest {
         AnalysisScope scope = createScope("Customer.java", "Movie.java", "Rental.java");
         createContext(scope, algorithmName, this::checkMovieRentalStoreWithFeatureEnvy).executeSynchronously();
     }
+
+    // TODO: test fails, but is correct
+    public void failing_testCallFromLambda() {
+        AnalysisScope scope = createScope("ClassA.java", "ClassB.java");
+        createContext(scope, algorithmName, this::checkCallFromLambda).executeSynchronously();
+    }
 }
