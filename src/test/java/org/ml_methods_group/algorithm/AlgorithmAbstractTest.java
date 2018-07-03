@@ -44,6 +44,7 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
         return "src/test/resources/testCases/" + getTestName(true);
     }
 
+    @NotNull
     private String getPackageName() {
         return getTestName(true);
     }

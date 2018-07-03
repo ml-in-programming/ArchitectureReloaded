@@ -129,6 +129,6 @@ public class CcdaTest extends AlgorithmAbstractTest {
     // TODO: Not currently supported
     public void failing_testStaticFactoryMethodsWeak() {
         AnalysisScope scope = createScope("Cat.java", "Color.java", "Dog.java");
-        createContext(scope, algorithmName, this::checkStaticFactoryMethods).executeSynchronously();
+        createContext(scope, algorithmName, this::checkStaticFactoryMethodsWeak).executeSynchronously();
     }
 }

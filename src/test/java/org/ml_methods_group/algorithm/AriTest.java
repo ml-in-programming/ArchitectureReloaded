@@ -136,6 +136,6 @@ public class AriTest extends AlgorithmAbstractTest {
 
     public void testStaticFactoryMethodsWeak() {
         AnalysisScope scope = createScope("Cat.java", "Color.java", "Dog.java");
-        createContext(scope, algorithmName, this::checkStaticFactoryMethods).executeSynchronously();
+        createContext(scope, algorithmName, this::checkStaticFactoryMethodsWeak).executeSynchronously();
     }
 }
