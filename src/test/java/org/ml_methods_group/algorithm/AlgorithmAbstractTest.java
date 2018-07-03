@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 Machine Learning Methods in Software Engineering Group of JetBrains Research
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.ml_methods_group.algorithm;
 
 import com.intellij.analysis.AnalysisScope;
@@ -15,6 +31,7 @@ import java.util.stream.Collectors;
 
 import static org.ml_methods_group.utils.RefactoringUtil.toMap;
 
+@SuppressWarnings("WeakerAccess")
 public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestCase {
     private static void checkStructure(@NotNull RefactoringExecutionContext context, int classes, int methods, int fields) {
         assertEquals(classes, context.getClassCount());
@@ -37,14 +54,14 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
         return myFixture.copyFileToProject(name, fullName);
     }
 
-    AnalysisScope createScope(String... files) {
+    protected AnalysisScope createScope(String... files) {
         final List<VirtualFile> virtualFiles = Arrays.stream(files)
                 .map(this::loadFile)
                 .collect(Collectors.toList());
         return new AnalysisScope(myFixture.getProject(), virtualFiles);
     }
 
-    RefactoringExecutionContext createContext(AnalysisScope scope, String algorithmName, Consumer<RefactoringExecutionContext> checker) {
+    protected RefactoringExecutionContext createContext(AnalysisScope scope, String algorithmName, Consumer<RefactoringExecutionContext> checker) {
         MetricsProfile profile = MetricsProfilesUtil.createProfile("test_profile", Entity.getRequestedMetrics());
         return new RefactoringExecutionContext(myFixture.getProject(), scope, profile,
                 Collections.singletonList(algorithmName), true,
@@ -53,7 +70,7 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
 
     abstract String getAlgorithmName();
 
-    void checkMoveMethod(@NotNull RefactoringExecutionContext context) {
+    protected void checkMoveMethod(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 6, 4);
 
         final Map<String, String> expected = new HashMap<>();
@@ -62,7 +79,7 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
         assertEquals(expected, refactorings);
     }
 
-    void checkCallFromNested(@NotNull RefactoringExecutionContext context) {
+    protected void checkCallFromNested(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 3, 2, 1);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
@@ -72,7 +89,7 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
                 getPackageName() + ".ClassA", getPackageName() + ".ClassA.Nested");
     }
 
-    void checkCircularDependency(@NotNull RefactoringExecutionContext context) {
+    protected void checkCircularDependency(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 3, 3, 0);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
@@ -92,7 +109,7 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
         assertTrue(possibleRefactorings.contains(refactorings));
     }
 
-    void checkCrossReferencesMethods(@NotNull RefactoringExecutionContext context) {
+    protected void checkCrossReferencesMethods(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 2, 0);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
@@ -107,28 +124,28 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
     }
 
     // TODO: doubts what is correct.
-    void checkDontMoveAbstract(@NotNull RefactoringExecutionContext context) {
+    protected void checkDontMoveAbstract(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 2, 0);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         assertEquals(0, refactorings.size());
     }
 
-    void checkDontMoveConstructor(@NotNull RefactoringExecutionContext context) {
+    protected void checkDontMoveConstructor(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 2, 1);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         assertEquals(0, refactorings.size());
     }
 
-    void checkDontMoveOverridden(@NotNull RefactoringExecutionContext context) {
+    protected void checkDontMoveOverridden(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 3, 1);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         assertEquals(0, refactorings.size());
     }
 
-    void checkMoveField(@NotNull RefactoringExecutionContext context) {
+    protected void checkMoveField(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 11, 2);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
@@ -138,7 +155,7 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
         assertEquals(expected, refactorings);
     }
 
-    void checkMoveTogether(@NotNull RefactoringExecutionContext context) {
+    protected void checkMoveTogether(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 8, 4);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
@@ -148,7 +165,7 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
         assertEquals(expected, refactorings);
     }
 
-    void checkPriority(@NotNull RefactoringExecutionContext context) {
+    protected void checkPriority(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 9, 0);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
@@ -157,7 +174,7 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
         assertEquals(expected, refactorings);
     }
 
-    void checkRecursiveMethod(@NotNull RefactoringExecutionContext context) {
+    protected void checkRecursiveMethod(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 5, 2);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
@@ -166,7 +183,7 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
         assertEquals(expected, refactorings);
     }
 
-    void checkReferencesOnly(@NotNull RefactoringExecutionContext context) {
+    protected void checkReferencesOnly(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 4, 0);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
@@ -181,7 +198,7 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
         assertTrue(possibleRefactorings.contains(refactorings));
     }
 
-    void checkTriangularDependence(@NotNull RefactoringExecutionContext context) {
+    protected void checkTriangularDependence(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 3, 8, 0);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
@@ -191,14 +208,14 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
         assertEquals(expected, refactorings);
     }
 
-    void checkMobilePhoneNoFeatureEnvy(@NotNull RefactoringExecutionContext context) {
+    protected void checkMobilePhoneNoFeatureEnvy(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 5, 2);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         assertEquals(0, refactorings.size());
     }
 
-    void checkMobilePhoneWithFeatureEnvy(@NotNull RefactoringExecutionContext context) {
+    protected void checkMobilePhoneWithFeatureEnvy(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 4, 2);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
@@ -207,14 +224,14 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
         assertEquals(expected, refactorings);
     }
 
-    void checkMovieRentalStoreNoFeatureEnvy(@NotNull RefactoringExecutionContext context) {
+    protected void checkMovieRentalStoreNoFeatureEnvy(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 3, 7, 9);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
         assertEquals(0, refactorings.size());
     }
 
-    void checkMovieRentalStoreWithFeatureEnvy(@NotNull RefactoringExecutionContext context) {
+    protected void checkMovieRentalStoreWithFeatureEnvy(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 3, 7, 9);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
@@ -223,7 +240,7 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
         assertEquals(expected, refactorings);
     }
 
-    void checkCallFromLambda(@NotNull RefactoringExecutionContext context) {
+    protected void checkCallFromLambda(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 4, 1);
 
         final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
