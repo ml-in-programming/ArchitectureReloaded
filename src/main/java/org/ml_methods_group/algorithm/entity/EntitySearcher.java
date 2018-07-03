@@ -36,6 +36,11 @@ import java.util.*;
 
 import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
+/**
+ * This class extracts every {@link Entity} from {@link AnalysisScope} according to a
+ * {@link FinderStrategy} that is uses. It is also responsible for relevant properties
+ * extraction.
+ */
 public class EntitySearcher {
 
     private static final Logger LOGGER = Logging.getLogger(EntitySearcher.class);
@@ -58,6 +63,14 @@ public class EntitySearcher {
         }
     }
 
+    /**
+     * Searches for entities in a given {@link AnalysisScope}. Each found entity will have vector
+     * of features derived from a given {@link MetricsRun}.
+     *
+     * @param scope a scope to search for entities in.
+     * @param metricsRun this allows to obtain features vector for each found entity.
+     * @return different sets of entities encapsulated in {@link EntitySearchResult} class.
+     */
     public static EntitySearchResult analyze(AnalysisScope scope, MetricsRun metricsRun) {
         final EntitySearcher finder = new EntitySearcher(scope);
         return finder.runCalculations(metricsRun);
