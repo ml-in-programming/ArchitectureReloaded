@@ -254,4 +254,11 @@ public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestC
         possibleRefactorings.add(possibleRefactoring2);
         assertTrue(possibleRefactorings.contains(refactorings));
     }
+
+    protected void checkStaticFactoryMethods(@NotNull RefactoringExecutionContext context) {
+        checkStructure(context, 3, 5, 5);
+
+        final Map<String, String> refactorings = toMap(context.getResultForName(getAlgorithmName()).getRefactorings());
+        assertEquals(0, refactorings.size());
+    }
 }
