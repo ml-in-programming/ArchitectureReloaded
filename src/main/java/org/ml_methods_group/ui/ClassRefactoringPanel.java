@@ -23,6 +23,7 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.Refactoring;
+import org.ml_methods_group.config.RefactoringPreferencesLog;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.ExportResultsUtil;
 import org.ml_methods_group.utils.PsiSearchUtil;
@@ -171,6 +172,11 @@ class ClassRefactoringPanel extends JPanel {
         selectAllButton.setEnabled(false);
         table.setEnabled(false);
         final List<Refactoring> refactorings = model.pullSelected();
+
+        for (Refactoring refactoring : refactorings) {
+            RefactoringPreferencesLog.log.info(refactoring);
+        }
+
         RefactoringUtil.moveRefactoring(refactorings, scope, model);
         table.setEnabled(true);
         doRefactorButton.setEnabled(true);
