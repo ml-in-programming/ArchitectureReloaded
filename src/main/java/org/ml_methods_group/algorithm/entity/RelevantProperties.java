@@ -47,8 +47,8 @@ public class RelevantProperties {
     }
 
     /**
-     * Add method with a given name to this set of properties. Method will have default weight. If
-     * method is already in the set then its weight will be updated to be the maximum of
+     * Add method with a given name to this set of properties. Method will have a default weight. If
+     * the method is already in the set then its weight will be updated to be the maximum of
      * given weight and the old one.
      *
      * @param method a name of a method to add.
@@ -58,7 +58,7 @@ public class RelevantProperties {
     }
 
     /**
-     * Add given method to this set of properties. Method will have default weight. If method is
+     * Add given method to this set of properties. Method will have a default weight. If the method is
      * already in the set then its weight will be updated to be the maximum of given weight and
      * the old one.
      *
@@ -69,7 +69,7 @@ public class RelevantProperties {
     }
 
     /**
-     * Add given method to this set of properties. If method is already in the set then
+     * Add given method to this set of properties with a given weight. If the method is already in the set then
      * its weight will be updated to be the maximum of given weight and the old one.
      *
      * @param method a PSI method to add.
@@ -80,8 +80,8 @@ public class RelevantProperties {
     }
 
     /**
-     * Add method with a given name to this set of properties. If method is already in the set then
-     * its weight will be updated to be the maximum of given weight and the old one.
+     * Add method with a given name to this set of properties with a given weight. If the method is already
+     * in the set then its weight will be updated to be the maximum of given weight and the old one.
      *
      * @param method a name of a method to add.
      * @param weight a weight which will be assigned to this method.
@@ -130,9 +130,7 @@ public class RelevantProperties {
         return methods.size();
     }
 
-    /**
-     * Returns names of all field properties that are stored in this set.
-     */
+    /** Returns names of all field properties that are stored in this set. */
     public Set<String> getFields() {
         return Collections.unmodifiableSet(fields.keySet());
     }

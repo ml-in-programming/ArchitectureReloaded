@@ -44,30 +44,22 @@ public class EntitySearchResult {
                 .sum();
     }
 
-    /**
-     * Returns classes stored in this result.
-     */
+    /** Returns classes stored in this result. */
     public List<ClassEntity> getClasses() {
         return Collections.unmodifiableList(classes);
     }
 
-    /**
-     * Returns methods stored in this result.
-     */
+    /** Returns methods stored in this result. */
     public List<MethodEntity> getMethods() {
         return Collections.unmodifiableList(methods);
     }
 
-    /**
-     * Returns fields stored in this result.
-     */
+    /** Returns fields stored in this result. */
     public List<FieldEntity> getFields() {
         return Collections.unmodifiableList(fields);
     }
 
-    /**
-     * Returns total number of {@link RelevantProperties} over all entities in this result.
-     */
+    /** Returns total number of {@link RelevantProperties} over all entities in this result.  */
     public int getPropertiesCount() {
         return propertiesCount;
     }

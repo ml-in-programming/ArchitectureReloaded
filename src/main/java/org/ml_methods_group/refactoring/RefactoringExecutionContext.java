@@ -97,9 +97,7 @@ public class RefactoringExecutionContext {
         metricsExecutionContext = new MetricsExecutionContextImpl(project, scope);
     }
 
-    /**
-     * Executes all algorithms asynchronously.
-     */
+    /** Executes all calculations asynchronously.  */
     public void executeAsync() {
         Task.Modal task = new Task.Modal(project, "Search For Refactorings", true) {
             @Override
@@ -116,9 +114,7 @@ public class RefactoringExecutionContext {
         task.queue();
     }
 
-    /**
-     * Executes all algorithms synchronously.
-     */
+    /** Executes all calculations synchronously. */
     public void executeSynchronously() {
         execute(new EmptyProgressIndicator());
         onFinish();

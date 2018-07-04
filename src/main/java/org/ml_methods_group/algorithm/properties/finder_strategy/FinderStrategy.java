@@ -22,14 +22,14 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * An interface for a strategy that {@link org.ml_methods_group.algorithm.entity.EntitySearcher}
- * uses. Strategy defines what kind of code entities should be skipped and what weights should
- * be assigned to {@link org.ml_methods_group.algorithm.entity.RelevantProperties}.
+ * uses. The strategy defines what kind of code entities should be skipped and what weights should
+ * be assigned to them within {@link org.ml_methods_group.algorithm.entity.RelevantProperties}.
  */
 public interface FinderStrategy {
     int DEFAULT_WEIGHT = 1;
 
     /**
-     * Verifies that file needs to be processed by finder.
+     * Verifies that a file needs to be processed by the finder.
      *
      * @param file {@link PsiFile} to check.
      * @return {@code True} if file needs to be processed.
@@ -39,7 +39,7 @@ public interface FinderStrategy {
     }
 
     /**
-     * Verifies that class needs to be processed by finder.
+     * Verifies that a class needs to be processed by the finder.
      *
      * @param aClass {@link PsiClass} to check.
      * @return {@code True} if class needs to be processed.
@@ -47,7 +47,7 @@ public interface FinderStrategy {
     boolean acceptClass(@NotNull final PsiClass aClass);
 
     /**
-     * Verifies that method needs to be processed by finder.
+     * Verifies that a method needs to be processed by the finder.
      *
      * @param method {@link PsiMethod} to check.
      * @return {@code True} if method needs to be processed.
@@ -55,7 +55,7 @@ public interface FinderStrategy {
     boolean acceptMethod(@NotNull final PsiMethod method);
 
     /**
-     * Verifies that field needs to be processed by finder.
+     * Verifies that a field needs to be processed by the finder.
      *
      * @param field {@link PsiField} to check.
      * @return {@code True} if field needs to be processed.
@@ -64,9 +64,7 @@ public interface FinderStrategy {
 
     boolean isRelation(@NotNull final PsiElement element);
 
-    /**
-     * Returns {@code True} if finder should process super classes.
-     */
+    /** Returns {@code True} if finder should process super classes. */
     boolean processSupers();
 
     int getWeight(PsiMethod from, PsiClass to);

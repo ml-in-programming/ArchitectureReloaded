@@ -51,11 +51,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * This action is intended to be invoked when IDE user wants to know what refactorings he might
- * do to improve his project.
- * This class is a subclass of {@link BaseAnalysisAction} which means that its logical entry
- * point is method {@link #analyze}. Nevertheless it has {@link #actionPerformed} method to
- * achieve desired behaviour in a hacky way.
+ * This action is intended to be invoked when the user wants to know what refactorings he could
+ * apply to improve his/her project.
+ * As {@link BaseAnalysisAction}'s subclass its logical entry point is the {@link #analyze} method .
+ * Nevertheless it has the {@link #actionPerformed} method to achieve desired behaviour in a hacky way.
  */
 public class AutomaticRefactoringAction extends BaseAnalysisAction {
     private static final Logger LOGGER = Logging.getLogger(AutomaticRefactoringAction.class);
@@ -103,7 +102,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 //    }
 
     /**
-     * Entry point of this action. Sets project global flag
+     * Entry point of this action. Sets project's global flag
      * {@link AnalysisUIOptions#ANALYZE_TEST_SOURCES} to false in order to skip analysis of tests
      * in some cases. Restores this flag back after action has been executed.
      */

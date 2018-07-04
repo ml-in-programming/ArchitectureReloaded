@@ -61,9 +61,7 @@ public abstract class Entity {
     private double[] vector;
     protected boolean isMovable = true;
 
-    /**
-     * Initializes this class with a given {@link PsiElement}.
-     */
+    /** Initializes this class with a given {@link PsiElement}. */
     public Entity(PsiElement element) {
         this.name = PsiSearchUtil.getHumanReadableName(element);
         relevantProperties = new RelevantProperties();
@@ -118,16 +116,10 @@ public abstract class Entity {
         }
     }
 
-    /**
-     * Returns {@link RelevantProperties} of this Entity.
-     */
     public RelevantProperties getRelevantProperties() {
         return relevantProperties;
     }
 
-    /**
-     * Returns name of this Entity.
-     */
     public String getName() {
         return name;
     }
