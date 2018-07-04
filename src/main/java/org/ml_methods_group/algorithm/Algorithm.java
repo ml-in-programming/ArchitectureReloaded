@@ -37,6 +37,10 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * An algorithm that analyses given {@link EntitySearchResult} and produces refactoring suggestions
+ * as an {@link AlgorithmResult}.
+ */
 public abstract class Algorithm {
     private static final Logger LOGGER = Logging.getLogger(Algorithm.class);
 
@@ -50,6 +54,14 @@ public abstract class Algorithm {
         preferredThreadsCount = Runtime.getRuntime().availableProcessors();
     }
 
+    /**
+     * Executes this algorithm on given entities.
+     *
+     * @param entities entities to execute algorithm on.
+     * @param service an {@link ExecutorService} that can be used to implement parallel algorithm.
+     * @param enableFieldRefactorings should be {@code True} if field refactoring is enabled.
+     * @return suggested refactorings encapsulated in {@link AlgorithmResult}.
+     */
     public final AlgorithmResult execute(EntitySearchResult entities, ExecutorService service, boolean enableFieldRefactorings) {
         LOGGER.info(name + " started");
         final long startTime = System.currentTimeMillis();
