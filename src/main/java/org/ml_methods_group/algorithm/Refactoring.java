@@ -16,6 +16,7 @@
 
 package org.ml_methods_group.algorithm;
 
+import org.apache.log4j.or.ObjectRenderer;
 import org.jetbrains.annotations.NotNull;
 
 public class Refactoring {
@@ -69,5 +70,34 @@ public class Refactoring {
         return "unit = " + unit +
                 ", target = " + target +
                 ", accuracy = " + accuracy;
+    }
+
+    /**
+     * Log4J renderer for {@link Refactoring} class. This renderer converts {@link Refactoring} to a
+     * {@link String} which describes features of this {@link Refactoring} and will be written to a
+     * log.
+     */
+    public static class RefactoringFeatureRenderer implements ObjectRenderer {
+        /**
+         * Converts given object which is expected to be a {@link Refactoring} to a {@link String}
+         * representation. String will contain a textual information about various features that
+         * given {@link Refactoring} has.
+         *
+         * @param obj an arbitrary object which is expected to be a {@link Refactoring}.
+         * @return string that contains information about features.
+         * @throws IllegalArgumentException if given object is not a {@link Refactoring}.
+         */
+        @Override
+        public @NotNull String doRender(final @NotNull Object obj) {
+            if (!(obj instanceof Refactoring)) {
+                throw new IllegalArgumentException(
+                    "RefactoringRenderer received not a Refactoring as an argument!"
+                );
+            }
+
+            Refactoring refactoring = (Refactoring) obj;
+
+            return refactoring.getTarget() + " " + refactoring.getUnit();
+        }
     }
 }
