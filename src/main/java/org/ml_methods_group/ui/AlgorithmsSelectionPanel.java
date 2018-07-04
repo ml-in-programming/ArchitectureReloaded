@@ -18,53 +18,124 @@ package org.ml_methods_group.ui;
 
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBCheckBox;
+import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.config.ArchitectureReloadedConfig;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.util.Set;
 
 public class AlgorithmsSelectionPanel extends JPanel {
-
     public AlgorithmsSelectionPanel() {
         super(new GridBagLayout());
-        final String[] algorithms = RefactoringExecutionContext.getAvailableAlgorithms();
-        final ArchitectureReloadedConfig config = ArchitectureReloadedConfig.getInstance();
+        initializePanel(createRefactoringsTab(), createAlgorithmsTab());
+    }
 
-        final JComponent separator =
-                new TitledSeparator(ArchitectureReloadedBundle.message("algorithms.selection"));
-
+    private void initializePanel(Tab... tabs) {
         final GridBagConstraints constraints = new GridBagConstraints();
-        constraints.insets.left = 0;
-        constraints.insets.bottom = 8;
+        constraints.insets.top = 4;
+        constraints.insets.bottom = 4;
         constraints.gridx = 0;
         constraints.gridy = 0;
         constraints.weightx = 1.0;
         constraints.weighty = 0.0;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.NORTHWEST;
+
+        final JComponent separator =
+            new TitledSeparator(ArchitectureReloadedBundle.message("advanced.settings"));
+
         add(separator, constraints);
 
-        constraints.insets.left = 12;
-        final Set<String> currentSelection = config.getSelectedAlgorithms();
-        for (int i = 0; i < algorithms.length; i++) {
-            constraints.gridy = 1 + i;
-            final String algorithm = algorithms[i];
-            final JCheckBox checkBox = new JBCheckBox(algorithm, currentSelection.contains(algorithm));
-            checkBox.addActionListener(e -> config.setSelected(algorithm, checkBox.isSelected()));
-            add(checkBox, constraints);
+        JTabbedPane tabbedPane = new JTabbedPane();
+
+        Border border = BorderFactory.createEmptyBorder(0, 8, 0, 0);
+        for (Tab tab : tabs) {
+            JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            wrapper.add(tab.getComponent());
+            wrapper.setBorder(border);
+            tabbedPane.addTab(tab.getTitle(), wrapper);
         }
 
-        final JComponent separatorAfterAlgorithms =
-                new TitledSeparator(ArchitectureReloadedBundle.message("other.settings"));
         constraints.gridy++;
-        add(separatorAfterAlgorithms, constraints);
+        add(tabbedPane, constraints);
+    }
 
-        final JCheckBox checkBox = new JBCheckBox(ArchitectureReloadedBundle.message("search.for.move.field.refactorings"));
+    private static Tab createRefactoringsTab() {
+        final ArchitectureReloadedConfig config = ArchitectureReloadedConfig.getInstance();
+
+        JPanel panel = new JPanel(new GridBagLayout());
+        final GridBagConstraints constraints = new GridBagConstraints();
+        constraints.insets.top = 4;
+        constraints.insets.bottom = 4;
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.weightx = 1.0;
+        constraints.weighty = 0.0;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.NORTHWEST;
+
+        final JCheckBox checkBox = new JBCheckBox(
+            ArchitectureReloadedBundle.message("search.for.move.field.refactorings")
+        );
+
         checkBox.addActionListener(e -> config.setFieldRefactoringsAvailable());
-        constraints.gridy++;
-        add(checkBox, constraints);
+
+        panel.add(checkBox, constraints);
+
+        return new Tab(panel, ArchitectureReloadedBundle.message("refactorings.tab.text"));
+    }
+
+    private static Tab createAlgorithmsTab() {
+        JPanel panel = new JPanel(new GridBagLayout());
+
+        final String[] algorithms = RefactoringExecutionContext.getAvailableAlgorithms();
+        final ArchitectureReloadedConfig config = ArchitectureReloadedConfig.getInstance();
+
+        final GridBagConstraints constraints = new GridBagConstraints();
+        constraints.insets.top = 4;
+        constraints.insets.bottom = 4;
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.weightx = 1.0;
+        constraints.weighty = 0.0;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.NORTHWEST;
+
+        final Set<String> currentSelection = config.getSelectedAlgorithms();
+        for (int i = 0; i < algorithms.length; i++) {
+            final String algorithm = algorithms[i];
+
+            final JCheckBox checkBox =
+                new JBCheckBox(algorithm, currentSelection.contains(algorithm));
+            checkBox.addActionListener(e -> config.setSelected(algorithm, checkBox.isSelected()));
+
+            constraints.gridy = i;
+            panel.add(checkBox, constraints);
+        }
+
+        return new Tab(panel, ArchitectureReloadedBundle.message("algorithms.tab.text"));
+    }
+
+    private static class Tab {
+        private final @NotNull Component component;
+
+        private final @NotNull String title;
+
+        public Tab(final @NotNull Component component, final @NotNull String title) {
+            this.component = component;
+            this.title = title;
+        }
+
+        public @NotNull Component getComponent() {
+            return component;
+        }
+
+        public @NotNull String getTitle() {
+            return title;
+        }
     }
 }
