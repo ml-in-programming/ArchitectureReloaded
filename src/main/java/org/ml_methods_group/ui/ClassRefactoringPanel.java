@@ -171,13 +171,13 @@ class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setEnabled(false);
         selectAllButton.setEnabled(false);
         table.setEnabled(false);
-        final List<Refactoring> refactorings = model.pullSelected();
+        final List<Refactoring> selectedRefactorings = model.pullSelected();
 
-        for (Refactoring refactoring : refactorings) {
+        for (Refactoring refactoring : selectedRefactorings) {
             RefactoringPreferencesLog.log.info(refactoring);
         }
 
-        RefactoringUtil.moveRefactoring(refactorings, scope, model);
+        RefactoringUtil.moveRefactoring(selectedRefactorings, scope, model);
         table.setEnabled(true);
         doRefactorButton.setEnabled(true);
         selectAllButton.setEnabled(true);
