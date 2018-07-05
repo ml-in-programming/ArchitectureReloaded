@@ -36,12 +36,32 @@ public class RefactoringSessionInfoRenderer implements ObjectRenderer {
     public @NotNull String doRender(final @NotNull Object obj) {
         if (!(obj instanceof RefactoringSessionInfo)) {
             throw new IllegalArgumentException(
-                    "RefactoringSessionInfoRenderer received not a RefactoringSessionInfo as an argument!"
+                "RefactoringSessionInfoRenderer received not a RefactoringSessionInfo as an argument!"
             );
         }
 
         RefactoringSessionInfo info = (RefactoringSessionInfo) obj;
 
-        return info.getAcceptedRefactoringsFeatures().size() + " " + info.getRejectedRefactoringsFeatures().size();
+        final String lineSeparator = System.getProperty("line.separator");
+
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("Accepted refactorings").append(lineSeparator);
+        for (RefactoringFeatures features : info.getAcceptedRefactoringsFeatures()) {
+            builder.append(serializeFeatures(features)).append(lineSeparator);
+        }
+
+        builder.append(lineSeparator);
+
+        builder.append("Rejected refactorings").append(lineSeparator);
+        for (RefactoringFeatures features : info.getRejectedRefactoringsFeatures()) {
+            builder.append(serializeFeatures(features)).append(lineSeparator);
+        }
+
+        return builder.toString();
+    }
+
+    private @NotNull String serializeFeatures(final @NotNull RefactoringFeatures features) {
+        return "Features";
     }
 }
