@@ -48,12 +48,12 @@ public final class RefactoringSessionInfo {
     ) {
         acceptedRefactoringsFeatures =
             acceptedRefactorings.stream()
-                                .map((r) -> new RefactoringFeatures())
+                                .map(RefactoringFeatures::new)
                                 .collect(Collectors.toList());
 
         rejectedRefactoringsFeatures =
                 rejectedRefactorings.stream()
-                        .map((r) -> new RefactoringFeatures())
+                        .map(RefactoringFeatures::new)
                         .collect(Collectors.toList());
     }
 
