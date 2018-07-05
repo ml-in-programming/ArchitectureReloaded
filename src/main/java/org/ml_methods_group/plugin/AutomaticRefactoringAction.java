@@ -42,6 +42,7 @@ import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.ui.AlgorithmsSelectionPanel;
 import org.ml_methods_group.ui.RefactoringsToolWindow;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
+import org.ml_methods_group.utils.NotificationUtil;
 import org.ml_methods_group.utils.MetricsProfilesUtil;
 import org.ml_methods_group.utils.RefactoringUtil;
 
@@ -130,6 +131,11 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
      */
     @Override
     protected void analyze(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
+        if (analysisScope.getFiles().isEmpty()) {
+            NotificationUtil.notifyEmptyScope(project);
+            return;
+        }
+
         LOGGER.info("Run analysis (scope=" + analysisScope.getDisplayName() + ")");
         final MetricsProfile metricsProfile = getMetricsProfile();
         assert metricsProfile != null;

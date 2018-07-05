@@ -123,12 +123,14 @@ public abstract class Algorithm {
 
     private <T> List<List<T>> splitValues(List<T> values) {
         final List<List<T>> lists = new ArrayList<>();
-        final int valuesCount = values.size();
-        final int blocksCount = Math.min(preferredThreadsCount, values.size());
-        final int blockSize = (valuesCount - 1) / blocksCount + 1; // round up
+        if (values.size() != 0) {
+            final int valuesCount = values.size();
+            final int blocksCount = Math.min(preferredThreadsCount, values.size());
+            final int blockSize = (valuesCount - 1) / blocksCount + 1; // round up
 
-        for (int blockStart = 0; blockStart < valuesCount; blockStart += blockSize) {
-            lists.add(values.subList(blockStart, Math.min(blockStart + blockSize, valuesCount)));
+            for (int blockStart = 0; blockStart < valuesCount; blockStart += blockSize) {
+                lists.add(values.subList(blockStart, Math.min(blockStart + blockSize, valuesCount)));
+            }
         }
         return lists;
     }
