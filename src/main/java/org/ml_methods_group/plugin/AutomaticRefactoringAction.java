@@ -42,6 +42,7 @@ import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.ui.AlgorithmsSelectionPanel;
 import org.ml_methods_group.ui.RefactoringsToolWindow;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
+import org.ml_methods_group.utils.NotificationUtil;
 import org.ml_methods_group.utils.MetricsProfilesUtil;
 import org.ml_methods_group.utils.RefactoringUtil;
 
@@ -50,6 +51,12 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * This action is intended to be invoked when the user wants to know what refactorings he could
+ * apply to improve his/her project.
+ * As {@link BaseAnalysisAction}'s subclass its logical entry point is the {@link #analyze} method .
+ * Nevertheless it has the {@link #actionPerformed} method to achieve desired behaviour in a hacky way.
+ */
 public class AutomaticRefactoringAction extends BaseAnalysisAction {
     private static final Logger LOGGER = Logging.getLogger(AutomaticRefactoringAction.class);
     private static final String REFACTORING_PROFILE_KEY = "refactoring.metrics.profile.name";
@@ -96,7 +103,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 //    }
 
     /**
-     * Entry point of this action. Sets project global flag
+     * Entry point of this action. Sets project's global flag
      * {@link AnalysisUIOptions#ANALYZE_TEST_SOURCES} to false in order to skip analysis of tests
      * in some cases. Restores this flag back after action has been executed.
      */
@@ -116,8 +123,19 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         UIOptions.ANALYZE_TEST_SOURCES = previousValue;
     }
 
+    /**
+     * A logical entry point of this action.
+     *
+     * @param project current project this action is invoked for.
+     * @param analysisScope scope (set of files) that must be analysed.
+     */
     @Override
     protected void analyze(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
+        if (analysisScope.getFileCount() == 0) {
+            NotificationUtil.notifyEmptyScope(project);
+            return;
+        }
+
         LOGGER.info("Run analysis (scope=" + analysisScope.getDisplayName() + ")");
         final MetricsProfile metricsProfile = getMetricsProfile();
         assert metricsProfile != null;
