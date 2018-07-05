@@ -131,7 +131,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
      */
     @Override
     protected void analyze(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
-        if (analysisScope.getFiles().isEmpty()) {
+        if (analysisScope.getFileCount() == 0) {
             NotificationUtil.notifyEmptyScope(project);
             return;
         }
