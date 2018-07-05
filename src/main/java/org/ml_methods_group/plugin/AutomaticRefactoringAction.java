@@ -96,10 +96,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
     @Override
     protected void analyze(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
         if (analysisScope.getFiles().isEmpty()) {
-            NotificationUtil.notifyInfo(project,
-                    ArchitectureReloadedBundle.message("empty.scope.dialog.title"),
-                    ArchitectureReloadedBundle.message("empty.scope.dialog.message")
-            );
+            NotificationUtil.notifyEmptyScope(project);
             return;
         }
 
