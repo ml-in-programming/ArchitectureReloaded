@@ -17,9 +17,13 @@
 package org.ml_methods_group.config;
 
 import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.IOException;
+import java.nio.file.Paths;
 
 /**
  * Class which contains log for refactoring preferences. Log is local and is stored on user's
@@ -33,6 +37,17 @@ public class RefactoringPreferencesLog {
     public static final @NotNull Logger log = Logger.getLogger(RefactoringPreferencesLog.class);
 
     static {
-        log.addAppender(new ConsoleAppender(new PatternLayout("%p [%c.%M] - %m%n")));
+        String logFileName = Paths.get(
+            System.getProperty("user.home"),
+            "ArchitectureReloaded",
+            "log",
+            "preferences-info.log"
+        ).toString();
+
+        try {
+            log.addAppender(new FileAppender(new PatternLayout("%m%n"), logFileName));
+        } catch (IOException e) {
+            System.err.println("Failed to open log file");
+        }
     }
 }
