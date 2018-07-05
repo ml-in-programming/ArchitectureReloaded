@@ -78,13 +78,22 @@ public class AlgorithmsSelectionPanel extends JPanel {
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.NORTHWEST;
 
-        final JCheckBox checkBox = new JBCheckBox(
+        final JCheckBox methodsRefactoringsCheckBox = new JBCheckBox(
+            ArchitectureReloadedBundle.message("search.for.move.methods.refactorings"),
+            true
+        );
+
+        methodsRefactoringsCheckBox.setEnabled(false);
+
+        panel.add(methodsRefactoringsCheckBox, constraints);
+        constraints.gridy++;
+
+        final JCheckBox fieldsRefactoringsCheckBox = new JBCheckBox(
             ArchitectureReloadedBundle.message("search.for.move.field.refactorings")
         );
 
-        checkBox.addActionListener(e -> config.setFieldRefactoringsAvailable());
-
-        panel.add(checkBox, constraints);
+        fieldsRefactoringsCheckBox.addActionListener(e -> config.setFieldRefactoringsAvailable());
+        panel.add(fieldsRefactoringsCheckBox, constraints);
 
         return new Tab(panel, ArchitectureReloadedBundle.message("refactorings.tab.text"));
     }
