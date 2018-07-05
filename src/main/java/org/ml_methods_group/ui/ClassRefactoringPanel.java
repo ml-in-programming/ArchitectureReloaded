@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.Refactoring;
 import org.ml_methods_group.config.RefactoringPreferencesLog;
 import org.ml_methods_group.refactoring.RefactoringSessionInfo;
+import org.ml_methods_group.refactoring.RefactoringSessionInfoRenderer;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.ExportResultsUtil;
 import org.ml_methods_group.utils.PsiSearchUtil;
@@ -177,8 +178,16 @@ class ClassRefactoringPanel extends JPanel {
         final List<Refactoring> rejectedRefactorings = new ArrayList<>(refactorings);
         rejectedRefactorings.removeAll(selectedRefactorings);
 
+        /*
+         * Actually RefactoringSessionInfoRenderer should be used by Log4J. But it can be configured
+         * to use only through properties file. Unfortunately there is problem with configuring
+         * Log4J through properties file. See issue #63.
+         * https://github.com/ml-in-programming/ArchitectureReloaded/issues/63
+         */
         RefactoringPreferencesLog.log.info(
-            new RefactoringSessionInfo(selectedRefactorings, rejectedRefactorings)
+            new RefactoringSessionInfoRenderer().doRender(
+                new RefactoringSessionInfo(selectedRefactorings, rejectedRefactorings)
+            )
         );
 
         RefactoringUtil.moveRefactoring(selectedRefactorings, scope, model);
