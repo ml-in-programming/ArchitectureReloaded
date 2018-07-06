@@ -131,10 +131,10 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
      */
     @Override
     protected void analyze(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
-        if (analysisScope.getFileCount() == 0) {
-            NotificationUtil.notifyEmptyScope(project);
-            return;
-        }
+//        if (analysisScope.getFileCount() == 0) {
+//            NotificationUtil.notifyEmptyScope(project);
+//            return;
+//        }
 
         LOGGER.info("Run analysis (scope=" + analysisScope.getDisplayName() + ")");
         final MetricsProfile metricsProfile = getMetricsProfile();

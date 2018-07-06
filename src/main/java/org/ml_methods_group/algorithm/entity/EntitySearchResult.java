@@ -64,6 +64,11 @@ public class EntitySearchResult {
         return propertiesCount;
     }
 
+    /** Returns total number of stored entities */
+    public int numberOfEntities() {
+        return classes.size() + methods.size() + fields.size();
+    }
+
     public long getSearchTime() {
         return searchTime;
     }

@@ -34,7 +34,9 @@ import org.ml_methods_group.algorithm.*;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.EntitySearcher;
 import org.ml_methods_group.config.Logging;
+import org.ml_methods_group.utils.NotificationUtil;
 
+import javax.management.Notification;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -127,12 +129,22 @@ public class RefactoringExecutionContext {
         metricsRun.setTimestamp(new TimeStamp());
         entitySearchResult = ApplicationManager.getApplication()
                 .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
+        if (!checkEntities()) {
+            return;
+        }
         for (String algorithm : requestedAlgorithms) {
             calculateAlgorithmForName(algorithm);
         }
         indicator.setText("Finish refactorings search...");
     }
 
+    private boolean checkEntities() {
+        if (entitySearchResult.numberOfEntities() == 0) {
+            NotificationUtil.notifyEmptyScope(project);
+            return false;
+        }
+        return true;
+    }
 
     private void onFinish() {
         if (continuation != null) {
