@@ -24,7 +24,17 @@ public class Refactoring {
     private final double accuracy;
     private final boolean isUnitField;
 
-    public Refactoring(@NotNull String unit, @NotNull String target, double accuracy, boolean isUnitField) {
+    public static @NotNull Refactoring createRefactoring(
+        final @NotNull String unit,
+        final @NotNull String target,
+        final double accuracy,
+        final boolean isUnitField
+    ) {
+        // PsiSearchUtil.findElement
+        return new Refactoring(unit, target, accuracy, isUnitField);
+    }
+
+    private Refactoring(@NotNull String unit, @NotNull String target, double accuracy, boolean isUnitField) {
         this.unit = unit;
         this.target = target;
         this.accuracy = accuracy;

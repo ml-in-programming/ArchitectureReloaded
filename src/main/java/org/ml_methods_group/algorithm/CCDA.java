@@ -144,7 +144,7 @@ public class CCDA extends Algorithm {
                     long dominant = dominants.get(id).getValue();
                     long size = entities.get(id).size();
                     if (enableFieldRefactorings || !entry.getKey().isField()) {
-                        return new Refactoring(entry.getKey().getName(), entry.getValue(),
+                        return Refactoring.createRefactoring(entry.getKey().getName(), entry.getValue(),
                                 AlgorithmsUtil.getDensityBasedAccuracyRating(dominant, size) * ACCURACY,
                                 entry.getKey().isField());
                     } else {

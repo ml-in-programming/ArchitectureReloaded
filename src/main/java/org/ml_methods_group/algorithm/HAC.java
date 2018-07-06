@@ -108,7 +108,7 @@ public class HAC extends Algorithm {
             for (Entity entity : community.entities) {
                 if (!entity.getClassName().equals(className)) {
                     if (enableFieldRefactorings || !entity.isField()) {
-                        refactorings.add(new Refactoring(entity.getName(), className,
+                        refactorings.add(Refactoring.createRefactoring(entity.getName(), className,
                                 getDensityBasedAccuracyRating(dominantClass.getValue(), entitiesCount) * ACCURACY,
                                 entity.isField()));
                     }

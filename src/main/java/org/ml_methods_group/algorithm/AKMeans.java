@@ -107,7 +107,7 @@ public class AKMeans extends Algorithm {
                     .filter(e -> !e.getClassName().equals(dominant.getKey()))
                     .filter(Entity::isMovable)
                     .filter(e -> enableFieldRefactorings || !e.isField())
-                    .map(e -> new Refactoring(e.getName(), dominant.getKey(),
+                    .map(e -> Refactoring.createRefactoring(e.getName(), dominant.getKey(),
                             getDensityBasedAccuracyRating(dominant.getValue(), community.size()) * ACCURACY,
                             e.isField()))
                     .forEach(refactorings::add);
