@@ -19,18 +19,22 @@ package org.ml_methods_group.algorithm.entity;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.utils.MethodUtils;
+import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.utils.PSIUtil;
 
 public class MethodEntity extends Entity {
+    private final @NotNull PsiMethod psiMethod;
 
-    MethodEntity(PsiMethod method) {
-        super(method);
-        isMovable = !PSIUtil.isOverriding(method) &&
-                !MethodUtils.isAbstract(method) && !method.isConstructor();
+    MethodEntity(final @NotNull PsiMethod psiMethod) {
+        super(psiMethod);
+        this.psiMethod = psiMethod;
+        isMovable = !PSIUtil.isOverriding(psiMethod) &&
+                !MethodUtils.isAbstract(psiMethod) && !psiMethod.isConstructor();
     }
 
     private MethodEntity(MethodEntity original) {
         super(original);
+        this.psiMethod = original.psiMethod;
     }
 
     @Override
@@ -53,5 +57,9 @@ public class MethodEntity extends Entity {
     @Override
     public boolean isField() {
         return false;
+    }
+
+    public @NotNull PsiMethod getPsiMethod() {
+        return psiMethod;
     }
 }
