@@ -25,8 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.utils.PsiSearchUtil;
 
 public abstract class Refactoring {
-    private final String unit;
-    private final String target;
+    private final String unitName;
+    private final String targetName;
     private final double accuracy;
 
     /**
@@ -69,18 +69,18 @@ public abstract class Refactoring {
         }
     }
 
-    public Refactoring(@NotNull String unit, @NotNull String target, double accuracy) {
-        this.unit = unit;
-        this.target = target;
+    public Refactoring(@NotNull String unitName, @NotNull String targetName, double accuracy) {
+        this.unitName = unitName;
+        this.targetName = targetName;
         this.accuracy = accuracy;
     }
 
-    public String getUnit() {
-        return unit;
+    public String getUnitName() {
+        return unitName;
     }
 
-    public String getTarget() {
-        return target;
+    public String getTargetName() {
+        return targetName;
     }
 
     public double getAccuracy() {
@@ -91,7 +91,7 @@ public abstract class Refactoring {
 
     @Override
     public int hashCode() {
-        return unit.hashCode() + target.hashCode();
+        return unitName.hashCode() + targetName.hashCode();
     }
 
     @Override
@@ -101,15 +101,15 @@ public abstract class Refactoring {
         }
         if (obj instanceof Refactoring) {
             Refactoring other = ((Refactoring) obj);
-            return unit.equals(other.unit) && target.equals(other.target);
+            return unitName.equals(other.unitName) && targetName.equals(other.targetName);
         }
         return false;
     }
 
     @Override
     public String toString() {
-        return "unit = " + unit +
-                ", target = " + target +
+        return "unitName = " + unitName +
+                ", targetName = " + targetName +
                 ", accuracy = " + accuracy;
     }
 }

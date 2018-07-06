@@ -4,7 +4,6 @@ import org.apache.log4j.Logger;
 import org.ml_methods_group.algorithm.Refactoring;
 import org.ml_methods_group.config.Logging;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -43,6 +42,6 @@ public class ExportResultsUtil {
     }
 
     private static String defaultRefactoringView(Refactoring r) {
-        return String.format("%s --> %s (%s)", r.getUnit(), r.getTarget(), r.getAccuracy());
+        return String.format("%s --> %s (%s)", r.getUnitName(), r.getTargetName(), r.getAccuracy());
     }
 }
