@@ -116,6 +116,11 @@ public class JavaMetricProvider implements MetricProvider {
         metrics.add(new FanInClassMetric());
         metrics.add(new FanOutClassMetric());
         metrics.add(new BlankLinesCountClassMetric());
+        //mine
+        metrics.add(new NumPublicMethodsClassMetric());
+        metrics.add(new MeasureOfFunctionalAbstractionMetric());
+        metrics.add(new DataAccessClassMetric());
+        metrics.add(new CohesionAmongMethodsOfClassMetric());
     }
 
     private static void initializeInterfaceMetrics(Collection<Metric> metrics) {
@@ -349,6 +354,12 @@ public class JavaMetricProvider implements MetricProvider {
         metrics.add(new PercentMethodsJavadocedProjectMetric());
         metrics.add(new PolymorphismFactorProjectMetric());
         metrics.add(new TotalCyclomaticComplexityProjectMetric());
+        //mine
+        metrics.add(new IsRootOfHierarchyClassMetric());
+        metrics.add(new NumPolymorphicMethodsProjectMetric());
+        metrics.add(new AverageCyclomaticComplexityProjectMetric());
+        metrics.add(new MeasureOfFunctionalAbstractionMetric());
+        metrics.add(new DirectClassCouplingMetric());
     }
 
     @NotNull
