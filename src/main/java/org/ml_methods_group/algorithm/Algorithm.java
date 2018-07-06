@@ -25,6 +25,7 @@ import com.intellij.psi.PsiElement;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.config.Logging;
 
 import java.util.ArrayList;

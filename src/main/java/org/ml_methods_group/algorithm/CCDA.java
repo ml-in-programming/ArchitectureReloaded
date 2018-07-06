@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.RelevantProperties;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.AlgorithmsUtil;
 

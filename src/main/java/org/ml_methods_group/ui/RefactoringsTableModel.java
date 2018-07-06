@@ -19,7 +19,7 @@ package org.ml_methods_group.ui;
 import com.intellij.ui.BooleanTableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.ml_methods_group.algorithm.Refactoring;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;

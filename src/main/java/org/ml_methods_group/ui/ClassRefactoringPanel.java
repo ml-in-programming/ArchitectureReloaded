@@ -22,7 +22,7 @@ import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
-import org.ml_methods_group.algorithm.Refactoring;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.ExportResultsUtil;
 import org.ml_methods_group.utils.PsiSearchUtil;

@@ -29,7 +29,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.AlgorithmResult;
-import org.ml_methods_group.algorithm.Refactoring;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.RefactoringUtil;

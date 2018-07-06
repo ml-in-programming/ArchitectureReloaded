@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ml_methods_group.algorithm;
+package org.ml_methods_group.algorithm.refactoring;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;

@@ -1,7 +1,7 @@
 package org.ml_methods_group.utils;
 
 import org.apache.log4j.Logger;
-import org.ml_methods_group.algorithm.Refactoring;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.config.Logging;
 
 import java.io.File;

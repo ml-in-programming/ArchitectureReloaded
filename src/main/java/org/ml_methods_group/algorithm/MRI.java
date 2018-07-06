@@ -23,6 +23,7 @@ import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.FieldEntity;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.AlgorithmsUtil;
 

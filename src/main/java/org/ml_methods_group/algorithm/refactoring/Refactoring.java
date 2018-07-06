@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Machine Learning Methods in Software Engineering Group of JetBrains Research
+ * Copyright 2018 Machine Learning Methods in Software Engineering Group of JetBrains Research
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ml_methods_group.algorithm;
+package org.ml_methods_group.algorithm.refactoring;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.psi.PsiClass;
