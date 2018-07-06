@@ -17,7 +17,7 @@
 package org.ml_methods_group.refactoring;
 
 import org.jetbrains.annotations.NotNull;
-import org.ml_methods_group.algorithm.Refactoring;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 
 /**
  * This class contains features extracted from some {@link Refactoring}. This features should
@@ -33,7 +33,7 @@ public class RefactoringFeatures {
      * @param refactoring a {@link Refactoring} to extract features from.
      */
     public RefactoringFeatures(final @NotNull Refactoring refactoring) {
-        isFieldMove = refactoring.isUnitField();
+        isFieldMove = refactoring.isMoveFieldRefactoring();
     }
 
     public boolean isFieldMove() {

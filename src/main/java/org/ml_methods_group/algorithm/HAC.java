@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.AlgorithmsUtil;
 
@@ -108,9 +109,9 @@ public class HAC extends Algorithm {
             for (Entity entity : community.entities) {
                 if (!entity.getClassName().equals(className)) {
                     if (enableFieldRefactorings || !entity.isField()) {
-                        refactorings.add(new Refactoring(entity.getName(), className,
+                        refactorings.add(Refactoring.createRefactoring(entity.getName(), className,
                                 getDensityBasedAccuracyRating(dominantClass.getValue(), entitiesCount) * ACCURACY,
-                                entity.isField()));
+                                entity.isField(), context.getScope()));
                     }
                 }
             }

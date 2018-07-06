@@ -16,12 +16,16 @@
 
 package org.ml_methods_group.algorithm;
 
+import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.psi.PsiElement;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.config.Logging;
 
 import java.util.ArrayList;
@@ -62,7 +66,12 @@ public abstract class Algorithm {
      * @param enableFieldRefactorings should be {@code True} if field refactoring is enabled.
      * @return suggested refactorings encapsulated in {@link AlgorithmResult}.
      */
-    public final AlgorithmResult execute(EntitySearchResult entities, ExecutorService service, boolean enableFieldRefactorings) {
+    public final AlgorithmResult execute(
+        EntitySearchResult entities,
+        ExecutorService service,
+        boolean enableFieldRefactorings,
+        final @NotNull AnalysisScope scope
+    ) {
         LOGGER.info(name + " started");
         final long startTime = System.currentTimeMillis();
         final ProgressIndicator indicator;
@@ -75,7 +84,7 @@ public abstract class Algorithm {
         indicator.setText("Running " + name + "...");
         indicator.setFraction(0);
         final ExecutionContext context =
-                new ExecutionContext(enableParallelExecution ? requireNonNull(service) : null, indicator, entities);
+                new ExecutionContext(enableParallelExecution ? requireNonNull(service) : null, indicator, entities, scope);
         final List<Refactoring> refactorings;
         try {
             refactorings = calculateRefactorings(context, enableFieldRefactorings);
@@ -156,11 +165,21 @@ public abstract class Algorithm {
         private final EntitySearchResult entities;
         private int usedThreads = 1; // default thread
 
+        /**
+         * This field is only required for backward compatibility with old version of
+         * {@link Refactoring} class. It is needed to infer {@link PsiElement} from its name. If all
+         * usages of {@link Refactoring#createRefactoring} are eliminated then this field can also
+         * be removed.
+         */
+        private final @NotNull AnalysisScope scope;
+
         private ExecutionContext(ExecutorService service, ProgressIndicator indicator,
-                                 EntitySearchResult entities) {
+                                 EntitySearchResult entities,
+                                 final @NotNull AnalysisScope scope) {
             this.service = service;
             this.indicator = indicator;
             this.entities = entities;
+            this.scope = scope;
         }
 
         public EntitySearchResult getEntities() {
@@ -173,6 +192,10 @@ public abstract class Algorithm {
 
         private void reportAdditionalThreadsUsed(int count) {
             usedThreads = Math.max(usedThreads, 1 + count);
+        }
+
+        public @NotNull AnalysisScope getScope() {
+            return scope;
         }
     }
 

@@ -151,7 +151,7 @@ public class RefactoringExecutionContext {
 
     private void calculate(Class<? extends Algorithm> algorithmClass) {
         final Algorithm algorithm = createInstance(algorithmClass);
-        final AlgorithmResult result = algorithm.execute(entitySearchResult, executorService, isFieldRefactoringAvailable);
+        final AlgorithmResult result = algorithm.execute(entitySearchResult, executorService, isFieldRefactoringAvailable, scope);
         algorithmsResults.add(result);
     }
 

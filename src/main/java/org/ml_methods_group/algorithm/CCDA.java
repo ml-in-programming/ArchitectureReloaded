@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.RelevantProperties;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.AlgorithmsUtil;
 
@@ -144,9 +145,9 @@ public class CCDA extends Algorithm {
                     long dominant = dominants.get(id).getValue();
                     long size = entities.get(id).size();
                     if (enableFieldRefactorings || !entry.getKey().isField()) {
-                        return new Refactoring(entry.getKey().getName(), entry.getValue(),
+                        return Refactoring.createRefactoring(entry.getKey().getName(), entry.getValue(),
                                 AlgorithmsUtil.getDensityBasedAccuracyRating(dominant, size) * ACCURACY,
-                                entry.getKey().isField());
+                                entry.getKey().isField(), context.getScope());
                     } else {
                         return null;
                     }

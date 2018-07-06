@@ -19,6 +19,7 @@ package org.ml_methods_group.algorithm;
 import org.apache.log4j.Logger;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.AlgorithmsUtil;
 
@@ -107,9 +108,9 @@ public class AKMeans extends Algorithm {
                     .filter(e -> !e.getClassName().equals(dominant.getKey()))
                     .filter(Entity::isMovable)
                     .filter(e -> enableFieldRefactorings || !e.isField())
-                    .map(e -> new Refactoring(e.getName(), dominant.getKey(),
+                    .map(e -> Refactoring.createRefactoring(e.getName(), dominant.getKey(),
                             getDensityBasedAccuracyRating(dominant.getValue(), community.size()) * ACCURACY,
-                            e.isField()))
+                            e.isField(), context.getScope()))
                     .forEach(refactorings::add);
         }
         return refactorings;

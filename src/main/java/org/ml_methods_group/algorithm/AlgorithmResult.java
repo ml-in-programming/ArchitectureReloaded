@@ -18,6 +18,7 @@ package org.ml_methods_group.algorithm;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 
 import java.util.Collections;
 import java.util.List;
