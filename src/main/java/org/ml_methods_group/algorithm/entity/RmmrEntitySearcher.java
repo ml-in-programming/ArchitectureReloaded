@@ -1,5 +1,6 @@
 package org.ml_methods_group.algorithm.entity;
 
+import com.google.common.collect.Multiset;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -15,12 +16,8 @@ import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.IdentifierTokenizer;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static com.google.common.math.DoubleMath.log2;
-import static java.util.stream.Collectors.counting;
-import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Implementation of {@link Entity} searcher for RMMR algorithm.
@@ -41,10 +38,6 @@ public class RmmrEntitySearcher {
      * Map: {@link PsiClass} instance -> corresponding {@link ClassEntity}.
      */
     private final Map<PsiClass, ClassEntity> classEntities = new HashMap<>();
-    private final Map<ClassEntity, List<String>> classBags = new HashMap<>();
-    private final Map<MethodEntity, List<String>> methodBags = new HashMap<>();
-    private final Map<Entity, SortedMap<String, Double>> normalizedTf = new HashMap<>();
-    private final Map<Entity, SortedMap<String, Double>> tfIdf = new HashMap<>();
     private final Set<String> terms = new HashSet<>();
     private final Set<Entity> documents = new HashSet<>();
     private final Map<String, Double> idf = new HashMap<>();
@@ -133,7 +126,7 @@ public class RmmrEntitySearcher {
                 if (coordinate == 0) {
                     document.initStatisticVector(terms.size());
                 }
-                double tfForTermAndDocument = normalizedTf.get(document).getOrDefault(term, 0.0);
+                double tfForTermAndDocument = document.getNormalizedTf().getOrDefault(term, 0.0);
                 document.addStatistic(tfForTermAndDocument * idfForTerm, coordinate);
             }
             coordinate++;
@@ -141,28 +134,21 @@ public class RmmrEntitySearcher {
     }
 
     private void calculateIdf() {
-        long N = classBags.size();
+        long N = classEntities.size();
         for (String term : terms) {
-            long tfInAllClasses = classBags.entrySet().stream().filter(classEntityListEntry -> classEntityListEntry.getValue().contains(term)).count();
+            long tfInAllClasses = classEntities.values().stream().
+                    filter(classEntity -> classEntity.getBag().contains(term)).count();
             idf.put(term, log2((double) N / tfInAllClasses));
         }
     }
 
     private void calculateTf() {
-        calculateTfForBags(methodBags);
-        calculateTfForBags(classBags);
-    }
-
-    private <T extends Entity> void calculateTfForBags(@NotNull Map<T, List<String>> bags) {
-        for (Map.Entry<T, List<String>> bag : bags.entrySet()) {
-            Map<String, Long> tfForMethod = bag.getValue().stream().collect(groupingBy(Function.identity(), counting()));
-            SortedMap<String, Double> normalizedTfForMethod = new TreeMap<>();
-            for (Map.Entry<String, Long> tfForTerm : tfForMethod.entrySet()) {
-                normalizedTfForMethod.put(tfForTerm.getKey(), 1 + log2(tfForTerm.getValue()));
+        for (Entity document : documents) {
+            Multiset<String> bag = document.getBag();
+            for (Multiset.Entry<String> term : bag.entrySet()) {
+                document.getNormalizedTf().put(term.getElement(), 1 + log2(term.getCount()));
             }
-            normalizedTf.put(bag.getKey(), normalizedTfForMethod);
-            bags.put(bag.getKey(), bag.getValue().stream().distinct().collect(Collectors.toList()));
-            terms.addAll(bags.get(bag.getKey()));
+            terms.addAll(bag.elementSet());
         }
     }
 
@@ -197,15 +183,9 @@ public class RmmrEntitySearcher {
         private MethodEntity currentMethod;
         final private Deque<ClassEntity> currentClasses = new ArrayDeque<>();
 
-        private void addIdentifierToBag(@Nullable ClassEntity classEntity, String identifier) {
-            if (classEntity != null) {
-                classBags.computeIfAbsent(classEntity, (k) -> new LinkedList<>()).addAll(IdentifierTokenizer.tokenize(identifier));
-            }
-        }
-
-        private void addIdentifierToBag(@Nullable MethodEntity methodEntity, String identifier) {
-            if (methodEntity!= null) {
-                methodBags.computeIfAbsent(methodEntity, (k) -> new LinkedList<>()).addAll(IdentifierTokenizer.tokenize(identifier));
+        private void addIdentifierToBag(@Nullable Entity entity, String identifier) {
+            if (entity != null) {
+                entity.getBag().addAll(IdentifierTokenizer.tokenize(identifier));
             }
         }
 

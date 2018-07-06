@@ -16,12 +16,15 @@
 
 package org.ml_methods_group.algorithm.entity;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import com.intellij.psi.PsiElement;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
 import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
+import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.*;
@@ -29,22 +32,23 @@ import java.util.*;
 public abstract class Entity {
     private static final VectorCalculator CLASS_ENTITY_CALCULATOR = new VectorCalculator()
             .addMetricDependence(NumMethodsClassMetric.class)
-            .addMetricDependence(NumAttributesAddedMetric.class)
-            ;
+            .addMetricDependence(NumAttributesAddedMetric.class);
 
     private static final VectorCalculator METHOD_ENTITY_CALCULATOR = new VectorCalculator()
             .addConstValue(0)
-            .addConstValue(0)
-            ;
+            .addConstValue(0);
 
     private static final VectorCalculator FIELD_ENTITY_CALCULATOR = new VectorCalculator()
             .addConstValue(0)
-            .addConstValue(0)
-            ;
+            .addConstValue(0);
 
     private static final int DIMENSION = CLASS_ENTITY_CALCULATOR.getDimension();
 
     private double[] statisticVector;
+    @NotNull
+    private final Multiset<String> bag = HashMultiset.create();
+    @NotNull
+    private final SortedMap<String, Double> normalizedTf = new TreeMap<>();
 
     void initStatisticVector(int size) {
         statisticVector = new double[size];
@@ -160,4 +164,14 @@ public abstract class Entity {
     abstract public Entity copy();
 
     abstract public boolean isField();
+
+    @NotNull
+    Multiset<String> getBag() {
+        return bag;
+    }
+
+    @NotNull
+    SortedMap<String, Double> getNormalizedTf() {
+        return normalizedTf;
+    }
 }
