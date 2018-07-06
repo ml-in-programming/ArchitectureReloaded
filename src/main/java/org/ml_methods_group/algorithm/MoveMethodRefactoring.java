@@ -20,11 +20,21 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Representation of a refactoring which moves method to a target class.
+ */
 public class MoveMethodRefactoring extends Refactoring {
     private final @NotNull PsiMethod method;
 
     private final @NotNull PsiClass targetClass;
 
+    /**
+     * Creates refactoring.
+     *
+     * @param method a method that is moved in this refactoring.
+     * @param targetClass destination class in which given method is placed in this refactoring.
+     * @param accuracy
+     */
     public MoveMethodRefactoring(
         final @NotNull PsiMethod method,
         final @NotNull PsiClass targetClass,
@@ -41,10 +51,16 @@ public class MoveMethodRefactoring extends Refactoring {
         return false;
     }
 
+    /**
+     * Returns method that is moved in this refactoring.
+     */
     public @NotNull PsiMethod getMethod() {
         return method;
     }
 
+    /**
+     * Returns class in which method is placed in this refactoring
+     */
     public @NotNull PsiClass getTargetClass() {
         return targetClass;
     }

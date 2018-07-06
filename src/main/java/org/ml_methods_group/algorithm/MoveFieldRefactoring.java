@@ -20,11 +20,21 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Representation of a refactoring which moves field to a target class.
+ */
 class MoveFieldRefactoring extends Refactoring {
     private final @NotNull PsiField field;
 
     private final @NotNull PsiClass targetClass;
 
+    /**
+     * Creates refactoring.
+     *
+     * @param field a field that is moved in this refactoring.
+     * @param targetClass destination class in which given field is placed in this refactoring.
+     * @param accuracy
+     */
     public MoveFieldRefactoring(
         final @NotNull PsiField field,
         final @NotNull PsiClass targetClass,
@@ -41,10 +51,16 @@ class MoveFieldRefactoring extends Refactoring {
         return true;
     }
 
+    /**
+     * Returns field that is moved in this refactoring.
+     */
     public @NotNull PsiField getField() {
         return field;
     }
 
+    /**
+     * Returns class in which field is placed in this refactoring
+     */
     public @NotNull PsiClass getTargetClass() {
         return targetClass;
     }
