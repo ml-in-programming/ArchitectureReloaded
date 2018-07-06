@@ -30,6 +30,13 @@ public abstract class Refactoring {
     private final double accuracy;
     private final boolean isUnitField;
 
+    /**
+     * This factory method is a replacement for old ctor. Previously {@link Refactoring} class
+     * stored only names of entities that were involved in refactoring. Now {@link Refactoring}
+     * class has subclasses for different type of refactorings.
+     * Use constructors of {@link MoveMethodRefactoring} and {@link MoveFieldRefactoring} instead.
+     */
+    @Deprecated
     public static @NotNull Refactoring createRefactoring(
         final @NotNull String unit,
         final @NotNull String target,
