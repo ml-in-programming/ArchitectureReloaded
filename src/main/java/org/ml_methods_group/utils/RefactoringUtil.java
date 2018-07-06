@@ -289,7 +289,7 @@ public final class RefactoringUtil {
      * be removed.
      */
     private static Refactoring combine(List<Refactoring> refactorings, String unit, int algorithmsCount, AnalysisScope scope) {
-        boolean isUnitField = refactorings.get(0).isUnitField();
+        boolean isUnitField = refactorings.get(0).isMoveFieldRefactoring();
         final Map<String, Double> target = refactorings.stream()
                 .collect(Collectors.toMap(Refactoring::getTarget, RefactoringUtil::getSquaredAccuarcy, Double::sum));
         return target.entrySet().stream()

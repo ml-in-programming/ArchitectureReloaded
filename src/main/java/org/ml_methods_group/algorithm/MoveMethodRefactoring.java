@@ -37,11 +37,15 @@ public class MoveMethodRefactoring extends Refactoring {
         super(
             PsiSearchUtil.getHumanReadableName(method),
             PsiSearchUtil.getHumanReadableName(targetClass),
-            accuracy,
-            false
+            accuracy
         );
 
         this.method = method;
         this.targetClass = targetClass;
+    }
+
+    @Override
+    public boolean isMoveFieldRefactoring() {
+        return false;
     }
 }

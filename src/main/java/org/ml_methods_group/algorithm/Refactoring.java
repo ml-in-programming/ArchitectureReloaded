@@ -28,7 +28,6 @@ public abstract class Refactoring {
     private final String unit;
     private final String target;
     private final double accuracy;
-    private final boolean isUnitField;
 
     /**
      * This factory method is a replacement for old ctor. Previously {@link Refactoring} class
@@ -70,11 +69,10 @@ public abstract class Refactoring {
         }
     }
 
-    public Refactoring(@NotNull String unit, @NotNull String target, double accuracy, boolean isUnitField) {
+    public Refactoring(@NotNull String unit, @NotNull String target, double accuracy) {
         this.unit = unit;
         this.target = target;
         this.accuracy = accuracy;
-        this.isUnitField = isUnitField;
     }
 
     public String getUnit() {
@@ -89,9 +87,7 @@ public abstract class Refactoring {
         return accuracy;
     }
 
-    public boolean isUnitField() {
-        return isUnitField;
-    }
+    public abstract boolean isMoveFieldRefactoring();
 
     @Override
     public int hashCode() {

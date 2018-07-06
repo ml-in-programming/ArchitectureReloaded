@@ -94,7 +94,7 @@ class ClassRefactoringPanel extends JPanel {
 
     private Predicate<Refactoring> getCurrentPredicate(int sliderValue) {
         return refactoring -> refactoring.getAccuracy() >= sliderValue / 100.0
-                && !(isFieldDisabled && refactoring.isUnitField());
+                && !(isFieldDisabled && refactoring.isMoveFieldRefactoring());
     }
 
     private void setupGUI() {
