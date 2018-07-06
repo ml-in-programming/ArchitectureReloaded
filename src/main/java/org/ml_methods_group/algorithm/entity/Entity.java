@@ -44,13 +44,17 @@ public abstract class Entity {
 
     private static final int DIMENSION = CLASS_ENTITY_CALCULATOR.getDimension();
 
-    private final ArrayList<Double> statisticVector = new ArrayList<>();
+    private double[] statisticVector;
 
-    public ArrayList<Double> getStatisticVector() {
+    void initStatisticVector(int size) {
+        statisticVector = new double[size];
+    }
+
+    public double[] getStatisticVector() {
         return statisticVector;
     }
 
-    void addStatistic(Double statistic) { statisticVector.add(statistic); }
+    void addStatistic(double statistic, int coordinate) { statisticVector[coordinate] = statistic; }
 
     static {
         assert CLASS_ENTITY_CALCULATOR.getDimension() == DIMENSION;
@@ -71,6 +75,7 @@ public abstract class Entity {
     protected Entity(Entity original) {
         relevantProperties = original.relevantProperties.copy();
         name = original.name;
+        statisticVector = original.statisticVector;
         vector = Arrays.copyOf(original.vector, original.vector.length);
         isMovable = original.isMovable;
     }

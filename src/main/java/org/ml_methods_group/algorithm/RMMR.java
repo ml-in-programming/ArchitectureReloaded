@@ -113,8 +113,8 @@ public class RMMR extends Algorithm {
         ClassEntity targetClass = null;
         ClassEntity sourceClass = null;
         for (final ClassEntity classEntity : classEntities) {
-            final double contextualDistance = classEntity.getStatisticVector().size() == 0 ? 1 : getContextualDistance(entity, classEntity);
-            final double distance = getDistance(entity, classEntity) + contextualDistance;
+            final double contextualDistance = classEntity.getStatisticVector().length == 0 ? 1 : getContextualDistance(entity, classEntity);
+            final double distance = 0.4 * getDistance(entity, classEntity) + 0.6 * contextualDistance;
             if (classEntity.getName().equals(entity.getClassName())) {
                 sourceClass = classEntity;
                 distanceWithSourceClass = distance;
@@ -135,7 +135,7 @@ public class RMMR extends Algorithm {
         final String targetClassName = targetClass.getName();
         double differenceWithSourceClass = distanceWithSourceClass - minDistance;
         int numberOfMethodsInSourceClass = methodsByClass.get(sourceClass).size();
-        int numberOfMethodsInTargetClass = methodsByClass.get(targetClass).size();
+        int numberOfMethodsInTargetClass = methodsByClass.getOrDefault(targetClass, Collections.emptySet()).size();
         // considers amount of entities.
         double sourceClassCoefficient = 1 - 1.0 / (2 * numberOfMethodsInSourceClass * numberOfMethodsInSourceClass);
         double targetClassCoefficient = 1 - 1.0 / (4 * numberOfMethodsInTargetClass * numberOfMethodsInTargetClass);
@@ -160,26 +160,25 @@ public class RMMR extends Algorithm {
     }
 
     private double getContextualDistance(@NotNull MethodEntity entity, @NotNull ClassEntity classEntity) {
-        ArrayList<Double> methodVector = entity.getStatisticVector();
-        ArrayList<Double> classVector = classEntity.getStatisticVector();
+        double[] methodVector = entity.getStatisticVector();
+        double[] classVector = classEntity.getStatisticVector();
         return 1 - dotProduct(methodVector, classVector) / (norm(methodVector) * norm(classVector));
     }
 
     @Contract(pure = true)
-    private double dotProduct(@NotNull ArrayList<Double> vector1, @NotNull ArrayList<Double> vector2) {
-        if (vector1.size() != vector2.size()) {
+    private double dotProduct(@NotNull double[] vector1, @NotNull double[] vector2) {
+        if (vector1.length != vector2.length) {
             throw new IllegalStateException("Dimension of vectors are not equal");
         }
-        Double productValue = (double) 0;
-        Iterator<Double> iterator1 = vector1.iterator();
-        Iterator<Double> iterator2 = vector2.iterator();
-        while (iterator1.hasNext()) {
-            productValue += iterator1.next() * iterator2.next();
+        double productValue = 0;
+        int dimension = vector1.length;
+        for (int i = 0; i < dimension; i++) {
+            productValue += vector1[i] * vector2[i];
         }
         return productValue;
     }
 
-    private double norm(@NotNull ArrayList<Double> vector) {
+    private double norm(@NotNull double[] vector) {
         return sqrt(dotProduct(vector, vector));
     }
 

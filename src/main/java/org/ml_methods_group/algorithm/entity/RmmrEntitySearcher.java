@@ -125,13 +125,18 @@ public class RmmrEntitySearcher {
     }
 
     private void calculateTfIdf() {
+        int coordinate = 0;
         for (String term : terms) {
-            Double idfForTerm = idf.get(term);
+            double idfForTerm = idf.get(term);
             // TODO: delete documents, it is redundant
             for (Entity document : documents) {
-                Double tfForTermAndDocument = normalizedTf.get(document).getOrDefault(term, 0.0);
-                document.addStatistic(tfForTermAndDocument * idfForTerm);
+                if (coordinate == 0) {
+                    document.initStatisticVector(terms.size());
+                }
+                double tfForTermAndDocument = normalizedTf.get(document).getOrDefault(term, 0.0);
+                document.addStatistic(tfForTermAndDocument * idfForTerm, coordinate);
             }
+            coordinate++;
         }
     }
 
@@ -190,7 +195,7 @@ public class RmmrEntitySearcher {
          * Current method: if not null then we are parsing this method now and we need to update conceptual set of this method.
          */
         private MethodEntity currentMethod;
-        private ClassEntity currentClass;
+        final private Deque<ClassEntity> currentClasses = new ArrayDeque<>();
 
         private void addIdentifierToBag(@Nullable ClassEntity classEntity, String identifier) {
             if (classEntity != null) {
@@ -215,10 +220,10 @@ public class RmmrEntitySearcher {
             }
             // TODO: add support for arrays int[][][][][].
             if (isClassInScope(variablesClass) && variablesClass.getQualifiedName() != null) {
-                addIdentifierToBag(currentClass, variablesClass.getQualifiedName());
+                addIdentifierToBag(currentClasses.peek(), variablesClass.getQualifiedName());
                 addIdentifierToBag(currentMethod, variablesClass.getQualifiedName());
             }
-            addIdentifierToBag(currentClass, variableName);
+            addIdentifierToBag(currentClasses.peek(), variableName);
             addIdentifierToBag(currentMethod, variableName);
             super.visitVariable(variable);
         }
@@ -231,21 +236,17 @@ public class RmmrEntitySearcher {
                 super.visitClass(aClass);
                 return;
             }
-            if (currentClass == null) {
-                currentClass = classEntity;
-            }
-            documents.add(currentClass);
-            addIdentifierToBag(currentClass, aClass.getName());
+            currentClasses.push(classEntity);
+            documents.add(classEntity);
+            addIdentifierToBag(currentClasses.peek(), aClass.getName());
             super.visitClass(aClass);
-            if (currentClass == classEntity) {
-                currentClass = null;
-            }
+            currentClasses.pop();
         }
 
         @Override
         public void visitMethod(PsiMethod method) {
             indicator.checkCanceled();
-            addIdentifierToBag(currentClass, method.getName());
+            addIdentifierToBag(currentClasses.peek(), method.getName());
             final MethodEntity methodEntity = entities.get(method);
             if (methodEntity == null) {
                 super.visitMethod(method);
@@ -272,7 +273,7 @@ public class RmmrEntitySearcher {
                 boolean isInScope = !(expressionElement instanceof PsiField)
                         || isClassInScope(((PsiField) expressionElement).getContainingClass());
                 */
-                addIdentifierToBag(currentClass, ((PsiVariable) expressionElement).getName());
+                addIdentifierToBag(currentClasses.peek(), ((PsiVariable) expressionElement).getName());
                 addIdentifierToBag(currentMethod, ((PsiVariable) expressionElement).getName());
             }
             super.visitReferenceExpression(expression);
@@ -284,7 +285,7 @@ public class RmmrEntitySearcher {
             final PsiMethod called = expression.resolveMethod();
             final PsiClass usedClass = called != null ? called.getContainingClass() : null;
             if (isClassInScope(usedClass)) {
-                addIdentifierToBag(currentClass, called.getName());
+                addIdentifierToBag(currentClasses.peek(), called.getName());
                 addIdentifierToBag(currentMethod, called.getName());
             }
             super.visitMethodCallExpression(expression);
