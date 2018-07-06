@@ -123,6 +123,9 @@ public abstract class Refactoring {
 
     public abstract boolean isMoveFieldRefactoring();
 
+    @NotNull
+    public abstract <R> R accept(final @NotNull RefactoringVisitor<R> visitor);
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

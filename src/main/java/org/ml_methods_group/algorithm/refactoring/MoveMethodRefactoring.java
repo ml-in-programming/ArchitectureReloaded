@@ -64,4 +64,9 @@ public class MoveMethodRefactoring extends Refactoring {
     public @NotNull PsiClass getTargetClass() {
         return targetClass;
     }
+
+    @NotNull
+    public <R> R accept(final @NotNull RefactoringVisitor<R> visitor) {
+        return visitor.visit(this);
+    }
 }
