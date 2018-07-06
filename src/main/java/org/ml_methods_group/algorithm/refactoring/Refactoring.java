@@ -17,6 +17,8 @@
 package org.ml_methods_group.algorithm.refactoring;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
@@ -83,8 +85,13 @@ public abstract class Refactoring {
         this.unit = unit;
         this.target = target;
 
-        this.unitName = PsiSearchUtil.getHumanReadableName(unit);
-        this.targetName = PsiSearchUtil.getHumanReadableName(target);
+        this.unitName = ApplicationManager.getApplication().runReadAction(
+            (Computable<String>) () -> PsiSearchUtil.getHumanReadableName(unit)
+        );
+
+        this.targetName = ApplicationManager.getApplication().runReadAction(
+            (Computable<String>) () -> PsiSearchUtil.getHumanReadableName(target)
+        );
 
         this.accuracy = accuracy;
     }
