@@ -24,9 +24,7 @@ import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
 import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.ml_methods_group.utils.PsiSearchUtil;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public abstract class Entity {
     private static final VectorCalculator CLASS_ENTITY_CALCULATOR = new VectorCalculator()
@@ -45,6 +43,14 @@ public abstract class Entity {
             ;
 
     private static final int DIMENSION = CLASS_ENTITY_CALCULATOR.getDimension();
+
+    private final ArrayList<Double> statisticVector = new ArrayList<>();
+
+    public ArrayList<Double> getStatisticVector() {
+        return statisticVector;
+    }
+
+    void addStatistic(Double statistic) { statisticVector.add(statistic); }
 
     static {
         assert CLASS_ENTITY_CALCULATOR.getDimension() == DIMENSION;

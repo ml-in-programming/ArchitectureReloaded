@@ -32,6 +32,7 @@ public class RmmrStrategy implements FinderStrategy {
     @Override
     public boolean acceptClass(@NotNull PsiClass aClass) {
         // TODO: Accept interfaces or not?
+        // TODO: Accept inner and nested classes or not?
         return !(ClassUtils.isAnonymous(aClass) || aClass.getQualifiedName() == null
                 || aClass.isEnum() || aClass.isInterface());
     }

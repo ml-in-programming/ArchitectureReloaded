@@ -1,16 +1,18 @@
 package org.ml_methods_group.algorithm;
 
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.MethodEntity;
 import org.ml_methods_group.config.Logging;
-import org.ml_methods_group.utils.AlgorithmsUtil;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import static java.lang.Math.sqrt;
 
 /**
  * Implementation of RMMR (Recommendation of Move Method Refactoring) algorithm.
@@ -60,12 +62,10 @@ public class RMMR extends Algorithm {
         this.context = context;
         init();
 
-        /*
         List<Refactoring> accum = new LinkedList<>();
         units.forEach(methodEntity -> findRefactoring(methodEntity, accum));
         return accum;
-        */
-        return runParallel(units, context, ArrayList::new, this::findRefactoring, AlgorithmsUtil::combineLists);
+        //return runParallel(units, context, ArrayList::new, this::findRefactoring, AlgorithmsUtil::combineLists);
     }
 
     /**
@@ -113,7 +113,8 @@ public class RMMR extends Algorithm {
         ClassEntity targetClass = null;
         ClassEntity sourceClass = null;
         for (final ClassEntity classEntity : classEntities) {
-            final double distance = getDistance(entity, classEntity);
+            final double contextualDistance = classEntity.getStatisticVector().size() == 0 ? 1 : getContextualDistance(entity, classEntity);
+            final double distance = getDistance(entity, classEntity) + contextualDistance;
             if (classEntity.getName().equals(entity.getClassName())) {
                 sourceClass = classEntity;
                 distanceWithSourceClass = distance;
@@ -149,10 +150,37 @@ public class RMMR extends Algorithm {
                 accuracy *= 2;
             }
         }
+        if (entity.getName().contains("main")) {
+            accuracy /= 2;
+        }
         if (differenceWithSourceClass != 0 && accuracy >= MIN_ACCURACY && !targetClassName.equals(entity.getClassName())) {
             accumulator.add(new Refactoring(entity.getName(), targetClassName, accuracy, entity.isField()));
         }
         return accumulator;
+    }
+
+    private double getContextualDistance(@NotNull MethodEntity entity, @NotNull ClassEntity classEntity) {
+        ArrayList<Double> methodVector = entity.getStatisticVector();
+        ArrayList<Double> classVector = classEntity.getStatisticVector();
+        return 1 - dotProduct(methodVector, classVector) / (norm(methodVector) * norm(classVector));
+    }
+
+    @Contract(pure = true)
+    private double dotProduct(@NotNull ArrayList<Double> vector1, @NotNull ArrayList<Double> vector2) {
+        if (vector1.size() != vector2.size()) {
+            throw new IllegalStateException("Dimension of vectors are not equal");
+        }
+        Double productValue = (double) 0;
+        Iterator<Double> iterator1 = vector1.iterator();
+        Iterator<Double> iterator2 = vector2.iterator();
+        while (iterator1.hasNext()) {
+            productValue += iterator1.next() * iterator2.next();
+        }
+        return productValue;
+    }
+
+    private double norm(@NotNull ArrayList<Double> vector) {
+        return sqrt(dotProduct(vector, vector));
     }
 
     /**
