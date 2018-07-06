@@ -19,11 +19,7 @@ package org.ml_methods_group.algorithm;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
-import org.ml_methods_group.utils.PsiSearchUtil;
 
-/**
- * TODO: getters, hashcode, equals, toString
- */
 public class MoveMethodRefactoring extends Refactoring {
     private final @NotNull PsiMethod method;
 
@@ -43,5 +39,13 @@ public class MoveMethodRefactoring extends Refactoring {
     @Override
     public boolean isMoveFieldRefactoring() {
         return false;
+    }
+
+    public @NotNull PsiMethod getMethod() {
+        return method;
+    }
+
+    public @NotNull PsiClass getTargetClass() {
+        return targetClass;
     }
 }
