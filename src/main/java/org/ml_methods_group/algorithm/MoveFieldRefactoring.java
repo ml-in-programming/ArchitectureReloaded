@@ -34,11 +34,7 @@ class MoveFieldRefactoring extends Refactoring {
         final @NotNull PsiClass targetClass,
         final double accuracy
     ) {
-        super(
-            PsiSearchUtil.getHumanReadableName(field),
-            PsiSearchUtil.getHumanReadableName(targetClass),
-            accuracy
-        );
+        super(field, targetClass, accuracy);
 
         this.field = field;
         this.targetClass = targetClass;

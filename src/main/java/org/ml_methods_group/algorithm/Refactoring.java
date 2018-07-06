@@ -25,8 +25,14 @@ import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.utils.PsiSearchUtil;
 
 public abstract class Refactoring {
+    private final @NotNull PsiElement unit;
+
+    private final @NotNull PsiElement target;
+
     private final String unitName;
+
     private final String targetName;
+
     private final double accuracy;
 
     /**
@@ -69,16 +75,44 @@ public abstract class Refactoring {
         }
     }
 
-    public Refactoring(@NotNull String unitName, @NotNull String targetName, double accuracy) {
-        this.unitName = unitName;
-        this.targetName = targetName;
+    public Refactoring(
+        final @NotNull PsiElement unit,
+        final @NotNull PsiElement target,
+        double accuracy
+    ) {
+        this.unit = unit;
+        this.target = target;
+
+        this.unitName = PsiSearchUtil.getHumanReadableName(unit);
+        this.targetName = PsiSearchUtil.getHumanReadableName(target);
+
         this.accuracy = accuracy;
     }
 
+    public @NotNull PsiElement getUnit() {
+        return unit;
+    }
+
+    public @NotNull PsiElement getTarget() {
+        return target;
+    }
+
+    /**
+     * If you need to identify code entity. Then it is better to identify it directly and not
+     * through its name.
+     * Use {@link #getUnit()} instead.
+     */
+    @Deprecated
     public String getUnitName() {
         return unitName;
     }
 
+    /**
+     * If you need to identify code entity. Then it is better to identify it directly and not
+     * through its name.
+     * Use {@link #getTarget()} instead.
+     */
+    @Deprecated
     public String getTargetName() {
         return targetName;
     }
@@ -90,26 +124,27 @@ public abstract class Refactoring {
     public abstract boolean isMoveFieldRefactoring();
 
     @Override
-    public int hashCode() {
-        return unitName.hashCode() + targetName.hashCode();
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Refactoring that = (Refactoring) o;
+
+        return unit.equals(that.unit) && target.equals(that.target);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (obj instanceof Refactoring) {
-            Refactoring other = ((Refactoring) obj);
-            return unitName.equals(other.unitName) && targetName.equals(other.targetName);
-        }
-        return false;
+    public int hashCode() {
+        int result = unit.hashCode();
+        result = 31 * result + target.hashCode();
+        return result;
     }
 
     @Override
     public String toString() {
-        return "unitName = " + unitName +
-                ", targetName = " + targetName +
-                ", accuracy = " + accuracy;
+        return "Refactoring{" +
+                "unit=" + unit +
+                ", target=" + target +
+                '}';
     }
 }

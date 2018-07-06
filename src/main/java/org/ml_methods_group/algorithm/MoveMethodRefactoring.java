@@ -34,11 +34,7 @@ public class MoveMethodRefactoring extends Refactoring {
         final @NotNull PsiClass targetClass,
         final double accuracy
     ) {
-        super(
-            PsiSearchUtil.getHumanReadableName(method),
-            PsiSearchUtil.getHumanReadableName(targetClass),
-            accuracy
-        );
+        super(method, targetClass, accuracy);
 
         this.method = method;
         this.targetClass = targetClass;
