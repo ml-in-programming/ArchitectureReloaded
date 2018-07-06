@@ -79,10 +79,10 @@ public class MRI extends Algorithm {
             final double accuracyRating =
                     AlgorithmsUtil.getGapBasedAccuracyRating(minHolder.distance, minHolder.difference) * ACCURACY;
             if (currentEntity.getCategory() == MetricCategory.Method) {
-                processMethod(refactorings, currentEntity, nearestClass, accuracyRating);
+                processMethod(refactorings, currentEntity, nearestClass, accuracyRating, context);
             } else {
                 refactorings.add(Refactoring.createRefactoring(currentEntity.getName(), nearestClass.getName(), accuracyRating,
-                        currentEntity.isField()));
+                        currentEntity.isField(), context.getScope()));
             }
         }
 
@@ -116,10 +116,10 @@ public class MRI extends Algorithm {
         return first;
     }
 
-    private void processMethod(List<Refactoring> refactorings, Entity method, ClassEntity target, double accuracy) {
+    private void processMethod(List<Refactoring> refactorings, Entity method, ClassEntity target, double accuracy, ExecutionContext context) {
         if (method.isMovable()) {
             final ClassEntity containingClass = classesByName.get(method.getClassName());
-            refactorings.add(Refactoring.createRefactoring(method.getName(), target.getName(), accuracy, false));
+            refactorings.add(Refactoring.createRefactoring(method.getName(), target.getName(), accuracy, false, context.getScope()));
             containingClass.removeFromClass(method.getName());
             target.addToClass(method.getName());
         }

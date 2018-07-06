@@ -110,7 +110,7 @@ public class HAC extends Algorithm {
                     if (enableFieldRefactorings || !entity.isField()) {
                         refactorings.add(Refactoring.createRefactoring(entity.getName(), className,
                                 getDensityBasedAccuracyRating(dominantClass.getValue(), entitiesCount) * ACCURACY,
-                                entity.isField()));
+                                entity.isField(), context.getScope()));
                     }
                 }
             }

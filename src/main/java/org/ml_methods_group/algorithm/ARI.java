@@ -84,7 +84,7 @@ public class ARI extends Algorithm {
         if (!targetClassName.equals(entity.getClassName())) {
             accumulator.add(Refactoring.createRefactoring(entity.getName(), targetClassName,
                     AlgorithmsUtil.getGapBasedAccuracyRating(minDistance, difference) * ACCURACY,
-                    entity.isField()));
+                    entity.isField(), context.getScope()));
         }
         return accumulator;
     }

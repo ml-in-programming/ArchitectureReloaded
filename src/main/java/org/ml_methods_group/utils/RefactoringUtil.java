@@ -84,7 +84,7 @@ public final class RefactoringUtil {
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList());
                 final Set<String> accepted = moveMembersRefactoring(members, target, scope);
-                model.setAcceptedRefactorings(accepted.stream().map(m -> Refactoring.createRefactoring(m, PsiSearchUtil.getHumanReadableName(target), 0, true)).collect(Collectors.toSet()));
+                model.setAcceptedRefactorings(accepted.stream().map(m -> Refactoring.createRefactoring(m, PsiSearchUtil.getHumanReadableName(target), 0, true, scope)).collect(Collectors.toSet()));
             }
         });
     }
@@ -266,23 +266,35 @@ public final class RefactoringUtil {
                 .orElse(null);
     }
 
-    public static List<Refactoring> combine(Collection<List<Refactoring>> refactorings) {
+    /**
+     * @param scope this argument is only required for backward compatibility with old version of
+     * {@link Refactoring} class. It is needed to infer {@link PsiElement} from its name. If all
+     * usages of {@link Refactoring#createRefactoring} are eliminated then this argument can also
+     * be removed.
+     */
+    public static List<Refactoring> combine(Collection<List<Refactoring>> refactorings, AnalysisScope scope) {
         return refactorings.stream()
                 .flatMap(List::stream)
                 .collect(Collectors.groupingBy(Refactoring::getUnit, Collectors.toList()))
                 .entrySet().stream()
-                .map(entry -> combine(entry.getValue(), entry.getKey(), refactorings.size()))
+                .map(entry -> combine(entry.getValue(), entry.getKey(), refactorings.size(), scope))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    private static Refactoring combine(List<Refactoring> refactorings, String unit, int algorithmsCount) {
+    /**
+     * @param scope this argument is only required for backward compatibility with old version of
+     * {@link Refactoring} class. It is needed to infer {@link PsiElement} from its name. If all
+     * usages of {@link Refactoring#createRefactoring} are eliminated then this argument can also
+     * be removed.
+     */
+    private static Refactoring combine(List<Refactoring> refactorings, String unit, int algorithmsCount, AnalysisScope scope) {
         boolean isUnitField = refactorings.get(0).isUnitField();
         final Map<String, Double> target = refactorings.stream()
                 .collect(Collectors.toMap(Refactoring::getTarget, RefactoringUtil::getSquaredAccuarcy, Double::sum));
         return target.entrySet().stream()
                 .max(Entry.comparingByValue())
-                .map(entry -> Refactoring.createRefactoring(unit, entry.getKey(), Math.sqrt(entry.getValue() / algorithmsCount), isUnitField))
+                .map(entry -> Refactoring.createRefactoring(unit, entry.getKey(), Math.sqrt(entry.getValue() / algorithmsCount), isUnitField, scope))
                 .orElse(null);
     }
 

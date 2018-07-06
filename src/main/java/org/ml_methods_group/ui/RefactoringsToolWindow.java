@@ -103,7 +103,7 @@ public final class RefactoringsToolWindow implements Disposable {
         final List<List<Refactoring>> refactorings = results.stream()
                 .map(AlgorithmResult::getRefactorings)
                 .collect(Collectors.toList());
-        final List<Refactoring> measured = RefactoringUtil.combine(refactorings);
+        final List<Refactoring> measured = RefactoringUtil.combine(refactorings, scope);
         addTab("Total", measured, false);
         myToolWindow.setAvailable(true, null);
         myToolWindow.show(null);

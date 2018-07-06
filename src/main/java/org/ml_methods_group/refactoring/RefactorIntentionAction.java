@@ -37,7 +37,7 @@ public class RefactorIntentionAction extends BaseIntentionAction {
 
     RefactorIntentionAction(String unit, String to, AnalysisScope scope) {
         this.scope = scope;
-        this.refactoring = Refactoring.createRefactoring(unit, to, 0, false);
+        this.refactoring = Refactoring.createRefactoring(unit, to, 0, false, scope);
     }
 
     @NotNull

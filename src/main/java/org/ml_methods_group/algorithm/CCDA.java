@@ -146,7 +146,7 @@ public class CCDA extends Algorithm {
                     if (enableFieldRefactorings || !entry.getKey().isField()) {
                         return Refactoring.createRefactoring(entry.getKey().getName(), entry.getValue(),
                                 AlgorithmsUtil.getDensityBasedAccuracyRating(dominant, size) * ACCURACY,
-                                entry.getKey().isField());
+                                entry.getKey().isField(), context.getScope());
                     } else {
                         return null;
                     }

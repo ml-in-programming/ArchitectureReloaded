@@ -16,9 +16,15 @@
 
 package org.ml_methods_group.algorithm;
 
+import com.intellij.analysis.AnalysisScope;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
+import org.ml_methods_group.utils.PsiSearchUtil;
 
-public class Refactoring {
+public abstract class Refactoring {
     private final String unit;
     private final String target;
     private final double accuracy;
@@ -28,13 +34,36 @@ public class Refactoring {
         final @NotNull String unit,
         final @NotNull String target,
         final double accuracy,
-        final boolean isUnitField
+        final boolean isUnitField,
+        final @NotNull AnalysisScope scope
     ) {
-        // PsiSearchUtil.findElement
-        return new Refactoring(unit, target, accuracy, isUnitField);
+        String exceptionMessage =
+            "Unable to find PsiElement with given name during Refactoring creation";
+
+        PsiElement unitElement =
+            PsiSearchUtil.findElement(unit, scope)
+                         .orElseThrow(() -> new IllegalArgumentException(exceptionMessage));
+
+        PsiElement targetElement =
+            PsiSearchUtil.findElement(target, scope)
+                         .orElseThrow(() -> new IllegalArgumentException(exceptionMessage));
+
+        if (!isUnitField) {
+            return new MoveMethodRefactoring(
+                (PsiMethod) unitElement,
+                (PsiClass) targetElement,
+                accuracy
+            );
+        } else {
+            return new MoveFieldRefactoring(
+                (PsiField) unitElement,
+                (PsiClass) targetElement,
+                accuracy
+            );
+        }
     }
 
-    private Refactoring(@NotNull String unit, @NotNull String target, double accuracy, boolean isUnitField) {
+    public Refactoring(@NotNull String unit, @NotNull String target, double accuracy, boolean isUnitField) {
         this.unit = unit;
         this.target = target;
         this.accuracy = accuracy;
