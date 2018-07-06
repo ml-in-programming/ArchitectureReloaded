@@ -18,14 +18,19 @@ package org.ml_methods_group.algorithm.entity;
 
 import com.intellij.psi.PsiClass;
 import com.sixrr.metrics.MetricCategory;
+import org.jetbrains.annotations.NotNull;
 
 public class ClassEntity extends Entity {
-    ClassEntity(PsiClass psiClass) {
+    private final @NotNull PsiClass psiClass;
+
+    ClassEntity(final @NotNull PsiClass psiClass) {
         super(psiClass);
+        this.psiClass = psiClass;
     }
 
     private ClassEntity(ClassEntity original) {
         super(original);
+        this.psiClass = original.psiClass;
     }
 
     @Override
@@ -55,5 +60,9 @@ public class ClassEntity extends Entity {
     @Override
     public boolean isField() {
         return false;
+    }
+
+    public @NotNull PsiClass getPsiClass() {
+        return psiClass;
     }
 }
