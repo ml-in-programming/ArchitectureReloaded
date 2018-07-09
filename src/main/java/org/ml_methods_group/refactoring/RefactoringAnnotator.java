@@ -66,7 +66,7 @@ public class RefactoringAnnotator implements Annotator {
                     String.format("Can be moved to %s (%s)",
                             refactorings.get(name), algorithmName));
 
-            annotation.registerFix(new RefactorIntentionAction(name, refactorings.get(name), scope));
+            annotation.registerFix(new RefactorIntentionAction(name, refactorings.get(name), scope, element));
         }
     }
 

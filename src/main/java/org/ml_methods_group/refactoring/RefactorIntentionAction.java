@@ -22,6 +22,7 @@ import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.Nls;
@@ -38,6 +39,11 @@ public class RefactorIntentionAction extends BaseIntentionAction {
     RefactorIntentionAction(String unit, String to, AnalysisScope scope) {
         this.scope = scope;
         this.refactoring = new Refactoring(unit, to, 0, false);
+    }
+
+    RefactorIntentionAction(String unit, String to, AnalysisScope scope, PsiElement element) {
+        this.scope = scope;
+        this.refactoring = new Refactoring(unit, to, 0, false, element);
     }
 
     @NotNull
