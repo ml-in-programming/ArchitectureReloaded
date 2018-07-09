@@ -28,6 +28,11 @@ import java.util.function.BinaryOperator;
 
 import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
+/**
+ * A set of properties of an {@link Entity}. A property is a method, a class or a field which has
+ * some relation to the {@link Entity} that stores object of this class. Each property has a
+ * weight which corresponds to importance of this property.
+ */
 public class RelevantProperties {
 
     private final Map<String, Integer> methods = new HashMap<>();
@@ -41,18 +46,46 @@ public class RelevantProperties {
         methods.remove(method);
     }
 
+    /**
+     * Add method with a given name to this set of properties. Method will have a default weight. If
+     * the method is already in the set then its weight will be updated to be the maximum of
+     * given weight and the old one.
+     *
+     * @param method a name of a method to add.
+     */
     void addMethod(String method) {
         addMethod(method, DEFAULT_PROPERTY_WEIGHT);
     }
 
+    /**
+     * Add given method to this set of properties. Method will have a default weight. If the method is
+     * already in the set then its weight will be updated to be the maximum of given weight and
+     * the old one.
+     *
+     * @param method a PSI method to add.
+     */
     void addMethod(PsiMethod method) {
         addMethod(method, DEFAULT_PROPERTY_WEIGHT);
     }
 
+    /**
+     * Add given method to this set of properties with a given weight. If the method is already in the set then
+     * its weight will be updated to be the maximum of given weight and the old one.
+     *
+     * @param method a PSI method to add.
+     * @param weight a weight which will be assigned to this method.
+     */
     void addMethod(PsiMethod method, Integer weight) {
         addMethod(getHumanReadableName(method), weight);
     }
 
+    /**
+     * Add method with a given name to this set of properties with a given weight. If the method is already
+     * in the set then its weight will be updated to be the maximum of given weight and the old one.
+     *
+     * @param method a name of a method to add.
+     * @param weight a weight which will be assigned to this method.
+     */
     void addMethod(String method, Integer weight) {
         if (methods.getOrDefault(method, 0) < weight) {
             methods.put(method, weight);
@@ -97,6 +130,7 @@ public class RelevantProperties {
         return methods.size();
     }
 
+    /** Returns names of all field properties that are stored in this set. */
     public Set<String> getFields() {
         return Collections.unmodifiableSet(fields.keySet());
     }

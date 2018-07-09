@@ -41,6 +41,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
+/**
+ * Stores all information that might be needed for refactoring suggestions calculation. Can be
+ * executed which means that it will calculate all information.
+ */
 public class RefactoringExecutionContext {
     private static final Logger LOGGER = Logging.getLogger(RefactoringExecutionContext.class);
 
@@ -70,6 +74,16 @@ public class RefactoringExecutionContext {
         this(project, scope, profile, Arrays.asList(getAvailableAlgorithms()), true, continuation);
     }
 
+    /**
+     * Creates execution context by passing all needed data.
+     *
+     * @param project current project.
+     * @param scope a scope which contains all files that should be processed by algorithms.
+     * @param profile a profile of metrics that must be calculated.
+     * @param requestedAlgorithms algorithm which were requested by user.
+     * @param isFieldRefactoringAvailable {@code True} if field refactoring is available.
+     * @param continuation action that should be performed after all the calculations are done.
+     */
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
                                        @NotNull MetricsProfile profile,
                                        @NotNull Collection<String> requestedAlgorithms,
@@ -84,6 +98,7 @@ public class RefactoringExecutionContext {
         metricsExecutionContext = new MetricsExecutionContextImpl(project, scope);
     }
 
+    /** Executes all calculations asynchronously.  */
     public void executeAsync() {
         Task.Modal task = new Task.Modal(project, "Search For Refactorings", true) {
             @Override
@@ -100,6 +115,7 @@ public class RefactoringExecutionContext {
         task.queue();
     }
 
+    /** Executes all calculations synchronously. */
     public void executeSynchronously() {
         execute(new EmptyProgressIndicator());
         onFinish();

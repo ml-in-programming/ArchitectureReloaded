@@ -29,6 +29,10 @@ import org.ml_methods_group.utils.PsiSearchUtil;
 
 import java.util.*;
 
+/**
+ * Code entity like class, method or field. Entity can be used inside suggestion algorithms.
+ * It has a vector of features and {@link RelevantProperties}.
+ */
 public abstract class Entity {
     private static final VectorCalculator CLASS_ENTITY_CALCULATOR = new VectorCalculator()
             .addMetricDependence(NumMethodsClassMetric.class)
@@ -71,6 +75,7 @@ public abstract class Entity {
     private double[] vector;
     protected boolean isMovable = true;
 
+    /** Initializes this class with a given {@link PsiElement}. */
     public Entity(PsiElement element) {
         this.name = PsiSearchUtil.getHumanReadableName(element);
         relevantProperties = new RelevantProperties();
