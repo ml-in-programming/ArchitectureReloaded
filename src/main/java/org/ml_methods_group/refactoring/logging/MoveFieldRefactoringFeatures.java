@@ -38,4 +38,10 @@ public class MoveFieldRefactoringFeatures extends RefactoringFeatures {
         final @NotNull MetricsRun metricsRun
     ) {
     }
+
+    @NotNull
+    @Override
+    public <R> R accept(@NotNull RefactoringFeaturesVisitor<R> visitor) {
+        return visitor.visit(this);
+    }
 }

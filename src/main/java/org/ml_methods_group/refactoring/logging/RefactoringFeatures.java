@@ -29,6 +29,9 @@ import org.ml_methods_group.algorithm.refactoring.RefactoringVisitor;
  * from features of accepted and rejected refactorings.
  */
 public abstract class RefactoringFeatures {
+    @NotNull
+    public abstract <R> R accept(final @NotNull RefactoringFeaturesVisitor<R> visitor);
+
     /**
      * Extracts features from a given {@link Refactoring}.
      *
