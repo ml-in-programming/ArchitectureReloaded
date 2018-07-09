@@ -37,7 +37,7 @@ public abstract class RefactoringFeatures {
      *                   objects given refactoring operates on can be used to extract refactoring
      *                   features.
      */
-    public static RefactoringFeatures extractFeatures(
+    public static @NotNull RefactoringFeatures extractFeatures(
         final @NotNull Refactoring refactoring,
         final @NotNull MetricsRun metricsRun
     ) {
