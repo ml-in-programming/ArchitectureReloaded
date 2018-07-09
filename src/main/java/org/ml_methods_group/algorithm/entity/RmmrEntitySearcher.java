@@ -6,6 +6,7 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.*;
+import com.port.stemmer.Stemmer;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +40,7 @@ public class RmmrEntitySearcher {
     private final Set<String> terms = new HashSet<>();
     private final Map<String, Double> idf = new HashMap<>();
     private final List<Collection<? extends Entity>> documents = Arrays.asList(classEntities.values(), entities.values());
+    private final Stemmer stemmer = new Stemmer();
     /**
      * Scope where entities will be searched.
      */
@@ -56,6 +58,7 @@ public class RmmrEntitySearcher {
         strategy.setAcceptMethodParams(false);
         strategy.setAcceptNewExpressions(false);
         strategy.setAcceptInnerClasses(true);
+        strategy.setApplyStemming(true);
         strategy.setCheckPsiVariableForBeingInScope(true);
     }
     /**
@@ -186,7 +189,15 @@ public class RmmrEntitySearcher {
 
         private void addIdentifierToBag(@Nullable Entity entity, String identifier) {
             if (entity != null) {
-                entity.getBag().addAll(IdentifierTokenizer.tokenize(identifier));
+                List<String> terms = IdentifierTokenizer.tokenize(identifier);
+                if (strategy.isApplyStemming()) {
+                    terms.replaceAll(s -> {
+                        stemmer.add(s.toCharArray(), s.length());
+                        stemmer.stem();
+                        return stemmer.toString();
+                    });
+                }
+                entity.getBag().addAll(terms);
             }
         }
 

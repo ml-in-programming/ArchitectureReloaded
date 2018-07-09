@@ -22,6 +22,7 @@ public class RmmrStrategy implements FinderStrategy {
     private boolean checkPsiVariableForBeingInScope;
     private boolean acceptNewExpressions;
     private boolean acceptInnerClasses;
+    private boolean applyStemming;
 
     /**
      * Get instance of singleton object.
@@ -151,5 +152,13 @@ public class RmmrStrategy implements FinderStrategy {
 
     public boolean isAcceptInnerClasses() {
         return acceptInnerClasses;
+    }
+
+    public void setApplyStemming(boolean applyStemming) {
+        this.applyStemming = applyStemming;
+    }
+
+    public boolean isApplyStemming() {
+        return applyStemming;
     }
 }
