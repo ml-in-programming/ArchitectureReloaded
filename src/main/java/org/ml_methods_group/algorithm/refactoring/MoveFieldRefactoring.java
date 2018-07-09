@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Representation of a refactoring which moves field to a target class.
  */
-class MoveFieldRefactoring extends Refactoring {
+public class MoveFieldRefactoring extends Refactoring {
     private final @NotNull PsiField field;
 
     private final @NotNull PsiClass targetClass;

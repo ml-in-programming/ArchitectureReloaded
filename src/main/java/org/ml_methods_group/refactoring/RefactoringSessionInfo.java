@@ -52,12 +52,12 @@ public final class RefactoringSessionInfo {
     ) {
         acceptedRefactoringsFeatures =
             acceptedRefactorings.stream()
-                                .map((it) -> new RefactoringFeatures(it, metricsRun))
+                                .map((it) -> RefactoringFeatures.extractFeatures(it, metricsRun))
                                 .collect(Collectors.toList());
 
         rejectedRefactoringsFeatures =
                 rejectedRefactorings.stream()
-                        .map((it) -> new RefactoringFeatures(it, metricsRun))
+                        .map((it) -> RefactoringFeatures.extractFeatures(it, metricsRun))
                         .collect(Collectors.toList());
     }
 

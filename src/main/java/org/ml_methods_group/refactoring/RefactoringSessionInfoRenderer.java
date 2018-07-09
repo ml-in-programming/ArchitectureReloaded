@@ -62,10 +62,6 @@ public class RefactoringSessionInfoRenderer implements ObjectRenderer {
     }
 
     private @NotNull String serializeFeatures(final @NotNull RefactoringFeatures features) {
-        if (features.isFieldMove()) {
-            return "[1]";
-        } else {
-            return "[0]";
-        }
+        return "Features";
     }
 }

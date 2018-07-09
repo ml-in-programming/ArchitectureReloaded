@@ -18,16 +18,17 @@ package org.ml_methods_group.refactoring;
 
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
+import org.ml_methods_group.algorithm.refactoring.MoveFieldRefactoring;
+import org.ml_methods_group.algorithm.refactoring.MoveMethodRefactoring;
 import org.ml_methods_group.algorithm.refactoring.Refactoring;
+import org.ml_methods_group.algorithm.refactoring.RefactoringVisitor;
 
 /**
  * This class contains features extracted from some {@link Refactoring}. This features should
  * characterize {@link Refactoring} in a way that helps to extract user refactorings preferences
  * from features of accepted and rejected refactorings.
  */
-public class RefactoringFeatures {
-    private final boolean isFieldMove;
-
+public abstract class RefactoringFeatures {
     /**
      * Extracts features from a given {@link Refactoring}.
      *
@@ -36,14 +37,20 @@ public class RefactoringFeatures {
      *                   objects given refactoring operates on can be used to extract refactoring
      *                   features.
      */
-    public RefactoringFeatures(
+    public static RefactoringFeatures extractFeatures(
         final @NotNull Refactoring refactoring,
         final @NotNull MetricsRun metricsRun
     ) {
-        isFieldMove = refactoring.isMoveFieldRefactoring();
-    }
+        return refactoring.accept(new RefactoringVisitor<RefactoringFeatures>() {
+            @Override
+            public @NotNull RefactoringFeatures visit(@NotNull MoveMethodRefactoring refactoring) {
+                return new MoveMethodRefactoringFeatures(refactoring, metricsRun);
+            }
 
-    public boolean isFieldMove() {
-        return isFieldMove;
+            @Override
+            public @NotNull RefactoringFeatures visit(@NotNull MoveFieldRefactoring refactoring) {
+                return new MoveFieldRefactoringFeatures(refactoring, metricsRun);
+            }
+        });
     }
 }
