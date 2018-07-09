@@ -48,7 +48,7 @@ public class RefactoringExecutionContext {
     private static final Logger LOGGER = Logging.getLogger(RefactoringExecutionContext.class);
 
     private static final List<Class<? extends Algorithm>> ALGORITHMS = Arrays.asList(ARI.class, AKMeans.class,
-            CCDA.class, HAC.class, MRI.class);
+            CCDA.class, HAC.class, MRI.class, JMove.class);
 
     @NotNull
     private final MetricsRunImpl metricsRun = new MetricsRunImpl();

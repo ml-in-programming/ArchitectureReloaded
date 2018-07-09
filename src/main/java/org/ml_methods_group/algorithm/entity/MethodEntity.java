@@ -23,8 +23,11 @@ import org.ml_methods_group.utils.PSIUtil;
 
 public class MethodEntity extends Entity {
 
+    private PsiMethod psiMethod;
+
     MethodEntity(PsiMethod method) {
         super(method);
+        psiMethod = method;
         isMovable = !PSIUtil.isOverriding(method) &&
                 !MethodUtils.isAbstract(method) && !method.isConstructor();
     }
@@ -53,5 +56,9 @@ public class MethodEntity extends Entity {
     @Override
     public boolean isField() {
         return false;
+    }
+
+    public PsiMethod getPsiMethod() {
+        return psiMethod;
     }
 }

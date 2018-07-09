@@ -20,8 +20,11 @@ import com.intellij.psi.PsiClass;
 import com.sixrr.metrics.MetricCategory;
 
 public class ClassEntity extends Entity {
+    private PsiClass psiClass;
+
     ClassEntity(PsiClass psiClass) {
         super(psiClass);
+        this.psiClass = psiClass;
     }
 
     private ClassEntity(ClassEntity original) {
@@ -55,5 +58,9 @@ public class ClassEntity extends Entity {
     @Override
     public boolean isField() {
         return false;
+    }
+
+    public PsiClass getPsiClass() {
+        return psiClass;
     }
 }
