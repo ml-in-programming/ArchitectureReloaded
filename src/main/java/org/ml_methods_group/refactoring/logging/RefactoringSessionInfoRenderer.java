@@ -19,6 +19,9 @@ package org.ml_methods_group.refactoring.logging;
 import org.apache.log4j.or.ObjectRenderer;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Log4J renderer for {@link RefactoringSessionInfo}. This renderer converts
  * {@link RefactoringSessionInfo} to a {@link String} that will be written to a log.
@@ -48,14 +51,20 @@ public class RefactoringSessionInfoRenderer implements ObjectRenderer {
 
         builder.append("Accepted refactorings").append(lineSeparator);
         for (RefactoringFeatures features : info.getAcceptedRefactoringsFeatures()) {
-            builder.append(serializeFeatures(features, lineSeparator)).append(lineSeparator);
+            builder.append('[')
+                   .append(serializeFeatures(features, lineSeparator))
+                   .append(']')
+                   .append(lineSeparator);
         }
 
         builder.append(lineSeparator);
 
         builder.append("Rejected refactorings").append(lineSeparator);
         for (RefactoringFeatures features : info.getRejectedRefactoringsFeatures()) {
-            builder.append(serializeFeatures(features, lineSeparator)).append(lineSeparator);
+            builder.append('[')
+                   .append(serializeFeatures(features, lineSeparator))
+                   .append(']')
+                   .append(lineSeparator);
         }
 
         return builder.toString();
@@ -71,23 +80,15 @@ public class RefactoringSessionInfoRenderer implements ObjectRenderer {
                 StringBuilder builder = new StringBuilder();
                 builder.append("Move method refactoring").append(lineSeparator);
 
-                builder.append("Target class metrics:").append(lineSeparator);
-                for (RefactoringFeatures.MetricCalculationResult result :
-                        features.getTargetClassMetricsValues()) {
-                    builder.append(result.getMetricId())
-                           .append(": ")
-                           .append(result.getMetricValue())
-                           .append(lineSeparator);
-                }
+                builder.append("Target class metrics: ")
+                       .append(serializeMetricCalculationResults(
+                           features.getTargetClassMetricsValues()
+                       )).append(lineSeparator);
 
-                builder.append("Method metrics:").append(lineSeparator);
-                for (RefactoringFeatures.MetricCalculationResult result :
-                        features.getMethodMetricsValues()) {
-                    builder.append(result.getMetricId())
-                           .append(": ")
-                           .append(result.getMetricValue())
-                           .append(lineSeparator);
-                }
+                builder.append("Method metrics: ")
+                        .append(serializeMetricCalculationResults(
+                            features.getMethodMetricsValues()
+                        ));
 
                 return builder.toString();
             }
@@ -97,17 +98,21 @@ public class RefactoringSessionInfoRenderer implements ObjectRenderer {
                 StringBuilder builder = new StringBuilder();
                 builder.append("Move field refactoring").append(lineSeparator);
 
-                builder.append("Target class metrics:").append(lineSeparator);
-                for (RefactoringFeatures.MetricCalculationResult result :
-                        features.getTargetClassMetricsValues()) {
-                    builder.append(result.getMetricId())
-                           .append(": ")
-                           .append(result.getMetricValue())
-                           .append(lineSeparator);
-                }
+                builder.append("Target class metrics: ")
+                        .append(serializeMetricCalculationResults(
+                            features.getTargetClassMetricsValues()
+                        ));
 
                 return builder.toString();
             }
         });
+    }
+
+    private @NotNull String serializeMetricCalculationResults(
+        final @NotNull List<RefactoringFeatures.MetricCalculationResult> results
+    ) {
+        return results.stream()
+                      .map((it) -> it.getMetricId() + ": " + it.getMetricValue())
+                      .collect(Collectors.joining(", "));
     }
 }
