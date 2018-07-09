@@ -23,6 +23,9 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.refactoring.Refactoring;
+import org.ml_methods_group.config.RefactoringPreferencesLog;
+import org.ml_methods_group.refactoring.RefactoringSessionInfo;
+import org.ml_methods_group.refactoring.RefactoringSessionInfoRenderer;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.ExportResultsUtil;
 import org.ml_methods_group.utils.PsiSearchUtil;
@@ -34,6 +37,7 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -170,8 +174,23 @@ class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setEnabled(false);
         selectAllButton.setEnabled(false);
         table.setEnabled(false);
-        final List<Refactoring> refactorings = model.pullSelected();
-        RefactoringUtil.moveRefactoring(refactorings, scope, model);
+        final List<Refactoring> selectedRefactorings = model.pullSelected();
+        final List<Refactoring> rejectedRefactorings = new ArrayList<>(refactorings);
+        rejectedRefactorings.removeAll(selectedRefactorings);
+
+        /*
+         * Actually RefactoringSessionInfoRenderer should be used by Log4J. But it can be configured
+         * to use only through properties file. Unfortunately there is problem with configuring
+         * Log4J through properties file. See issue #63.
+         * https://github.com/ml-in-programming/ArchitectureReloaded/issues/63
+         */
+        RefactoringPreferencesLog.log.info(
+            new RefactoringSessionInfoRenderer().doRender(
+                new RefactoringSessionInfo(selectedRefactorings, rejectedRefactorings)
+            )
+        );
+
+        RefactoringUtil.moveRefactoring(selectedRefactorings, scope, model);
         table.setEnabled(true);
         doRefactorButton.setEnabled(true);
         selectAllButton.setEnabled(true);
