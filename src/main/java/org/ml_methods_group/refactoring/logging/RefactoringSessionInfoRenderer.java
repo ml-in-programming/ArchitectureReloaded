@@ -48,6 +48,7 @@ public class RefactoringSessionInfoRenderer implements ObjectRenderer {
         final String lineSeparator = System.getProperty("line.separator");
 
         StringBuilder builder = new StringBuilder();
+        builder.append(lineSeparator);
 
         builder.append("Accepted refactorings").append(lineSeparator);
         for (RefactoringFeatures features : info.getAcceptedRefactoringsFeatures()) {
