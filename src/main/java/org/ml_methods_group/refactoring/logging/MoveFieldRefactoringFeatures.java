@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-package org.ml_methods_group.refactoring;
+package org.ml_methods_group.refactoring.logging;
 
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
-import org.ml_methods_group.algorithm.refactoring.MoveMethodRefactoring;
+import org.ml_methods_group.algorithm.refactoring.MoveFieldRefactoring;
 
 /**
  * Subclass of {@link RefactoringFeatures} that contains features of a
- * {@link MoveMethodRefactoring}.
+ * {@link MoveFieldRefactoring}.
  */
-public class MoveMethodRefactoringFeatures extends RefactoringFeatures {
+public class MoveFieldRefactoringFeatures extends RefactoringFeatures {
     /**
-     * Extracts features from a given {@link MoveMethodRefactoring}.
+     * Extracts features from a given {@link MoveFieldRefactoring}.
      *
-     * @param refactoring a {@link MoveMethodRefactoring} to extract features from.
+     * @param refactoring a {@link MoveFieldRefactoring} to extract features from.
      * @param metricsRun a result of metrics calculations. Some of metrics values calculated for
      *                   objects given refactoring operates on can be used to extract refactoring
      *                   features.
      */
-    public MoveMethodRefactoringFeatures(
-        final @NotNull MoveMethodRefactoring refactoring,
+    public MoveFieldRefactoringFeatures(
+        final @NotNull MoveFieldRefactoring refactoring,
         final @NotNull MetricsRun metricsRun
     ) {
     }

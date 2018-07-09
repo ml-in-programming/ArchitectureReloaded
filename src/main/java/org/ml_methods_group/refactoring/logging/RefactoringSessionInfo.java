@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ml_methods_group.refactoring;
+package org.ml_methods_group.refactoring.logging;
 
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
