@@ -39,8 +39,8 @@ public class RmmrEntitySearcher {
      */
     private final Map<PsiClass, ClassEntity> classEntities = new HashMap<>();
     private final Set<String> terms = new HashSet<>();
-    private final Set<Entity> documents = new HashSet<>();
     private final Map<String, Double> idf = new HashMap<>();
+    private final List<Collection<? extends Entity>> documents = Arrays.asList(classEntities.values(), entities.values());
     /**
      * Scope where entities will be searched.
      */
@@ -96,19 +96,12 @@ public class RmmrEntitySearcher {
         scope.accept(new UnitsFinder());
         scope.accept(new BagsFinder());
         calculateStatistic();
-        //addVectorsToEntities();
         indicator.setIndeterminate(false);
         LOGGER.info("Calculating properties...");
         indicator.setText("Calculating properties");
         scope.accept(new PropertiesCalculator());
         indicator.popState();
         return prepareResult();
-    }
-
-    private void addVectorsToEntities() {
-//        tfIdf.forEach((entity, stringDoubleSortedMap) -> entity.
-//                setStatisticVector(stringDoubleSortedMap.entrySet().stream().
-//                        mapToDouble(Map.Entry::getValue).toArray()));
     }
 
     private void calculateStatistic() {
@@ -121,13 +114,14 @@ public class RmmrEntitySearcher {
         int coordinate = 0;
         for (String term : terms) {
             double idfForTerm = idf.get(term);
-            // TODO: delete documents, it is redundant
-            for (Entity document : documents) {
-                if (coordinate == 0) {
-                    document.initStatisticVector(terms.size());
+            for (Collection<? extends Entity> partOfDocuments : documents) {
+                for (Entity document : partOfDocuments) {
+                    if (coordinate == 0) {
+                        document.initStatisticVector(terms.size());
+                    }
+                    double tfForTermAndDocument = document.getNormalizedTf().getOrDefault(term, 0.0);
+                    document.addStatistic(tfForTermAndDocument * idfForTerm, coordinate);
                 }
-                double tfForTermAndDocument = document.getNormalizedTf().getOrDefault(term, 0.0);
-                document.addStatistic(tfForTermAndDocument * idfForTerm, coordinate);
             }
             coordinate++;
         }
@@ -143,12 +137,14 @@ public class RmmrEntitySearcher {
     }
 
     private void calculateTf() {
-        for (Entity document : documents) {
-            Multiset<String> bag = document.getBag();
-            for (Multiset.Entry<String> term : bag.entrySet()) {
-                document.getNormalizedTf().put(term.getElement(), 1 + log2(term.getCount()));
+        for (Collection<? extends Entity> partOfDocuments : documents) {
+            for (Entity document : partOfDocuments) {
+                Multiset<String> bag = document.getBag();
+                for (Multiset.Entry<String> term : bag.entrySet()) {
+                    document.getNormalizedTf().put(term.getElement(), 1 + log2(term.getCount()));
+                }
+                terms.addAll(bag.elementSet());
             }
-            terms.addAll(bag.elementSet());
         }
     }
 
@@ -217,7 +213,6 @@ public class RmmrEntitySearcher {
                 return;
             }
             currentClasses.push(classEntity);
-            documents.add(classEntity);
             addIdentifierToBag(currentClasses.peek(), aClass.getName());
             super.visitClass(aClass);
             currentClasses.pop();
@@ -235,7 +230,6 @@ public class RmmrEntitySearcher {
             if (currentMethod == null) {
                 currentMethod = methodEntity;
             }
-            documents.add(currentMethod);
             addIdentifierToBag(currentMethod, method.getName());
             super.visitMethod(method);
             if (currentMethod == methodEntity) {
