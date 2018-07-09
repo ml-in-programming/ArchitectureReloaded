@@ -17,13 +17,13 @@
 package org.ml_methods_group.refactoring.logging;
 
 import com.sixrr.metrics.Metric;
-import com.sixrr.metrics.metricModel.MetricAbbreviationComparator;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.stockmetrics.methodMetrics.FormalParametersCountMethodMetric;
 import com.sixrr.stockmetrics.methodMetrics.LinesOfCodeMethodMetric;
 import com.sixrr.stockmetrics.methodMetrics.NumAssertsMetric;
 import com.sixrr.stockmetrics.methodMetrics.NumLoopsMetric;
+import com.sixrr.stockmetrics.methodMetrics.NumLocalVarsMetric;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.refactoring.MoveFieldRefactoring;
 import org.ml_methods_group.algorithm.refactoring.MoveMethodRefactoring;
@@ -77,7 +77,8 @@ public abstract class RefactoringFeatures {
             FormalParametersCountMethodMetric.class,
             LinesOfCodeMethodMetric.class,
             NumAssertsMetric.class,
-            NumLoopsMetric.class
+            NumLoopsMetric.class,
+            NumLocalVarsMetric.class
         ));
     }
 
