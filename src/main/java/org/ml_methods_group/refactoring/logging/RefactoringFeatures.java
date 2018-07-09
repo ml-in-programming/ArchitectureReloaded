@@ -20,16 +20,17 @@ import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.metricModel.MetricAbbreviationComparator;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRun;
+import com.sixrr.stockmetrics.methodMetrics.FormalParametersCountMethodMetric;
+import com.sixrr.stockmetrics.methodMetrics.LinesOfCodeMethodMetric;
+import com.sixrr.stockmetrics.methodMetrics.NumAssertsMetric;
+import com.sixrr.stockmetrics.methodMetrics.NumLoopsMetric;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.refactoring.MoveFieldRefactoring;
 import org.ml_methods_group.algorithm.refactoring.MoveMethodRefactoring;
 import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.algorithm.refactoring.RefactoringVisitor;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This class contains features extracted from some {@link Refactoring}. This features should
@@ -72,8 +73,12 @@ public abstract class RefactoringFeatures {
      * features extraction is required.
      */
     public static @NotNull Set<Class<? extends Metric>> getRequestedMetrics() {
-        final Set<Class<? extends Metric>> requestedMetrics = new HashSet<>();
-        return requestedMetrics;
+        return new HashSet<>(Arrays.asList(
+            FormalParametersCountMethodMetric.class,
+            LinesOfCodeMethodMetric.class,
+            NumAssertsMetric.class,
+            NumLoopsMetric.class
+        ));
     }
 
     protected static List<MetricCalculationResult> extractMetricsResultsFor(
