@@ -84,9 +84,9 @@ public class RefactoringSessionInfoRenderer implements ObjectRenderer {
                 for (RefactoringFeatures.MetricCalculationResult result :
                         features.getMethodMetricsValues()) {
                     builder.append(result.getMetricId())
-                            .append(": ")
-                            .append(result.getMetricValue())
-                            .append(lineSeparator);
+                           .append(": ")
+                           .append(result.getMetricValue())
+                           .append(lineSeparator);
                 }
 
                 return builder.toString();
@@ -94,7 +94,19 @@ public class RefactoringSessionInfoRenderer implements ObjectRenderer {
 
             @Override
             public @NotNull String visit(final @NotNull MoveFieldRefactoringFeatures features) {
-                return "MoveFieldRefactoringFeatures";
+                StringBuilder builder = new StringBuilder();
+                builder.append("Move field refactoring").append(lineSeparator);
+
+                builder.append("Target class metrics:").append(lineSeparator);
+                for (RefactoringFeatures.MetricCalculationResult result :
+                        features.getTargetClassMetricsValues()) {
+                    builder.append(result.getMetricId())
+                           .append(": ")
+                           .append(result.getMetricValue())
+                           .append(lineSeparator);
+                }
+
+                return builder.toString();
             }
         });
     }

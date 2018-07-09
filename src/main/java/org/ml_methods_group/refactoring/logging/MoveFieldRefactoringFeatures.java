@@ -16,15 +16,23 @@
 
 package org.ml_methods_group.refactoring.logging;
 
+import com.sixrr.metrics.MetricCategory;
+import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.refactoring.MoveFieldRefactoring;
+import org.ml_methods_group.algorithm.refactoring.MoveMethodRefactoring;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Subclass of {@link RefactoringFeatures} that contains features of a
  * {@link MoveFieldRefactoring}.
  */
 public class MoveFieldRefactoringFeatures extends RefactoringFeatures {
+    private final @NotNull List<MetricCalculationResult> targetClassMetricsValues;
+
     /**
      * Extracts features from a given {@link MoveFieldRefactoring}.
      *
@@ -37,6 +45,20 @@ public class MoveFieldRefactoringFeatures extends RefactoringFeatures {
         final @NotNull MoveFieldRefactoring refactoring,
         final @NotNull MetricsRun metricsRun
     ) {
+        MetricsResult resultsForClasses = metricsRun.getResultsForCategory(MetricCategory.Class);
+
+        targetClassMetricsValues = extractMetricsResultsFor(
+            refactoring.getTargetClass().getQualifiedName(),
+            resultsForClasses
+        );
+    }
+
+    /**
+     * Returns {@link List} of {@link MetricCalculationResult} with all extracted metrics values for
+     * a target class of initial {@link MoveMethodRefactoring}.
+     */
+    public @NotNull List<MetricCalculationResult> getTargetClassMetricsValues() {
+        return new ArrayList<>(targetClassMetricsValues);
     }
 
     @NotNull
