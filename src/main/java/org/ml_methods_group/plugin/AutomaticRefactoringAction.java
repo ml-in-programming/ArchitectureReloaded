@@ -39,6 +39,7 @@ import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.config.ArchitectureReloadedConfig;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
+import org.ml_methods_group.refactoring.logging.RefactoringFeatures;
 import org.ml_methods_group.ui.AlgorithmsSelectionPanel;
 import org.ml_methods_group.ui.RefactoringsToolWindow;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
@@ -197,6 +198,8 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     private static void checkRefactoringProfile() {
         final Set<Class<? extends Metric>> requestedSet = Entity.getRequestedMetrics();
+        requestedSet.addAll(RefactoringFeatures.getRequestedMetrics());
+
         final String profileName = ArchitectureReloadedBundle.message(REFACTORING_PROFILE_KEY);
         final MetricsProfileRepository repository = MetricsProfileRepository.getInstance();
         if (MetricsProfilesUtil.checkMetricsList(profileName, requestedSet, repository)) {

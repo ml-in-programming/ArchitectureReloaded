@@ -27,7 +27,9 @@ import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.algorithm.refactoring.RefactoringVisitor;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * This class contains features extracted from some {@link Refactoring}. This features should
@@ -61,6 +63,17 @@ public abstract class RefactoringFeatures {
                 return new MoveFieldRefactoringFeatures(refactoring, metricsRun);
             }
         });
+    }
+
+    /**
+     * Returns {@link Set} of {@link Metric}s that are required to construct
+     * {@link RefactoringFeatures}. This returned metrics are supposed to be calculated during
+     * common metrics calculation process and passed to {@link #extractFeatures} method when
+     * features extraction is required.
+     */
+    public static @NotNull Set<Class<? extends Metric>> getRequestedMetrics() {
+        final Set<Class<? extends Metric>> requestedMetrics = new HashSet<>();
+        return requestedMetrics;
     }
 
     protected static List<MetricCalculationResult> extractMetricsResultsFor(
