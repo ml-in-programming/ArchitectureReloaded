@@ -77,7 +77,8 @@ public abstract class RefactoringFeatures {
             NumLocalVarsMetric.class,
             IsStaticMethodMetric.class,
             IsPrivateMethodMetric.class,
-            NameLenMethodMetric.class
+            NameLenMethodMetric.class,
+            NumExceptionsThrownMetric.class
         ));
     }
 
