@@ -10,7 +10,6 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.ml_methods_group.algorithm.properties.finder_strategy.FinderStrategy;
 import org.ml_methods_group.algorithm.properties.finder_strategy.RmmrStrategy;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.IdentifierTokenizer;
@@ -22,7 +21,6 @@ import static com.google.common.math.DoubleMath.log2;
 /**
  * Implementation of {@link Entity} searcher for RMMR algorithm.
  */
-// TODO: decide if we consider or not private methods for dependency and contextual similarity.
 public class RmmrEntitySearcher {
     private static final Logger LOGGER = Logging.getLogger(EntitySearcher.class);
 
@@ -52,7 +50,14 @@ public class RmmrEntitySearcher {
     /**
      * Strategy: which classes, methods and etc. to accept. For details see {@link RmmrStrategy}.
      */
-    private final FinderStrategy strategy = RmmrStrategy.getInstance();
+    private final RmmrStrategy strategy = RmmrStrategy.getInstance();
+    {
+        strategy.setAcceptPrivateMethods(true);
+        strategy.setAcceptMethodParams(false);
+        strategy.setAcceptNewExpressions(false);
+        strategy.setAcceptInnerClasses(true);
+        strategy.setCheckPsiVariableForBeingInScope(true);
+    }
     /**
      * UI progress indicator.
      */
@@ -212,10 +217,14 @@ public class RmmrEntitySearcher {
                 super.visitClass(aClass);
                 return;
             }
-            currentClasses.push(classEntity);
+            if (currentClasses.size() == 0 || strategy.isAcceptInnerClasses()) {
+                currentClasses.push(classEntity);
+            }
             addIdentifierToBag(currentClasses.peek(), aClass.getName());
             super.visitClass(aClass);
-            currentClasses.pop();
+            if (currentClasses.peek() == classEntity) {
+                currentClasses.pop();
+            }
         }
 
         @Override
@@ -242,13 +251,13 @@ public class RmmrEntitySearcher {
             indicator.checkCanceled();
             final PsiElement expressionElement = expression.resolve();
             if (expressionElement instanceof PsiVariable) {
-                /*
-                // TODO: decide if this check is needed, could be guard from this: ClassNotInScope.VariableWithNoMeaningForContextInformation
-                boolean isInScope = !(expressionElement instanceof PsiField)
-                        || isClassInScope(((PsiField) expressionElement).getContainingClass());
-                */
-                addIdentifierToBag(currentClasses.peek(), ((PsiVariable) expressionElement).getName());
-                addIdentifierToBag(currentMethod, ((PsiVariable) expressionElement).getName());
+                boolean isInScope = !strategy.getCheckPsiVariableForBeingInScope() ||
+                        (!(expressionElement instanceof PsiField) ||
+                                isClassInScope(((PsiField) expressionElement).getContainingClass()));
+                if (isInScope) {
+                    addIdentifierToBag(currentClasses.peek(), ((PsiVariable) expressionElement).getName());
+                    addIdentifierToBag(currentMethod, ((PsiVariable) expressionElement).getName());
+                }
             }
             super.visitReferenceExpression(expression);
         }
@@ -283,7 +292,6 @@ public class RmmrEntitySearcher {
         @Override
         public void visitClass(PsiClass aClass) {
             indicator.checkCanceled();
-            //classForName.put(getHumanReadableName(aClass), aClass);
             classForName.put(aClass.getQualifiedName(), aClass); // Classes for ConceptualSet.
             if (!strategy.acceptClass(aClass)) {
                 return;
@@ -327,17 +335,17 @@ public class RmmrEntitySearcher {
                 currentMethod = methodEntity;
             }
 
-            /* Adding to Conceptual Set classes of method params.
-            for (PsiParameter attribute : method.getParameterList().getParameters()) {
-                PsiType attributeType = attribute.getType();
-                if (attributeType instanceof PsiClassType) {
-                    String className = ((PsiClassType) attributeType).getClassName();
-                    if (isClassInScope(className)) {
-                        methodProperties.addClass(classForName.get(className));
+            if (strategy.isAcceptMethodParams()) {
+                for (PsiParameter attribute : method.getParameterList().getParameters()) {
+                    PsiType attributeType = attribute.getType();
+                    if (attributeType instanceof PsiClassType) {
+                        PsiClass aClass = ((PsiClassType) attributeType).resolve();
+                        if (isClassInScope(aClass)) {
+                            currentMethod.getRelevantProperties().addClass(aClass);
+                        }
                     }
                 }
             }
-            */
 
             super.visitMethod(method);
             if (currentMethod == methodEntity) {
@@ -358,39 +366,23 @@ public class RmmrEntitySearcher {
                 }
             }
             super.visitReferenceExpression(expression);
-
-            /* Puts classes of fields, not containing classes.
-            indicator.checkCanceled();
-            final PsiElement expressionElement = expression.resolve();
-            if (expressionElement instanceof PsiField) {
-                PsiType attributeType = ((PsiField) expressionElement).getType();
-                if (attributeType instanceof PsiClassType) {
-                    String attributeClass = ((PsiClassType) attributeType).getClassName();
-                    if (currentMethod != null && isClassInScope(attributeClass)) {
-                        currentMethod.getRelevantProperties().addClass(classForName.get(attributeClass));
-                    }
-                }
-            }
-            super.visitReferenceExpression(expression);
-            */
         }
 
-        /*
         @Override
         public void visitNewExpression(PsiNewExpression expression) {
-            indicator.checkCanceled();
-            PsiType type = expression.getType();
-            PsiClass usedClass = type instanceof PsiClassType ? ((PsiClassType) type).resolve() : null;
-            if (currentMethod != null && isClassInScope(usedClass)) {
-                currentMethod.getRelevantProperties().addClass(usedClass);
+            if (strategy.isAcceptNewExpressions()) {
+                indicator.checkCanceled();
+                PsiType type = expression.getType();
+                PsiClass usedClass = type instanceof PsiClassType ? ((PsiClassType) type).resolve() : null;
+                if (currentMethod != null && isClassInScope(usedClass)) {
+                    currentMethod.getRelevantProperties().addClass(usedClass);
+                }
             }
             super.visitNewExpression(expression);
         }
-        */
 
         @Override
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
-            // Does not find constructors (new expressions). It does not consider them as method calls.
             indicator.checkCanceled();
             final PsiMethod called = expression.resolveMethod();
             final PsiClass usedClass = called != null ? called.getContainingClass() : null;

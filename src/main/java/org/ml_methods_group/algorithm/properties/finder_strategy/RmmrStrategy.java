@@ -1,9 +1,6 @@
 package org.ml_methods_group.algorithm.properties.finder_strategy;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
+import com.intellij.psi.*;
 import com.sixrr.metrics.utils.ClassUtils;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +12,16 @@ import org.jetbrains.annotations.NotNull;
  */
 public class RmmrStrategy implements FinderStrategy {
     private static RmmrStrategy INSTANCE = new RmmrStrategy();
+    private boolean acceptPrivateMethods;
+    private boolean acceptMethodParams;
+    /**
+     * Check for expressions like this: instanceOfClassNotInScope.publicFieldWithNoInformationForContext.
+     * This situation may occur when field is public or protected or package private but we do not consider its class
+     * (because it can be external class in jar or something like that).
+     */
+    private boolean checkPsiVariableForBeingInScope;
+    private boolean acceptNewExpressions;
+    private boolean acceptInnerClasses;
 
     /**
      * Get instance of singleton object.
@@ -41,6 +48,9 @@ public class RmmrStrategy implements FinderStrategy {
     public boolean acceptMethod(@NotNull PsiMethod method) {
         // TODO: accept in interfaces?
         if (method.isConstructor() || MethodUtils.isAbstract(method)) {
+            return false;
+        }
+        if (!acceptPrivateMethods && method.getModifierList().hasModifierProperty(PsiModifier.PRIVATE)) {
             return false;
         }
         final PsiClass containingClass = method.getContainingClass();
@@ -105,5 +115,41 @@ public class RmmrStrategy implements FinderStrategy {
     @Override
     public int getWeight(PsiField from, PsiClass to) {
         return 0;
+    }
+
+    public void setAcceptPrivateMethods(boolean acceptPrivateMethods) {
+        this.acceptPrivateMethods = acceptPrivateMethods;
+    }
+
+    public void setCheckPsiVariableForBeingInScope(boolean checkPsiVariableForBeingInScope) {
+        this.checkPsiVariableForBeingInScope = checkPsiVariableForBeingInScope;
+    }
+
+    public boolean getCheckPsiVariableForBeingInScope() {
+        return checkPsiVariableForBeingInScope;
+    }
+
+    public boolean isAcceptMethodParams() {
+        return acceptMethodParams;
+    }
+
+    public void setAcceptMethodParams(boolean acceptMethodParams) {
+        this.acceptMethodParams = acceptMethodParams;
+    }
+
+    public boolean isAcceptNewExpressions() {
+        return acceptNewExpressions;
+    }
+
+    public void setAcceptNewExpressions(boolean acceptNewExpressions) {
+        this.acceptNewExpressions = acceptNewExpressions;
+    }
+
+    public void setAcceptInnerClasses(boolean acceptInnerClasses) {
+        this.acceptInnerClasses = acceptInnerClasses;
+    }
+
+    public boolean isAcceptInnerClasses() {
+        return acceptInnerClasses;
     }
 }
