@@ -21,6 +21,7 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
+import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.config.RefactoringPreferencesLog;
@@ -70,9 +71,13 @@ class ClassRefactoringPanel extends JPanel {
     private boolean isFieldDisabled;
     private final List<Refactoring> refactorings;
 
-    ClassRefactoringPanel(List<Refactoring> refactorings, @NotNull AnalysisScope scope) {
+    private final @NotNull MetricsRun metricsRun;
+
+    ClassRefactoringPanel(List<Refactoring> refactorings, @NotNull AnalysisScope scope, final @NotNull MetricsRun metricsRun) {
         this.scope = scope;
         this.refactorings = refactorings;
+        this.metricsRun = metricsRun;
+
         setLayout(new BorderLayout());
         model = new RefactoringsTableModel(RefactoringUtil.filter(refactorings, scope));
         warnings = RefactoringUtil.getWarnings(refactorings, scope);
@@ -186,7 +191,7 @@ class ClassRefactoringPanel extends JPanel {
          */
         RefactoringPreferencesLog.log.info(
             new RefactoringSessionInfoRenderer().doRender(
-                new RefactoringSessionInfo(selectedRefactorings, rejectedRefactorings)
+                new RefactoringSessionInfo(selectedRefactorings, rejectedRefactorings, metricsRun)
             )
         );
 

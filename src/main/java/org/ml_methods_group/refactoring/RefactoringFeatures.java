@@ -16,6 +16,7 @@
 
 package org.ml_methods_group.refactoring;
 
+import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.refactoring.Refactoring;
 
@@ -31,8 +32,14 @@ public class RefactoringFeatures {
      * Extracts features from a given {@link Refactoring}.
      *
      * @param refactoring a {@link Refactoring} to extract features from.
+     * @param metricsRun a result of metrics calculations. Some of metrics values calculated for
+     *                   objects given refactoring operates on can be used to extract refactoring
+     *                   features.
      */
-    public RefactoringFeatures(final @NotNull Refactoring refactoring) {
+    public RefactoringFeatures(
+        final @NotNull Refactoring refactoring,
+        final @NotNull MetricsRun metricsRun
+    ) {
         isFieldMove = refactoring.isMoveFieldRefactoring();
     }
 

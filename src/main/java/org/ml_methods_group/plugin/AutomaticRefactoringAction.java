@@ -187,7 +187,12 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 .filter(result -> selectedAlgorithms.contains(result.getAlgorithmName()))
                 .collect(Collectors.toList());
         ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
-                .show(algorithmResult, context.getEntitySearchResult(), context.getScope());
+                      .show(
+                          algorithmResult,
+                          context.getEntitySearchResult(),
+                          context.getScope(),
+                          context.getMetricsRun()
+                      );
     }
 
     private static void checkRefactoringProfile() {
