@@ -76,7 +76,8 @@ public abstract class RefactoringFeatures {
             NumLoopsMetric.class,
             NumLocalVarsMetric.class,
             IsStaticMethodMetric.class,
-            IsPrivateMethodMetric.class
+            IsPrivateMethodMetric.class,
+            NameLenMethodMetric.class
         ));
     }
 
