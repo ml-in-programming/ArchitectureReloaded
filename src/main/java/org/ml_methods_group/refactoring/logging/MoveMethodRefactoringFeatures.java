@@ -16,15 +16,25 @@
 
 package org.ml_methods_group.refactoring.logging;
 
+import com.sixrr.metrics.MetricCategory;
+import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRun;
+import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.refactoring.MoveMethodRefactoring;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Subclass of {@link RefactoringFeatures} that contains features of a
  * {@link MoveMethodRefactoring}.
  */
 public class MoveMethodRefactoringFeatures extends RefactoringFeatures {
+    private final @NotNull List<MetricCalculationResult> targetClassMetricsValues;
+
+    private final @NotNull List<MetricCalculationResult> methodMetricsValues;
+
     /**
      * Extracts features from a given {@link MoveMethodRefactoring}.
      *
@@ -37,6 +47,34 @@ public class MoveMethodRefactoringFeatures extends RefactoringFeatures {
         final @NotNull MoveMethodRefactoring refactoring,
         final @NotNull MetricsRun metricsRun
     ) {
+        MetricsResult resultsForClasses = metricsRun.getResultsForCategory(MetricCategory.Class);
+        MetricsResult resultsForMethods = metricsRun.getResultsForCategory(MetricCategory.Method);
+
+        targetClassMetricsValues = extractMetricsResultsFor(
+            refactoring.getTargetClass().getQualifiedName(),
+            resultsForClasses
+        );
+
+        methodMetricsValues = extractMetricsResultsFor(
+            MethodUtils.calculateSignature(refactoring.getMethod()),
+            resultsForMethods
+        );
+    }
+
+    /**
+     * Returns {@link List} of {@link MetricCalculationResult} with all extracted metrics values for
+     * a target class of initial {@link MoveMethodRefactoring}.
+     */
+    public @NotNull List<MetricCalculationResult> getTargetClassMetricsValues() {
+        return new ArrayList<>(targetClassMetricsValues);
+    }
+
+    /**
+     * Returns {@link List} of {@link MetricCalculationResult} with all extracted metrics values for
+     * a method that is moved in initial {@link MoveMethodRefactoring}.
+     */
+    public @NotNull List<MetricCalculationResult> getMethodMetricsValues() {
+        return new ArrayList<>(methodMetricsValues);
     }
 
     @NotNull

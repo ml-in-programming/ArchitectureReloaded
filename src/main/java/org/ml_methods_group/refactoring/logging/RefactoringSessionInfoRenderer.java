@@ -48,24 +48,48 @@ public class RefactoringSessionInfoRenderer implements ObjectRenderer {
 
         builder.append("Accepted refactorings").append(lineSeparator);
         for (RefactoringFeatures features : info.getAcceptedRefactoringsFeatures()) {
-            builder.append(serializeFeatures(features)).append(lineSeparator);
+            builder.append(serializeFeatures(features, lineSeparator)).append(lineSeparator);
         }
 
         builder.append(lineSeparator);
 
         builder.append("Rejected refactorings").append(lineSeparator);
         for (RefactoringFeatures features : info.getRejectedRefactoringsFeatures()) {
-            builder.append(serializeFeatures(features)).append(lineSeparator);
+            builder.append(serializeFeatures(features, lineSeparator)).append(lineSeparator);
         }
 
         return builder.toString();
     }
 
-    private @NotNull String serializeFeatures(final @NotNull RefactoringFeatures features) {
+    private @NotNull String serializeFeatures(
+        final @NotNull RefactoringFeatures features,
+        final @NotNull String lineSeparator
+    ) {
         return features.accept(new RefactoringFeaturesVisitor<String>() {
             @Override
             public @NotNull String visit(final @NotNull MoveMethodRefactoringFeatures features) {
-                return "MoveMethodRefactoringFeatures";
+                StringBuilder builder = new StringBuilder();
+                builder.append("Move method refactoring").append(lineSeparator);
+
+                builder.append("Target class metrics:").append(lineSeparator);
+                for (RefactoringFeatures.MetricCalculationResult result :
+                        features.getTargetClassMetricsValues()) {
+                    builder.append(result.getMetricId())
+                           .append(": ")
+                           .append(result.getMetricValue())
+                           .append(lineSeparator);
+                }
+
+                builder.append("Method metrics:").append(lineSeparator);
+                for (RefactoringFeatures.MetricCalculationResult result :
+                        features.getMethodMetricsValues()) {
+                    builder.append(result.getMetricId())
+                            .append(": ")
+                            .append(result.getMetricValue())
+                            .append(lineSeparator);
+                }
+
+                return builder.toString();
             }
 
             @Override

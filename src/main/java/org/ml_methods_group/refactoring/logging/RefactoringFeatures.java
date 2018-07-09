@@ -16,12 +16,18 @@
 
 package org.ml_methods_group.refactoring.logging;
 
+import com.sixrr.metrics.Metric;
+import com.sixrr.metrics.metricModel.MetricAbbreviationComparator;
+import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.refactoring.MoveFieldRefactoring;
 import org.ml_methods_group.algorithm.refactoring.MoveMethodRefactoring;
 import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.algorithm.refactoring.RefactoringVisitor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class contains features extracted from some {@link Refactoring}. This features should
@@ -55,5 +61,50 @@ public abstract class RefactoringFeatures {
                 return new MoveFieldRefactoringFeatures(refactoring, metricsRun);
             }
         });
+    }
+
+    protected static List<MetricCalculationResult> extractMetricsResultsFor(
+        final @NotNull String measuredObject,
+        final @NotNull MetricsResult results
+    ) {
+        List<MetricCalculationResult> extractedResults = new ArrayList<>();
+
+        Metric[] metrics = results.getMetrics();
+
+        for (Metric metric : metrics) {
+            double metricValue = results.getValueForMetric(metric, measuredObject);
+
+            extractedResults.add(
+                    new MetricCalculationResult(metric.getID(), metricValue)
+            );
+        }
+
+        return extractedResults;
+    }
+
+    /**
+     * Result of calculation of one single {@link Metric} for a particular object. Contains actual
+     * real value and metric's id.
+     */
+    public static class MetricCalculationResult {
+        private final @NotNull String metricId;
+
+        private final double metricValue;
+
+        public MetricCalculationResult(
+            final @NotNull String metricId,
+            final double metricValue
+        ) {
+            this.metricId = metricId;
+            this.metricValue = metricValue;
+        }
+
+        public @NotNull String getMetricId() {
+            return metricId;
+        }
+
+        public double getMetricValue() {
+            return metricValue;
+        }
     }
 }
