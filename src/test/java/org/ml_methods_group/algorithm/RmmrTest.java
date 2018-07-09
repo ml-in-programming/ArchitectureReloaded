@@ -16,11 +16,12 @@
 
 package org.ml_methods_group.algorithm;
 
-public class HacTest extends AlgorithmAbstractTest {
-    private static final String algorithmName = "HAC";
-    private static final TestCasesCheckers testCasesChecker = new TestCasesCheckers(algorithmName, true);
+public class RmmrTest extends AlgorithmAbstractTest {
+    private static final String algorithmName = "RMMR";
+    private static final TestCasesCheckers testCasesChecker = new TestCasesCheckers(algorithmName, false);
 
-    public void testMoveMethod() {
+    // TODO: Not currently supported
+    public void failing_testMoveMethod() {
         executeTest(testCasesChecker::checkMoveMethod, "ClassA.java", "ClassB.java");
     }
 
@@ -34,7 +35,8 @@ public class HacTest extends AlgorithmAbstractTest {
         executeTest(testCasesChecker::checkCircularDependency, "ClassA.java", "ClassB.java", "ClassC.java");
     }
 
-    public void testCrossReferencesMethods() {
+    // TODO: Not currently supported
+    public void failing_testCrossReferencesMethods() {
         executeTest(testCasesChecker::checkCrossReferencesMethods, "ClassA.java", "ClassB.java");
     }
 
@@ -65,7 +67,8 @@ public class HacTest extends AlgorithmAbstractTest {
         executeTest(testCasesChecker::checkPriority, "ClassA.java", "ClassB.java");
     }
 
-    public void testRecursiveMethod() {
+    // TODO: Not currently supported
+    public void failing_testRecursiveMethod() {
         executeTest(testCasesChecker::checkRecursiveMethod, "ClassA.java", "ClassB.java");
     }
 
@@ -74,7 +77,8 @@ public class HacTest extends AlgorithmAbstractTest {
         executeTest(testCasesChecker::checkReferencesOnly, "ClassA.java", "ClassB.java");
     }
 
-    public void testTriangularDependence() {
+    // TODO: Not currently supported
+    public void failing_testTriangularDependence() {
         executeTest(testCasesChecker::checkTriangularDependence, "ClassA.java", "ClassB.java", "ClassC.java");
     }
 
@@ -96,6 +100,13 @@ public class HacTest extends AlgorithmAbstractTest {
     }
 
     // TODO: Not currently supported
+    /*
+     Failure explanation: almost all words appear in both classes that is why idf is 0.
+     As a result vector is something like that: 3, 0, 0, ..., 0.
+     And there is no intersection with not nulls so context similarity is 0.
+     getMobilePhone method has big distance (almost 1) with its class and big dissimilarity with Phone class.
+     But own class (Customer) wins...
+      */
     public void failing_testCallFromLambda() {
         executeTest(testCasesChecker::checkCallFromLambda, "ClassA.java", "ClassB.java");
     }
@@ -105,8 +116,7 @@ public class HacTest extends AlgorithmAbstractTest {
         executeTest(testCasesChecker::checkStaticFactoryMethods, "Cat.java", "Color.java", "Dog.java");
     }
 
-    // TODO: Not currently supported
-    public void failing_testStaticFactoryMethodsWeak() {
+    public void testStaticFactoryMethodsWeak() {
         executeTest(testCasesChecker::checkStaticFactoryMethodsWeak, "Cat.java", "Color.java", "Dog.java");
     }
 

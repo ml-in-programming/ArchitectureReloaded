@@ -18,7 +18,7 @@ package org.ml_methods_group.algorithm;
 
 public class CcdaTest extends AlgorithmAbstractTest {
     private static final String algorithmName = "CCDA";
-    private static final TestCasesCheckers testCasesChecker = new TestCasesCheckers(algorithmName);
+    private static final TestCasesCheckers testCasesChecker = new TestCasesCheckers(algorithmName, true);
 
     public void testMoveMethod() {
         executeTest(testCasesChecker::checkMoveMethod, "ClassA.java", "ClassB.java");

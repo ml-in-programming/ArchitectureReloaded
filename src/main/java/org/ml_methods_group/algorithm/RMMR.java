@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 Machine Learning Methods in Software Engineering Group of JetBrains Research
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.ml_methods_group.algorithm;
 
 import org.apache.log4j.Logger;
@@ -114,7 +130,7 @@ public class RMMR extends Algorithm {
         ClassEntity sourceClass = null;
         for (final ClassEntity classEntity : classEntities) {
             final double contextualDistance = classEntity.getStatisticVector().length == 0 ? 1 : getContextualDistance(entity, classEntity);
-            final double distance = 0.4 * getDistance(entity, classEntity) + 0.6 * contextualDistance;
+            final double distance = 0.5 * getDistance(entity, classEntity) + 0.5 * contextualDistance;
             if (classEntity.getName().equals(entity.getClassName())) {
                 sourceClass = classEntity;
                 distanceWithSourceClass = distance;
@@ -141,17 +157,12 @@ public class RMMR extends Algorithm {
         double targetClassCoefficient = 1 - 1.0 / (4 * numberOfMethodsInTargetClass * numberOfMethodsInTargetClass);
         double differenceWithSourceClassCoefficient = (1 - minDistance) * differenceWithSourceClass;
         double powerCoefficient = 1 - 1.0 / (2 * entity.getRelevantProperties().getClasses().size());
-        double accuracy = (0.6 * distanceWithSourceClass + 0.3 * (1 - minDistance) + 0.1 * differenceWithSourceClass) * powerCoefficient;
+        double accuracy = (0.5 * distanceWithSourceClass + 0.3 * (1 - minDistance) + 0.2 * differenceWithSourceClass) * powerCoefficient;
         if (entity.getClassName().contains("Util") || entity.getClassName().contains("Factory") ||
                 entity.getClassName().contains("Builder")) {
-            if (accuracy > 0.75) {
+            if (accuracy > 0.7) {
                 accuracy /= 2;
-            } else if (accuracy < 0.25) {
-                accuracy *= 2;
             }
-        }
-        if (entity.getName().contains("main")) {
-            accuracy /= 2;
         }
         if (differenceWithSourceClass != 0 && accuracy >= MIN_ACCURACY && !targetClassName.equals(entity.getClassName())) {
             accumulator.add(new Refactoring(entity.getName(), targetClassName, accuracy, entity.isField()));

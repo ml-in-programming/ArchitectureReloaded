@@ -18,6 +18,7 @@ package org.ml_methods_group.algorithm;
 
 public class AriTest extends AlgorithmAbstractTest {
     private static final String algorithmName = "ARI";
+    private static final TestCasesCheckers testCasesChecker = new TestCasesCheckers(algorithmName, true);
 
     public void testMoveMethod() {
         executeTest(testCasesChecker::checkMoveMethod, "ClassA.java", "ClassB.java");
