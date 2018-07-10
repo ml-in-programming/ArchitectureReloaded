@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static java.lang.Math.max;
 import static java.lang.Math.sqrt;
 
 /**
@@ -157,10 +158,10 @@ public class RMMR extends Algorithm {
         int numberOfMethodsInSourceClass = methodsByClass.get(sourceClass).size();
         int numberOfMethodsInTargetClass = methodsByClass.getOrDefault(targetClass, Collections.emptySet()).size();
         // considers amount of entities.
-        double sourceClassCoefficient = 1 - 1.0 / (2 * numberOfMethodsInSourceClass * numberOfMethodsInSourceClass);
-        double targetClassCoefficient = 1 - 1.0 / (4 * numberOfMethodsInTargetClass * numberOfMethodsInTargetClass);
+        double sourceClassCoefficient = max(1 - 1.0 / (2 * numberOfMethodsInSourceClass * numberOfMethodsInSourceClass), 0);
+        double targetClassCoefficient = max(1 - 1.0 / (4 * numberOfMethodsInTargetClass * numberOfMethodsInTargetClass), 0);
         double differenceWithSourceClassCoefficient = (1 - minDistance) * differenceWithSourceClass;
-        double powerCoefficient = 1 - 1.0 / (2 * entity.getRelevantProperties().getClasses().size());
+        double powerCoefficient = max(1 - 1.0 / (2 * entity.getRelevantProperties().getClasses().size()), 0);
         double accuracy = (0.5 * distanceWithSourceClass + 0.3 * (1 - minDistance) + 0.2 * differenceWithSourceClass) * powerCoefficient;
         if (entity.getClassName().contains("Util") || entity.getClassName().contains("Factory") ||
                 entity.getClassName().contains("Builder")) {
@@ -180,7 +181,10 @@ public class RMMR extends Algorithm {
     private double getContextualDistance(@NotNull MethodEntity entity, @NotNull ClassEntity classEntity) {
         Map<String, Double> methodVector = entity.getContextualVector();
         Map<String, Double> classVector = classEntity.getContextualVector();
-        return 1 - dotProduct(methodVector, classVector) / (norm(methodVector) * norm(classVector));
+        double methodVectorNorm = norm(methodVector);
+        double classVectorNorm = norm(classVector);
+        return methodVectorNorm == 0 || classVectorNorm == 0 ?
+                1 : 1 - dotProduct(methodVector, classVector) / (methodVectorNorm * classVectorNorm);
     }
 
     private double dotProduct(@NotNull Map<String, Double> vector1, @NotNull Map<String, Double> vector2) {

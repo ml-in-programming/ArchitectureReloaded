@@ -20,8 +20,7 @@ public class RmmrTest extends AlgorithmAbstractTest {
     private static final String algorithmName = "RMMR";
     private static final TestCasesCheckers testCasesChecker = new TestCasesCheckers(algorithmName, false);
 
-    // TODO: Not currently supported
-    public void failing_testMoveMethod() {
+    public void testMoveMethod() {
         executeTest(testCasesChecker::checkMoveMethod, "ClassA.java", "ClassB.java");
     }
 
