@@ -47,7 +47,7 @@ import java.util.function.Consumer;
 public class RefactoringExecutionContext {
     private static final Logger LOGGER = Logging.getLogger(RefactoringExecutionContext.class);
 
-    private static final List<Class<? extends Algorithm>> ALGORITHMS = Arrays.asList(ARI.class, AKMeans.class,
+    private static final List<Class<? extends AbstractAlgorithm>> ALGORITHMS = Arrays.asList(ARI.class, AKMeans.class,
             CCDA.class, HAC.class, MRI.class);
 
     @NotNull
@@ -140,7 +140,7 @@ public class RefactoringExecutionContext {
         }
     }
 
-    private static Algorithm createInstance(Class<? extends Algorithm> algorithmClass) {
+    private static AbstractAlgorithm createInstance(Class<? extends AbstractAlgorithm> algorithmClass) {
         try {
             return algorithmClass.newInstance();
         } catch (Exception e) {
@@ -149,14 +149,14 @@ public class RefactoringExecutionContext {
         }
     }
 
-    private void calculate(Class<? extends Algorithm> algorithmClass) {
-        final Algorithm algorithm = createInstance(algorithmClass);
-        final AlgorithmResult result = algorithm.execute(entitySearchResult, executorService, isFieldRefactoringAvailable);
+    private void calculate(Class<? extends AbstractAlgorithm> algorithmClass) {
+        final AbstractAlgorithm algorithm = createInstance(algorithmClass);
+        final AlgorithmResult result = algorithm.oldExecute(entitySearchResult, executorService, isFieldRefactoringAvailable);
         algorithmsResults.add(result);
     }
 
     private void calculateAlgorithmForName(String algorithm) {
-        for (Class<? extends Algorithm> algorithmClass : ALGORITHMS) {
+        for (Class<? extends AbstractAlgorithm> algorithmClass : ALGORITHMS) {
             if (algorithm.equals(algorithmClass.getSimpleName())) {
                 calculate(algorithmClass);
                 return;

@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ARI extends Algorithm {
+public class ARI extends AbstractAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(ARI.class);
     private static final double ACCURACY = 1;
 

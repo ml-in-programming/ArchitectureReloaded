@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 
 import static org.ml_methods_group.utils.AlgorithmsUtil.getDensityBasedAccuracyRating;
 
-public class HAC extends Algorithm {
+public class HAC extends AbstractAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(HAC.class);
     private static final double ACCURACY = 1;
 

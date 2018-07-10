@@ -18,15 +18,15 @@ package org.ml_methods_group.algorithm.attributes;
 
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
-import org.ml_methods_group.algorithm.Algorithm;
+import org.ml_methods_group.algorithm.AbstractAlgorithm;
 import org.ml_methods_group.algorithm.entity.RelevantProperties;
 
 /**
  * Objects of this class contain useful information (attributes) for some {@link PsiElement}.
  * Namely they store array of {@code double} values which represents extracted features and
  * {@link RelevantProperties}. Array of features contains not all available metrics but just some
- * part of them that is required for a particular {@link Algorithm}. It is supposed that for every
- * run of any {@link Algorithm} for each relevant {@link PsiElement} there will be instantiated a
+ * part of them that is required for a particular {@link AbstractAlgorithm}. It is supposed that for every
+ * run of any {@link AbstractAlgorithm} for each relevant {@link PsiElement} there will be instantiated a
  * new fresh {@link ElementAttributes}.
  */
 public abstract class ElementAttributes {

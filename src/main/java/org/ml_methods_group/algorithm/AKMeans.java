@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 
 import static org.ml_methods_group.utils.AlgorithmsUtil.getDensityBasedAccuracyRating;
 
-public class AKMeans extends Algorithm {
+public class AKMeans extends AbstractAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(AKMeans.class);
     private static final double ACCURACY = 1;
 

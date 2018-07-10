@@ -29,7 +29,7 @@ import org.ml_methods_group.utils.AlgorithmsUtil;
 import java.util.*;
 import java.util.stream.Stream;
 
-public class MRI extends Algorithm {
+public class MRI extends AbstractAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(MRI.class);
     private static final double ACCURACY = 1;
 

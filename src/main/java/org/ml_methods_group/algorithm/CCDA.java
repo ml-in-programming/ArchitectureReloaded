@@ -27,7 +27,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class CCDA extends Algorithm {
+public class CCDA extends AbstractAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(CCDA.class);
     private static final double ACCURACY = 1;
 
