@@ -69,15 +69,17 @@ public class RmmrEntitySearcher {
      * Strategy: which classes, methods and etc. to accept. For details see {@link RmmrStrategy}.
      */
     private final RmmrStrategy strategy = RmmrStrategy.getInstance();
+
     {
         strategy.setAcceptPrivateMethods(true);
-        strategy.setAcceptMethodParams(false);
-        strategy.setAcceptNewExpressions(false);
+        strategy.setAcceptMethodParams(true);
+        strategy.setAcceptNewExpressions(true);
         strategy.setAcceptInnerClasses(true);
         strategy.setApplyStemming(true);
-        strategy.setMinimalTermLength(3);
+        strategy.setMinimalTermLength(1);
         strategy.setCheckPsiVariableForBeingInScope(true);
     }
+
     /**
      * UI progress indicator.
      */

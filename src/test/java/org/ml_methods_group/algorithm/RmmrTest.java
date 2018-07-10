@@ -25,11 +25,23 @@ public class RmmrTest extends AlgorithmAbstractTest {
     }
 
     // TODO: Not currently supported
+    /*
+    Failure explanation: In terms of contextual similarity methodB1 has highest score with its own class,
+    and lower with Nested class. methodB1 has no body, so it's conceptual set is empty, that is why conceptual similarity
+    is very low, but if we add its own class (ClassB) to conceptual set of methodB1, then methodB1 -> Nested refactoring
+    will be suggested. But it will fail a lot of tests that pass now (only 6 will pass), so it is bad decision to
+    include its own class to method's conceptual set.
+     */
     public void failing_testCallFromNested() {
         executeTest(testCasesChecker::checkCallFromNested, "ClassA.java", "ClassB.java");
     }
 
     // TODO: Not currently supported
+    /*
+    Failure explanation: because we include statistic of processing method to class statistic it reflects
+    on dot product of method's and class's vectors. In this test case similarity is very high because of that
+    so algorithm doesn't find any refactorings. Dependency sets intersection is always empty so it doesn't affect the results.
+     */
     public void failing_testCircularDependency() {
         executeTest(testCasesChecker::checkCircularDependency, "ClassA.java", "ClassB.java", "ClassC.java");
     }
@@ -66,8 +78,7 @@ public class RmmrTest extends AlgorithmAbstractTest {
         executeTest(testCasesChecker::checkPriority, "ClassA.java", "ClassB.java");
     }
 
-    // TODO: Not currently supported
-    public void failing_testRecursiveMethod() {
+    public void testRecursiveMethod() {
         executeTest(testCasesChecker::checkRecursiveMethod, "ClassA.java", "ClassB.java");
     }
 
@@ -86,6 +97,13 @@ public class RmmrTest extends AlgorithmAbstractTest {
     }
 
     // TODO: Not currently supported
+    /*
+     Failure explanation: almost all words appear in both classes that is why idf is 0.
+     As a result vector is something like that: 3, 0, 0, ..., 0.
+     And there is no intersection with not nulls so context similarity is 0.
+     getMobilePhone method has big distance (almost 1) with its class and big dissimilarity with Phone class.
+     But own class (Customer) wins...
+      */
     public void failing_testMobilePhoneWithFeatureEnvy() {
         executeTest(testCasesChecker::checkMobilePhoneWithFeatureEnvy, "Customer.java", "Phone.java");
     }
@@ -99,19 +117,11 @@ public class RmmrTest extends AlgorithmAbstractTest {
     }
 
     // TODO: Not currently supported
-    /*
-     Failure explanation: almost all words appear in both classes that is why idf is 0.
-     As a result vector is something like that: 3, 0, 0, ..., 0.
-     And there is no intersection with not nulls so context similarity is 0.
-     getMobilePhone method has big distance (almost 1) with its class and big dissimilarity with Phone class.
-     But own class (Customer) wins...
-      */
     public void failing_testCallFromLambda() {
         executeTest(testCasesChecker::checkCallFromLambda, "ClassA.java", "ClassB.java");
     }
 
-    // TODO: Not currently supported
-    public void failing_testStaticFactoryMethods() {
+    public void testStaticFactoryMethods() {
         executeTest(testCasesChecker::checkStaticFactoryMethods, "Cat.java", "Color.java", "Dog.java");
     }
 
