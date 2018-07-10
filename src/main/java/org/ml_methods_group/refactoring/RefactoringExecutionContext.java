@@ -31,6 +31,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.*;
+import org.ml_methods_group.algorithm.entity.EntitiesStorage;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.EntitySearcher;
 import org.ml_methods_group.config.Logging;
@@ -62,6 +63,7 @@ public class RefactoringExecutionContext {
     @NotNull
     private final MetricsProfile profile;
     private EntitySearchResult entitySearchResult;
+    private EntitiesStorage entitiesStorage;
     private final MetricsExecutionContextImpl metricsExecutionContext;
     @Nullable
     private final Consumer<RefactoringExecutionContext> continuation;
@@ -132,6 +134,7 @@ public class RefactoringExecutionContext {
         metricsRun.setTimestamp(new TimeStamp());
         entitySearchResult = ApplicationManager.getApplication()
                 .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
+        entitiesStorage = new EntitiesStorage(entitySearchResult);
         for (String algorithm : requestedAlgorithms) {
             calculateAlgorithmForName(algorithm);
         }

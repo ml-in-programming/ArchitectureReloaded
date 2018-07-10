@@ -16,10 +16,13 @@
 
 package org.ml_methods_group.algorithm;
 
+import com.sixrr.metrics.Metric;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 public interface Algorithm {
@@ -28,4 +31,10 @@ public interface Algorithm {
         @Nullable ExecutorService service,
         boolean enableFieldRefactorings
     );
+
+    /**
+     * Returns an array of metrics from which a features vectors for this particular algorithm
+     * should be constructed.
+     */
+    @NotNull List<Class<? extends Metric>> requiredMetrics();
 }

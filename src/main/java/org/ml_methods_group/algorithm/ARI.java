@@ -16,7 +16,11 @@
 
 package org.ml_methods_group.algorithm;
 
+import com.sixrr.metrics.Metric;
+import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
+import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
@@ -24,6 +28,7 @@ import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.AlgorithmsUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -38,6 +43,11 @@ public class ARI extends AbstractAlgorithm {
 
     public ARI() {
         super("ARI", true);
+    }
+
+    @Override
+    public @NotNull List<Class<? extends Metric>> requiredMetrics() {
+        return Arrays.asList(NumMethodsClassMetric.class, NumAttributesAddedMetric.class);
     }
 
     @Override

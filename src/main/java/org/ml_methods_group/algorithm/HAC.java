@@ -16,6 +16,9 @@
 
 package org.ml_methods_group.algorithm;
 
+import com.sixrr.metrics.Metric;
+import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
+import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,6 +47,11 @@ public class HAC extends AbstractAlgorithm {
 
     public HAC() {
         super("HAC", true);
+    }
+
+    @Override
+    public @NotNull List<Class<? extends Metric>> requiredMetrics() {
+        return Arrays.asList(NumMethodsClassMetric.class, NumAttributesAddedMetric.class);
     }
 
     private void init(ExecutionContext context) {

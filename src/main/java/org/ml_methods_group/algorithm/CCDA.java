@@ -16,7 +16,11 @@
 
 package org.ml_methods_group.algorithm;
 
+import com.sixrr.metrics.Metric;
+import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
+import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.RelevantProperties;
@@ -170,6 +174,11 @@ public class CCDA extends AbstractAlgorithm {
         }
         context.checkCanceled();
         return optimum;
+    }
+
+    @Override
+    public @NotNull List<Class<? extends Metric>> requiredMetrics() {
+        return Arrays.asList(NumMethodsClassMetric.class, NumAttributesAddedMetric.class);
     }
 
     private class Holder {
