@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ml_methods_group.algorithm.representation;
+package org.ml_methods_group.algorithm.attributes;
 
-public abstract class ElementRepresentation {
+public abstract class ElementAttributes {
 }
