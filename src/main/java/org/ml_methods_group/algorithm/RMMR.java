@@ -22,6 +22,7 @@ import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.MethodEntity;
 import org.ml_methods_group.config.Logging;
+import org.ml_methods_group.utils.AlgorithmsUtil;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -34,6 +35,7 @@ import static java.lang.Math.sqrt;
  * Based on @see <a href="https://drive.google.com/file/d/17yAlVXRaLuhIcXB4PEzNiZj5p1oi4HlL/view">this article</a>.
  */
 public class RMMR extends Algorithm {
+    private static final boolean IS_PARALLELED = true;
     /**
      * Describes minimal accuracy that algorithm accepts.
      */
@@ -77,11 +79,13 @@ public class RMMR extends Algorithm {
         this.context = context;
         init();
 
-        List<Refactoring> accum = new LinkedList<>();
-        units.forEach(methodEntity -> findRefactoring(methodEntity, accum));
-        return accum;
-
-        // return runParallel(units, context, ArrayList::new, this::findRefactoring, AlgorithmsUtil::combineLists);
+        if (IS_PARALLELED) {
+            return runParallel(units, context, ArrayList::new, this::findRefactoring, AlgorithmsUtil::combineLists);
+        } else {
+            List<Refactoring> accum = new LinkedList<>();
+            units.forEach(methodEntity -> findRefactoring(methodEntity, accum));
+            return accum;
+        }
     }
 
     /**

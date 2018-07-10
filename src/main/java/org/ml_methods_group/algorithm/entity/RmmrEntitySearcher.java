@@ -119,12 +119,11 @@ public class RmmrEntitySearcher {
         indicator.setIndeterminate(true);
         LOGGER.info("Indexing entities...");
         scope.accept(new UnitsFinder());
-        scope.accept(new BagsFinder());
-        calculateStatistic();
         indicator.setIndeterminate(false);
         LOGGER.info("Calculating properties...");
         indicator.setText("Calculating properties");
         scope.accept(new PropertiesCalculator());
+        calculateStatistic();
         indicator.popState();
         return prepareResult();
     }
@@ -188,7 +187,49 @@ public class RmmrEntitySearcher {
         return new EntitySearchResult(classes, methods, Collections.emptyList(), System.currentTimeMillis() - startTime);
     }
 
-    private class BagsFinder extends JavaRecursiveElementVisitor {
+    /**
+     * Finds all units (classes, methods and etc.) in the scope based on {@link RmmrStrategy} that will be considered in searching process.
+     */
+    private class UnitsFinder extends JavaRecursiveElementVisitor {
+        @Override
+        public void visitFile(PsiFile file) {
+            indicator.checkCanceled();
+            if (!strategy.acceptFile(file)) {
+                return;
+            }
+            LOGGER.info("Indexing " + file.getName());
+            super.visitFile(file);
+        }
+
+        @Override
+        public void visitClass(PsiClass aClass) {
+            indicator.checkCanceled();
+            classForName.put(aClass.getQualifiedName(), aClass); // Classes for ConceptualSet.
+            if (!strategy.acceptClass(aClass)) {
+                return;
+            }
+            classEntities.put(aClass, new ClassEntity(aClass)); // Classes where method can be moved.
+            super.visitClass(aClass);
+        }
+
+        @Override
+        public void visitMethod(PsiMethod method) {
+            indicator.checkCanceled();
+            if (!strategy.acceptMethod(method)) {
+                return;
+            }
+            entities.put(method, new MethodEntity(method));
+            super.visitMethod(method);
+        }
+    }
+
+
+    /**
+     * Calculates conceptual sets for all methods found by {@link UnitsFinder}.
+     */
+    // TODO: calculate properties for constructors? If yes, then we need to separate methods to check on refactoring (entities) and methods for calculating metric (to gather properties).
+    private class PropertiesCalculator extends JavaRecursiveElementVisitor {
+        private int propertiesCalculated = 0;
         /**
          * Current method: if not null then we are parsing this method now and we need to update conceptual set of this method.
          */
@@ -260,101 +301,6 @@ public class RmmrEntitySearcher {
                 currentMethod = methodEntity;
             }
             addIdentifierToBag(currentMethod, method.getName());
-            super.visitMethod(method);
-            if (currentMethod == methodEntity) {
-                currentMethod = null;
-            }
-        }
-
-        @Override
-        public void visitReferenceExpression(PsiReferenceExpression expression) {
-            indicator.checkCanceled();
-            final PsiElement expressionElement = expression.resolve();
-            if (expressionElement instanceof PsiVariable) {
-                boolean isInScope = !strategy.getCheckPsiVariableForBeingInScope() ||
-                        (!(expressionElement instanceof PsiField) ||
-                                isClassInScope(((PsiField) expressionElement).getContainingClass()));
-                if (isInScope) {
-                    addIdentifierToBag(currentClasses.peek(), ((PsiVariable) expressionElement).getName());
-                    addIdentifierToBag(currentMethod, ((PsiVariable) expressionElement).getName());
-                }
-            }
-            super.visitReferenceExpression(expression);
-        }
-
-        @Override
-        public void visitMethodCallExpression(PsiMethodCallExpression expression) {
-            indicator.checkCanceled();
-            final PsiMethod called = expression.resolveMethod();
-            final PsiClass usedClass = called != null ? called.getContainingClass() : null;
-            if (isClassInScope(usedClass)) {
-                addIdentifierToBag(currentClasses.peek(), called.getName());
-                addIdentifierToBag(currentMethod, called.getName());
-            }
-            super.visitMethodCallExpression(expression);
-        }
-    }
-
-    /**
-     * Finds all units (classes, methods and etc.) in the scope based on {@link RmmrStrategy} that will be considered in searching process.
-     */
-    private class UnitsFinder extends JavaRecursiveElementVisitor {
-        @Override
-        public void visitFile(PsiFile file) {
-            indicator.checkCanceled();
-            if (!strategy.acceptFile(file)) {
-                return;
-            }
-            LOGGER.info("Indexing " + file.getName());
-            super.visitFile(file);
-        }
-
-        @Override
-        public void visitClass(PsiClass aClass) {
-            indicator.checkCanceled();
-            classForName.put(aClass.getQualifiedName(), aClass); // Classes for ConceptualSet.
-            if (!strategy.acceptClass(aClass)) {
-                return;
-            }
-            classEntities.put(aClass, new ClassEntity(aClass)); // Classes where method can be moved.
-            super.visitClass(aClass);
-        }
-
-        @Override
-        public void visitMethod(PsiMethod method) {
-            indicator.checkCanceled();
-            if (!strategy.acceptMethod(method)) {
-                return;
-            }
-            entities.put(method, new MethodEntity(method));
-            super.visitMethod(method);
-        }
-    }
-
-
-    /**
-     * Calculates conceptual sets for all methods found by {@link UnitsFinder}.
-     */
-    // TODO: calculate properties for constructors? If yes, then we need to separate methods to check on refactoring (entities) and methods for calculating metric (to gather properties).
-    private class PropertiesCalculator extends JavaRecursiveElementVisitor {
-        private int propertiesCalculated = 0;
-        /**
-         * Current method: if not null then we are parsing this method now and we need to update conceptual set of this method.
-         */
-        private MethodEntity currentMethod;
-
-        @Override
-        public void visitMethod(PsiMethod method) {
-            indicator.checkCanceled();
-            final MethodEntity methodEntity = entities.get(method);
-            if (methodEntity == null) {
-                super.visitMethod(method);
-                return;
-            }
-            if (currentMethod == null) {
-                currentMethod = methodEntity;
-            }
-
             if (strategy.isAcceptMethodParams()) {
                 for (PsiParameter attribute : method.getParameterList().getParameters()) {
                     PsiType attributeType = attribute.getType();
@@ -378,11 +324,21 @@ public class RmmrEntitySearcher {
         public void visitReferenceExpression(PsiReferenceExpression expression) {
             indicator.checkCanceled();
             final PsiElement expressionElement = expression.resolve();
-            if (expressionElement instanceof PsiField) {
-                PsiField attribute = (PsiField) expressionElement;
-                final PsiClass attributeClass = attribute.getContainingClass();
-                if (currentMethod != null && isClassInScope(attributeClass)) {
-                    currentMethod.getRelevantProperties().addClass(attributeClass);
+            if (expressionElement instanceof PsiVariable) {
+                boolean isInScope = !strategy.getCheckPsiVariableForBeingInScope() ||
+                        (!(expressionElement instanceof PsiField) ||
+                                isClassInScope(((PsiField) expressionElement).getContainingClass()));
+                if (isInScope) {
+                    addIdentifierToBag(currentClasses.peek(), ((PsiVariable) expressionElement).getName());
+                    addIdentifierToBag(currentMethod, ((PsiVariable) expressionElement).getName());
+                }
+                /* Conceptual Set part */
+                if (expressionElement instanceof PsiField) {
+                    PsiField attribute = (PsiField) expressionElement;
+                    final PsiClass attributeClass = attribute.getContainingClass();
+                    if (currentMethod != null && isClassInScope(attributeClass)) {
+                        currentMethod.getRelevantProperties().addClass(attributeClass);
+                    }
                 }
             }
             super.visitReferenceExpression(expression);
@@ -403,11 +359,15 @@ public class RmmrEntitySearcher {
 
         @Override
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
-            indicator.checkCanceled();
             final PsiMethod called = expression.resolveMethod();
             final PsiClass usedClass = called != null ? called.getContainingClass() : null;
-            if (currentMethod != null && isClassInScope(usedClass)) {
-                currentMethod.getRelevantProperties().addClass(usedClass);
+            if (isClassInScope(usedClass)) {
+                addIdentifierToBag(currentClasses.peek(), called.getName());
+                addIdentifierToBag(currentMethod, called.getName());
+                /* Conceptual set part */
+                if (currentMethod != null) {
+                    currentMethod.getRelevantProperties().addClass(usedClass);
+                }
             }
             super.visitMethodCallExpression(expression);
         }
