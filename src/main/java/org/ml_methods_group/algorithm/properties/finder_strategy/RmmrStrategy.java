@@ -41,6 +41,7 @@ public class RmmrStrategy implements FinderStrategy {
     private boolean applyStemming;
     private int minimalTermLength;
     private boolean acceptMethodReferences;
+    private boolean acceptClassReferences;
 
     /**
      * Get instance of singleton object.
@@ -194,5 +195,13 @@ public class RmmrStrategy implements FinderStrategy {
 
     public void setAcceptMethodReferences(boolean acceptMethodReferences) {
         this.acceptMethodReferences = acceptMethodReferences;
+    }
+
+    public boolean isAcceptClassReferences() {
+        return acceptClassReferences;
+    }
+
+    public void setAcceptClassReferences(boolean acceptClassReferences) {
+        this.acceptClassReferences = acceptClassReferences;
     }
 }

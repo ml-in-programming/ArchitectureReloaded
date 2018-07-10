@@ -75,6 +75,7 @@ public class RmmrEntitySearcher {
         strategy.setAcceptMethodParams(true);
         strategy.setAcceptNewExpressions(true);
         strategy.setAcceptMethodReferences(true);
+        strategy.setAcceptClassReferences(true);
         strategy.setAcceptInnerClasses(true);
         strategy.setApplyStemming(true);
         strategy.setMinimalTermLength(1);
@@ -258,23 +259,24 @@ public class RmmrEntitySearcher {
         public void visitMethodReferenceExpression(PsiMethodReferenceExpression expression) {
             indicator.checkCanceled();
             if (strategy.isAcceptMethodReferences()) {
-                final PsiElement expressionElement = expression.resolve();
+                PsiElement expressionElement = expression.resolve();
                 if (expressionElement instanceof PsiMethod) {
-                    PsiMethod called = (PsiMethod) expressionElement;
-                    final PsiClass usedClass = called.getContainingClass();
-                    if (isClassInScope(usedClass)) {
-                        addIdentifierToBag(currentClasses.peek(), called.getName());
-                        addIdentifierToBag(currentMethod, called.getName());
-                        addIdentifierToBag(currentClasses.peek(), usedClass.getName());
-                        addIdentifierToBag(currentMethod, usedClass.getName());
-                        /* Conceptual set part */
-                        if (currentMethod != null) {
-                            currentMethod.getRelevantProperties().addClass(usedClass);
-                        }
-                    }
+                    processMethod((PsiMethod) expressionElement);
                 }
             }
             super.visitMethodReferenceExpression(expression);
+        }
+
+        private void processMethod(@NotNull PsiMethod calledMethod) {
+            final PsiClass usedClass = calledMethod.getContainingClass();
+            if (isClassInScope(usedClass)) {
+                addIdentifierToBag(currentClasses.peek(), calledMethod.getName());
+                addIdentifierToBag(currentMethod, calledMethod.getName());
+                /* Conceptual set part */
+                if (currentMethod != null) {
+                    currentMethod.getRelevantProperties().addClass(usedClass);
+                }
+            }
         }
 
         @Override
@@ -367,6 +369,13 @@ public class RmmrEntitySearcher {
                     }
                 }
             }
+            if (strategy.isAcceptClassReferences() && expressionElement instanceof PsiClass) {
+                PsiClass aClass = (PsiClass) expressionElement;
+                if (isClassInScope(aClass)) {
+                    addIdentifierToBag(currentClasses.peek(), aClass.getName());
+                    addIdentifierToBag(currentMethod, aClass.getName());
+                }
+            }
             super.visitReferenceExpression(expression);
         }
 
@@ -386,14 +395,8 @@ public class RmmrEntitySearcher {
         @Override
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
             final PsiMethod called = expression.resolveMethod();
-            final PsiClass usedClass = called != null ? called.getContainingClass() : null;
-            if (isClassInScope(usedClass)) {
-                addIdentifierToBag(currentClasses.peek(), called.getName());
-                addIdentifierToBag(currentMethod, called.getName());
-                /* Conceptual set part */
-                if (currentMethod != null) {
-                    currentMethod.getRelevantProperties().addClass(usedClass);
-                }
+            if (called != null) {
+                processMethod(called);
             }
             super.visitMethodCallExpression(expression);
         }
