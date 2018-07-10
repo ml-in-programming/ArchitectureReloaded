@@ -19,14 +19,34 @@ package org.ml_methods_group.algorithm;
 import com.sixrr.metrics.Metric;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.ml_methods_group.algorithm.attributes.AttributesStorage;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
+/**
+ * An algorithm that analyses given {@link EntitySearchResult} and produces refactoring suggestions
+ * as an {@link AlgorithmResult}.
+ */
 public interface Algorithm {
     @NotNull AlgorithmResult oldExecute(
         @NotNull EntitySearchResult entities,
+        @Nullable ExecutorService service,
+        boolean enableFieldRefactorings
+    );
+
+    /**
+     * Executes this algorithm on an input.
+     *
+     * @param attributes input which consists of different attributes derived from code entities.
+     * @param service {@link ExecutorService} in case of parallel computations.
+     * @param enableFieldRefactorings {@code true} if there is a request to search for
+     *                                            "move field" refactoring.
+     * @return result of algorithm execution which contains suggested refactorings.
+     */
+    @NotNull AlgorithmResult execute(
+        @NotNull AttributesStorage attributes,
         @Nullable ExecutorService service,
         boolean enableFieldRefactorings
     );

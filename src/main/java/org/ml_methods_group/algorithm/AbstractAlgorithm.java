@@ -23,8 +23,10 @@ import com.intellij.openapi.progress.ProgressManager;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.ml_methods_group.algorithm.attributes.AttributesStorage;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.config.Logging;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,10 +41,6 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
-/**
- * An algorithm that analyses given {@link EntitySearchResult} and produces refactoring suggestions
- * as an {@link AlgorithmResult}.
- */
 public abstract class AbstractAlgorithm implements Algorithm {
     private static final Logger LOGGER = Logging.getLogger(AbstractAlgorithm.class);
 
@@ -50,7 +48,7 @@ public abstract class AbstractAlgorithm implements Algorithm {
     private final boolean enableParallelExecution;
     private final int preferredThreadsCount;
 
-    AbstractAlgorithm(String name, boolean enableParallelExecution) {
+    public AbstractAlgorithm(String name, boolean enableParallelExecution) {
         this.name = name;
         this.enableParallelExecution = enableParallelExecution;
         preferredThreadsCount = Runtime.getRuntime().availableProcessors();
@@ -59,6 +57,16 @@ public abstract class AbstractAlgorithm implements Algorithm {
     @Override
     public @NotNull String getDescription() {
         return name;
+    }
+
+    @Override
+    public @NotNull AlgorithmResult execute(
+        @NotNull AttributesStorage attributes,
+        @Nullable ExecutorService service,
+        boolean enableFieldRefactorings
+    ) {
+        // setUpExecutor().execute(); // todo: need OldExecutionContext and ExecutionContext with attributes
+        throw new NotImplementedException();
     }
 
     /**
@@ -104,6 +112,7 @@ public abstract class AbstractAlgorithm implements Algorithm {
         return result;
     }
 
+    // protected abstract @NotNull AlgorithmExecutor setUpExecutor();
 
     protected abstract List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) throws Exception;
 
@@ -159,6 +168,13 @@ public abstract class AbstractAlgorithm implements Algorithm {
                 }
             }
         }
+    }
+
+    public interface AlgorithmExecutor {
+        @NotNull List<Refactoring> execute(
+            ExecutionContext context,
+            boolean enableFieldRefactorings
+        );
     }
 
     protected final class ExecutionContext {
