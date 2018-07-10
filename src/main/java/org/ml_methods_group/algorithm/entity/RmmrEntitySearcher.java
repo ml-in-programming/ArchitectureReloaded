@@ -74,6 +74,7 @@ public class RmmrEntitySearcher {
         strategy.setAcceptPrivateMethods(true);
         strategy.setAcceptMethodParams(true);
         strategy.setAcceptNewExpressions(true);
+        strategy.setAcceptMethodReferences(true);
         strategy.setAcceptInnerClasses(true);
         strategy.setApplyStemming(true);
         strategy.setMinimalTermLength(1);
@@ -251,6 +252,29 @@ public class RmmrEntitySearcher {
                 }
                 entity.getBag().addAll(terms);
             }
+        }
+
+        @Override
+        public void visitMethodReferenceExpression(PsiMethodReferenceExpression expression) {
+            indicator.checkCanceled();
+            if (strategy.isAcceptMethodReferences()) {
+                final PsiElement expressionElement = expression.resolve();
+                if (expressionElement instanceof PsiMethod) {
+                    PsiMethod called = (PsiMethod) expressionElement;
+                    final PsiClass usedClass = called.getContainingClass();
+                    if (isClassInScope(usedClass)) {
+                        addIdentifierToBag(currentClasses.peek(), called.getName());
+                        addIdentifierToBag(currentMethod, called.getName());
+                        addIdentifierToBag(currentClasses.peek(), usedClass.getName());
+                        addIdentifierToBag(currentMethod, usedClass.getName());
+                        /* Conceptual set part */
+                        if (currentMethod != null) {
+                            currentMethod.getRelevantProperties().addClass(usedClass);
+                        }
+                    }
+                }
+            }
+            super.visitMethodReferenceExpression(expression);
         }
 
         @Override

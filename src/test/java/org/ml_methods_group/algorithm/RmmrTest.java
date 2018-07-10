@@ -47,6 +47,11 @@ public class RmmrTest extends AlgorithmAbstractTest {
     }
 
     // TODO: Not currently supported
+    /*
+    Failure explanation: interesting case because all methods with all classes have max distances - 1.
+    Contextual distance is max because all words appear everywhere, conceptual because intersection is empty.\
+    Consider: if we have big distance with source than maybe suggest a refactoring? (big doubts)
+     */
     public void failing_testCrossReferencesMethods() {
         executeTest(testCasesChecker::checkCrossReferencesMethods, "ClassA.java", "ClassB.java");
     }
@@ -69,11 +74,22 @@ public class RmmrTest extends AlgorithmAbstractTest {
     }
 
     // TODO: Not currently supported
+    /*
+    Failure explanation: methodB1 has conceptual distance 0 with ClassA, but contextual similarity distance is very high.
+    Meanwhile total distance with ClassB of methods methodB1 and methodB2 is less than 0.2 which is the least.
+    Again there are a lot of 0 in vectors because of appearance in both classes. That problem must disappear on big projects.
+     */
     public void failing_testMoveTogether() {
         executeTest(testCasesChecker::checkMoveTogether, "ClassA.java", "ClassB.java");
     }
 
     // TODO: Not currently supported
+    /*
+    Failure explanation: for methodA1 all distances are 1 because dependency set is empty,
+     and "a1" and "method" appear in both classes so in vector they are 0 coordinates.
+     Consider: problem is because it is two classes test case, otherwise we could count that a1
+     appears much more often in ClassB than in ClassA and context distance would be smaller.
+     */
     public void failing_testPriority() {
         executeTest(testCasesChecker::checkPriority, "ClassA.java", "ClassB.java");
     }
@@ -83,6 +99,12 @@ public class RmmrTest extends AlgorithmAbstractTest {
     }
 
     // TODO: Not currently supported
+    /*
+    Failure explanation: refactoring can be found if add to methods in ClassA some references to its own class to get
+    ClassA in conceptual set of this methods. Without that conceptual distance is always 1 and contextual distance
+    plays a big role and it is the lowest with source classes.
+    Consider: adding field attribute = "result" to ClassA solves the problem.
+     */
     public void failing_testReferencesOnly() {
         executeTest(testCasesChecker::checkReferencesOnly, "ClassA.java", "ClassB.java");
     }
