@@ -21,22 +21,22 @@ public class RmmrTest extends AlgorithmAbstractTest {
     private static final TestCasesCheckers testCasesChecker = new TestCasesCheckers(algorithmName, false);
 
     // TODO: Not currently supported
-    public void failing_testMoveMethod() {
+    public void testMoveMethod() {
         executeTest(testCasesChecker::checkMoveMethod, "ClassA.java", "ClassB.java");
     }
 
     // TODO: Not currently supported
-    public void failing_testCallFromNested() {
+    public void testCallFromNested() {
         executeTest(testCasesChecker::checkCallFromNested, "ClassA.java", "ClassB.java");
     }
 
     // TODO: Not currently supported
-    public void failing_testCircularDependency() {
+    public void testCircularDependency() {
         executeTest(testCasesChecker::checkCircularDependency, "ClassA.java", "ClassB.java", "ClassC.java");
     }
 
     // TODO: Not currently supported
-    public void failing_testCrossReferencesMethods() {
+    public void testCrossReferencesMethods() {
         executeTest(testCasesChecker::checkCrossReferencesMethods, "ClassA.java", "ClassB.java");
     }
 
@@ -58,27 +58,27 @@ public class RmmrTest extends AlgorithmAbstractTest {
     }
 
     // TODO: Not currently supported
-    public void failing_testMoveTogether() {
+    public void testMoveTogether() {
         executeTest(testCasesChecker::checkMoveTogether, "ClassA.java", "ClassB.java");
     }
 
     // TODO: Not currently supported
-    public void failing_testPriority() {
+    public void testPriority() {
         executeTest(testCasesChecker::checkPriority, "ClassA.java", "ClassB.java");
     }
 
     // TODO: Not currently supported
-    public void failing_testRecursiveMethod() {
+    public void testRecursiveMethod() {
         executeTest(testCasesChecker::checkRecursiveMethod, "ClassA.java", "ClassB.java");
     }
 
     // TODO: Not currently supported
-    public void failing_testReferencesOnly() {
+    public void testReferencesOnly() {
         executeTest(testCasesChecker::checkReferencesOnly, "ClassA.java", "ClassB.java");
     }
 
     // TODO: Not currently supported
-    public void failing_testTriangularDependence() {
+    public void testTriangularDependence() {
         executeTest(testCasesChecker::checkTriangularDependence, "ClassA.java", "ClassB.java", "ClassC.java");
     }
 
@@ -87,7 +87,7 @@ public class RmmrTest extends AlgorithmAbstractTest {
     }
 
     // TODO: Not currently supported
-    public void failing_testMobilePhoneWithFeatureEnvy() {
+    public void testMobilePhoneWithFeatureEnvy() {
         executeTest(testCasesChecker::checkMobilePhoneWithFeatureEnvy, "Customer.java", "Phone.java");
     }
 
@@ -107,12 +107,12 @@ public class RmmrTest extends AlgorithmAbstractTest {
      getMobilePhone method has big distance (almost 1) with its class and big dissimilarity with Phone class.
      But own class (Customer) wins...
       */
-    public void failing_testCallFromLambda() {
+    public void testCallFromLambda() {
         executeTest(testCasesChecker::checkCallFromLambda, "ClassA.java", "ClassB.java");
     }
 
     // TODO: Not currently supported
-    public void failing_testStaticFactoryMethods() {
+    public void testStaticFactoryMethods() {
         executeTest(testCasesChecker::checkStaticFactoryMethods, "Cat.java", "Color.java", "Dog.java");
     }
 

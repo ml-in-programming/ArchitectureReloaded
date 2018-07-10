@@ -136,19 +136,10 @@ public class RmmrEntitySearcher {
     }
 
     private void calculateTfIdf() {
-        int coordinate = 0;
-        for (String term : terms) {
-            double idfForTerm = idf.get(term);
-            for (Collection<? extends Entity> partOfDocuments : documents) {
-                for (Entity document : partOfDocuments) {
-                    if (coordinate == 0) {
-                        document.initStatisticVector(terms.size());
-                    }
-                    double tfForTermAndDocument = document.getNormalizedTf().getOrDefault(term, 0.0);
-                    document.addStatistic(tfForTermAndDocument * idfForTerm, coordinate);
-                }
+        for (Collection<? extends Entity> partOfDocuments : documents) {
+            for (Entity document : partOfDocuments) {
+                document.getContextualVector().replaceAll((term, normalizedTf) -> normalizedTf * idf.get(term));
             }
-            coordinate++;
         }
     }
 
@@ -166,7 +157,7 @@ public class RmmrEntitySearcher {
             for (Entity document : partOfDocuments) {
                 Multiset<String> bag = document.getBag();
                 for (Multiset.Entry<String> term : bag.entrySet()) {
-                    document.getNormalizedTf().put(term.getElement(), 1 + log2(term.getCount()));
+                    document.getContextualVector().put(term.getElement(), 1 + log2(term.getCount()));
                 }
                 terms.addAll(bag.elementSet());
             }

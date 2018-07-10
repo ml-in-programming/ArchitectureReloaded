@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Machine Learning Methods in Software Engineering Group of JetBrains Research
+ * Copyright 2018 Machine Learning Methods in Software Engineering Group of JetBrains Research
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,22 +48,6 @@ public abstract class Entity {
 
     private static final int DIMENSION = CLASS_ENTITY_CALCULATOR.getDimension();
 
-    private double[] statisticVector;
-    @NotNull
-    private final Multiset<String> bag = HashMultiset.create();
-    @NotNull
-    private final SortedMap<String, Double> normalizedTf = new TreeMap<>();
-
-    void initStatisticVector(int size) {
-        statisticVector = new double[size];
-    }
-
-    public double[] getStatisticVector() {
-        return statisticVector;
-    }
-
-    void addStatistic(double statistic, int coordinate) { statisticVector[coordinate] = statistic; }
-
     static {
         assert CLASS_ENTITY_CALCULATOR.getDimension() == DIMENSION;
         assert METHOD_ENTITY_CALCULATOR.getDimension() == DIMENSION;
@@ -74,17 +58,22 @@ public abstract class Entity {
     private final String name;
     private double[] vector;
     protected boolean isMovable = true;
+    @NotNull
+    private final Multiset<String> bag = HashMultiset.create();
+    @NotNull
+    private final Map<String, Double> contextualVector;
 
     /** Initializes this class with a given {@link PsiElement}. */
     public Entity(PsiElement element) {
         this.name = PsiSearchUtil.getHumanReadableName(element);
+        contextualVector = new HashMap<>();
         relevantProperties = new RelevantProperties();
     }
 
     protected Entity(Entity original) {
         relevantProperties = original.relevantProperties.copy();
         name = original.name;
-        statisticVector = original.statisticVector;
+        contextualVector = new HashMap<>(original.contextualVector);
         vector = Arrays.copyOf(original.vector, original.vector.length);
         isMovable = original.isMovable;
     }
@@ -176,7 +165,7 @@ public abstract class Entity {
     }
 
     @NotNull
-    SortedMap<String, Double> getNormalizedTf() {
-        return normalizedTf;
+    public Map<String, Double> getContextualVector() {
+        return contextualVector;
     }
 }

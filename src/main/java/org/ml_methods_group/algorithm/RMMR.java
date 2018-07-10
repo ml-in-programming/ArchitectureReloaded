@@ -17,7 +17,6 @@
 package org.ml_methods_group.algorithm;
 
 import org.apache.log4j.Logger;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
@@ -81,7 +80,8 @@ public class RMMR extends Algorithm {
         List<Refactoring> accum = new LinkedList<>();
         units.forEach(methodEntity -> findRefactoring(methodEntity, accum));
         return accum;
-        //return runParallel(units, context, ArrayList::new, this::findRefactoring, AlgorithmsUtil::combineLists);
+
+        // return runParallel(units, context, ArrayList::new, this::findRefactoring, AlgorithmsUtil::combineLists);
     }
 
     /**
@@ -129,7 +129,7 @@ public class RMMR extends Algorithm {
         ClassEntity targetClass = null;
         ClassEntity sourceClass = null;
         for (final ClassEntity classEntity : classEntities) {
-            final double contextualDistance = classEntity.getStatisticVector().length == 0 ? 1 : getContextualDistance(entity, classEntity);
+            final double contextualDistance = classEntity.getContextualVector().size() == 0 ? 1 : getContextualDistance(entity, classEntity);
             final double distance = 0.5 * getDistance(entity, classEntity) + 0.5 * contextualDistance;
             if (classEntity.getName().equals(entity.getClassName())) {
                 sourceClass = classEntity;
@@ -164,6 +164,9 @@ public class RMMR extends Algorithm {
                 accuracy /= 2;
             }
         }
+        if (entity.getName().contains("main")) {
+            accuracy /= 2;
+        }
         if (differenceWithSourceClass != 0 && accuracy >= MIN_ACCURACY && !targetClassName.equals(entity.getClassName())) {
             accumulator.add(new Refactoring(entity.getName(), targetClassName, accuracy, entity.isField()));
         }
@@ -171,25 +174,18 @@ public class RMMR extends Algorithm {
     }
 
     private double getContextualDistance(@NotNull MethodEntity entity, @NotNull ClassEntity classEntity) {
-        double[] methodVector = entity.getStatisticVector();
-        double[] classVector = classEntity.getStatisticVector();
+        Map<String, Double> methodVector = entity.getContextualVector();
+        Map<String, Double> classVector = classEntity.getContextualVector();
         return 1 - dotProduct(methodVector, classVector) / (norm(methodVector) * norm(classVector));
     }
 
-    @Contract(pure = true)
-    private double dotProduct(@NotNull double[] vector1, @NotNull double[] vector2) {
-        if (vector1.length != vector2.length) {
-            throw new IllegalStateException("Dimension of vectors are not equal");
-        }
-        double productValue = 0;
-        int dimension = vector1.length;
-        for (int i = 0; i < dimension; i++) {
-            productValue += vector1[i] * vector2[i];
-        }
-        return productValue;
+    private double dotProduct(@NotNull Map<String, Double> vector1, @NotNull Map<String, Double> vector2) {
+        final double[] productValue = {0};
+        vector1.forEach((s, aDouble) -> productValue[0] += aDouble * vector2.getOrDefault(s, 0.0));
+        return productValue[0];
     }
 
-    private double norm(@NotNull double[] vector) {
+    private double norm(@NotNull Map<String, Double> vector) {
         return sqrt(dotProduct(vector, vector));
     }
 
