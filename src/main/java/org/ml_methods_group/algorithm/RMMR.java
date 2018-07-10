@@ -135,7 +135,7 @@ public class RMMR extends Algorithm {
         ClassEntity sourceClass = null;
         for (final ClassEntity classEntity : classEntities) {
             final double contextualDistance = classEntity.getContextualVector().size() == 0 ? 1 : getContextualDistance(entity, classEntity);
-            final double distance = 0.5 * getDistance(entity, classEntity) + 0.5 * contextualDistance;
+            final double distance = 0.55 * getDistance(entity, classEntity) + 0.45 * contextualDistance;
             if (classEntity.getName().equals(entity.getClassName())) {
                 sourceClass = classEntity;
                 distanceWithSourceClass = distance;
