@@ -31,6 +31,8 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.*;
+import org.ml_methods_group.algorithm.attributes.AttributesStorage;
+import org.ml_methods_group.algorithm.attributes.NoRequestedMetricException;
 import org.ml_methods_group.algorithm.entity.EntitiesStorage;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.EntitySearcher;
@@ -149,6 +151,24 @@ public class RefactoringExecutionContext {
     }
 
     private void calculate(Algorithm algorithm) {
+        AttributesStorage attributes;
+
+        try {
+            attributes = new AttributesStorage(
+                entitiesStorage,
+                algorithm.requiredMetrics(),
+                metricsRun
+            );
+        } catch (NoRequestedMetricException e) {
+            LOGGER.error(
+                "Error during attributes creation for '" + algorithm.getDescription() +
+                "' algorithm: " + e.getMessage() + " - " + algorithm.getDescription() +
+                "is aborted"
+            );
+
+            return;
+        }
+
         final AlgorithmResult result = algorithm.oldExecute(entitySearchResult, executorService, isFieldRefactoringAvailable);
         algorithmsResults.add(result);
     }

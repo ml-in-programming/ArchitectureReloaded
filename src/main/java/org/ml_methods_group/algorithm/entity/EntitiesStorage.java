@@ -19,10 +19,13 @@ package org.ml_methods_group.algorithm.entity;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
+import com.sixrr.metrics.MetricCategory;
+import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -89,6 +92,17 @@ public class EntitiesStorage {
             this.relevantProperties = relevantProperties;
         }
 
+        /**
+         * Returns identifier of this entity, usually its qualified name. The main reason entity has
+         * this method is that in MetricsReloaded plugin metrics computation result is stored in
+         * {@link Map} with {@link String} keys not {@link com.intellij.psi.PsiElement}. Therefore
+         * one need to have an ability to obtain identifier for entity if he wants to get metrics
+         * for this entity.
+         */
+        public abstract @NotNull String getIdentifier();
+
+        public abstract @NotNull MetricCategory getMetricCategory();
+
         public @NotNull RelevantProperties getRelevantProperties() {
             return relevantProperties;
         }
@@ -103,6 +117,16 @@ public class EntitiesStorage {
         ) {
             super(relevantProperties);
             this.psiClass = psiClass;
+        }
+
+        @Override
+        public @NotNull String getIdentifier() {
+            return psiClass.getQualifiedName();
+        }
+
+        @Override
+        public @NotNull MetricCategory getMetricCategory() {
+            return MetricCategory.Class;
         }
 
         public @NotNull PsiClass getPsiClass() {
@@ -121,6 +145,16 @@ public class EntitiesStorage {
             this.psiMethod = psiMethod;
         }
 
+        @Override
+        public @NotNull String getIdentifier() {
+            return MethodUtils.calculateSignature(psiMethod);
+        }
+
+        @Override
+        public @NotNull MetricCategory getMetricCategory() {
+            return MetricCategory.Method;
+        }
+
         public @NotNull PsiMethod getPsiMethod() {
             return psiMethod;
         }
@@ -135,6 +169,20 @@ public class EntitiesStorage {
         ) {
             super(relevantProperties);
             this.psiField = psiField;
+        }
+
+        @Override
+        public @NotNull String getIdentifier() {
+            throw new UnsupportedOperationException(
+                "Metrics reloaded doesn't support field metrics."
+            );
+        }
+
+        @Override
+        public @NotNull MetricCategory getMetricCategory() {
+            throw new UnsupportedOperationException(
+                "Metrics reloaded doesn't support field metrics."
+            );
         }
 
         public @NotNull PsiField getPsiField() {
