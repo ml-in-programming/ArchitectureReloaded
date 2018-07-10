@@ -22,7 +22,6 @@ import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 
 import java.util.*;
 
-// TODO: tests tightly depend on RMMR configs, but there is a lot of possible configurations. Rewrite or leave only one config.
 public class RmmrEntitySearcherTest extends LightCodeInsightFixtureTestCase {
     private EntitySearchResult searchResult;
 
@@ -31,7 +30,7 @@ public class RmmrEntitySearcherTest extends LightCodeInsightFixtureTestCase {
         return "testdata/moveMethod/movieRentalStore";
     }
 
-    public void ignored_testAnalyze() {
+    public void testAnalyze() {
         final VirtualFile customer = myFixture.copyFileToProject("Customer.java");
         final VirtualFile movie = myFixture.copyFileToProject("Movie.java");
         final VirtualFile rental = myFixture.copyFileToProject("Rental.java");
@@ -39,9 +38,11 @@ public class RmmrEntitySearcherTest extends LightCodeInsightFixtureTestCase {
         AnalysisScope analysisScope = new AnalysisScope(myFixture.getProject(), Arrays.asList(customer, movie, rental));
         searchResult = RmmrEntitySearcher.analyze(analysisScope);
 
-        checkCustomer();
-        checkMovie();
-        checkRental();
+        assertEquals(3, searchResult.getClasses().size());
+        // TODO: tests tightly depend on RMMR configs, but there is a lot of possible configurations. Rewrite or leave only one config.
+        // checkCustomer();
+        // checkMovie();
+        // checkRental();
     }
 
     private void checkCustomer() {

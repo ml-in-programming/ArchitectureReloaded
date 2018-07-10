@@ -78,7 +78,7 @@ public class RmmrDistancesTest extends LightCodeInsightFixtureTestCase {
         checkSetPriceCodeBetweenMethods();
     }
 
-    public void igonred_testDistanceBetweenMethodAndClass() throws Exception {
+    public void testDistanceBetweenMethodAndClass() throws Exception {
         init();
         setUpMethodsByClass();
         checkGetMovieWithClasses();
