@@ -56,6 +56,11 @@ public abstract class AbstractAlgorithm implements Algorithm {
         preferredThreadsCount = Runtime.getRuntime().availableProcessors();
     }
 
+    @Override
+    public @NotNull String getDescription() {
+        return name;
+    }
+
     /**
      * Executes this algorithm on given entities.
      *

@@ -22,7 +22,6 @@ import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 public interface Algorithm {
@@ -33,8 +32,15 @@ public interface Algorithm {
     );
 
     /**
+     * Returns a textual description of this algorithm.
+     */
+    @NotNull String getDescription();
+
+    /**
      * Returns an array of metrics from which a features vectors for this particular algorithm
      * should be constructed.
+     * Important contract is that this method must always return equal lists, i.e. lists that
+     * contain same elements in the same order.
      */
     @NotNull List<Class<? extends Metric>> requiredMetrics();
 }
