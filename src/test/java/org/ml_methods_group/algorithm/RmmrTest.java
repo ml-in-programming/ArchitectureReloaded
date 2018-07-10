@@ -110,6 +110,13 @@ public class RmmrTest extends AlgorithmAbstractTest {
     }
 
     // TODO: Not currently supported
+    /*
+    Failure explanation: RMMR doesn't consider global dependency and structure, so it is prospective that this test fails.
+    Methods "methodToMove" from ClassB and ClassC have big distance with ClassA. Mostly because of contextual distance but
+    dependency distance is high too (even weights 0.7 and 0.3 doesn't solve a problem). With other two classes, for example ClassB.methodToMove,
+    has almost equal distances (about 0.5), but with it's own class distance is 0.5 because of contextual similarity,
+    and with other class because of conceptual similarity.
+     */
     public void failing_testTriangularDependence() {
         executeTest(testCasesChecker::checkTriangularDependence, "ClassA.java", "ClassB.java", "ClassC.java");
     }
@@ -139,6 +146,10 @@ public class RmmrTest extends AlgorithmAbstractTest {
     }
 
     // TODO: Not currently supported
+    /*
+    Failure explanation: the same problem as in references only test case.
+    Consider: if add CONST to doSomething2() then test passes.
+     */
     public void failing_testCallFromLambda() {
         executeTest(testCasesChecker::checkCallFromLambda, "ClassA.java", "ClassB.java");
     }
