@@ -47,8 +47,13 @@ import java.util.function.Consumer;
 public class RefactoringExecutionContext {
     private static final Logger LOGGER = Logging.getLogger(RefactoringExecutionContext.class);
 
-    private static final List<Class<? extends AbstractAlgorithm>> ALGORITHMS = Arrays.asList(ARI.class, AKMeans.class,
-            CCDA.class, HAC.class, MRI.class);
+    private static final List<Algorithm> ALGORITHMS = Arrays.asList(
+        new ARI(),
+        new AKMeans(),
+        new CCDA(),
+        new HAC(),
+        new MRI()
+    );
 
     @NotNull
     private final MetricsRunImpl metricsRun = new MetricsRunImpl();
@@ -140,29 +145,19 @@ public class RefactoringExecutionContext {
         }
     }
 
-    private static AbstractAlgorithm createInstance(Class<? extends AbstractAlgorithm> algorithmClass) {
-        try {
-            return algorithmClass.newInstance();
-        } catch (Exception e) {
-            LOGGER.error("Failed to create algorithm instance " + algorithmClass.getCanonicalName());
-            throw new RuntimeException("Failed to create instance of algorithm", e);
-        }
-    }
-
-    private void calculate(Class<? extends AbstractAlgorithm> algorithmClass) {
-        final AbstractAlgorithm algorithm = createInstance(algorithmClass);
+    private void calculate(Algorithm algorithm) {
         final AlgorithmResult result = algorithm.oldExecute(entitySearchResult, executorService, isFieldRefactoringAvailable);
         algorithmsResults.add(result);
     }
 
-    private void calculateAlgorithmForName(String algorithm) {
-        for (Class<? extends AbstractAlgorithm> algorithmClass : ALGORITHMS) {
-            if (algorithm.equals(algorithmClass.getSimpleName())) {
-                calculate(algorithmClass);
+    private void calculateAlgorithmForName(String algorithmName) {
+        for (Algorithm algorithm : ALGORITHMS) {
+            if (algorithmName.equals(algorithm.getClass().getSimpleName())) {
+                calculate(algorithm);
                 return;
             }
         }
-        throw new IllegalArgumentException("Unknown algorithm: " + algorithm);
+        throw new IllegalArgumentException("Unknown algorithm: " + algorithmName);
     }
 
     public List<AlgorithmResult> getAlgorithmResults() {
@@ -206,6 +201,7 @@ public class RefactoringExecutionContext {
 
     public static String[] getAvailableAlgorithms() {
         return ALGORITHMS.stream()
+                .map(Object::getClass)
                 .map(Class::getSimpleName)
                 .toArray(String[]::new);
     }
