@@ -58,13 +58,19 @@ public abstract class Entity {
 
     private final RelevantProperties relevantProperties;
     private final String name;
+    private PsiElement element;
     private double[] vector;
     protected boolean isMovable = true;
 
     /** Initializes this class with a given {@link PsiElement}. */
     public Entity(PsiElement element) {
         this.name = PsiSearchUtil.getHumanReadableName(element);
+        this.element = element;
         relevantProperties = new RelevantProperties();
+    }
+
+    public PsiElement getPsiElement() {
+        return element;
     }
 
     protected Entity(Entity original) {
