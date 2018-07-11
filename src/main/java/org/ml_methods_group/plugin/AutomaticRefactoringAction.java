@@ -36,7 +36,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.Algorithm;
 import org.ml_methods_group.algorithm.AlgorithmResult;
-import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.config.ArchitectureReloadedConfig;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;

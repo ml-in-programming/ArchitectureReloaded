@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Machine Learning Methods in Software Engineering Group of JetBrains Research
+ * Copyright 2018 Machine Learning Methods in Software Engineering Group of JetBrains Research
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,36 +18,35 @@ package org.ml_methods_group.algorithm.entity;
 
 import com.intellij.psi.PsiField;
 import com.sixrr.metrics.MetricCategory;
-import com.sixrr.metrics.utils.MethodUtils;
+import org.jetbrains.annotations.NotNull;
 
-public class FieldEntity extends Entity {
-    public FieldEntity(PsiField field) {
-        super(field);
-        isMovable = MethodUtils.isStatic(field);
-    }
+public class FieldEntity extends CodeEntity {
+    private final @NotNull PsiField psiField;
 
-    private FieldEntity(FieldEntity original) {
-        super(original);
-    }
-
-    @Override
-    public MetricCategory getCategory() {
-        return MetricCategory.Package;
+    public FieldEntity(
+        final @NotNull PsiField psiField,
+        final @NotNull RelevantProperties relevantProperties
+    ) {
+        super(relevantProperties);
+        this.psiField = psiField;
     }
 
     @Override
-    public String getClassName() {
-        final String name = getName();
-        return name.substring(0, name.lastIndexOf('.'));
+    public @NotNull String getIdentifier() {
+        throw new UnsupportedOperationException(
+            "Metrics reloaded doesn't support field metrics."
+        );
     }
 
     @Override
-    public FieldEntity copy() {
-        return new FieldEntity(this);
+    public @NotNull
+    MetricCategory getMetricCategory() {
+        throw new UnsupportedOperationException(
+            "Metrics reloaded doesn't support field metrics."
+        );
     }
 
-    @Override
-    public boolean isField() {
-        return true;
+    public @NotNull PsiField getPsiField() {
+        return psiField;
     }
 }

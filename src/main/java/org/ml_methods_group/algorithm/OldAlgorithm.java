@@ -55,31 +55,31 @@ public abstract class OldAlgorithm extends AbstractAlgorithm {
 
             AttributesStorage attributes = context.getAttributesStorage();
 
-            List<ClassEntity> classes =
+            List<ClassOldEntity> classes =
                 attributes.getClassesAttributes()
                     .stream()
                     .map(it -> {
-                        ClassEntity entity = new ClassEntity(it.getOriginalClass());
+                        ClassOldEntity entity = new ClassOldEntity(it.getOriginalClass());
                         setFields(entity, it);
                         return entity;
                     })
                     .collect(Collectors.toList());
 
-            List<MethodEntity> methods =
+            List<MethodOldEntity> methods =
                 attributes.getMethodsAttributes()
                     .stream()
                     .map(it -> {
-                        MethodEntity entity = new MethodEntity(it.getOriginalMethod());
+                        MethodOldEntity entity = new MethodOldEntity(it.getOriginalMethod());
                         setFields(entity, it);
                         return entity;
                     })
                     .collect(Collectors.toList());
 
-            List<FieldEntity> fields =
+            List<FieldOldEntity> fields =
                 attributes.getFieldsAttributes()
                     .stream()
                     .map(it -> {
-                        FieldEntity entity = new FieldEntity(it.getOriginalField());
+                        FieldOldEntity entity = new FieldOldEntity(it.getOriginalField());
                         setFields(entity, it);
                         return entity;
                     })
@@ -109,10 +109,10 @@ public abstract class OldAlgorithm extends AbstractAlgorithm {
             return context.runParallel(values, accumulatorFactory, processor, combiner);
         }
 
-        private void setFields(Entity entity, ElementAttributes attributes) {
+        private void setFields(OldEntity entity, ElementAttributes attributes) {
             try {
                 Field relevantPropertiesField =
-                        Entity.class.getDeclaredField("relevantProperties");
+                        OldEntity.class.getDeclaredField("relevantProperties");
 
                 boolean accessible = relevantPropertiesField.isAccessible();
                 relevantPropertiesField.setAccessible(true);
@@ -121,7 +121,7 @@ public abstract class OldAlgorithm extends AbstractAlgorithm {
                 relevantPropertiesField.setAccessible(accessible);
 
                 Field vectorField =
-                        Entity.class.getDeclaredField("vector");
+                        OldEntity.class.getDeclaredField("vector");
 
                 accessible = vectorField.isAccessible();
                 vectorField.setAccessible(true);

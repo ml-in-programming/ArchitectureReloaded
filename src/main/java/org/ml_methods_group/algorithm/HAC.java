@@ -22,7 +22,7 @@ import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.OldEntity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.AlgorithmsUtil;
@@ -75,7 +75,7 @@ public class HAC extends OldAlgorithm {
     }
 
     private List<Triple> findTriples(Community community, List<Triple> accumulator) {
-        final Entity representative = community.entities.get(0);
+        final OldEntity representative = community.entities.get(0);
         for (Community another : communities) {
             if (another == community) {
                 break;
@@ -113,7 +113,7 @@ public class HAC extends OldAlgorithm {
             final Entry<String, Long> dominantClass = AlgorithmsUtil.getDominantClass(community.entities);
             final String className = dominantClass.getKey();
             LOGGER.info("Generate class name for community (id = " + community.id +"): " + className);
-            for (Entity entity : community.entities) {
+            for (OldEntity entity : community.entities) {
                 if (!entity.getClassName().equals(className)) {
                     if (enableFieldRefactorings || !entity.isField()) {
                         refactorings.add(new Refactoring(entity.getName(), className,
@@ -128,7 +128,7 @@ public class HAC extends OldAlgorithm {
     }
 
     private Community mergeCommunities(Community first, Community second) {
-        final List<Entity> merged;
+        final List<OldEntity> merged;
         if (first.entities.size() < second.entities.size()) {
             merged = second.entities;
             merged.addAll(first.entities);
@@ -189,18 +189,18 @@ public class HAC extends OldAlgorithm {
         triple.release();
     }
 
-    private Community singletonCommunity(Entity entity) {
-        final List<Entity> singletonList = new ArrayList<>(1);
+    private Community singletonCommunity(OldEntity entity) {
+        final List<OldEntity> singletonList = new ArrayList<>(1);
         singletonList.add(entity);
         return new Community(singletonList);
     }
 
     private class Community implements Comparable<Community> {
 
-        private final List<Entity> entities;
+        private final List<OldEntity> entities;
         private final int id;
 
-        Community(List<Entity> entities) {
+        Community(List<OldEntity> entities) {
             this.entities = entities;
             id = idGenerator++;
         }

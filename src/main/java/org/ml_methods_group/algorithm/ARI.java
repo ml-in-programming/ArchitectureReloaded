@@ -21,8 +21,8 @@ import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
 import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.ml_methods_group.algorithm.entity.ClassEntity;
-import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.ClassOldEntity;
+import org.ml_methods_group.algorithm.entity.OldEntity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.AlgorithmsUtil;
@@ -36,8 +36,8 @@ public class ARI extends OldAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(ARI.class);
     private static final double ACCURACY = 1;
 
-    private final List<Entity> units = new ArrayList<>();
-    private final List<ClassEntity> classEntities = new ArrayList<>();
+    private final List<OldEntity> units = new ArrayList<>();
+    private final List<ClassOldEntity> classEntities = new ArrayList<>();
     private final AtomicInteger progressCount = new AtomicInteger();
     private OldExecutionContext context;
 
@@ -65,7 +65,7 @@ public class ARI extends OldAlgorithm {
         return context.runParallel(units, ArrayList<Refactoring>::new, this::findRefactoring, AlgorithmsUtil::combineLists);
     }
 
-    private List<Refactoring> findRefactoring(Entity entity, List<Refactoring> accumulator) {
+    private List<Refactoring> findRefactoring(OldEntity entity, List<Refactoring> accumulator) {
         context.reportProgress((double) progressCount.incrementAndGet() / units.size());
         context.checkCanceled();
         if (!entity.isMovable() || classEntities.size() < 2) {
@@ -73,8 +73,8 @@ public class ARI extends OldAlgorithm {
         }
         double minDistance = Double.POSITIVE_INFINITY;
         double difference = Double.POSITIVE_INFINITY;
-        ClassEntity targetClass = null;
-        for (final ClassEntity classEntity : classEntities) {
+        ClassOldEntity targetClass = null;
+        for (final ClassOldEntity classEntity : classEntities) {
 
             final double distance = entity.distance(classEntity);
             if (distance < minDistance) {

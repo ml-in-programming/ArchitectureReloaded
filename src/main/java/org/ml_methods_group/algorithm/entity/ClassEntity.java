@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Machine Learning Methods in Software Engineering Group of JetBrains Research
+ * Copyright 2018 Machine Learning Methods in Software Engineering Group of JetBrains Research
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,42 +18,31 @@ package org.ml_methods_group.algorithm.entity;
 
 import com.intellij.psi.PsiClass;
 import com.sixrr.metrics.MetricCategory;
+import org.jetbrains.annotations.NotNull;
 
-public class ClassEntity extends Entity {
-    public ClassEntity(PsiClass psiClass) {
-        super(psiClass);
-    }
+public class ClassEntity extends CodeEntity {
+    private final @NotNull PsiClass psiClass;
 
-    private ClassEntity(ClassEntity original) {
-        super(original);
+    public ClassEntity(
+        final @NotNull PsiClass psiClass,
+        final @NotNull RelevantProperties relevantProperties
+    ) {
+        super(relevantProperties);
+        this.psiClass = psiClass;
     }
 
     @Override
-    public MetricCategory getCategory() {
+    public @NotNull String getIdentifier() {
+        return psiClass.getQualifiedName();
+    }
+
+    @Override
+    public @NotNull
+    MetricCategory getMetricCategory() {
         return MetricCategory.Class;
     }
 
-    @Override
-    public String getClassName() {
-        return getName();
-    }
-
-
-    public void removeFromClass(String method) {
-        getRelevantProperties().removeMethod(method);
-    }
-
-    public void addToClass(String method) {
-        getRelevantProperties().addMethod(method);
-    }
-
-    @Override
-    public ClassEntity copy() {
-        return new ClassEntity(this);
-    }
-
-    @Override
-    public boolean isField() {
-        return false;
+    public @NotNull PsiClass getPsiClass() {
+        return psiClass;
     }
 }

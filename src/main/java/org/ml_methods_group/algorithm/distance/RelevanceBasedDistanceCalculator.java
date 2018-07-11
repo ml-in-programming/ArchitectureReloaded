@@ -18,9 +18,10 @@ package org.ml_methods_group.algorithm.distance;
 
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.attributes.ElementAttributes;
+import org.ml_methods_group.algorithm.entity.OldEntity;
 
 /**
- * It's just a distance formula taken from old {@link org.ml_methods_group.algorithm.entity.Entity}
+ * It's just a distance formula taken from old {@link OldEntity}
  * class.
  */
 public class RelevanceBasedDistanceCalculator implements DistanceCalculator {

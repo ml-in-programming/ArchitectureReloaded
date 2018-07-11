@@ -21,7 +21,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import com.sixrr.metrics.profile.MetricsProfile;
 import org.jetbrains.annotations.NotNull;
-import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.utils.MetricsProfilesUtil;
 

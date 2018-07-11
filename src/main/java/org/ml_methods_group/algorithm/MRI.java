@@ -23,10 +23,10 @@ import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.ml_methods_group.algorithm.entity.ClassEntity;
-import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.ClassOldEntity;
+import org.ml_methods_group.algorithm.entity.OldEntity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
-import org.ml_methods_group.algorithm.entity.FieldEntity;
+import org.ml_methods_group.algorithm.entity.FieldOldEntity;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.AlgorithmsUtil;
 
@@ -37,9 +37,9 @@ public class MRI extends OldAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(MRI.class);
     private static final double ACCURACY = 1;
 
-    private final List<Entity> units = new ArrayList<>();
-    private final Map<String, ClassEntity> classesByName = new HashMap<>();
-    private final List<ClassEntity> classes = new ArrayList<>();
+    private final List<OldEntity> units = new ArrayList<>();
+    private final Map<String, ClassOldEntity> classesByName = new HashMap<>();
+    private final List<ClassOldEntity> classes = new ArrayList<>();
 
     public MRI() {
         super("MRI", true);
@@ -55,22 +55,22 @@ public class MRI extends OldAlgorithm {
         final EntitySearchResult searchResult = context.getEntities();
         units.clear();
         classes.clear();
-        List<FieldEntity> fields = enableFieldRefactorings ? searchResult.getFields() : Collections.emptyList();
+        List<FieldOldEntity> fields = enableFieldRefactorings ? searchResult.getFields() : Collections.emptyList();
         Stream.of(searchResult.getMethods(), fields)
                 .flatMap(List::stream)
-                .filter(Entity::isMovable)
+                .filter(OldEntity::isMovable)
                 .forEach(units::add);
 
         searchResult.getClasses()
                 .stream()
-                .map(ClassEntity::copy) // create local copies
+                .map(ClassOldEntity::copy) // create local copies
                 .peek(entity -> classesByName.put(entity.getName(), entity))
                 .forEach(classes::add);
 
         final List<Refactoring> refactorings = new ArrayList<>();
 
         int progress = 0;
-        for (Entity currentEntity : units) {
+        for (OldEntity currentEntity : units) {
             context.checkCanceled();
             final Holder minHolder = context.runParallel(classes, Holder::new,
                     (candidate, holder) -> getNearestClass(currentEntity, candidate, holder), this::min);
@@ -80,7 +80,7 @@ public class MRI extends OldAlgorithm {
                 LOGGER.warn(currentEntity.getName() + " has no nearest class");
                 continue;
             }
-            final ClassEntity nearestClass = minHolder.candidate;
+            final ClassOldEntity nearestClass = minHolder.candidate;
             if (nearestClass.getName().equals(currentEntity.getClassName())) {
                 continue;
             }
@@ -99,7 +99,7 @@ public class MRI extends OldAlgorithm {
     }
 
     @Nullable
-    private Holder getNearestClass(Entity entity, ClassEntity targetClass, Holder holder) {
+    private Holder getNearestClass(OldEntity entity, ClassOldEntity targetClass, Holder holder) {
         final double distance = entity.distance(targetClass);
         if (holder.distance > distance) {
             holder.difference = holder.distance - distance;
@@ -114,7 +114,7 @@ public class MRI extends OldAlgorithm {
     private class Holder {
         private double distance = Double.POSITIVE_INFINITY;
         private double difference = Double.POSITIVE_INFINITY;
-        private ClassEntity candidate;
+        private ClassOldEntity candidate;
     }
 
     private Holder min(Holder first, Holder second) {
@@ -125,9 +125,9 @@ public class MRI extends OldAlgorithm {
         return first;
     }
 
-    private void processMethod(List<Refactoring> refactorings, Entity method, ClassEntity target, double accuracy) {
+    private void processMethod(List<Refactoring> refactorings, OldEntity method, ClassOldEntity target, double accuracy) {
         if (method.isMovable()) {
-            final ClassEntity containingClass = classesByName.get(method.getClassName());
+            final ClassOldEntity containingClass = classesByName.get(method.getClassName());
             refactorings.add(new Refactoring(method.getName(), target.getName(), accuracy, false));
             containingClass.removeFromClass(method.getName());
             target.addToClass(method.getName());

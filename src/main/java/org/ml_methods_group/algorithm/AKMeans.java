@@ -21,7 +21,7 @@ import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
 import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.OldEntity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.AlgorithmsUtil;
@@ -36,10 +36,10 @@ public class AKMeans extends OldAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(AKMeans.class);
     private static final double ACCURACY = 1;
 
-    private final List<Entity> points = new ArrayList<>();
+    private final List<OldEntity> points = new ArrayList<>();
     private final List<Integer> indexes = new ArrayList<>();
     private final List<Integer> communityID = new ArrayList<>();
-    private final List<Set<Entity>> communities = new ArrayList<>();
+    private final List<Set<OldEntity>> communities = new ArrayList<>();
     private final int steps;
     private int numberOfClasses = 0;
 
@@ -76,11 +76,11 @@ public class AKMeans extends OldAlgorithm {
 
     private void initializeCenters() {
         LOGGER.info("Initialize centers");
-        final List<Entity> entities = new ArrayList<>(points);
+        final List<OldEntity> entities = new ArrayList<>(points);
         Collections.shuffle(entities);
 
         for (int i = 0; i < numberOfClasses; i++) {
-            final Set<Entity> community = new HashSet<>();
+            final Set<OldEntity> community = new HashSet<>();
             community.add(entities.get(i));
             communityID.set(i, i);
             communities.add(community);
@@ -110,11 +110,11 @@ public class AKMeans extends OldAlgorithm {
         }
 
         final List<Refactoring> refactorings = new ArrayList<>();
-        for (Set<Entity> community : communities) {
+        for (Set<OldEntity> community : communities) {
             final Entry<String, Long> dominant = AlgorithmsUtil.getDominantClass(community);
             community.stream()
                     .filter(e -> !e.getClassName().equals(dominant.getKey()))
-                    .filter(Entity::isMovable)
+                    .filter(OldEntity::isMovable)
                     .filter(e -> enableFieldRefactorings || !e.isField())
                     .map(e -> new Refactoring(e.getName(), dominant.getKey(),
                             getDensityBasedAccuracyRating(dominant.getValue(), community.size()) * ACCURACY,
@@ -127,7 +127,7 @@ public class AKMeans extends OldAlgorithm {
     private Map<Integer, Integer> findNearestCommunity(int entityID, Map<Integer, Integer> accumulator) {
         double minDistance = Double.POSITIVE_INFINITY;
         int targetID = -1;
-        final Entity entity = points.get(entityID);
+        final OldEntity entity = points.get(entityID);
         for (int centerID = 0; centerID < communities.size(); centerID++) {
             double distance = distToCommunity(entity, centerID);
             if (distance < minDistance) {
@@ -141,13 +141,13 @@ public class AKMeans extends OldAlgorithm {
         return accumulator;
     }
 
-    private double distToCommunity(Entity entity, int centerID) {
-        final Set<Entity> community = communities.get(centerID);
+    private double distToCommunity(OldEntity entity, int centerID) {
+        final Set<OldEntity> community = communities.get(centerID);
         if (community.isEmpty()) {
             return Double.POSITIVE_INFINITY;
         }
         double maxDistance = 0.0;
-        for (Entity point : community) {
+        for (OldEntity point : community) {
             final double distance = entity.distance(point);
             maxDistance = Math.max(distance, maxDistance);
             if (maxDistance == Double.POSITIVE_INFINITY) {
@@ -159,7 +159,7 @@ public class AKMeans extends OldAlgorithm {
     }
 
     private void moveToCommunity(int entityID, int centerID) {
-        final Entity entity = points.get(entityID);
+        final OldEntity entity = points.get(entityID);
         final int currentCommunity = communityID.get(entityID);
         if (currentCommunity != -1) {
             communities.get(currentCommunity).remove(points.get(entityID));

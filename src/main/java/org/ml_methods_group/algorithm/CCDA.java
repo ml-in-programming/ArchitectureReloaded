@@ -21,7 +21,7 @@ import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
 import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.OldEntity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.RelevantProperties;
 import org.ml_methods_group.config.Logging;
@@ -36,10 +36,10 @@ public class CCDA extends OldAlgorithm {
     private static final double ACCURACY = 1;
 
     private final Map<String, Integer> communityIds = new HashMap<>();
-    private final Map<Entity, Integer> entityCommunities = new HashMap<>();
+    private final Map<OldEntity, Integer> entityCommunities = new HashMap<>();
     private final List<String> idCommunity = new ArrayList<>();
     private final List<Integer> aCoefficients = new ArrayList<>();
-    private final List<Entity> nodes = new ArrayList<>();
+    private final List<OldEntity> nodes = new ArrayList<>();
     private final Map<String, Set<String>> graph = new HashMap<>();
     private OldExecutionContext context;
 
@@ -64,7 +64,7 @@ public class CCDA extends OldAlgorithm {
         entities.getClasses().stream()
                 .peek(entity -> communityIds.put(entity.getName(), communityIds.size() + 1))
                 .peek(entity -> entityCommunities.put(entity, communityIds.get(entity.getClassName())))
-                .map(Entity::getName)
+                .map(OldEntity::getName)
                 .forEach(idCommunity::add);
         Stream.of(entities.getFields(), entities.getMethods())
                 .flatMap(List::stream)
@@ -80,7 +80,7 @@ public class CCDA extends OldAlgorithm {
         LOGGER.info("Building graph");
         graph.clear();
         int iteration = 0;
-        for (Entity entity : nodes) {
+        for (OldEntity entity : nodes) {
             final RelevantProperties properties = entity.getRelevantProperties();
             final Set<String> neighbors = graph.getOrDefault(entity.getName(), new HashSet<>());
 
@@ -98,7 +98,7 @@ public class CCDA extends OldAlgorithm {
         }
     }
 
-    private void addNode(String entityName, Entity entity, Collection<String> neighbors) {
+    private void addNode(String entityName, OldEntity entity, Collection<String> neighbors) {
         if (entityName.equals(entity.getName()) || !communityIds.containsKey(entityName)) {
             return;
         }
@@ -111,7 +111,7 @@ public class CCDA extends OldAlgorithm {
     protected List<Refactoring> calculateRefactorings(OldExecutionContext context, boolean enableFieldRefactorings) {
         this.context = context;
         init();
-        final Map<Entity, String> refactorings = new HashMap<>();
+        final Map<OldEntity, String> refactorings = new HashMap<>();
         context.checkCanceled();
         quality = calculateQualityIndex();
         double progress = 0;
@@ -130,7 +130,7 @@ public class CCDA extends OldAlgorithm {
             context.checkCanceled();
         }
 
-        final Map<Integer, List<Entity>> entities = entityCommunities.entrySet().stream()
+        final Map<Integer, List<OldEntity>> entities = entityCommunities.entrySet().stream()
                 .collect(Collectors.groupingBy(Map.Entry::getValue))
                 .entrySet()
                 .stream()
@@ -159,7 +159,7 @@ public class CCDA extends OldAlgorithm {
                 .collect(Collectors.toList());
     }
 
-    private Holder attempt(Entity entity, Holder optimum) {
+    private Holder attempt(OldEntity entity, Holder optimum) {
         final int currentCommunityID = communityIds.get(entity.getName());
         for (int i = 1; i <= idCommunity.size(); ++i) {
             if (i == currentCommunityID) {
@@ -183,7 +183,7 @@ public class CCDA extends OldAlgorithm {
 
     private class Holder {
         private double delta = 0;
-        private Entity targetEntity;
+        private OldEntity targetEntity;
         private int community = -1;
     }
 
@@ -191,7 +191,7 @@ public class CCDA extends OldAlgorithm {
         return first.delta >= second.delta ? first : second;
     }
 
-    private double move(Entity ent, int to, boolean rollback) {
+    private double move(OldEntity ent, int to, boolean rollback) {
         final String name = ent.getName();
         final int from = communityIds.get(name);
         double dq = 0.0;

@@ -16,7 +16,7 @@
 
 package org.ml_methods_group.utils;
 
-import org.ml_methods_group.algorithm.entity.Entity;
+import org.ml_methods_group.algorithm.entity.OldEntity;
 
 import java.util.Collection;
 import java.util.List;
@@ -41,9 +41,9 @@ public class AlgorithmsUtil {
         return first;
     }
 
-    public static Entry<String, Long> getDominantClass(Collection<Entity> entities) {
+    public static Entry<String, Long> getDominantClass(Collection<OldEntity> entities) {
         return entities.stream()
-                .collect(Collectors.groupingBy(Entity::getClassName, Collectors.counting()))
+                .collect(Collectors.groupingBy(OldEntity::getClassName, Collectors.counting()))
                 .entrySet().stream()
                 .max(Entry.comparingByValue())
                 .orElse(null);

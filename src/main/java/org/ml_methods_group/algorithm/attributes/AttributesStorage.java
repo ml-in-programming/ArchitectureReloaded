@@ -21,7 +21,7 @@ import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.Algorithm;
-import org.ml_methods_group.algorithm.entity.EntitiesStorage;
+import org.ml_methods_group.algorithm.entity.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,7 +75,7 @@ public class AttributesStorage {
         }
 
         classesAttributes = new ArrayList<>();
-        for (EntitiesStorage.ClassEntity classEntity : entities.getClasses()) {
+        for (ClassEntity classEntity : entities.getClasses()) {
             classesAttributes.add(
                 new ClassAttributes(
                     classEntity.getPsiClass(),
@@ -86,7 +86,7 @@ public class AttributesStorage {
         }
 
         methodsAttributes = new ArrayList<>();
-        for (EntitiesStorage.MethodEntity methodEntity : entities.getMethods()) {
+        for (MethodEntity methodEntity : entities.getMethods()) {
             methodsAttributes.add(
                 new MethodAttributes(
                     methodEntity.getPsiMethod(),
@@ -97,7 +97,7 @@ public class AttributesStorage {
         }
 
         fieldsAttributes = new ArrayList<>();
-        for (EntitiesStorage.FieldEntity fieldEntity : entities.getFields()) {
+        for (FieldEntity fieldEntity : entities.getFields()) {
             fieldsAttributes.add(
                 new FieldAttributes(
                     fieldEntity.getPsiField(),
@@ -120,7 +120,7 @@ public class AttributesStorage {
     }
 
     private @NotNull double[] extractFeatures(
-        final @NotNull EntitiesStorage.Entity entity,
+        final @NotNull CodeEntity entity,
         final @NotNull List<Metric> metrics,
         final @NotNull MetricsRun metricsRun
     ) throws NoRequestedMetricException {
