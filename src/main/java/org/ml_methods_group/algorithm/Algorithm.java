@@ -20,7 +20,6 @@ import com.sixrr.metrics.Metric;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.attributes.AttributesStorage;
-import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -28,6 +27,9 @@ import java.util.concurrent.ExecutorService;
 /**
  * An algorithm that analyses given {@link AttributesStorage} and produces refactoring suggestions
  * as an {@link AlgorithmResult}.
+ * This class does not represent an algorithm state of execution but represent algorithm itself as
+ * idea. {@link Algorithm#execute} method should create actual execution state for each run if
+ * needed.
  */
 public interface Algorithm {
     /**
