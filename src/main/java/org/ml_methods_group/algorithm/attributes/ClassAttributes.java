@@ -38,6 +38,11 @@ public class ClassAttributes extends ElementAttributes {
         return psiClass;
     }
 
+    @Override
+    public boolean isMovable() {
+        return true;
+    }
+
     public @NotNull PsiClass getOriginalClass() {
         return psiClass;
     }

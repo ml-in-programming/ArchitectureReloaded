@@ -18,11 +18,14 @@ package org.ml_methods_group.algorithm.attributes;
 
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
+import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.entity.RelevantProperties;
 
 public class FieldAttributes extends ElementAttributes {
     private final @NotNull PsiField psiField;
+
+    private final boolean isMovable;
 
     public FieldAttributes(
         final @NotNull PsiField psiField,
@@ -31,11 +34,18 @@ public class FieldAttributes extends ElementAttributes {
     ) {
         super(features, relevantProperties);
         this.psiField = psiField;
+
+        isMovable = MethodUtils.isStatic(psiField);
     }
 
     @Override
     public @NotNull PsiElement getOriginalElement() {
         return psiField;
+    }
+
+    @Override
+    public boolean isMovable() {
+        return isMovable;
     }
 
     public @NotNull PsiField getOriginalField() {

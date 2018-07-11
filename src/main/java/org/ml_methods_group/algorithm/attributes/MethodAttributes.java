@@ -18,11 +18,15 @@ package org.ml_methods_group.algorithm.attributes;
 
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
+import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.entity.RelevantProperties;
+import org.ml_methods_group.utils.PSIUtil;
 
 public class MethodAttributes extends ElementAttributes {
     private final @NotNull PsiMethod psiMethod;
+
+    private final boolean isMovable;
 
     public MethodAttributes(
         final @NotNull PsiMethod psiMethod,
@@ -31,11 +35,19 @@ public class MethodAttributes extends ElementAttributes {
     ) {
         super(features, relevantProperties);
         this.psiMethod = psiMethod;
+
+        isMovable = !PSIUtil.isOverriding(psiMethod) &&
+                !MethodUtils.isAbstract(psiMethod) && !psiMethod.isConstructor();
     }
 
     @Override
     public @NotNull PsiElement getOriginalElement() {
         return psiMethod;
+    }
+
+    @Override
+    public boolean isMovable() {
+        return isMovable;
     }
 
     public @NotNull PsiMethod getOriginalMethod() {

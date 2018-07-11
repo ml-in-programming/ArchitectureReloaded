@@ -54,6 +54,12 @@ public abstract class ElementAttributes {
     public abstract @NotNull PsiElement getOriginalElement();
 
     /**
+     * Returns {@code true} if move refactoring can be applied to original element
+     * (i.e. it's not a ctor which can't be moved to another class).
+     */
+    public abstract boolean isMovable();
+
+    /**
      * Returns array of features. ATTENTION: this array is not supposed to be changed directly.
      */
     public @NotNull double[] getRawFeatures() {
