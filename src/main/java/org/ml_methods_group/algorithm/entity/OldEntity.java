@@ -31,7 +31,11 @@ import java.util.Set;
 /**
  * Code entity like class, method or field. Entity can be used inside suggestion algorithms.
  * It has a vector of features and {@link RelevantProperties}.
+ *
+ * This is an old class which has too many responsibility. {@link CodeEntity} and
+ * {@link org.ml_methods_group.algorithm.attributes.ElementAttributes} should be used instead.
  */
+@Deprecated
 public abstract class OldEntity {
     private static final VectorCalculator CLASS_ENTITY_CALCULATOR = new VectorCalculator()
             .addMetricDependence(NumMethodsClassMetric.class)

@@ -28,6 +28,11 @@ import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+/**
+ * This class is a proxy for old algorithms. It shouldn't be used to create new algorithms.
+ * {@link AbstractAlgorithm} should be used directly.
+ */
+@Deprecated
 public abstract class OldAlgorithm extends AbstractAlgorithm {
     public OldAlgorithm(String name, boolean enableParallelExecution) {
         super(name, enableParallelExecution);
