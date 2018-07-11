@@ -49,6 +49,13 @@ public class MethodEntity extends CodeEntity {
     }
 
     @Override
+    public @NotNull String getContainingClassName() {
+        final String signature = getIdentifier();
+        final String name = signature.substring(0, signature.indexOf('('));
+        return name.substring(0, name.lastIndexOf('.'));
+    }
+
+    @Override
     public @NotNull
     MetricCategory getMetricCategory() {
         return MetricCategory.Method;

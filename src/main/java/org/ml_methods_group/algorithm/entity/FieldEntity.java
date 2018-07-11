@@ -21,6 +21,8 @@ import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 
+import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
+
 public class FieldEntity extends CodeEntity {
     private final @NotNull PsiField psiField;
 
@@ -38,14 +40,18 @@ public class FieldEntity extends CodeEntity {
 
     @Override
     public @NotNull String getIdentifier() {
-        throw new UnsupportedOperationException(
-            "Metrics reloaded doesn't support field metrics."
-        );
+        return getHumanReadableName(psiField.getContainingClass()) + "." + psiField.getName();
     }
 
     @Override
     public boolean isMovable() {
         return isMovable;
+    }
+
+    @Override
+    public @NotNull String getContainingClassName() {
+        final String name = getIdentifier();
+        return name.substring(0, name.lastIndexOf('.'));
     }
 
     @Override

@@ -42,6 +42,11 @@ public class ClassEntity extends CodeEntity {
     }
 
     @Override
+    public @NotNull String getContainingClassName() {
+        return getIdentifier();
+    }
+
+    @Override
     public @NotNull MetricCategory getMetricCategory() {
         return MetricCategory.Class;
     }
