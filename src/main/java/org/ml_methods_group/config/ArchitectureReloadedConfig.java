@@ -22,6 +22,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.Nullable;
+import org.ml_methods_group.algorithm.Algorithm;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 
 import java.util.Arrays;
@@ -32,7 +33,7 @@ import java.util.Set;
 @State(name = "ArchitectureReloaded", storages = @Storage(file = "architecture.reloaded.xml"))
 public final class ArchitectureReloadedConfig implements PersistentStateComponent<ArchitectureReloadedConfig> {
 
-    private final Set<String> selectedAlgorithms =
+    private final Set<Algorithm> selectedAlgorithms =
             new HashSet<>(Arrays.asList(RefactoringExecutionContext.getAvailableAlgorithms()));
     private boolean isFieldRefactoringAvailable = false;
 
@@ -42,11 +43,11 @@ public final class ArchitectureReloadedConfig implements PersistentStateComponen
         return ServiceManager.getService(ArchitectureReloadedConfig.class);
     }
 
-    public Set<String> getSelectedAlgorithms() {
+    public Set<Algorithm> getSelectedAlgorithms() {
         return Collections.unmodifiableSet(selectedAlgorithms);
     }
 
-    public void setSelected(String algorithm, boolean isSelected) {
+    public void setSelected(Algorithm algorithm, boolean isSelected) {
         if (isSelected) {
             selectedAlgorithms.add(algorithm);
         } else {

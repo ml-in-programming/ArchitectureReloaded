@@ -73,7 +73,7 @@ public class RefactoringExecutionContext {
     private final ExecutorService executorService = Executors.newCachedThreadPool();
     private final List<AlgorithmResult> algorithmsResults = new ArrayList<>();
     @NotNull
-    private final Collection<String> requestedAlgorithms;
+    private final Collection<Algorithm> requestedAlgorithms;
     private final boolean isFieldRefactoringAvailable;
 
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
@@ -94,7 +94,7 @@ public class RefactoringExecutionContext {
      */
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
                                        @NotNull MetricsProfile profile,
-                                       @NotNull Collection<String> requestedAlgorithms,
+                                       @NotNull Collection<Algorithm> requestedAlgorithms,
                                        boolean isFieldRefactoringAvailable,
                                        @Nullable Consumer<RefactoringExecutionContext> continuation) {
         this.project = project;
@@ -137,8 +137,8 @@ public class RefactoringExecutionContext {
         entitySearchResult = ApplicationManager.getApplication()
                 .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
         entitiesStorage = new EntitiesStorage(entitySearchResult);
-        for (String algorithm : requestedAlgorithms) {
-            calculateAlgorithmForName(algorithm);
+        for (Algorithm algorithm : requestedAlgorithms) {
+            calculate(algorithm);
         }
         indicator.setText("Finish refactorings search...");
     }
@@ -173,16 +173,6 @@ public class RefactoringExecutionContext {
             algorithm.execute(attributes, executorService, isFieldRefactoringAvailable);
 
         algorithmsResults.add(result);
-    }
-
-    private void calculateAlgorithmForName(String algorithmName) {
-        for (Algorithm algorithm : ALGORITHMS) {
-            if (algorithmName.equals(algorithm.getClass().getSimpleName())) {
-                calculate(algorithm);
-                return;
-            }
-        }
-        throw new IllegalArgumentException("Unknown algorithm: " + algorithmName);
     }
 
     public List<AlgorithmResult> getAlgorithmResults() {
@@ -224,10 +214,7 @@ public class RefactoringExecutionContext {
         return profile;
     }
 
-    public static String[] getAvailableAlgorithms() {
-        return ALGORITHMS.stream()
-                .map(Object::getClass)
-                .map(Class::getSimpleName)
-                .toArray(String[]::new);
+    public static Algorithm[] getAvailableAlgorithms() {
+        return ALGORITHMS.toArray(new Algorithm[ALGORITHMS.size()]);
     }
 }

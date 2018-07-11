@@ -17,7 +17,10 @@
 package org.ml_methods_group.algorithm;
 
 public class CcdaTest extends AlgorithmAbstractTest {
-    private static final String algorithmName = "CCDA";
+    private static final Algorithm algorithm = new CCDA();
+
+    private static final String algorithmName = algorithm.getDescriptionString();
+
     private static final TestCasesCheckers testCasesChecker = new TestCasesCheckers(algorithmName);
 
     public void testMoveMethod() {
@@ -107,7 +110,7 @@ public class CcdaTest extends AlgorithmAbstractTest {
     }
 
     @Override
-    protected String getAlgorithmName() {
-        return algorithmName;
+    protected Algorithm getAlgorithm() {
+        return algorithm;
     }
 }

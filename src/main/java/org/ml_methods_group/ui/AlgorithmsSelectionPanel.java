@@ -19,6 +19,7 @@ package org.ml_methods_group.ui;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBCheckBox;
 import org.jetbrains.annotations.NotNull;
+import org.ml_methods_group.algorithm.Algorithm;
 import org.ml_methods_group.config.ArchitectureReloadedConfig;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
@@ -101,7 +102,7 @@ public class AlgorithmsSelectionPanel extends JPanel {
     private static Tab createAlgorithmsTab() {
         JPanel panel = new JPanel(new GridBagLayout());
 
-        final String[] algorithms = RefactoringExecutionContext.getAvailableAlgorithms();
+        final Algorithm[] algorithms = RefactoringExecutionContext.getAvailableAlgorithms();
         final ArchitectureReloadedConfig config = ArchitectureReloadedConfig.getInstance();
 
         final GridBagConstraints constraints = new GridBagConstraints();
@@ -114,12 +115,12 @@ public class AlgorithmsSelectionPanel extends JPanel {
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.NORTHWEST;
 
-        final Set<String> currentSelection = config.getSelectedAlgorithms();
+        final Set<Algorithm> currentSelection = config.getSelectedAlgorithms();
         for (int i = 0; i < algorithms.length; i++) {
-            final String algorithm = algorithms[i];
+            final Algorithm algorithm = algorithms[i];
 
             final JCheckBox checkBox =
-                new JBCheckBox(algorithm, currentSelection.contains(algorithm));
+                new JBCheckBox(algorithm.getDescriptionString(), currentSelection.contains(algorithm));
             checkBox.addActionListener(e -> config.setSelected(algorithm, checkBox.isSelected()));
 
             constraints.gridy = i;
