@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 /**
- * An algorithm that analyses given {@link EntitySearchResult} and produces refactoring suggestions
+ * An algorithm that analyses given {@link AttributesStorage} and produces refactoring suggestions
  * as an {@link AlgorithmResult}.
  */
 public interface Algorithm {
