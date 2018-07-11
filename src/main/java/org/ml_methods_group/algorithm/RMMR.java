@@ -42,7 +42,12 @@ public class RMMR extends Algorithm {
     /** Describes minimal accuracy that algorithm accepts */
     private final static double MIN_ACCURACY = 0.01;
     /** Describes accuracy that is pretty confident to do refactoring */
-    private final static double GOOD_ACCURACY_BOUND = 0.55;
+    private final static double GOOD_ACCURACY_BOUND = 0.5;
+    /** Describes accuracy higher which accuracy considered as max = 1 */
+    private final static double MAX_ACCURACY_BOUND = 0.7;
+    /** Describes power to which stretched accuracy will be raised */
+    // value is to get this result: GOOD_ACCURACY_BOUND go to MAX_ACCURACY_BOUND
+    private final static double POWER_FOR_ACCURACY = log(MAX_ACCURACY_BOUND) / log(GOOD_ACCURACY_BOUND / MAX_ACCURACY_BOUND);
     private static final Logger LOGGER = Logging.getLogger(RMMR.class);
     private final Map<ClassEntity, Set<MethodEntity>> methodsByClass = new HashMap<>();
     private final List<MethodEntity> units = new ArrayList<>();
@@ -156,6 +161,7 @@ public class RMMR extends Algorithm {
         if (entity.getName().contains("main")) {
             accuracy /= 2;
         }
+        accuracy = min(pow(accuracy / MAX_ACCURACY_BOUND, POWER_FOR_ACCURACY), 1);
         if (differenceWithSourceClass != 0 && accuracy >= MIN_ACCURACY && !targetClassName.equals(entity.getClassName())) {
             accumulator.add(new Refactoring(entity.getName(), targetClassName, accuracy, entity.isField()));
         }
