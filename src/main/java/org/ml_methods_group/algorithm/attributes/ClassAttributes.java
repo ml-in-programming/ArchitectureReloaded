@@ -16,26 +16,24 @@
 
 package org.ml_methods_group.algorithm.attributes;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
-import org.ml_methods_group.algorithm.entity.RelevantProperties;
+import org.ml_methods_group.algorithm.entity.ClassEntity;
+import org.ml_methods_group.algorithm.entity.CodeEntity;
 
 public class ClassAttributes extends ElementAttributes {
-    private final @NotNull PsiClass psiClass;
+    private final @NotNull ClassEntity classEntity;
 
     public ClassAttributes(
-        final @NotNull PsiClass psiClass,
-        final @NotNull double[] features,
-        final @NotNull RelevantProperties relevantProperties
+        final @NotNull ClassEntity classEntity,
+        final @NotNull double[] features
     ) {
-        super(features, relevantProperties);
-        this.psiClass = psiClass;
+        super(features);
+        this.classEntity = classEntity;
     }
 
     @Override
-    public @NotNull PsiElement getOriginalElement() {
-        return psiClass;
+    public @NotNull CodeEntity getOriginalEntity() {
+        return classEntity;
     }
 
     @Override
@@ -43,7 +41,7 @@ public class ClassAttributes extends ElementAttributes {
         return true;
     }
 
-    public @NotNull PsiClass getOriginalClass() {
-        return psiClass;
+    public @NotNull ClassEntity getOriginalClass() {
+        return classEntity;
     }
 }

@@ -59,7 +59,7 @@ public abstract class OldAlgorithm extends AbstractAlgorithm {
                 attributes.getClassesAttributes()
                     .stream()
                     .map(it -> {
-                        ClassOldEntity entity = new ClassOldEntity(it.getOriginalClass());
+                        ClassOldEntity entity = new ClassOldEntity(it.getOriginalClass().getPsiClass());
                         setFields(entity, it);
                         return entity;
                     })
@@ -69,7 +69,7 @@ public abstract class OldAlgorithm extends AbstractAlgorithm {
                 attributes.getMethodsAttributes()
                     .stream()
                     .map(it -> {
-                        MethodOldEntity entity = new MethodOldEntity(it.getOriginalMethod());
+                        MethodOldEntity entity = new MethodOldEntity(it.getOriginalMethod().getPsiMethod());
                         setFields(entity, it);
                         return entity;
                     })
@@ -79,7 +79,7 @@ public abstract class OldAlgorithm extends AbstractAlgorithm {
                 attributes.getFieldsAttributes()
                     .stream()
                     .map(it -> {
-                        FieldOldEntity entity = new FieldOldEntity(it.getOriginalField());
+                        FieldOldEntity entity = new FieldOldEntity(it.getOriginalField().getPsiField());
                         setFields(entity, it);
                         return entity;
                     })

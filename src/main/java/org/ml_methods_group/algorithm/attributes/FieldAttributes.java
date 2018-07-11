@@ -16,31 +16,29 @@
 
 package org.ml_methods_group.algorithm.attributes;
 
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
-import org.ml_methods_group.algorithm.entity.RelevantProperties;
+import org.ml_methods_group.algorithm.entity.CodeEntity;
+import org.ml_methods_group.algorithm.entity.FieldEntity;
 
 public class FieldAttributes extends ElementAttributes {
-    private final @NotNull PsiField psiField;
+    private final @NotNull FieldEntity fieldEntity;
 
     private final boolean isMovable;
 
     public FieldAttributes(
-        final @NotNull PsiField psiField,
-        final @NotNull double[] features,
-        final @NotNull RelevantProperties relevantProperties
+        final @NotNull FieldEntity fieldEntity,
+        final @NotNull double[] features
     ) {
-        super(features, relevantProperties);
-        this.psiField = psiField;
+        super(features);
+        this.fieldEntity = fieldEntity;
 
-        isMovable = MethodUtils.isStatic(psiField);
+        isMovable = MethodUtils.isStatic(fieldEntity.getPsiField());
     }
 
     @Override
-    public @NotNull PsiElement getOriginalElement() {
-        return psiField;
+    public @NotNull CodeEntity getOriginalEntity() {
+        return fieldEntity;
     }
 
     @Override
@@ -48,7 +46,7 @@ public class FieldAttributes extends ElementAttributes {
         return isMovable;
     }
 
-    public @NotNull PsiField getOriginalField() {
-        return psiField;
+    public @NotNull FieldEntity getOriginalField() {
+        return fieldEntity;
     }
 }

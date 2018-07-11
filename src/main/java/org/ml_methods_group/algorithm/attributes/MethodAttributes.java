@@ -16,33 +16,31 @@
 
 package org.ml_methods_group.algorithm.attributes;
 
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
-import org.ml_methods_group.algorithm.entity.RelevantProperties;
+import org.ml_methods_group.algorithm.entity.CodeEntity;
+import org.ml_methods_group.algorithm.entity.MethodEntity;
 import org.ml_methods_group.utils.PSIUtil;
 
 public class MethodAttributes extends ElementAttributes {
-    private final @NotNull PsiMethod psiMethod;
+    private final @NotNull MethodEntity methodEntity;
 
     private final boolean isMovable;
 
     public MethodAttributes(
-        final @NotNull PsiMethod psiMethod,
-        final @NotNull double[] features,
-        final @NotNull RelevantProperties relevantProperties
+        final @NotNull MethodEntity methodEntity,
+        final @NotNull double[] features
     ) {
-        super(features, relevantProperties);
-        this.psiMethod = psiMethod;
+        super(features);
+        this.methodEntity = methodEntity;
 
-        isMovable = !PSIUtil.isOverriding(psiMethod) &&
-                !MethodUtils.isAbstract(psiMethod) && !psiMethod.isConstructor();
+        isMovable = !PSIUtil.isOverriding(methodEntity.getPsiMethod()) &&
+                !MethodUtils.isAbstract(methodEntity.getPsiMethod()) && !methodEntity.getPsiMethod().isConstructor();
     }
 
     @Override
-    public @NotNull PsiElement getOriginalElement() {
-        return psiMethod;
+    public @NotNull CodeEntity getOriginalEntity() {
+        return methodEntity;
     }
 
     @Override
@@ -50,7 +48,7 @@ public class MethodAttributes extends ElementAttributes {
         return isMovable;
     }
 
-    public @NotNull PsiMethod getOriginalMethod() {
-        return psiMethod;
+    public @NotNull MethodEntity getOriginalMethod() {
+        return methodEntity;
     }
 }

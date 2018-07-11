@@ -78,9 +78,8 @@ public class AttributesStorage {
         for (ClassEntity classEntity : entities.getClasses()) {
             classesAttributes.add(
                 new ClassAttributes(
-                    classEntity.getPsiClass(),
-                    extractFeatures(classEntity, metrics, metricsRun),
-                    classEntity.getRelevantProperties()
+                    classEntity,
+                    extractFeatures(classEntity, metrics, metricsRun)
                 )
             );
         }
@@ -89,22 +88,15 @@ public class AttributesStorage {
         for (MethodEntity methodEntity : entities.getMethods()) {
             methodsAttributes.add(
                 new MethodAttributes(
-                    methodEntity.getPsiMethod(),
-                    extractFeatures(methodEntity, metrics, metricsRun),
-                    methodEntity.getRelevantProperties()
+                    methodEntity,
+                    extractFeatures(methodEntity, metrics, metricsRun)
                 )
             );
         }
 
         fieldsAttributes = new ArrayList<>();
         for (FieldEntity fieldEntity : entities.getFields()) {
-            fieldsAttributes.add(
-                new FieldAttributes(
-                    fieldEntity.getPsiField(),
-                    new double[0],
-                    fieldEntity.getRelevantProperties()
-                )
-            );
+            fieldsAttributes.add(new FieldAttributes(fieldEntity, new double[0]));
         }
     }
 

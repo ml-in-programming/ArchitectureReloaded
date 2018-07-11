@@ -19,6 +19,7 @@ package org.ml_methods_group.algorithm.attributes;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.AbstractAlgorithm;
+import org.ml_methods_group.algorithm.entity.CodeEntity;
 import org.ml_methods_group.algorithm.entity.RelevantProperties;
 
 /**
@@ -35,23 +36,17 @@ public abstract class ElementAttributes {
      */
     private final @NotNull double[] features;
 
-    private final @NotNull RelevantProperties relevantProperties;
-
     /**
      * Initializes attributes.
      */
-    public ElementAttributes(
-        final @NotNull double[] features,
-        final @NotNull RelevantProperties relevantProperties
-    ) {
+    public ElementAttributes(final @NotNull double[] features) {
         this.features = features;
-        this.relevantProperties = relevantProperties;
     }
 
     /**
-     * Returns element this attributes derived from.
+     * Returns entity this attributes derived from.
      */
-    public abstract @NotNull PsiElement getOriginalElement();
+    public abstract @NotNull CodeEntity getOriginalEntity();
 
     /**
      * Returns {@code true} if move refactoring can be applied to original element
@@ -70,6 +65,6 @@ public abstract class ElementAttributes {
      * Returns {@link RelevantProperties} for element.
      */
     public @NotNull RelevantProperties getRelevantProperties() {
-        return relevantProperties;
+        return getOriginalEntity().getRelevantProperties();
     }
 }
