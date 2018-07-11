@@ -91,9 +91,21 @@ public abstract class Entity {
     public double distance(Entity entity) {
         double ans = 0.0;
         double w = 0.0;
-        for (int i = 0; i < DIMENSION; i++) {
-            w += square(vector[i] + entity.vector[i]);
+
+        if (this.getCategory().equals(entity.getCategory())) {
+            for (int i = 0; i < vector.length; i++) {
+                w += square(vector[i] + entity.vector[i]);
+            }
+        } else {
+            for (double aVector : vector) {
+                w += square(aVector);
+            }
+
+            for (double aVector : entity.vector) {
+                w += square(aVector);
+            }
         }
+
         ans += w == 0 ? 0 : 1.0 / (w + 1);
         final int rpIntersect = entity.relevantProperties.sizeOfIntersection(relevantProperties);
         if (rpIntersect == 0) {
