@@ -30,12 +30,6 @@ import java.util.concurrent.ExecutorService;
  * as an {@link AlgorithmResult}.
  */
 public interface Algorithm {
-    @NotNull AlgorithmResult oldExecute(
-        @NotNull EntitySearchResult entities,
-        @Nullable ExecutorService service,
-        boolean enableFieldRefactorings
-    );
-
     /**
      * Executes this algorithm on an input.
      *

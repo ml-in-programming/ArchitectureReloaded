@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 
 import static org.ml_methods_group.utils.AlgorithmsUtil.getDensityBasedAccuracyRating;
 
-public class HAC extends AbstractAlgorithm {
+public class HAC extends OldAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(HAC.class);
     private static final double ACCURACY = 1;
 
@@ -42,7 +42,7 @@ public class HAC extends AbstractAlgorithm {
     private final Map<Long, Triple> triples = new HashMap<>();
     private final Set<Community> communities = new HashSet<>();
     private final AtomicInteger progressCounter = new AtomicInteger();
-    private ExecutionContext context;
+    private OldExecutionContext context;
     private int idGenerator = 0;
 
     public HAC() {
@@ -54,7 +54,7 @@ public class HAC extends AbstractAlgorithm {
         return Arrays.asList(NumMethodsClassMetric.class, NumAttributesAddedMetric.class);
     }
 
-    private void init(ExecutionContext context) {
+    private void init(OldExecutionContext context) {
         LOGGER.info("Init HAC");
         this.context = context;
         heap.clear();
@@ -69,7 +69,7 @@ public class HAC extends AbstractAlgorithm {
         final List<Community> communitiesAsList = new ArrayList<>(communities);
         Collections.shuffle(communitiesAsList);
         final List<Triple> toInsert =
-                runParallel(communitiesAsList, context, ArrayList::new, this::findTriples, AlgorithmsUtil::combineLists);
+                context.runParallel(communitiesAsList, ArrayList::new, this::findTriples, AlgorithmsUtil::combineLists);
         toInsert.forEach(this::insertTriple);
         LOGGER.info("Built heap (" + heap.size() + " triples)");
     }
@@ -85,13 +85,13 @@ public class HAC extends AbstractAlgorithm {
                 accumulator.add(new Triple(distance, community, another));
             }
         }
-        reportProgress(0.9 * (double) progressCounter.incrementAndGet() / communities.size(), context);
+        context.reportProgress(0.9 * (double) progressCounter.incrementAndGet() / communities.size());
         context.checkCanceled();
         return accumulator;
     }
 
     @Override
-    protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) {
+    protected List<Refactoring> calculateRefactorings(OldExecutionContext context, boolean enableFieldRefactorings) {
         init(context);
         final int initialCommunitiesCount = communities.size();
         while (!heap.isEmpty()) {
@@ -100,7 +100,7 @@ public class HAC extends AbstractAlgorithm {
             final Community first = minTriple.first;
             final Community second = minTriple.second;
             mergeCommunities(first, second);
-            reportProgress(1 - 0.1 * communities.size() / initialCommunitiesCount, context);
+            context.reportProgress(1 - 0.1 * communities.size() / initialCommunitiesCount);
             context.checkCanceled();
         }
 

@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 
 import static org.ml_methods_group.utils.AlgorithmsUtil.getDensityBasedAccuracyRating;
 
-public class AKMeans extends AbstractAlgorithm {
+public class AKMeans extends OldAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(AKMeans.class);
     private static final double ACCURACY = 1;
 
@@ -88,7 +88,7 @@ public class AKMeans extends AbstractAlgorithm {
     }
 
     @Override
-    protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) {
+    protected List<Refactoring> calculateRefactorings(OldExecutionContext context, boolean enableFieldRefactorings) {
         init(context.getEntities());
         context.checkCanceled();
         initializeCenters();
@@ -96,10 +96,10 @@ public class AKMeans extends AbstractAlgorithm {
 
         for (int step = 0; step < steps; step++) {
             LOGGER.info("Start step " + step);
-            reportProgress((double) step / steps, context);
+            context.reportProgress((double) step / steps);
             context.checkCanceled();
             final Map<Integer, Integer> movements =
-                    runParallel(indexes, context, HashMap::new, this::findNearestCommunity, AlgorithmsUtil::combineMaps);
+                    context.runParallel(indexes, HashMap::new, this::findNearestCommunity, AlgorithmsUtil::combineMaps);
             for (Entry<Integer, Integer> movement : movements.entrySet()) {
                 moveToCommunity(movement.getKey(), movement.getValue());
             }

@@ -33,7 +33,7 @@ import org.ml_methods_group.utils.AlgorithmsUtil;
 import java.util.*;
 import java.util.stream.Stream;
 
-public class MRI extends AbstractAlgorithm {
+public class MRI extends OldAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(MRI.class);
     private static final double ACCURACY = 1;
 
@@ -51,7 +51,7 @@ public class MRI extends AbstractAlgorithm {
     }
 
     @Override
-    protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) {
+    protected List<Refactoring> calculateRefactorings(OldExecutionContext context, boolean enableFieldRefactorings) {
         final EntitySearchResult searchResult = context.getEntities();
         units.clear();
         classes.clear();
@@ -72,10 +72,10 @@ public class MRI extends AbstractAlgorithm {
         int progress = 0;
         for (Entity currentEntity : units) {
             context.checkCanceled();
-            final Holder minHolder = runParallel(classes, context, Holder::new,
+            final Holder minHolder = context.runParallel(classes, Holder::new,
                     (candidate, holder) -> getNearestClass(currentEntity, candidate, holder), this::min);
             progress++;
-            reportProgress((double) progress / units.size(), context);
+            context.reportProgress((double) progress / units.size());
             if (minHolder.candidate == null) {
                 LOGGER.warn(currentEntity.getName() + " has no nearest class");
                 continue;

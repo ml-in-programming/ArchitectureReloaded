@@ -20,7 +20,7 @@ import com.intellij.psi.PsiClass;
 import com.sixrr.metrics.MetricCategory;
 
 public class ClassEntity extends Entity {
-    ClassEntity(PsiClass psiClass) {
+    public ClassEntity(PsiClass psiClass) {
         super(psiClass);
     }
 

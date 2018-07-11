@@ -32,14 +32,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ARI extends AbstractAlgorithm {
+public class ARI extends OldAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(ARI.class);
     private static final double ACCURACY = 1;
 
     private final List<Entity> units = new ArrayList<>();
     private final List<ClassEntity> classEntities = new ArrayList<>();
     private final AtomicInteger progressCount = new AtomicInteger();
-    private ExecutionContext context;
+    private OldExecutionContext context;
 
     public ARI() {
         super("ARI", true);
@@ -51,7 +51,7 @@ public class ARI extends AbstractAlgorithm {
     }
 
     @Override
-    protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) {
+    protected List<Refactoring> calculateRefactorings(OldExecutionContext context, boolean enableFieldRefactorings) {
         units.clear();
         classEntities.clear();
         final EntitySearchResult entities = context.getEntities();
@@ -62,11 +62,11 @@ public class ARI extends AbstractAlgorithm {
         }
         progressCount.set(0);
         this.context = context;
-        return runParallel(units, context, ArrayList<Refactoring>::new, this::findRefactoring, AlgorithmsUtil::combineLists);
+        return context.runParallel(units, ArrayList<Refactoring>::new, this::findRefactoring, AlgorithmsUtil::combineLists);
     }
 
     private List<Refactoring> findRefactoring(Entity entity, List<Refactoring> accumulator) {
-        reportProgress((double) progressCount.incrementAndGet() / units.size(), context);
+        context.reportProgress((double) progressCount.incrementAndGet() / units.size());
         context.checkCanceled();
         if (!entity.isMovable() || classEntities.size() < 2) {
             return accumulator;

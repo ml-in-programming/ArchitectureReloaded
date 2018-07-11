@@ -169,7 +169,9 @@ public class RefactoringExecutionContext {
             return;
         }
 
-        final AlgorithmResult result = algorithm.oldExecute(entitySearchResult, executorService, isFieldRefactoringAvailable);
+        final AlgorithmResult result =
+            algorithm.execute(attributes, executorService, isFieldRefactoringAvailable);
+
         algorithmsResults.add(result);
     }
 

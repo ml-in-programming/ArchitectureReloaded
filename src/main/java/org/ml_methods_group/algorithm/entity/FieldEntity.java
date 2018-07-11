@@ -21,7 +21,7 @@ import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.utils.MethodUtils;
 
 public class FieldEntity extends Entity {
-    FieldEntity(PsiField field) {
+    public FieldEntity(PsiField field) {
         super(field);
         isMovable = MethodUtils.isStatic(field);
     }

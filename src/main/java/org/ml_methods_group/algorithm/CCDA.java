@@ -31,7 +31,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class CCDA extends AbstractAlgorithm {
+public class CCDA extends OldAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(CCDA.class);
     private static final double ACCURACY = 1;
 
@@ -41,7 +41,7 @@ public class CCDA extends AbstractAlgorithm {
     private final List<Integer> aCoefficients = new ArrayList<>();
     private final List<Entity> nodes = new ArrayList<>();
     private final Map<String, Set<String>> graph = new HashMap<>();
-    private ExecutionContext context;
+    private OldExecutionContext context;
 
     private double quality;
     private double edges;
@@ -94,7 +94,7 @@ public class CCDA extends AbstractAlgorithm {
             context.checkCanceled();
             graph.put(entity.getName(), neighbors);
             iteration++;
-            reportProgress((0.1 * iteration) / nodes.size(), context);
+            context.reportProgress((0.1 * iteration) / nodes.size());
         }
     }
 
@@ -108,7 +108,7 @@ public class CCDA extends AbstractAlgorithm {
     }
 
     @Override
-    protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) {
+    protected List<Refactoring> calculateRefactorings(OldExecutionContext context, boolean enableFieldRefactorings) {
         this.context = context;
         init();
         final Map<Entity, String> refactorings = new HashMap<>();
@@ -116,7 +116,7 @@ public class CCDA extends AbstractAlgorithm {
         quality = calculateQualityIndex();
         double progress = 0;
         while (true) {
-            final Holder optimum = runParallel(nodes, context, Holder::new, this::attempt, this::max);
+            final Holder optimum = context.runParallel(nodes, Holder::new, this::attempt, this::max);
             if (optimum.delta <= eps) {
                 break;
             }
@@ -125,7 +125,7 @@ public class CCDA extends AbstractAlgorithm {
             communityIds.put(optimum.targetEntity.getName(), optimum.community);
             entityCommunities.put(optimum.targetEntity, optimum.community);
             progress = Math.max(progress, eps / optimum.delta);
-            reportProgress(0.1 + 0.9 * progress, context);
+            context.reportProgress(0.1 + 0.9 * progress);
             LOGGER.info("Finish iteration. Current quality is " + quality + " (delta is " + optimum.delta + ")");
             context.checkCanceled();
         }
