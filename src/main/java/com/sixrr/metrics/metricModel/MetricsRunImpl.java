@@ -121,7 +121,7 @@ public class MetricsRunImpl implements MetricsRun {
     @Override
     public void postMethodMetric(@NotNull Metric metric, @NotNull PsiMethod method, double value) {
         final MetricsResult results = getResultsForCategory(MetricCategory.Method);
-        final String signature = MethodUtils.calculateSignature(method);
+        final String signature = MethodUtils.calculateSignature(method, false);
         results.postValue(metric, signature, value);
         results.setElementForMeasuredObject(signature, method);
     }
@@ -170,7 +170,7 @@ public class MetricsRunImpl implements MetricsRun {
     public void postMethodMetric(@NotNull Metric metric, @NotNull PsiMethod method,
                                  double numerator, double denominator) {
         final MetricsResult results = getResultsForCategory(MetricCategory.Method);
-        final String signature = MethodUtils.calculateSignature(method);
+        final String signature = MethodUtils.calculateSignature(method, false);
         results.postValue(metric, signature, numerator, denominator);
         results.setElementForMeasuredObject(signature, method);
     }

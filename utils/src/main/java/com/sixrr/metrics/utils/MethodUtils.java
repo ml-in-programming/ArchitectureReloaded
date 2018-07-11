@@ -70,7 +70,7 @@ public final class MethodUtils {
         return method.getParameterList().getParametersCount();
     }
 
-    public static String calculateSignature(PsiMethod method) {
+    public static String calculateSignature(PsiMethod method, boolean isCanonicalName) {
         final PsiClass containingClass = method.getContainingClass();
         final String className;
         if (containingClass != null) {
@@ -91,7 +91,12 @@ public final class MethodUtils {
                 out.append(',');
             }
             final PsiType parameterType = parameters[i].getType();
-            final String parameterTypeText = parameterType.getPresentableText();
+            final String parameterTypeText;
+            if (isCanonicalName) {
+                parameterTypeText = parameterType.getCanonicalText();
+            } else {
+                parameterTypeText = parameterType.getPresentableText();
+            }
             out.append(parameterTypeText);
         }
         out.append(')');

@@ -32,7 +32,7 @@ public class RmmrTest extends AlgorithmAbstractTest {
     will be suggested. But it will fail a lot of tests that pass now (only 6 will pass), so it is bad decision to
     include its own class to method's conceptual set.
      */
-    public void failing_testCallFromNested() {
+    public void testCallFromNested() {
         executeTest(testCasesChecker::checkCallFromNested, "ClassA.java", "ClassB.java");
     }
 
@@ -42,7 +42,7 @@ public class RmmrTest extends AlgorithmAbstractTest {
     on dot product of method's and class's vectors. In this test case similarity is very high because of that
     so algorithm doesn't find any refactorings. Dependency sets intersection is always empty so it doesn't affect the results.
      */
-    public void failing_testCircularDependency() {
+    public void testCircularDependency() {
         executeTest(testCasesChecker::checkCircularDependency, "ClassA.java", "ClassB.java", "ClassC.java");
     }
 
@@ -52,7 +52,7 @@ public class RmmrTest extends AlgorithmAbstractTest {
     Contextual distance is max because all words appear everywhere, conceptual because intersection is empty.\
     Consider: if we have big distance with source than maybe suggest a refactoring? (big doubts)
      */
-    public void failing_testCrossReferencesMethods() {
+    public void testCrossReferencesMethods() {
         executeTest(testCasesChecker::checkCrossReferencesMethods, "ClassA.java", "ClassB.java");
     }
 
@@ -79,7 +79,7 @@ public class RmmrTest extends AlgorithmAbstractTest {
     Meanwhile total distance with ClassB of methods methodB1 and methodB2 is less than 0.2 which is the least.
     Again there are a lot of 0 in vectors because of appearance in both classes. That problem must disappear on big projects.
      */
-    public void failing_testMoveTogether() {
+    public void testMoveTogether() {
         executeTest(testCasesChecker::checkMoveTogether, "ClassA.java", "ClassB.java");
     }
 
@@ -90,7 +90,7 @@ public class RmmrTest extends AlgorithmAbstractTest {
      Consider: problem is because it is two classes test case, otherwise we could count that a1
      appears much more often in ClassB than in ClassA and context distance would be smaller.
      */
-    public void failing_testPriority() {
+    public void testPriority() {
         executeTest(testCasesChecker::checkPriority, "ClassA.java", "ClassB.java");
     }
 
@@ -105,7 +105,7 @@ public class RmmrTest extends AlgorithmAbstractTest {
     plays a big role and it is the lowest with source classes.
     Consider: adding field attribute = "result" to ClassA solves the problem.
      */
-    public void failing_testReferencesOnly() {
+    public void testReferencesOnly() {
         executeTest(testCasesChecker::checkReferencesOnly, "ClassA.java", "ClassB.java");
     }
 
@@ -117,7 +117,7 @@ public class RmmrTest extends AlgorithmAbstractTest {
     has almost equal distances (about 0.5), but with it's own class distance is 0.5 because of contextual similarity,
     and with other class because of conceptual similarity.
      */
-    public void failing_testTriangularDependence() {
+    public void testTriangularDependence() {
         executeTest(testCasesChecker::checkTriangularDependence, "ClassA.java", "ClassB.java", "ClassC.java");
     }
 
@@ -133,7 +133,7 @@ public class RmmrTest extends AlgorithmAbstractTest {
      getMobilePhone method has big distance (almost 1) with its class and big dissimilarity with Phone class.
      But own class (Customer) wins...
       */
-    public void failing_testMobilePhoneWithFeatureEnvy() {
+    public void testMobilePhoneWithFeatureEnvy() {
         executeTest(testCasesChecker::checkMobilePhoneWithFeatureEnvy, "Customer.java", "Phone.java");
     }
 
@@ -150,7 +150,7 @@ public class RmmrTest extends AlgorithmAbstractTest {
     Failure explanation: the same problem as in references only test case.
     Consider: if add CONST to doSomething2() then test passes.
      */
-    public void failing_testCallFromLambda() {
+    public void testCallFromLambda() {
         executeTest(testCasesChecker::checkCallFromLambda, "ClassA.java", "ClassB.java");
     }
 
