@@ -28,13 +28,13 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static java.lang.Math.max;
-import static java.lang.Math.sqrt;
+import static java.lang.Math.*;
 
 /**
  * Implementation of RMMR (Recommendation of Move Method Refactoring) algorithm.
  * Based on @see <a href="https://drive.google.com/file/d/17yAlVXRaLuhIcXB4PEzNiZj5p1oi4HlL/view">this article</a>.
  */
+// TODO: maybe consider that method and target class are in different packages?
 public class RMMR extends Algorithm {
     private static final boolean IS_PARALLELED = true;
     /**
@@ -158,11 +158,10 @@ public class RMMR extends Algorithm {
         int numberOfMethodsInSourceClass = methodsByClass.get(sourceClass).size();
         int numberOfMethodsInTargetClass = methodsByClass.getOrDefault(targetClass, Collections.emptySet()).size();
         // considers amount of entities.
-        double sourceClassCoefficient = max(1 - 1.0 / (2 * numberOfMethodsInSourceClass * numberOfMethodsInSourceClass), 0);
-        double targetClassCoefficient = max(1 - 1.0 / (4 * numberOfMethodsInTargetClass * numberOfMethodsInTargetClass), 0);
-        double differenceWithSourceClassCoefficient = (1 - minDistance) * differenceWithSourceClass;
-        double powerCoefficient = max(1 - 1.0 / (2 * entity.getRelevantProperties().getClasses().size()), 0);
-        double accuracy = (0.5 * distanceWithSourceClass + 0.3 * (1 - minDistance) + 0.2 * differenceWithSourceClass) * powerCoefficient;
+        double sourceClassCoefficient = min(1, max(1.1 - 1.0 / (2 * numberOfMethodsInSourceClass * numberOfMethodsInSourceClass), 0));
+        double targetClassCoefficient = min(1, max(1.1 - 1.0 / (4 * numberOfMethodsInTargetClass * numberOfMethodsInTargetClass), 0));
+        double powerCoefficient = min(1, max(1.1 - 1.0 / (2 * entity.getRelevantProperties().getClasses().size()), 0));
+        double accuracy = (0.5 * distanceWithSourceClass + 0.1 * (1 - minDistance) + 0.4 * differenceWithSourceClass) * powerCoefficient * sourceClassCoefficient * targetClassCoefficient;
         if (entity.getClassName().contains("Util") || entity.getClassName().contains("Factory") ||
                 entity.getClassName().contains("Builder")) {
             if (accuracy > 0.7) {
