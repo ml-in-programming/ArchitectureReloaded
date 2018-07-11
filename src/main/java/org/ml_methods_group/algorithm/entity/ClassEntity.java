@@ -37,8 +37,12 @@ public class ClassEntity extends CodeEntity {
     }
 
     @Override
-    public @NotNull
-    MetricCategory getMetricCategory() {
+    public boolean isMovable() {
+        return true;
+    }
+
+    @Override
+    public @NotNull MetricCategory getMetricCategory() {
         return MetricCategory.Class;
     }
 

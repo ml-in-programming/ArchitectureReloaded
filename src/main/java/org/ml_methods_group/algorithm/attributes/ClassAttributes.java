@@ -36,11 +36,6 @@ public class ClassAttributes extends ElementAttributes {
         return classEntity;
     }
 
-    @Override
-    public boolean isMovable() {
-        return true;
-    }
-
     public @NotNull ClassEntity getOriginalClass() {
         return classEntity;
     }

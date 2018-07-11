@@ -25,27 +25,17 @@ import org.ml_methods_group.utils.PSIUtil;
 public class MethodAttributes extends ElementAttributes {
     private final @NotNull MethodEntity methodEntity;
 
-    private final boolean isMovable;
-
     public MethodAttributes(
         final @NotNull MethodEntity methodEntity,
         final @NotNull double[] features
     ) {
         super(features);
         this.methodEntity = methodEntity;
-
-        isMovable = !PSIUtil.isOverriding(methodEntity.getPsiMethod()) &&
-                !MethodUtils.isAbstract(methodEntity.getPsiMethod()) && !methodEntity.getPsiMethod().isConstructor();
     }
 
     @Override
     public @NotNull CodeEntity getOriginalEntity() {
         return methodEntity;
-    }
-
-    @Override
-    public boolean isMovable() {
-        return isMovable;
     }
 
     public @NotNull MethodEntity getOriginalMethod() {

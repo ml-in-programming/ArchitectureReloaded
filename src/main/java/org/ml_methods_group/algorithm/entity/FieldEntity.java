@@ -18,10 +18,13 @@ package org.ml_methods_group.algorithm.entity;
 
 import com.intellij.psi.PsiField;
 import com.sixrr.metrics.MetricCategory;
+import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class FieldEntity extends CodeEntity {
     private final @NotNull PsiField psiField;
+
+    private final boolean isMovable;
 
     public FieldEntity(
         final @NotNull PsiField psiField,
@@ -29,6 +32,8 @@ public class FieldEntity extends CodeEntity {
     ) {
         super(relevantProperties);
         this.psiField = psiField;
+
+        isMovable = MethodUtils.isStatic(psiField);
     }
 
     @Override
@@ -36,6 +41,11 @@ public class FieldEntity extends CodeEntity {
         throw new UnsupportedOperationException(
             "Metrics reloaded doesn't support field metrics."
         );
+    }
+
+    @Override
+    public boolean isMovable() {
+        return isMovable;
     }
 
     @Override

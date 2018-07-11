@@ -24,26 +24,17 @@ import org.ml_methods_group.algorithm.entity.FieldEntity;
 public class FieldAttributes extends ElementAttributes {
     private final @NotNull FieldEntity fieldEntity;
 
-    private final boolean isMovable;
-
     public FieldAttributes(
         final @NotNull FieldEntity fieldEntity,
         final @NotNull double[] features
     ) {
         super(features);
         this.fieldEntity = fieldEntity;
-
-        isMovable = MethodUtils.isStatic(fieldEntity.getPsiField());
     }
 
     @Override
     public @NotNull CodeEntity getOriginalEntity() {
         return fieldEntity;
-    }
-
-    @Override
-    public boolean isMovable() {
-        return isMovable;
     }
 
     public @NotNull FieldEntity getOriginalField() {

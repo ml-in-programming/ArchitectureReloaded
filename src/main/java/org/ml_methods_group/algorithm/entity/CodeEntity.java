@@ -38,6 +38,12 @@ public abstract class CodeEntity {
      */
     public abstract @NotNull String getIdentifier();
 
+    /**
+     * Returns {@code true} if move refactoring can be applied to this entity
+     * (e.g. it's not a ctor which can't be moved to another class).
+     */
+    public abstract boolean isMovable();
+
     public abstract @NotNull MetricCategory getMetricCategory();
 
     public @NotNull RelevantProperties getRelevantProperties() {
