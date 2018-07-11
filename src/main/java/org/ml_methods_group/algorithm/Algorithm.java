@@ -56,7 +56,7 @@ public interface Algorithm {
      * Returns an array of metrics from which a features vectors for this particular algorithm
      * should be constructed.
      * Important contract is that this method must always return equal lists, i.e. lists that
-     * contain same elements in the same order.
+     * contain same metrics in the same order.
      */
-    @NotNull List<Class<? extends Metric>> requiredMetrics();
+    @NotNull List<Metric> requiredMetrics();
 }

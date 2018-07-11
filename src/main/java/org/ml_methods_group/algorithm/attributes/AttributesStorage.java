@@ -45,35 +45,15 @@ public class AttributesStorage {
      * Creates storage for attributes.
      *
      * @param entities entities attributes will be constructed from.
-     * @param metricClasses metrics that must be used to create features vectors.
+     * @param metrics metrics that must be used to create features vectors.
      * @param metricsRun result of all metrics calculations.
      * @throws NoRequestedMetricException if there are some missing metric calculation results.
      */
     public AttributesStorage(
         final @NotNull EntitiesStorage entities,
-        final @NotNull List<Class<? extends Metric>> metricClasses,
+        final @NotNull List<Metric> metrics,
         final @NotNull MetricsRun metricsRun
     ) throws NoRequestedMetricException {
-        List<Metric> metrics = new ArrayList<>();
-        for (Class<? extends Metric> metricClass : metricClasses) {
-            boolean isMetricPresent = false;
-            for (Metric metric : metricsRun.getMetrics()) {
-                if (metric.getClass().equals(metricClass)) {
-                    metrics.add(metric);
-                    isMetricPresent = true;
-                    break;
-                }
-            }
-
-            if (!isMetricPresent) {
-                throw new NoRequestedMetricException(
-                    "Requested metric '" +
-                    metricClass.getCanonicalName() +
-                    "' cannot be found in given MetricsRun"
-                );
-            }
-        }
-
         classesAttributes = new ArrayList<>();
         for (ClassEntity classEntity : entities.getClasses()) {
             classesAttributes.add(

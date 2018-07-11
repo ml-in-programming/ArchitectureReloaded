@@ -53,8 +53,8 @@ public class AKMeans extends OldAlgorithm {
     }
 
     @Override
-    public @NotNull List<Class<? extends Metric>> requiredMetrics() {
-        return Arrays.asList(NumMethodsClassMetric.class, NumAttributesAddedMetric.class);
+    public @NotNull List<Metric> requiredMetrics() {
+        return Arrays.asList(new NumMethodsClassMetric(), new NumAttributesAddedMetric());
     }
 
     private void init(EntitySearchResult entities) {

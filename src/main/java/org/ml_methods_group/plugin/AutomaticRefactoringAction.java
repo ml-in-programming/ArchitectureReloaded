@@ -213,7 +213,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
     }
 
     private static void checkRefactoringProfile(final @NotNull Set<Algorithm> selectedAlgorithms) {
-        final Set<Class<? extends Metric>> requestedSet =
+        final Set<Metric> requestedSet =
             selectedAlgorithms.stream()
                 .flatMap(it -> it.requiredMetrics().stream())
                 .collect(Collectors.toSet());
