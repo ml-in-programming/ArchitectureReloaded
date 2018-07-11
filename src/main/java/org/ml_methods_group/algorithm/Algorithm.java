@@ -46,9 +46,9 @@ public interface Algorithm {
     );
 
     /**
-     * Returns a textual description of this algorithm.
+     * Returns a short textual description of this algorithm.
      */
-    @NotNull String getDescription();
+    @NotNull String getDescriptionString();
 
     /**
      * Returns an array of metrics from which a features vectors for this particular algorithm

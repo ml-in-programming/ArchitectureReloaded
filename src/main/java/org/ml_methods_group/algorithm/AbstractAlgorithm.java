@@ -63,7 +63,7 @@ public abstract class AbstractAlgorithm implements Algorithm {
      * {@inheritDoc}
      */
     @Override
-    public @NotNull String getDescription() {
+    public @NotNull String getDescriptionString() {
         return name;
     }
 

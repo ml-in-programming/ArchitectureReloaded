@@ -161,8 +161,8 @@ public class RefactoringExecutionContext {
             );
         } catch (NoRequestedMetricException e) {
             LOGGER.error(
-                "Error during attributes creation for '" + algorithm.getDescription() +
-                "' algorithm: " + e.getMessage() + " - " + algorithm.getDescription() +
+                "Error during attributes creation for '" + algorithm.getDescriptionString() +
+                "' algorithm: " + e.getMessage() + " - " + algorithm.getDescriptionString() +
                 "is aborted"
             );
 
