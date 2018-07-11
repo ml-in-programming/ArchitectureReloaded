@@ -33,7 +33,8 @@ public abstract class OldAlgorithm extends AbstractAlgorithm {
         super(name, enableParallelExecution);
     }
 
-    protected @NotNull AlgorithmExecutor setUpExecutor() {
+    protected @NotNull
+    Executor setUpExecutor() {
         return (context, enableFieldRefactorings) ->
                 calculateRefactorings(new OldExecutionContext(context), enableFieldRefactorings);
     }
@@ -44,14 +45,15 @@ public abstract class OldAlgorithm extends AbstractAlgorithm {
     ) throws Exception;
 
     protected final class OldExecutionContext {
-        private final @NotNull AlgorithmExecutionContext context;
+        private final @NotNull
+        ExecutionContext context;
 
         private final @NotNull EntitySearchResult entities;
 
-        private OldExecutionContext(final @NotNull AlgorithmExecutionContext context) {
+        private OldExecutionContext(final @NotNull ExecutionContext context) {
             this.context = context;
 
-            AttributesStorage attributes = context.getAttributes();
+            AttributesStorage attributes = context.getAttributesStorage();
 
             List<ClassEntity> classes =
                 attributes.getClassesAttributes()

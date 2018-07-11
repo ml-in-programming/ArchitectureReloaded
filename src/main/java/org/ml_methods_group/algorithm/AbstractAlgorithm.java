@@ -39,6 +39,14 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Partial implementation of {@link Algorithm} interface. Main purpose of this class is to
+ * implement {@link Algorithm#execute} method so that it handles things that has small relation to
+ * actual algorithm.
+ * Also this class introduces {@link Executor} which represents a state for one actual
+ * algorithm run. {@link Executor} accepts convenient {@link ExecutionContext} which it
+ * can use to interact with environment.
+ */
 public abstract class AbstractAlgorithm implements Algorithm {
     private static final Logger LOGGER = Logging.getLogger(AbstractAlgorithm.class);
 
@@ -51,11 +59,17 @@ public abstract class AbstractAlgorithm implements Algorithm {
         this.enableParallelExecution = enableParallelExecution;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public @NotNull String getDescription() {
         return name;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public @NotNull AlgorithmResult execute(
         @NotNull AttributesStorage attributes,
@@ -76,7 +90,7 @@ public abstract class AbstractAlgorithm implements Algorithm {
         indicator.setText("Running " + name + "...");
         indicator.setFraction(0);
 
-        final AlgorithmExecutionContext context = new AlgorithmExecutionContext(
+        final ExecutionContext context = new ExecutionContext(
             enableParallelExecution ? requireNonNull(service) : null,
             indicator,
             attributes
@@ -103,16 +117,37 @@ public abstract class AbstractAlgorithm implements Algorithm {
         return result;
     }
 
-    protected abstract @NotNull AlgorithmExecutor setUpExecutor();
+    /**
+     * Returns {@link Executor} for a new algorithm run. May create a new one or reuse old. It's
+     * up to algorithm implementation.
+     */
+    protected abstract @NotNull Executor setUpExecutor();
 
-    public interface AlgorithmExecutor {
+    /**
+     * A state which will be used for one algorithm run: receive input, process it and get suggested
+     * refactorings as output.
+     */
+    public interface Executor {
+        /**
+         * Executes algorithm on one input to get one output.
+         *
+         * @param context a context for this execution.
+         * @param enableFieldRefactorings {@code true} if user also looks for "move field"
+         *                                refactorings.
+         * @return suggested refactorings.
+         * @throws Exception if any kind of error occurs during algorithm execution.
+         */
         @NotNull List<Refactoring> execute(
-            @NotNull AlgorithmExecutionContext context,
+            @NotNull ExecutionContext context,
             boolean enableFieldRefactorings
         ) throws Exception;
     }
 
-    protected final class AlgorithmExecutionContext {
+    /**
+     * A context for {@link AbstractAlgorithm} execution. It stores input and provide different
+     * services as parallel execution, progress report, etc.
+     */
+    protected final class ExecutionContext {
         private final ExecutorService service;
 
         private final ProgressIndicator indicator;
@@ -123,7 +158,7 @@ public abstract class AbstractAlgorithm implements Algorithm {
 
         private int usedThreads = 1; // default thread
 
-        private AlgorithmExecutionContext(
+        private ExecutionContext(
             final ExecutorService service,
             final ProgressIndicator indicator,
             final @NotNull AttributesStorage attributes
@@ -135,7 +170,10 @@ public abstract class AbstractAlgorithm implements Algorithm {
             preferredThreadsCount = Runtime.getRuntime().availableProcessors();
         }
 
-        public @NotNull AttributesStorage getAttributes() {
+        /**
+         * Returns {@link AttributesStorage} with attributes for all code entities.
+         */
+        public @NotNull AttributesStorage getAttributesStorage() {
             return attributes;
         }
 
