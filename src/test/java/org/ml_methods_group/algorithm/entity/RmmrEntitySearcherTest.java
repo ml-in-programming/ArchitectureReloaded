@@ -19,6 +19,8 @@ package org.ml_methods_group.algorithm.entity;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -27,7 +29,13 @@ public class RmmrEntitySearcherTest extends LightCodeInsightFixtureTestCase {
 
     @Override
     protected String getTestDataPath() {
-        return "testdata/moveMethod/movieRentalStore";
+        return "src/test/resources/testCases/" + getPackage();
+    }
+
+    @NotNull
+    @Contract(pure = true)
+    private String getPackage() {
+        return "movieRentalStoreWithFeatureEnvy";
     }
 
     public void testAnalyze() {

@@ -36,33 +36,20 @@ import static java.lang.Math.*;
  */
 // TODO: maybe consider that method and target class are in different packages?
 public class RMMR extends Algorithm {
-    private static final boolean IS_PARALLELED = true;
-    /**
-     * Describes minimal accuracy that algorithm accepts.
-     */
-    private final static double MIN_ACCURACY = 0.01;
-    /**
-     * Internal name of the algorithm in the program.
-     */
+    /** Internal name of the algorithm in the program */
     public static final String NAME = "RMMR";
+    private static final boolean ENABLE_PARALLEL_EXECUTION = true;
+    /** Describes minimal accuracy that algorithm accepts */
+    private final static double MIN_ACCURACY = 0.01;
+    /** Describes accuracy that is pretty confident to do refactoring */
+    private final static double GOOD_ACCURACY_BOUND = 0.55;
     private static final Logger LOGGER = Logging.getLogger(RMMR.class);
-
-    /**
-     * Map: class -> set of method in this class.
-     */
     private final Map<ClassEntity, Set<MethodEntity>> methodsByClass = new HashMap<>();
-    /**
-     * Methods to check for refactoring.
-     */
     private final List<MethodEntity> units = new ArrayList<>();
-    /**
-     * Classes to which method will be considered for moving.
-     */
+    /** Classes to which method will be considered for moving */
     private final List<ClassEntity> classEntities = new ArrayList<>();
     private final AtomicInteger progressCount = new AtomicInteger();
-    /**
-     * Context which stores all found classes, methods and its metrics (by storing Entity).
-     */
+    /** Context which stores all found classes, methods and its metrics (by storing Entity) */
     private ExecutionContext context;
 
     public RMMR() {
@@ -73,14 +60,13 @@ public class RMMR extends Algorithm {
     @NotNull
     protected List<Refactoring> calculateRefactorings(@NotNull ExecutionContext context, boolean enableFieldRefactorings) {
         if (enableFieldRefactorings) {
-            // TODO: write to LOGGER or throw Exception? Change UI: disable field checkbox if only RMMR is chosen.
             LOGGER.error("Field refactorings are not supported",
                     new UnsupportedOperationException("Field refactorings are not supported"));
         }
         this.context = context;
         init();
 
-        if (IS_PARALLELED) {
+        if (ENABLE_PARALLEL_EXECUTION) {
             return runParallel(units, context, ArrayList::new, this::findRefactoring, AlgorithmsUtil::combineLists);
         } else {
             List<Refactoring> accum = new LinkedList<>();
@@ -89,9 +75,7 @@ public class RMMR extends Algorithm {
         }
     }
 
-    /**
-     * Initializes units, methodsByClass, classEntities. Data is gathered from context.getEntities().
-     */
+    /** Initializes units, methodsByClass, classEntities. Data is gathered from context.getEntities() */
     private void init() {
         final EntitySearchResult entities = context.getEntities();
         LOGGER.info("Init RMMR");
@@ -135,7 +119,8 @@ public class RMMR extends Algorithm {
         ClassEntity sourceClass = null;
         for (final ClassEntity classEntity : classEntities) {
             final double contextualDistance = classEntity.getContextualVector().size() == 0 ? 1 : getContextualDistance(entity, classEntity);
-            final double distance = 0.55 * getDistance(entity, classEntity) + 0.45 * contextualDistance;
+            final double conceptualDistance = getConceptualDistance(entity, classEntity);
+            final double distance = 0.55 * conceptualDistance + 0.45 * contextualDistance;
             if (classEntity.getName().equals(entity.getClassName())) {
                 sourceClass = classEntity;
                 distanceWithSourceClass = distance;
@@ -164,7 +149,7 @@ public class RMMR extends Algorithm {
         double accuracy = (0.5 * distanceWithSourceClass + 0.1 * (1 - minDistance) + 0.4 * differenceWithSourceClass) * powerCoefficient * sourceClassCoefficient * targetClassCoefficient;
         if (entity.getClassName().contains("Util") || entity.getClassName().contains("Factory") ||
                 entity.getClassName().contains("Builder")) {
-            if (accuracy > 0.7) {
+            if (accuracy > GOOD_ACCURACY_BOUND) {
                 accuracy /= 2;
             }
         }
@@ -177,8 +162,17 @@ public class RMMR extends Algorithm {
         return accumulator;
     }
 
-    private double getContextualDistance(@NotNull MethodEntity entity, @NotNull ClassEntity classEntity) {
-        Map<String, Double> methodVector = entity.getContextualVector();
+    /**
+     * Measures contextual distance (a number in [0; 1]) between method and a class.
+     * It is cosine between two contextual vectors.
+     * If there is a null vector then cosine is 1.
+     *
+     * @param methodEntity method to calculate contextual distance.
+     * @param classEntity  class to calculate contextual distance.
+     * @return contextual distance between the method and the class.
+     */
+    private double getContextualDistance(@NotNull MethodEntity methodEntity, @NotNull ClassEntity classEntity) {
+        Map<String, Double> methodVector = methodEntity.getContextualVector();
         Map<String, Double> classVector = classEntity.getContextualVector();
         double methodVectorNorm = norm(methodVector);
         double classVectorNorm = norm(classVector);
@@ -197,21 +191,21 @@ public class RMMR extends Algorithm {
     }
 
     /**
-     * Measures distance (a number in [0; 1]) between method and a class.
+     * Measures conceptual distance (a number in [0; 1]) between method and a class.
      * It is an average of distances between method and class methods.
      * If there is no methods in a given class then distance is 1.
-     * @param methodEntity method to calculate distance.
-     * @param classEntity class to calculate distance.
-     * @return distance between the method and the class.
+     * @param methodEntity method to calculate conceptual distance.
+     * @param classEntity class to calculate conceptual distance.
+     * @return conceptual distance between the method and the class.
      */
-    private double getDistance(@NotNull MethodEntity methodEntity, @NotNull ClassEntity classEntity) {
+    private double getConceptualDistance(@NotNull MethodEntity methodEntity, @NotNull ClassEntity classEntity) {
         int number = 0;
         double sumOfDistances = 0;
 
         if (methodsByClass.containsKey(classEntity)) {
             for (MethodEntity methodEntityInClass : methodsByClass.get(classEntity)) {
                 if (!methodEntity.equals(methodEntityInClass)) {
-                    sumOfDistances += getDistance(methodEntity, methodEntityInClass);
+                    sumOfDistances += getConceptualDistance(methodEntity, methodEntityInClass);
                     number++;
                 }
             }
@@ -221,15 +215,14 @@ public class RMMR extends Algorithm {
     }
 
     /**
-     * Measures distance (a number in [0; 1]) between two methods.
+     * Measures conceptual distance (a number in [0; 1]) between two methods.
      * It is sizeOfIntersection(A1, A2) / sizeOfUnion(A1, A2), where Ai is a conceptual set of method.
      * If A1 and A2 are empty then distance is 1.
-     * @param methodEntity1 method to calculate distance.
-     * @param methodEntity2 method to calculate distance.
-     * @return distance between two given methods.
+     * @param methodEntity1 method to calculate conceptual distance.
+     * @param methodEntity2 method to calculate conceptual distance.
+     * @return conceptual distance between two given methods.
      */
-    private double getDistance(@NotNull MethodEntity methodEntity1, @NotNull MethodEntity methodEntity2) {
-        // TODO: Maybe add to methodEntity2 source class where it is located?
+    private double getConceptualDistance(@NotNull MethodEntity methodEntity1, @NotNull MethodEntity methodEntity2) {
         Set<String> method1Classes = methodEntity1.getRelevantProperties().getClasses();
         Set<String> method2Classes = methodEntity2.getRelevantProperties().getClasses();
         int sizeOfIntersection = intersection(method1Classes, method2Classes).size();

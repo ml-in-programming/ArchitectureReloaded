@@ -19,6 +19,8 @@ package org.ml_methods_group.algorithm;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.MethodEntity;
@@ -39,7 +41,13 @@ public class RmmrDistancesTest extends LightCodeInsightFixtureTestCase {
 
     @Override
     protected String getTestDataPath() {
-        return "testdata/moveMethod/movieRentalStore";
+        return "src/test/resources/testCases/" + getPackage();
+    }
+
+    @NotNull
+    @Contract(pure = true)
+    private String getPackage() {
+        return "movieRentalStoreWithFeatureEnvy";
     }
 
     private void init() throws NoSuchMethodException {
@@ -49,10 +57,9 @@ public class RmmrDistancesTest extends LightCodeInsightFixtureTestCase {
 
         AnalysisScope analysisScope = new AnalysisScope(myFixture.getProject(), Arrays.asList(customer, movie, rental));
         searchResult = RmmrEntitySearcher.analyze(analysisScope);
-        getDistanceWithMethod = RMMR.class.getDeclaredMethod("getDistance",
-                MethodEntity.class, MethodEntity.class);
+        getDistanceWithMethod = RMMR.class.getDeclaredMethod("getConceptualDistance", MethodEntity.class, MethodEntity.class);
         getDistanceWithMethod.setAccessible(true);
-        getDistanceWithClass = RMMR.class.getDeclaredMethod("getDistance",
+        getDistanceWithClass = RMMR.class.getDeclaredMethod("getConceptualDistance",
                 MethodEntity.class, ClassEntity.class);
         getDistanceWithClass.setAccessible(true);
     }
@@ -236,20 +243,20 @@ public class RmmrDistancesTest extends LightCodeInsightFixtureTestCase {
 
     private Double runGetDistanceWithMethod(String methodName1, String methodName2) throws InvocationTargetException, IllegalAccessException {
         MethodEntity methodEntity1 = searchResult.getMethods().stream().
-                filter(methodEntity -> methodEntity.getName().equals(methodName1)).
+                filter(methodEntity -> methodEntity.getName().equals(getPackage() + "." + methodName1)).
                 findAny().orElseThrow(NoSuchElementException::new);
         MethodEntity methodEntity2 = searchResult.getMethods().stream().
-                filter(methodEntity -> methodEntity.getName().equals(methodName2)).
+                filter(methodEntity -> methodEntity.getName().equals(getPackage() + "." + methodName2)).
                 findAny().orElseThrow(NoSuchElementException::new);
         return (Double) getDistanceWithMethod.invoke(algorithm, methodEntity1, methodEntity2);
     }
 
     private void checkGetDistanceWithClass(String methodName, String className, double expected) throws InvocationTargetException, IllegalAccessException {
         MethodEntity methodEntity = searchResult.getMethods().stream().
-                filter(methodEntity2 -> methodEntity2.getName().equals(methodName)).
+                filter(methodEntity2 -> methodEntity2.getName().equals(getPackage() + "." + methodName)).
                 findAny().orElseThrow(NoSuchElementException::new);
         ClassEntity classEntity = searchResult.getClasses().stream().
-                filter(classEntity2 -> classEntity2.getName().equals(className)).
+                filter(classEntity2 -> classEntity2.getName().equals(getPackage() + "." + className)).
                 findAny().orElseThrow(NoSuchElementException::new);
         assertEquals(expected, getDistanceWithClass.invoke(algorithm, methodEntity, classEntity));
     }

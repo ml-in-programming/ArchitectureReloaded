@@ -35,39 +35,26 @@ import java.util.*;
 
 import static com.google.common.math.DoubleMath.log2;
 
-/**
- * Implementation of {@link Entity} searcher for RMMR algorithm.
- */
+/** Implementation of {@link Entity} searcher for RMMR algorithm */
 public class RmmrEntitySearcher {
     private static final Logger LOGGER = Logging.getLogger(EntitySearcher.class);
-
-    /**
-     * Map: name of class -> {@link PsiClass} instance.
-     */
     private final Map<String, PsiClass> classForName = new HashMap<>();
-    /**
-     * Map: {@link PsiMethod} instance -> corresponding {@link MethodEntity}.
-     */
     private final Map<PsiMethod, MethodEntity> entities = new HashMap<>();
-    /**
-     * Map: {@link PsiClass} instance -> corresponding {@link ClassEntity}.
-     */
     private final Map<PsiClass, ClassEntity> classEntities = new HashMap<>();
+    /** Terms are all words for contextual distance, for example: methodWithName gives as three terms: method, with, name */
     private final Set<String> terms = new HashSet<>();
+    /**
+     * Uniqueness property of term in whole document system (only classes are documents here)
+     * idf(term) = log_2(|D| / |{d \in D: t \in d}|)
+     */
     private final Map<String, Double> idf = new HashMap<>();
     private final List<Collection<? extends Entity>> documents = Arrays.asList(classEntities.values(), entities.values());
     private final Stemmer stemmer = new Stemmer();
-    /**
-     * Scope where entities will be searched.
-     */
+    /** Scope where entities will be searched */
     private final AnalysisScope scope;
-    /**
-     * Time when started search for entities.
-     */
+    /** Time when started search for entities */
     private final long startTime = System.currentTimeMillis();
-    /**
-     * Strategy: which classes, methods and etc. to accept. For details see {@link RmmrStrategy}.
-     */
+    /** Strategy: which classes, methods and etc. to accept. For details see {@link RmmrStrategy} */
     private final RmmrStrategy strategy = RmmrStrategy.getInstance();
 
     {
@@ -82,9 +69,7 @@ public class RmmrEntitySearcher {
         strategy.setCheckPsiVariableForBeingInScope(true);
     }
 
-    /**
-     * UI progress indicator.
-     */
+    /** UI progress indicator */
     private final ProgressIndicator indicator;
 
     /**
@@ -127,12 +112,12 @@ public class RmmrEntitySearcher {
         LOGGER.info("Calculating properties...");
         indicator.setText("Calculating properties");
         scope.accept(new PropertiesCalculator());
-        calculateStatistic();
+        calculateContextualVectors();
         indicator.popState();
         return prepareResult();
     }
 
-    private void calculateStatistic() {
+    private void calculateContextualVectors() {
         calculateTf();
         calculateIdf();
         calculateTfIdf();
@@ -191,9 +176,7 @@ public class RmmrEntitySearcher {
         return new EntitySearchResult(classes, methods, Collections.emptyList(), System.currentTimeMillis() - startTime);
     }
 
-    /**
-     * Finds all units (classes, methods and etc.) in the scope based on {@link RmmrStrategy} that will be considered in searching process.
-     */
+    /** Finds all units (classes, methods and etc.) in the scope based on {@link RmmrStrategy} that will be considered in searching process */
     private class UnitsFinder extends JavaRecursiveElementVisitor {
         @Override
         public void visitFile(PsiFile file) {
@@ -228,17 +211,15 @@ public class RmmrEntitySearcher {
     }
 
 
-    /**
-     * Calculates conceptual sets for all methods found by {@link UnitsFinder}.
-     */
+    /** Calculates conceptual sets and term bags for all methods and classes found by {@link UnitsFinder} */
     // TODO: calculate properties for constructors? If yes, then we need to separate methods to check on refactoring (entities) and methods for calculating metric (to gather properties).
     private class PropertiesCalculator extends JavaRecursiveElementVisitor {
         private int propertiesCalculated = 0;
-        /**
-         * Current method: if not null then we are parsing this method now and we need to update conceptual set of this method.
-         */
-        private MethodEntity currentMethod;
+        /** Stack of current classes (it has size more than 1 if we have nested classes), updates only the last bag */
+        // TODO: maybe update all bags on stack?
         final private Deque<ClassEntity> currentClasses = new ArrayDeque<>();
+        /** Current method: if not null then we are parsing this method now and we need to update conceptual set and term bag of this method */
+        private MethodEntity currentMethod;
 
         private void addIdentifierToBag(@Nullable Entity entity, String identifier) {
             if (entity != null) {
