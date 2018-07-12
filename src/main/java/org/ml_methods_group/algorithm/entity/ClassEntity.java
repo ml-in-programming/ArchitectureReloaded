@@ -33,7 +33,7 @@ public class ClassEntity extends Entity {
     }
 
     public void addToClass(String method) {
-        getRelevantProperties().addMethod(method);
+        getRelevantProperties().addNotOverrideMethod(method);
     }
 
     @Override

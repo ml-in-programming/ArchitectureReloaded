@@ -19,15 +19,15 @@ import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
  */
 public class RelevantProperties {
 
-    private final Map<String, Integer> methods = new HashMap<>();
+    private final Map<String, Integer> notOverrideMethods = new HashMap<>();
     private final Map<String, Integer> classes = new HashMap<>();
     private final Map<String, Integer> fields = new HashMap<>();
-    private final Map<String, Integer> allMethods = new HashMap<>();
+    private final Map<String, Integer> overrideMethods = new HashMap<>();
 
     private final Integer DEFAULT_PROPERTY_WEIGHT = 1;
 
     void removeMethod(String method) {
-        methods.remove(method);
+        notOverrideMethods.remove(method);
     }
 
     /**
@@ -37,8 +37,8 @@ public class RelevantProperties {
      *
      * @param method a name of a method to add.
      */
-    void addMethod(String method) {
-        addMethod(method, DEFAULT_PROPERTY_WEIGHT);
+    void addNotOverrideMethod(String method) {
+        addNotOverrideMethod(method, DEFAULT_PROPERTY_WEIGHT);
     }
 
     /**
@@ -48,8 +48,8 @@ public class RelevantProperties {
      *
      * @param method a PSI method to add.
      */
-    void addMethod(PsiMethod method) {
-        addMethod(method, DEFAULT_PROPERTY_WEIGHT);
+    void addNotOverrideMethod(PsiMethod method) {
+        addNotOverrideMethod(method, DEFAULT_PROPERTY_WEIGHT);
     }
 
     /**
@@ -59,8 +59,8 @@ public class RelevantProperties {
      * @param method a PSI method to add.
      * @param weight a weight which will be assigned to this method.
      */
-    void addMethod(PsiMethod method, Integer weight) {
-        addMethod(getHumanReadableName(method), weight);
+    void addNotOverrideMethod(PsiMethod method, Integer weight) {
+        addNotOverrideMethod(getHumanReadableName(method), weight);
     }
 
     /**
@@ -70,10 +70,9 @@ public class RelevantProperties {
      * @param method a name of a method to add.
      * @param weight a weight which will be assigned to this method.
      */
-    void addMethod(String method, Integer weight) {
-        if (methods.getOrDefault(method, 0) < weight) {
-            methods.put(method, weight);
-            allMethods.put(method, weight);
+    void addNotOverrideMethod(String method, Integer weight) {
+        if (notOverrideMethods.getOrDefault(method, 0) < weight) {
+            notOverrideMethods.put(method, weight);
         }
     }
 
@@ -105,13 +104,13 @@ public class RelevantProperties {
 
     void addOverrideMethod(PsiMethod method, Integer weight) {
         String name = getHumanReadableName(method);
-        if (allMethods.getOrDefault(name, 0) < weight) {
-            allMethods.put(getHumanReadableName(method), weight);
+        if (overrideMethods.getOrDefault(name, 0) < weight) {
+            overrideMethods.put(getHumanReadableName(method), weight);
         }
     }
 
     int numberOfMethods() {
-        return methods.size();
+        return notOverrideMethods.size();
     }
 
     /** Returns names of all field properties that are stored in this set. */
@@ -119,12 +118,12 @@ public class RelevantProperties {
         return Collections.unmodifiableSet(fields.keySet());
     }
 
-    public Set<String> getMethods() {
-        return Collections.unmodifiableSet(methods.keySet());
+    public Set<String> getNotOverrideMethods() {
+        return Collections.unmodifiableSet(notOverrideMethods.keySet());
     }
     
-    public Set<String> getAllMethods() {
-        return Collections.unmodifiableSet(allMethods.keySet());
+    public Set<String> getOverrideMethods() {
+        return Collections.unmodifiableSet(overrideMethods.keySet());
     }
 
     public Set<String> getClasses() {
@@ -132,12 +131,12 @@ public class RelevantProperties {
     }
 
     public int size() {
-        return getWeightedSize(classes) + getWeightedSize(fields) + getWeightedSize(methods);
+        return getWeightedSize(classes) + getWeightedSize(fields) + getWeightedSize(notOverrideMethods);
     }
 
     public int getWeight(String name) {
         return classes.getOrDefault(name, 0)
-                + methods.getOrDefault(name, 0)
+                + notOverrideMethods.getOrDefault(name, 0)
                 + fields.getOrDefault(name, 0);
     }
 
@@ -150,7 +149,8 @@ public class RelevantProperties {
 
         final BinaryOperator<Integer> bop = Math::min;
         result += sizeOfIntersectWeighted(classes, properties.classes, bop);
-        result += sizeOfIntersectWeighted(allMethods, properties.allMethods, bop);
+        result += sizeOfIntersectWeighted(notOverrideMethods, properties.notOverrideMethods, bop);
+        result += sizeOfIntersectWeighted(overrideMethods, properties.overrideMethods, bop);
         result += sizeOfIntersectWeighted(fields, properties.fields, bop);
 
         return result;
@@ -169,7 +169,8 @@ public class RelevantProperties {
         final BinaryOperator<Integer> bop = Math::max;
         result += size() + other.size();
         result -= sizeOfIntersectWeighted(classes, other.classes, bop);
-        result -= sizeOfIntersectWeighted(allMethods, other.allMethods, bop);
+        result -= sizeOfIntersectWeighted(notOverrideMethods, other.notOverrideMethods, bop);
+        result -= sizeOfIntersectWeighted(overrideMethods, other.overrideMethods, bop);
         result -= sizeOfIntersectWeighted(fields, other.fields, bop);
         return result;
     }
@@ -177,8 +178,8 @@ public class RelevantProperties {
     public RelevantProperties copy() {
         final RelevantProperties copy = new RelevantProperties();
         copy.classes.putAll(classes);
-        copy.allMethods.putAll(allMethods);
-        copy.methods.putAll(methods);
+        copy.overrideMethods.putAll(overrideMethods);
+        copy.notOverrideMethods.putAll(notOverrideMethods);
         copy.fields.putAll(fields);
         return copy;
     }

@@ -184,7 +184,7 @@ public class EntitySearcher {
             }
             Arrays.stream(aClass.getMethods())
                     .filter(m -> isProperty(aClass, m))
-                    .forEach(m -> classProperties.addMethod(m, strategy.getWeight(aClass, m)));
+                    .forEach(m -> classProperties.addNotOverrideMethod(m, strategy.getWeight(aClass, m)));
             Arrays.stream(aClass.getFields())
                     .filter(f -> isProperty(aClass, f))
                     .forEach(f -> classProperties.addField(f, strategy.getWeight(aClass, f)));
@@ -211,7 +211,7 @@ public class EntitySearcher {
 
             }
             final RelevantProperties methodProperties = entity.getRelevantProperties();
-            methodProperties.addMethod(method, strategy.getWeight(method, method));
+            methodProperties.addNotOverrideMethod(method, strategy.getWeight(method, method));
             Optional.ofNullable(method.getContainingClass())
                     .ifPresent(c -> methodProperties.addClass(c, strategy.getWeight(method, c)));
             if (currentMethod == null) {
@@ -242,7 +242,7 @@ public class EntitySearcher {
                 propertiesFor(currentMethod)
                         .ifPresent(p -> p.addField(field, strategy.getWeight(currentMethod, field)));
 //                propertiesFor(field)
-//                        .ifPresent(p -> p.addMethod(currentMethod, strategy.getWeight(field, currentMethod)));
+//                        .ifPresent(p -> p.addNotOverrideMethod(currentMethod, strategy.getWeight(field, currentMethod)));
                 final PsiClass fieldClass = PsiUtil.resolveClassInType(field.getType());
                 if (isClassInProject(fieldClass)) {
                     propertiesFor(currentMethod)
@@ -283,7 +283,7 @@ public class EntitySearcher {
                     && strategy.isRelation(expression)) {
                 propertiesFor(currentMethod)
                         .ifPresent(p -> {
-                            p.addMethod(called, strategy.getWeight(currentMethod, called));
+                            p.addNotOverrideMethod(called, strategy.getWeight(currentMethod, called));
                             p.addClass(usedClass, strategy.getWeight(currentMethod, usedClass));
                         });
             }
