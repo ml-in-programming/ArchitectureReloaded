@@ -27,8 +27,6 @@ import org.jetbrains.annotations.Nullable;
 public class MoveMethodRefactoring extends MoveToClassRefactoring {
     private final @NotNull PsiMethod method;
 
-    private final @NotNull PsiClass targetClass;
-
     /**
      * Creates refactoring.
      *
@@ -44,7 +42,6 @@ public class MoveMethodRefactoring extends MoveToClassRefactoring {
         super(method, targetClass, accuracy);
 
         this.method = method;
-        this.targetClass = targetClass;
     }
 
     @Override
@@ -62,11 +59,6 @@ public class MoveMethodRefactoring extends MoveToClassRefactoring {
     @Override
     public @Nullable PsiClass getContainingClass() {
         return method.getContainingClass();
-    }
-
-    @Override
-    public @NotNull PsiClass getTargetClass() {
-        return targetClass;
     }
 
     @NotNull

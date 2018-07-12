@@ -22,12 +22,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class MoveToClassRefactoring extends Refactoring {
+    private final @NotNull PsiClass targetClass;
+
     public MoveToClassRefactoring(
         final @NotNull PsiElement entity,
-        final @NotNull PsiElement target,
+        final @NotNull PsiClass targetClass,
         final double accuracy
     ) {
-        super(entity, target, accuracy);
+        super(entity, targetClass, accuracy);
+        this.targetClass = targetClass;
     }
 
     /**
@@ -38,5 +41,7 @@ public abstract class MoveToClassRefactoring extends Refactoring {
     /**
      * Returns class in which entity is placed in this refactoring
      */
-    public abstract @NotNull PsiClass getTargetClass();
+    public @NotNull PsiClass getTargetClass() {
+        return targetClass;
+    }
 }
