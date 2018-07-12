@@ -42,6 +42,6 @@ public class ExportResultsUtil {
     }
 
     private static String defaultRefactoringView(Refactoring r) {
-        return String.format("%s --> %s (%s)", r.getUnitName(), r.getTargetName(), r.getAccuracy());
+        return String.format("%s --> %s (%s)", r.getEntityName(), r.getTargetName(), r.getAccuracy());
     }
 }

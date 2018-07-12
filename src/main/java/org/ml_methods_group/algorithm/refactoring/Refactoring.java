@@ -1,19 +1,3 @@
-/*
- * Copyright 2018 Machine Learning Methods in Software Engineering Group of JetBrains Research
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.ml_methods_group.algorithm.refactoring;
 
 import com.intellij.analysis.AnalysisScope;
@@ -27,11 +11,11 @@ import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.utils.PsiSearchUtil;
 
 public abstract class Refactoring {
-    private final @NotNull PsiElement unit;
+    private final @NotNull PsiElement entity;
 
     private final @NotNull PsiElement target;
 
-    private final String unitName;
+    private final String entityName;
 
     private final String targetName;
 
@@ -45,32 +29,32 @@ public abstract class Refactoring {
      */
     @Deprecated
     public static @NotNull Refactoring createRefactoring(
-        final @NotNull String unit,
+        final @NotNull String entity,
         final @NotNull String target,
         final double accuracy,
-        final boolean isUnitField,
+        final boolean isEntityField,
         final @NotNull AnalysisScope scope
     ) {
         String exceptionMessage =
             "Unable to find PsiElement with given name during Refactoring creation";
 
-        PsiElement unitElement =
-            PsiSearchUtil.findElement(unit, scope)
+        PsiElement entityElement =
+            PsiSearchUtil.findElement(entity, scope)
                          .orElseThrow(() -> new IllegalArgumentException(exceptionMessage));
 
         PsiElement targetElement =
             PsiSearchUtil.findElement(target, scope)
                          .orElseThrow(() -> new IllegalArgumentException(exceptionMessage));
 
-        if (!isUnitField) {
+        if (!isEntityField) {
             return new MoveMethodRefactoring(
-                (PsiMethod) unitElement,
+                (PsiMethod) entityElement,
                 (PsiClass) targetElement,
                 accuracy
             );
         } else {
             return new MoveFieldRefactoring(
-                (PsiField) unitElement,
+                (PsiField) entityElement,
                 (PsiClass) targetElement,
                 accuracy
             );
@@ -78,15 +62,15 @@ public abstract class Refactoring {
     }
 
     public Refactoring(
-        final @NotNull PsiElement unit,
+        final @NotNull PsiElement entity,
         final @NotNull PsiElement target,
         double accuracy
     ) {
-        this.unit = unit;
+        this.entity = entity;
         this.target = target;
 
-        this.unitName = ApplicationManager.getApplication().runReadAction(
-            (Computable<String>) () -> PsiSearchUtil.getHumanReadableName(unit)
+        this.entityName = ApplicationManager.getApplication().runReadAction(
+            (Computable<String>) () -> PsiSearchUtil.getHumanReadableName(entity)
         );
 
         this.targetName = ApplicationManager.getApplication().runReadAction(
@@ -96,8 +80,8 @@ public abstract class Refactoring {
         this.accuracy = accuracy;
     }
 
-    public @NotNull PsiElement getUnit() {
-        return unit;
+    public @NotNull PsiElement getEntity() {
+        return entity;
     }
 
     public @NotNull PsiElement getTarget() {
@@ -107,11 +91,11 @@ public abstract class Refactoring {
     /**
      * If you need to identify code entity. Then it is better to identify it directly and not
      * through its name.
-     * Use {@link #getUnit()} instead.
+     * Use {@link #getEntity()} instead.
      */
     @Deprecated
-    public String getUnitName() {
-        return unitName;
+    public String getEntityName() {
+        return entityName;
     }
 
     /**
@@ -140,12 +124,12 @@ public abstract class Refactoring {
 
         Refactoring that = (Refactoring) o;
 
-        return unit.equals(that.unit) && target.equals(that.target);
+        return entity.equals(that.entity) && target.equals(that.target);
     }
 
     @Override
     public int hashCode() {
-        int result = unit.hashCode();
+        int result = entity.hashCode();
         result = 31 * result + target.hashCode();
         return result;
     }
@@ -153,7 +137,7 @@ public abstract class Refactoring {
     @Override
     public String toString() {
         return "Refactoring{" +
-                "unit=" + unit +
+                "entity=" + entity +
                 ", target=" + target +
                 '}';
     }

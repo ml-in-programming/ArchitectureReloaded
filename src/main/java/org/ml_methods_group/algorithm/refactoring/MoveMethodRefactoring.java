@@ -1,32 +1,15 @@
-/*
- * Copyright 2018 Machine Learning Methods in Software Engineering Group of JetBrains Research
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.ml_methods_group.algorithm.refactoring;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Representation of a refactoring which moves method to a target class.
  */
-public class MoveMethodRefactoring extends Refactoring {
+public class MoveMethodRefactoring extends MoveToClassRefactoring {
     private final @NotNull PsiMethod method;
-
-    private final @NotNull PsiClass targetClass;
 
     /**
      * Creates refactoring.
@@ -43,7 +26,6 @@ public class MoveMethodRefactoring extends Refactoring {
         super(method, targetClass, accuracy);
 
         this.method = method;
-        this.targetClass = targetClass;
     }
 
     @Override
@@ -58,11 +40,9 @@ public class MoveMethodRefactoring extends Refactoring {
         return method;
     }
 
-    /**
-     * Returns class in which method is placed in this refactoring
-     */
-    public @NotNull PsiClass getTargetClass() {
-        return targetClass;
+    @Override
+    public @Nullable PsiClass getContainingClass() {
+        return method.getContainingClass();
     }
 
     @NotNull
