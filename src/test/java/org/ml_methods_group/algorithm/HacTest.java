@@ -13,8 +13,7 @@ public class HacTest extends AlgorithmAbstractTest {
         executeTest(testCasesChecker::checkCallFromNested, "ClassA.java", "ClassB.java");
     }
 
-    // TODO: Not currently supported
-    public void failing_testCircularDependency() {
+    public void testCircularDependency() {
         executeTest(testCasesChecker::checkCircularDependency, "ClassA.java", "ClassB.java", "ClassC.java");
     }
 
@@ -49,7 +48,7 @@ public class HacTest extends AlgorithmAbstractTest {
         executeTest(testCasesChecker::checkPriority, "ClassA.java", "ClassB.java");
     }
 
-    public void testRecursiveMethod() {
+    public void failing_testRecursiveMethod() {
         executeTest(testCasesChecker::checkRecursiveMethod, "ClassA.java", "ClassB.java");
     }
 

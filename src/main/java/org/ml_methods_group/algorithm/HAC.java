@@ -39,7 +39,7 @@ public class HAC extends Algorithm {
         idGenerator = 0;
         progressCounter.set(0);
         final EntitySearchResult entities = context.getEntities();
-        Stream.of(entities.getClasses(), entities.getMethods(), entities.getFields())
+        Stream.of(entities.getMethods(), entities.getFields())
                 .flatMap(List::stream)
                 .map(this::singletonCommunity)
                 .forEach(communities::add);
