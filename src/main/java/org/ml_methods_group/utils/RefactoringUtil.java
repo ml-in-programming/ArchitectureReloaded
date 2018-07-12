@@ -154,12 +154,12 @@ public final class RefactoringUtil {
 
     public static Map<Refactoring, String> getWarnings(List<Refactoring> refactorings, AnalysisScope scope) {
         final Set<String> allUnits = refactorings.stream()
-                .map(Refactoring::getUnitName)
+                .map(Refactoring::getEntityName)
                 .collect(Collectors.toSet());
         final Map<String, PsiElement> psiElements = PsiSearchUtil.findAllElements(allUnits, scope, Function.identity());
         Map<Refactoring, String> warnings = new HashMap<>();
         for (Refactoring refactoring : refactorings) {
-            final PsiElement element = psiElements.get(refactoring.getUnitName());
+            final PsiElement element = psiElements.get(refactoring.getEntityName());
             final String target = refactoring.getTargetName();
             String warning = "";
             if (element != null) {
@@ -195,13 +195,13 @@ public final class RefactoringUtil {
                                                                        AnalysisScope scope) {
         final Set<String> names = new HashSet<>();
         refactorings.stream()
-                .peek(refactoring -> names.add(refactoring.getUnitName()))
+                .peek(refactoring -> names.add(refactoring.getEntityName()))
                 .forEach(refactoring -> names.add(refactoring.getTargetName()));
         final Map<String, PsiElement> elements = findAllElements(names, scope, Function.identity());
         final HashMap<PsiClass, List<PsiElement>> result = new HashMap<>();
         for (Refactoring refactoring : refactorings) {
             final PsiClass target = (PsiClass) elements.get(refactoring.getTargetName());
-            final PsiElement element = elements.get(refactoring.getUnitName());
+            final PsiElement element = elements.get(refactoring.getEntityName());
             result.computeIfAbsent(target, x -> new ArrayList<>()).add(element);
         }
         return result;
@@ -209,7 +209,7 @@ public final class RefactoringUtil {
 
     public static boolean checkValid(Collection<Refactoring> refactorings) {
         final long uniqueUnits = refactorings.stream()
-                .map(Refactoring::getUnitName)
+                .map(Refactoring::getEntityName)
                 .distinct()
                 .count();
         return uniqueUnits == refactorings.size();
@@ -217,12 +217,12 @@ public final class RefactoringUtil {
 
     public static List<Refactoring> filter(List<Refactoring> refactorings, AnalysisScope scope) {
         final Set<String> allUnits = refactorings.stream()
-                .map(Refactoring::getUnitName)
+                .map(Refactoring::getEntityName)
                 .collect(Collectors.toSet());
         final Map<String, PsiElement> psiElements = PsiSearchUtil.findAllElements(allUnits, scope, Function.identity());
         final List<Refactoring> validRefactorings = new ArrayList<>();
         for (Refactoring refactoring : refactorings) {
-            final PsiElement element = psiElements.get(refactoring.getUnitName());
+            final PsiElement element = psiElements.get(refactoring.getEntityName());
             if (element != null) {
                 final boolean isMovable = ApplicationManager.getApplication()
                         .runReadAction((Computable<Boolean>) () -> isMovable(element));
@@ -245,13 +245,13 @@ public final class RefactoringUtil {
     }
 
     public static Map<String, String> toMap(List<Refactoring> refactorings) {
-        return refactorings.stream().collect(Collectors.toMap(Refactoring::getUnitName, Refactoring::getTargetName));
+        return refactorings.stream().collect(Collectors.toMap(Refactoring::getEntityName, Refactoring::getTargetName));
     }
 
     public static List<Refactoring> intersect(Collection<List<Refactoring>> refactorings) {
         return refactorings.stream()
                 .flatMap(List::stream)
-                .collect(Collectors.groupingBy(refactoring -> refactoring.getUnitName() + "&" + refactoring.getTargetName(),
+                .collect(Collectors.groupingBy(refactoring -> refactoring.getEntityName() + "&" + refactoring.getTargetName(),
                         Collectors.toList()))
                 .values().stream()
                 .filter(collection -> collection.size() == refactorings.size())
@@ -275,7 +275,7 @@ public final class RefactoringUtil {
     public static List<Refactoring> combine(Collection<List<Refactoring>> refactorings, AnalysisScope scope) {
         return refactorings.stream()
                 .flatMap(List::stream)
-                .collect(Collectors.groupingBy(Refactoring::getUnitName, Collectors.toList()))
+                .collect(Collectors.groupingBy(Refactoring::getEntityName, Collectors.toList()))
                 .entrySet().stream()
                 .map(entry -> combine(entry.getValue(), entry.getKey(), refactorings.size(), scope))
                 .filter(Objects::nonNull)

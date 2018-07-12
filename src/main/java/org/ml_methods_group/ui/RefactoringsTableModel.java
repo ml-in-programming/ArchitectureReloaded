@@ -154,7 +154,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
             case SELECTION_COLUMN_INDEX:
                 return isSelected[rowIndex];
             case ENTITY_COLUMN_INDEX:
-                return refactorings.get(rowIndex).getUnitName();
+                return refactorings.get(rowIndex).getEntityName();
             case MOVE_TO_COLUMN_INDEX:
                 return refactorings.get(rowIndex).getTargetName();
             case ACCURACY_COLUMN_INDEX:
@@ -168,7 +168,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
         final int row = virtualRows.get(virtualRow);
         switch (column) {
             case ENTITY_COLUMN_INDEX:
-                return refactorings.get(row).getUnitName();
+                return refactorings.get(row).getEntityName();
             case MOVE_TO_COLUMN_INDEX:
                 return refactorings.get(row).getTargetName();
         }
