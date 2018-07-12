@@ -45,12 +45,12 @@
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
-        <!--<annotator language="JAVA" implementationClass="org.ml_methods_group.refactoring.RefactoringAnnotator"/>-->
+        <!--<annotator language="JAVA" implementationClass="org.jetbrains.research.groups.ml_methods.refactoring.RefactoringAnnotator"/>-->
         <appStarter implementation="com.sixrr.metrics.offline.MetricsCommandLine"/>
         <applicationService serviceImplementation="com.sixrr.metrics.config.MetricsReloadedConfig"/>
         <applicationService serviceImplementation="com.sixrr.metrics.profile.MetricsProfileRepository"/>
-        <applicationService serviceImplementation="org.ml_methods_group.config.ArchitectureReloadedConfig"/>
-        <projectService serviceImplementation="org.ml_methods_group.ui.RefactoringsToolWindow"/>
+        <applicationService serviceImplementation="org.jetbrains.research.groups.ml_methods.config.ArchitectureReloadedConfig"/>
+        <projectService serviceImplementation="org.jetbrains.research.groups.ml_methods.ui.RefactoringsToolWindow"/>
         <projectService serviceInterface="com.sixrr.metrics.ui.metricdisplay.MetricsToolWindow"
                         serviceImplementation="com.sixrr.metrics.ui.metricdisplay.MetricsToolWindowImpl"/>
         <exportable serviceInterface="com.sixrr.metrics.profile.MetricsProfileRepository"/>
@@ -61,14 +61,14 @@
 
     <!--<application-components>-->
         <!--<component>-->
-            <!--<implementation-class>org.ml_methods_group.refactoring.RefactoringOnFileSaved</implementation-class>-->
+            <!--<implementation-class>org.jetbrains.research.groups.ml_methods.refactoring.RefactoringOnFileSaved</implementation-class>-->
         <!--</component>-->
     <!--</application-components>-->
 
     <actions>
         <group>
             <action id="Metrics.AutomaticRefactoringAction"
-                    class="org.ml_methods_group.plugin.AutomaticRefactoringAction"
+                    class="org.jetbrains.research.groups.ml_methods.plugin.AutomaticRefactoringAction"
                     text="Search for refactorings..."/>
             <add-to-group group-id="InspectCodeGroup" anchor="last"/>
         </group>
