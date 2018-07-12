@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * This storage contains all code entities (classes, method, field...) that have passed
+ * This storage contains all code entities (classes, methods, fields...) that have passed
  * {@link EntitySearcher} filtering, i.e. considered to be relevant and useful for algorithms. Each
  * entity also stores its {@link RelevantProperties}.
  */
