@@ -13,8 +13,8 @@ import java.util.function.BinaryOperator;
 import static org.ml_methods_group.utils.PsiSearchUtil.getHumanReadableName;
 
 /**
- * A set of properties of an {@link OldEntity}. A property is a method, a class or a field which has
- * some relation to the {@link OldEntity} that stores object of this class. Each property has a
+ * A set of properties of an {@link CodeEntity}. A property is a method, a class or a field which has
+ * some relation to the {@link CodeEntity} that stores object of this class. Each property has a
  * weight which corresponds to importance of this property.
  */
 public class RelevantProperties {
