@@ -142,9 +142,7 @@ public abstract class AbstractAlgorithm implements Algorithm {
 
         private final AttributesStorage attributes;
 
-        /**
-         * Only for backward compatibility see {@link Algorithm#execute}.
-         */
+        /** Only for backward compatibility see {@link Algorithm#execute}. */
         private final @NotNull AnalysisScope scope;
 
         private final int preferredThreadsCount;

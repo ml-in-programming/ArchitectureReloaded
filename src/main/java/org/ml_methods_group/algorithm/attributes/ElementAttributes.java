@@ -20,9 +20,7 @@ public abstract class ElementAttributes {
      */
     private final @NotNull double[] features;
 
-    /**
-     * Initializes attributes.
-     */
+    /** Initializes attributes. */
     public ElementAttributes(final @NotNull double[] features) {
         this.features = features;
     }
