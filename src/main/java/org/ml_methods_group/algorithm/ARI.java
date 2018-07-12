@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.ml_methods_group.algorithm.entity.ClassEntity;
 import org.ml_methods_group.algorithm.entity.Entity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.AlgorithmsUtil;
 
@@ -66,9 +67,9 @@ public class ARI extends Algorithm {
         }
         final String targetClassName = targetClass.getName();
         if (!targetClassName.equals(entity.getClassName())) {
-            accumulator.add(new Refactoring(entity.getName(), targetClassName,
+            accumulator.add(Refactoring.createRefactoring(entity.getName(), targetClassName,
                     AlgorithmsUtil.getGapBasedAccuracyRating(minDistance, difference) * ACCURACY,
-                    entity.isField()));
+                    entity.isField(), context.getScope()));
         }
         return accumulator;
     }

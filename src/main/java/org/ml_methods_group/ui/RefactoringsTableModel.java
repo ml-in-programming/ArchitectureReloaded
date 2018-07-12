@@ -3,7 +3,7 @@ package org.ml_methods_group.ui;
 import com.intellij.ui.BooleanTableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.ml_methods_group.algorithm.Refactoring;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;
@@ -138,9 +138,9 @@ public class RefactoringsTableModel extends AbstractTableModel {
             case SELECTION_COLUMN_INDEX:
                 return isSelected[rowIndex];
             case ENTITY_COLUMN_INDEX:
-                return refactorings.get(rowIndex).getUnit();
+                return refactorings.get(rowIndex).getEntityName();
             case MOVE_TO_COLUMN_INDEX:
-                return refactorings.get(rowIndex).getTarget();
+                return refactorings.get(rowIndex).getTargetName();
             case ACCURACY_COLUMN_INDEX:
                 final double accuracy = refactorings.get(rowIndex).getAccuracy();
                 return String.format("%.2f", accuracy);
@@ -152,9 +152,9 @@ public class RefactoringsTableModel extends AbstractTableModel {
         final int row = virtualRows.get(virtualRow);
         switch (column) {
             case ENTITY_COLUMN_INDEX:
-                return refactorings.get(row).getUnit();
+                return refactorings.get(row).getEntityName();
             case MOVE_TO_COLUMN_INDEX:
-                return refactorings.get(row).getTarget();
+                return refactorings.get(row).getTargetName();
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }

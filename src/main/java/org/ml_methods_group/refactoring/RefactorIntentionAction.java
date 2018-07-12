@@ -10,7 +10,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
-import org.ml_methods_group.algorithm.Refactoring;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.utils.RefactoringUtil;
 
 import java.util.Collections;
@@ -21,13 +21,13 @@ public class RefactorIntentionAction extends BaseIntentionAction {
 
     RefactorIntentionAction(String unit, String to, AnalysisScope scope) {
         this.scope = scope;
-        this.refactoring = new Refactoring(unit, to, 0, false);
+        this.refactoring = Refactoring.createRefactoring(unit, to, 0, false, scope);
     }
 
     @NotNull
     @Override
     public String getText() {
-        return String.format("Move to %s", refactoring.getTarget());
+        return String.format("Move to %s", refactoring.getTargetName());
     }
 
     @Nls

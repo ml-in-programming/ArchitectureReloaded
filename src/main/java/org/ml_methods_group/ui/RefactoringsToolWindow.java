@@ -13,7 +13,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.AlgorithmResult;
-import org.ml_methods_group.algorithm.Refactoring;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.RefactoringUtil;
@@ -87,7 +87,7 @@ public final class RefactoringsToolWindow implements Disposable {
         final List<List<Refactoring>> refactorings = results.stream()
                 .map(AlgorithmResult::getRefactorings)
                 .collect(Collectors.toList());
-        final List<Refactoring> measured = RefactoringUtil.combine(refactorings);
+        final List<Refactoring> measured = RefactoringUtil.combine(refactorings, scope);
         addTab("Total", measured, false);
         myToolWindow.setAvailable(true, null);
         myToolWindow.show(null);

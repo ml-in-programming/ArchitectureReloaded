@@ -1,7 +1,7 @@
 package org.ml_methods_group.refactoring;
 
 import org.jetbrains.annotations.NotNull;
-import org.ml_methods_group.algorithm.Refactoring;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 
 import java.util.ArrayList;
 import java.util.List;

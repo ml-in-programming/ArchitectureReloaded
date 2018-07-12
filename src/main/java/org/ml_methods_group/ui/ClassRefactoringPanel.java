@@ -6,7 +6,7 @@ import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
-import org.ml_methods_group.algorithm.Refactoring;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.config.RefactoringPreferencesLog;
 import org.ml_methods_group.refactoring.RefactoringSessionInfo;
 import org.ml_methods_group.refactoring.RefactoringSessionInfoRenderer;
@@ -82,7 +82,7 @@ class ClassRefactoringPanel extends JPanel {
 
     private Predicate<Refactoring> getCurrentPredicate(int sliderValue) {
         return refactoring -> refactoring.getAccuracy() >= sliderValue / 100.0
-                && !(isFieldDisabled && refactoring.isUnitField());
+                && !(isFieldDisabled && refactoring.isMoveFieldRefactoring());
     }
 
     private void setupGUI() {
