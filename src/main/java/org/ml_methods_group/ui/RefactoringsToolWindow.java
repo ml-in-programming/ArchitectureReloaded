@@ -1,19 +1,3 @@
-/*
- * Copyright 2017 Machine Learning Methods in Software Engineering Group of JetBrains Research
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.ml_methods_group.ui;
 
 import com.intellij.analysis.AnalysisScope;
@@ -29,7 +13,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.AlgorithmResult;
-import org.ml_methods_group.algorithm.Refactoring;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.RefactoringUtil;
@@ -103,7 +87,7 @@ public final class RefactoringsToolWindow implements Disposable {
         final List<List<Refactoring>> refactorings = results.stream()
                 .map(AlgorithmResult::getRefactorings)
                 .collect(Collectors.toList());
-        final List<Refactoring> measured = RefactoringUtil.combine(refactorings);
+        final List<Refactoring> measured = RefactoringUtil.combine(refactorings, scope);
         addTab("Total", measured, false);
         myToolWindow.setAvailable(true, null);
         myToolWindow.show(null);

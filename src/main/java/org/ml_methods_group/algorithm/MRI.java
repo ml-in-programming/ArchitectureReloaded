@@ -1,19 +1,3 @@
-/*
- * Copyright 2017 Machine Learning Methods in Software Engineering Group of JetBrains Research
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.ml_methods_group.algorithm;
 
 import com.sixrr.metrics.Metric;
@@ -27,6 +11,7 @@ import org.ml_methods_group.algorithm.entity.ClassOldEntity;
 import org.ml_methods_group.algorithm.entity.OldEntity;
 import org.ml_methods_group.algorithm.entity.EntitySearchResult;
 import org.ml_methods_group.algorithm.entity.FieldOldEntity;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.utils.AlgorithmsUtil;
 
@@ -88,10 +73,10 @@ public class MRI extends OldAlgorithm {
             final double accuracyRating =
                     AlgorithmsUtil.getGapBasedAccuracyRating(minHolder.distance, minHolder.difference) * ACCURACY;
             if (currentEntity.getCategory() == MetricCategory.Method) {
-                processMethod(refactorings, currentEntity, nearestClass, accuracyRating);
+                processMethod(refactorings, currentEntity, nearestClass, accuracyRating, context);
             } else {
-                refactorings.add(new Refactoring(currentEntity.getName(), nearestClass.getName(), accuracyRating,
-                        currentEntity.isField()));
+                refactorings.add(Refactoring.createRefactoring(currentEntity.getName(), nearestClass.getName(), accuracyRating,
+                        currentEntity.isField(), context.getScope()));
             }
         }
 
@@ -125,10 +110,10 @@ public class MRI extends OldAlgorithm {
         return first;
     }
 
-    private void processMethod(List<Refactoring> refactorings, OldEntity method, ClassOldEntity target, double accuracy) {
+    private void processMethod(List<Refactoring> refactorings, OldEntity method, ClassOldEntity target, double accuracy, OldExecutionContext context) {
         if (method.isMovable()) {
             final ClassOldEntity containingClass = classesByName.get(method.getClassName());
-            refactorings.add(new Refactoring(method.getName(), target.getName(), accuracy, false));
+            refactorings.add(Refactoring.createRefactoring(method.getName(), target.getName(), accuracy, false, context.getScope()));
             containingClass.removeFromClass(method.getName());
             target.addToClass(method.getName());
         }

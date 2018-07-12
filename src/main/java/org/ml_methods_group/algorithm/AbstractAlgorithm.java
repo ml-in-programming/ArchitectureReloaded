@@ -16,6 +16,7 @@
 
 package org.ml_methods_group.algorithm;
 
+import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -24,6 +25,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.ml_methods_group.algorithm.attributes.AttributesStorage;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 import org.ml_methods_group.config.Logging;
 
 import java.util.ArrayList;
@@ -72,9 +74,10 @@ public abstract class AbstractAlgorithm implements Algorithm {
      */
     @Override
     public @NotNull AlgorithmResult execute(
-        @NotNull AttributesStorage attributes,
-        @Nullable ExecutorService service,
-        boolean enableFieldRefactorings
+        final @NotNull AttributesStorage attributes,
+        final @Nullable ExecutorService service,
+        final boolean enableFieldRefactorings,
+        final @NotNull AnalysisScope scope
     ) {
         LOGGER.info(name + " started");
         final long startTime = System.currentTimeMillis();
@@ -93,7 +96,8 @@ public abstract class AbstractAlgorithm implements Algorithm {
         final ExecutionContext context = new ExecutionContext(
             enableParallelExecution ? requireNonNull(service) : null,
             indicator,
-            attributes
+            attributes,
+            scope
         );
 
         final List<Refactoring> refactorings;
@@ -154,6 +158,11 @@ public abstract class AbstractAlgorithm implements Algorithm {
 
         private final AttributesStorage attributes;
 
+        /**
+         * Only for backward compatibility see {@link Algorithm#execute}.
+         */
+        private final @NotNull AnalysisScope scope;
+
         private final int preferredThreadsCount;
 
         private int usedThreads = 1; // default thread
@@ -161,11 +170,13 @@ public abstract class AbstractAlgorithm implements Algorithm {
         private ExecutionContext(
             final ExecutorService service,
             final ProgressIndicator indicator,
-            final @NotNull AttributesStorage attributes
+            final @NotNull AttributesStorage attributes,
+            final @NotNull AnalysisScope scope
         ) {
             this.service = service;
             this.indicator = indicator;
             this.attributes = attributes;
+            this.scope = scope;
 
             preferredThreadsCount = Runtime.getRuntime().availableProcessors();
         }

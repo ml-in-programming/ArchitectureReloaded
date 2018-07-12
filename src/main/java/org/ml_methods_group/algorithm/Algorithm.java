@@ -1,21 +1,6 @@
-/*
- * Copyright 2018 Machine Learning Methods in Software Engineering Group of JetBrains Research
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.ml_methods_group.algorithm;
 
+import com.intellij.analysis.AnalysisScope;
 import com.sixrr.metrics.Metric;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,12 +24,17 @@ public interface Algorithm {
      * @param service {@link ExecutorService} in case of parallel computations.
      * @param enableFieldRefactorings {@code true} if there is a request to search for
      *                                            "move field" refactoring.
+     * @param scope this argument is needed only for backward compatibility with old version of
+     *              {@link org.ml_methods_group.algorithm.refactoring.Refactoring} class. If
+     *              {@link org.ml_methods_group.algorithm.refactoring.Refactoring#createRefactoring}
+     *              method is completely removed then this argument should also be removed.
      * @return result of algorithm execution which contains suggested refactorings.
      */
     @NotNull AlgorithmResult execute(
         @NotNull AttributesStorage attributes,
         @Nullable ExecutorService service,
-        boolean enableFieldRefactorings
+        boolean enableFieldRefactorings,
+        @NotNull AnalysisScope scope
     );
 
     /**

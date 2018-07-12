@@ -16,10 +16,12 @@
 
 package org.ml_methods_group.algorithm;
 
+import com.intellij.analysis.AnalysisScope;
 import org.jetbrains.annotations.NotNull;
 import org.ml_methods_group.algorithm.attributes.AttributesStorage;
 import org.ml_methods_group.algorithm.attributes.ElementAttributes;
 import org.ml_methods_group.algorithm.entity.*;
+import org.ml_methods_group.algorithm.refactoring.Refactoring;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -38,8 +40,7 @@ public abstract class OldAlgorithm extends AbstractAlgorithm {
         super(name, enableParallelExecution);
     }
 
-    protected @NotNull
-    Executor setUpExecutor() {
+    protected @NotNull Executor setUpExecutor() {
         return (context, enableFieldRefactorings) ->
                 calculateRefactorings(new OldExecutionContext(context), enableFieldRefactorings);
     }
@@ -50,13 +51,26 @@ public abstract class OldAlgorithm extends AbstractAlgorithm {
     ) throws Exception;
 
     protected final class OldExecutionContext {
-        private final @NotNull
-        ExecutionContext context;
+        private final @NotNull ExecutionContext context;
 
         private final @NotNull EntitySearchResult entities;
 
+        private final @NotNull AnalysisScope scope;
+
         private OldExecutionContext(final @NotNull ExecutionContext context) {
             this.context = context;
+
+            try {
+                Field field = context.getClass().getDeclaredField("scope");
+                boolean accessibility = field.isAccessible();
+                field.setAccessible(true);
+
+                this.scope = (AnalysisScope) field.get(context);
+
+                field.setAccessible(accessibility);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                throw new RuntimeException("Failed to access existing field. Backward compatibility code.");
+            }
 
             AttributesStorage attributes = context.getAttributesStorage();
 
@@ -91,6 +105,11 @@ public abstract class OldAlgorithm extends AbstractAlgorithm {
                     .collect(Collectors.toList());
 
             this.entities = new EntitySearchResult(classes, methods, fields, 0);
+        }
+
+        @NotNull
+        public AnalysisScope getScope() {
+            return scope;
         }
 
         public @NotNull EntitySearchResult getEntities() {
