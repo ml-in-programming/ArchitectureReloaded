@@ -62,6 +62,9 @@ public class PsiSearchUtil {
         if (element instanceof PsiMethod) {
             return calculateSignature((PsiMethod) element);
         } else if (element instanceof PsiClass) {
+            if (element instanceof PsiAnonymousClass) {
+                return getHumanReadableName(((PsiAnonymousClass) element).getBaseClassReference().resolve());
+            }
             return ((PsiClass) element).getQualifiedName();
         } else if (element instanceof PsiField) {
             final PsiMember field = (PsiMember) element;
