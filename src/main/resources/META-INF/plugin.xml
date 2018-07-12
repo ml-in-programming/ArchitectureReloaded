@@ -69,7 +69,9 @@
         <group>
             <action id="Metrics.AutomaticRefactoringAction"
                     class="org.ml_methods_group.plugin.AutomaticRefactoringAction"
-                    text="Search for refactorings..."/>
+                    text="Search for refactorings...">
+            <keyboard-shortcut first-keystroke="control alt shift R" keymap="$default"/>
+            </action>
             <add-to-group group-id="InspectCodeGroup" anchor="last"/>
         </group>
     </actions>
