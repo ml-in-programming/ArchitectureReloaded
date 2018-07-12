@@ -19,11 +19,12 @@ package org.ml_methods_group.algorithm.refactoring;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Representation of a refactoring which moves field to a target class.
  */
-class MoveFieldRefactoring extends Refactoring {
+class MoveFieldRefactoring extends MoveToClassRefactoring {
     private final @NotNull PsiField field;
 
     private final @NotNull PsiClass targetClass;
@@ -58,9 +59,12 @@ class MoveFieldRefactoring extends Refactoring {
         return field;
     }
 
-    /**
-     * Returns class in which field is placed in this refactoring
-     */
+    @Override
+    public @Nullable PsiClass getContainingClass() {
+        return field.getContainingClass();
+    }
+
+    @Override
     public @NotNull PsiClass getTargetClass() {
         return targetClass;
     }

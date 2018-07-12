@@ -19,11 +19,12 @@ package org.ml_methods_group.algorithm.refactoring;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Representation of a refactoring which moves method to a target class.
  */
-public class MoveMethodRefactoring extends Refactoring {
+public class MoveMethodRefactoring extends MoveToClassRefactoring {
     private final @NotNull PsiMethod method;
 
     private final @NotNull PsiClass targetClass;
@@ -58,9 +59,12 @@ public class MoveMethodRefactoring extends Refactoring {
         return method;
     }
 
-    /**
-     * Returns class in which method is placed in this refactoring
-     */
+    @Override
+    public @Nullable PsiClass getContainingClass() {
+        return method.getContainingClass();
+    }
+
+    @Override
     public @NotNull PsiClass getTargetClass() {
         return targetClass;
     }
