@@ -6,6 +6,7 @@ import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.ide.plugins.PluginManager;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.components.ServiceManager;
@@ -24,6 +25,7 @@ import org.ml_methods_group.config.ArchitectureReloadedConfig;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.ui.AlgorithmsSelectionPanel;
+import org.ml_methods_group.ui.EmptyResultNotification;
 import org.ml_methods_group.ui.RefactoringsToolWindow;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.NotificationUtil;
@@ -166,12 +168,20 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
     private void showDialogs(@NotNull RefactoringExecutionContext context) {
         updateResults(context);
         final Set<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
-        final List<AlgorithmResult> algorithmResult = context.getAlgorithmResults()
+        final List<AlgorithmResult> algorithmResults = context.getAlgorithmResults()
                 .stream()
                 .filter(result -> selectedAlgorithms.contains(result.getAlgorithmName()))
                 .collect(Collectors.toList());
-        ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
-                .show(algorithmResult, context.getEntitySearchResult(), context.getScope());
+        boolean isAllEmpty = true;
+        for (AlgorithmResult algorithmResult : algorithmResults) {
+            isAllEmpty = isAllEmpty && algorithmResult.getRefactorings().isEmpty();
+        }
+        if (isAllEmpty) {
+            EmptyResultNotification.createDefaultEmptyResultNotification().notify(context.getProject());
+        } else {
+            ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
+                    .show(algorithmResults, context.getEntitySearchResult(), context.getScope());
+        }
     }
 
     private static void checkRefactoringProfile() {
