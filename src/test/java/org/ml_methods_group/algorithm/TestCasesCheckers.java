@@ -221,7 +221,7 @@ class TestCasesCheckers {
 
         final Map<String, String> refactorings = toMap(context.getResultForName(algorithmName).getRefactorings());
         final Map<String, String> expected = new HashMap<>();
-        expected.put(getPackageName() + ".Customer.getMovie(" + getPackageName() + ".Movie)", getPackageName() + ".Rental");
+        expected.put(getPackageName() + ".Customer.getMovie(Movie)", getPackageName() + ".Rental");
         assertEquals(expected, refactorings);
     }
 

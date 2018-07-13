@@ -76,7 +76,7 @@ public class PsiSearchUtil {
 
     public static String getHumanReadableName(@Nullable PsiElement element) {
         if (element instanceof PsiMethod) {
-            return calculateSignature((PsiMethod) element, false);
+            return calculateSignature((PsiMethod) element);
         } else if (element instanceof PsiClass) {
             return ((PsiClass) element).getQualifiedName();
         } else if (element instanceof PsiField) {
@@ -84,13 +84,6 @@ public class PsiSearchUtil {
             return getHumanReadableName(field.getContainingClass()) + "." + field.getName();
         }
         return "???";
-    }
-
-    public static String getCanonicalName(@Nullable PsiElement element) {
-        if (element instanceof PsiMethod) {
-            return calculateSignature((PsiMethod) element, true);
-        }
-        return getHumanReadableName(element);
     }
 
     private static <V> Map<String, V> runSafeSearch(Set<String> keys, SearchOptions<V> options) {

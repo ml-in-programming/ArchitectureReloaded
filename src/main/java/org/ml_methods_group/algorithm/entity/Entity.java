@@ -65,7 +65,7 @@ public abstract class Entity {
 
     /** Initializes this class with a given {@link PsiElement}. */
     public Entity(PsiElement element) {
-        this.name = PsiSearchUtil.getCanonicalName(element);
+        this.name = PsiSearchUtil.getHumanReadableName(element);
         contextualVector = new HashMap<>();
         relevantProperties = new RelevantProperties();
     }
