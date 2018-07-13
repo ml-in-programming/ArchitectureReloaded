@@ -171,7 +171,10 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 .stream()
                 .filter(result -> selectedAlgorithms.contains(result.getAlgorithmName()))
                 .collect(Collectors.toList());
-        boolean notEmptyResult = algorithmResults.stream().flatMap(algorithmResult -> algorithmResult.getRefactorings().stream()).findAny().isPresent();
+
+        boolean notEmptyResult = algorithmResults.stream().flatMap(result -> result.getRefactorings()
+                .stream()).findAny().isPresent();
+        
         if (notEmptyResult) {
             ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
                     .show(algorithmResults, context.getEntitySearchResult(), context.getScope());
