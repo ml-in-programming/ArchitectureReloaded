@@ -4,46 +4,35 @@ import com.intellij.psi.PsiClass;
 import com.sixrr.metrics.MetricCategory;
 import org.jetbrains.annotations.NotNull;
 
-public class ClassEntity extends Entity {
+public class ClassEntity extends CodeEntity {
     private final @NotNull PsiClass psiClass;
 
-    ClassEntity(final @NotNull PsiClass psiClass) {
-        super(psiClass);
+    public ClassEntity(
+        final @NotNull PsiClass psiClass,
+        final @NotNull RelevantProperties relevantProperties
+    ) {
+        super(relevantProperties);
         this.psiClass = psiClass;
     }
 
-    private ClassEntity(ClassEntity original) {
-        super(original);
-        this.psiClass = original.psiClass;
+    @Override
+    public @NotNull String getIdentifier() {
+        return psiClass.getQualifiedName();
     }
 
     @Override
-    public MetricCategory getCategory() {
+    public boolean isMovable() {
+        return true;
+    }
+
+    @Override
+    public @NotNull String getContainingClassName() {
+        return getIdentifier();
+    }
+
+    @Override
+    public @NotNull MetricCategory getMetricCategory() {
         return MetricCategory.Class;
-    }
-
-    @Override
-    public String getClassName() {
-        return getName();
-    }
-
-
-    public void removeFromClass(String method) {
-        getRelevantProperties().removeMethod(method);
-    }
-
-    public void addToClass(String method) {
-        getRelevantProperties().addMethod(method);
-    }
-
-    @Override
-    public ClassEntity copy() {
-        return new ClassEntity(this);
-    }
-
-    @Override
-    public boolean isField() {
-        return false;
     }
 
     public @NotNull PsiClass getPsiClass() {

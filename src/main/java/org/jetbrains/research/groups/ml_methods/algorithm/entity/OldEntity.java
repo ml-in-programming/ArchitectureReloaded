@@ -1,11 +1,14 @@
 package org.jetbrains.research.groups.ml_methods.algorithm.entity;
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
 import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
+import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ElementAttributes;
 import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 
 import java.util.Arrays;
@@ -15,8 +18,12 @@ import java.util.Set;
 /**
  * Code entity like class, method or field. Entity can be used inside suggestion algorithms.
  * It has a vector of features and {@link RelevantProperties}.
+ *
+ * This is an old class which has too many responsibility. {@link CodeEntity} and
+ * {@link ElementAttributes} should be used instead.
  */
-public abstract class Entity {
+@Deprecated
+public abstract class OldEntity {
     private static final VectorCalculator CLASS_ENTITY_CALCULATOR = new VectorCalculator()
             .addMetricDependence(NumMethodsClassMetric.class)
             .addMetricDependence(NumAttributesAddedMetric.class)
@@ -42,16 +49,23 @@ public abstract class Entity {
 
     private final RelevantProperties relevantProperties;
     private final String name;
+    private PsiElement element;
     private double[] vector;
     protected boolean isMovable = true;
 
     /** Initializes this class with a given {@link PsiElement}. */
-    public Entity(PsiElement element) {
-        this.name = PsiSearchUtil.getHumanReadableName(element);
+    public OldEntity(PsiElement element) {
+        this.name = ApplicationManager.getApplication()
+                .runReadAction((Computable<String>) () -> PsiSearchUtil.getHumanReadableName(element));
+        this.element = element;
         relevantProperties = new RelevantProperties();
     }
 
-    protected Entity(Entity original) {
+    public PsiElement getPsiElement() {
+        return element;
+    }
+
+    protected OldEntity(OldEntity original) {
         relevantProperties = original.relevantProperties.copy();
         name = original.name;
         vector = Arrays.copyOf(original.vector, original.vector.length);
@@ -66,12 +80,24 @@ public abstract class Entity {
         return value * value;
     }
 
-    public double distance(Entity entity) {
+    public double distance(OldEntity entity) {
         double ans = 0.0;
         double w = 0.0;
-        for (int i = 0; i < DIMENSION; i++) {
-            w += square(vector[i] + entity.vector[i]);
+
+        if (this.getCategory().equals(entity.getCategory())) {
+            for (int i = 0; i < vector.length; i++) {
+                w += square(vector[i] + entity.vector[i]);
+            }
+        } else {
+            for (double aVector : vector) {
+                w += square(aVector);
+            }
+
+            for (double aVector : entity.vector) {
+                w += square(aVector);
+            }
         }
+
         ans += w == 0 ? 0 : 1.0 / (w + 1);
         final int rpIntersect = entity.relevantProperties.sizeOfIntersection(relevantProperties);
         if (rpIntersect == 0) {
@@ -83,10 +109,10 @@ public abstract class Entity {
         return Math.sqrt(ans);
     }
 
-    static void normalize(Iterable<? extends Entity> entities) {
+    static void normalize(Iterable<? extends OldEntity> entities) {
         for (int i = 0; i < DIMENSION; i++) {
             double mx = 0.0;
-            for (Entity entity : entities) {
+            for (OldEntity entity : entities) {
                 mx = Math.max(mx, entity.vector[i]);
             }
 
@@ -94,7 +120,7 @@ public abstract class Entity {
                 continue;
             }
 
-            for (Entity entity : entities) {
+            for (OldEntity entity : entities) {
                 entity.vector[i] /= mx;
             }
         }
@@ -109,11 +135,11 @@ public abstract class Entity {
     }
 
     private VectorCalculator getCalculatorForEntity() {
-        if (getClass() == ClassEntity.class) {
+        if (getClass() == ClassOldEntity.class) {
             return CLASS_ENTITY_CALCULATOR;
-        } else if (getClass() == MethodEntity.class) {
+        } else if (getClass() == MethodOldEntity.class) {
             return METHOD_ENTITY_CALCULATOR;
-        } else if (getClass() == FieldEntity.class) {
+        } else if (getClass() == FieldOldEntity.class) {
             return FIELD_ENTITY_CALCULATOR;
         }
         throw new UnsupportedOperationException("Such type of entity isn't supported: " + getClass());
@@ -135,7 +161,7 @@ public abstract class Entity {
 
     abstract public String getClassName();
 
-    abstract public Entity copy();
+    abstract public OldEntity copy();
 
     abstract public boolean isField();
 }

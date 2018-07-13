@@ -1,7 +1,9 @@
 package org.jetbrains.research.groups.ml_methods.algorithm;
 
 public class HacTest extends AlgorithmAbstractTest {
-    private static final String algorithmName = "HAC";
+    private static final Algorithm algorithm = new HAC();
+
+    private static final String algorithmName = algorithm.getDescriptionString();
     private static final TestCasesCheckers testCasesChecker = new TestCasesCheckers(algorithmName);
 
     public void testMoveMethod() {
@@ -95,7 +97,7 @@ public class HacTest extends AlgorithmAbstractTest {
     }
 
     @Override
-    protected String getAlgorithmName() {
-        return algorithmName;
+    protected Algorithm getAlgorithm() {
+        return algorithm;
     }
 }

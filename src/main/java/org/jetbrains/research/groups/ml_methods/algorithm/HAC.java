@@ -1,9 +1,12 @@
 package org.jetbrains.research.groups.ml_methods.algorithm;
 
+import com.sixrr.metrics.Metric;
+import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
+import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.Entity;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.OldEntity;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
@@ -16,7 +19,7 @@ import java.util.stream.Stream;
 
 import static org.jetbrains.research.groups.ml_methods.utils.AlgorithmsUtil.getDensityBasedAccuracyRating;
 
-public class HAC extends Algorithm {
+public class HAC extends OldAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(HAC.class);
     private static final double ACCURACY = 1;
 
@@ -24,14 +27,19 @@ public class HAC extends Algorithm {
     private final Map<Long, Triple> triples = new HashMap<>();
     private final Set<Community> communities = new HashSet<>();
     private final AtomicInteger progressCounter = new AtomicInteger();
-    private ExecutionContext context;
+    private OldExecutionContext context;
     private int idGenerator = 0;
 
     public HAC() {
         super("HAC", true);
     }
 
-    private void init(ExecutionContext context) {
+    @Override
+    public @NotNull List<Metric> requiredMetrics() {
+        return Arrays.asList(new NumMethodsClassMetric(), new NumAttributesAddedMetric());
+    }
+
+    private void init(OldExecutionContext context) {
         LOGGER.info("Init HAC");
         this.context = context;
         heap.clear();
@@ -46,13 +54,13 @@ public class HAC extends Algorithm {
         final List<Community> communitiesAsList = new ArrayList<>(communities);
         Collections.shuffle(communitiesAsList);
         final List<Triple> toInsert =
-                runParallel(communitiesAsList, context, ArrayList::new, this::findTriples, AlgorithmsUtil::combineLists);
+                context.runParallel(communitiesAsList, ArrayList::new, this::findTriples, AlgorithmsUtil::combineLists);
         toInsert.forEach(this::insertTriple);
         LOGGER.info("Built heap (" + heap.size() + " triples)");
     }
 
     private List<Triple> findTriples(Community community, List<Triple> accumulator) {
-        final Entity representative = community.entities.get(0);
+        final OldEntity representative = community.entities.get(0);
         for (Community another : communities) {
             if (another == community) {
                 break;
@@ -62,13 +70,13 @@ public class HAC extends Algorithm {
                 accumulator.add(new Triple(distance, community, another));
             }
         }
-        reportProgress(0.9 * (double) progressCounter.incrementAndGet() / communities.size(), context);
+        context.reportProgress(0.9 * (double) progressCounter.incrementAndGet() / communities.size());
         context.checkCanceled();
         return accumulator;
     }
 
     @Override
-    protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) {
+    protected List<Refactoring> calculateRefactorings(OldExecutionContext context, boolean enableFieldRefactorings) {
         init(context);
         final int initialCommunitiesCount = communities.size();
         while (!heap.isEmpty()) {
@@ -77,7 +85,7 @@ public class HAC extends Algorithm {
             final Community first = minTriple.first;
             final Community second = minTriple.second;
             mergeCommunities(first, second);
-            reportProgress(1 - 0.1 * communities.size() / initialCommunitiesCount, context);
+            context.reportProgress(1 - 0.1 * communities.size() / initialCommunitiesCount);
             context.checkCanceled();
         }
 
@@ -90,7 +98,7 @@ public class HAC extends Algorithm {
             final Entry<String, Long> dominantClass = AlgorithmsUtil.getDominantClass(community.entities);
             final String className = dominantClass.getKey();
             LOGGER.info("Generate class name for community (id = " + community.id +"): " + className);
-            for (Entity entity : community.entities) {
+            for (OldEntity entity : community.entities) {
                 if (!entity.getClassName().equals(className)) {
                     if (enableFieldRefactorings || !entity.isField()) {
                         refactorings.add(Refactoring.createRefactoring(entity.getName(), className,
@@ -105,7 +113,7 @@ public class HAC extends Algorithm {
     }
 
     private Community mergeCommunities(Community first, Community second) {
-        final List<Entity> merged;
+        final List<OldEntity> merged;
         if (first.entities.size() < second.entities.size()) {
             merged = second.entities;
             merged.addAll(first.entities);
@@ -166,18 +174,18 @@ public class HAC extends Algorithm {
         triple.release();
     }
 
-    private Community singletonCommunity(Entity entity) {
-        final List<Entity> singletonList = new ArrayList<>(1);
+    private Community singletonCommunity(OldEntity entity) {
+        final List<OldEntity> singletonList = new ArrayList<>(1);
         singletonList.add(entity);
         return new Community(singletonList);
     }
 
     private class Community implements Comparable<Community> {
 
-        private final List<Entity> entities;
+        private final List<OldEntity> entities;
         private final int id;
 
-        Community(List<Entity> entities) {
+        Community(List<OldEntity> entities) {
             this.entities = entities;
             id = idGenerator++;
         }

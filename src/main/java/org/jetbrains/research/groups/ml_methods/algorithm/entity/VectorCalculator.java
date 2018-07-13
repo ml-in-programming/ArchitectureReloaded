@@ -33,7 +33,7 @@ class VectorCalculator {
         return this;
     }
 
-    double[] calculateVector(MetricsRun metricsRun, Entity entity) {
+    double[] calculateVector(MetricsRun metricsRun, OldEntity entity) {
         final double[] vector = new double[dimension];
         applyMetricsDependencies(metricsRun.getResultsForCategory(entity.getCategory()), entity.getName(), vector);
         if (entity.getCategory() != Class) {
