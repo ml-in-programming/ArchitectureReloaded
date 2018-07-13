@@ -31,9 +31,6 @@ import java.util.function.Consumer;
 public class RefactoringExecutionContext {
     private static final Logger LOGGER = Logging.getLogger(RefactoringExecutionContext.class);
 
-    private static final List<Class<? extends Algorithm>> ALGORITHMS = Arrays.asList(ARI.class, AKMeans.class,
-            CCDA.class, HAC.class, MRI.class);
-
     @NotNull
     private final MetricsRunImpl metricsRun = new MetricsRunImpl();
     private final Project project;
@@ -54,7 +51,7 @@ public class RefactoringExecutionContext {
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
                                        @NotNull MetricsProfile profile,
                                        @Nullable Consumer<RefactoringExecutionContext> continuation) {
-        this(project, scope, profile, Arrays.asList(getAvailableAlgorithms()), true, continuation);
+        this(project, scope, profile, Arrays.asList(AlgorithmRepository.getAvailableAlgorithmNames()), true, continuation);
     }
 
     /**
@@ -140,7 +137,7 @@ public class RefactoringExecutionContext {
     }
 
     private void calculateAlgorithmForName(String algorithm) {
-        for (Class<? extends Algorithm> algorithmClass : ALGORITHMS) {
+        for (Class<? extends Algorithm> algorithmClass : AlgorithmRepository.getAvailableAlgorithms()) {
             if (algorithm.equals(algorithmClass.getSimpleName())) {
                 calculate(algorithmClass);
                 return;
@@ -188,9 +185,4 @@ public class RefactoringExecutionContext {
         return profile;
     }
 
-    public static String[] getAvailableAlgorithms() {
-        return ALGORITHMS.stream()
-                .map(Class::getSimpleName)
-                .toArray(String[]::new);
-    }
 }

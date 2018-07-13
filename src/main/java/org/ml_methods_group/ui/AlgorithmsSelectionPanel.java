@@ -3,8 +3,8 @@ package org.ml_methods_group.ui;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBCheckBox;
 import org.jetbrains.annotations.NotNull;
+import org.ml_methods_group.algorithm.AlgorithmRepository;
 import org.ml_methods_group.config.ArchitectureReloadedConfig;
-import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;
@@ -85,7 +85,7 @@ public class AlgorithmsSelectionPanel extends JPanel {
     private static Tab createAlgorithmsTab() {
         JPanel panel = new JPanel(new GridBagLayout());
 
-        final String[] algorithms = RefactoringExecutionContext.getAvailableAlgorithms();
+        final String[] algorithms = AlgorithmRepository.getAvailableAlgorithmNames();
         final ArchitectureReloadedConfig config = ArchitectureReloadedConfig.getInstance();
 
         final GridBagConstraints constraints = new GridBagConstraints();
