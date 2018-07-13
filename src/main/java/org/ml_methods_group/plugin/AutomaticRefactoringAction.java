@@ -25,7 +25,6 @@ import org.ml_methods_group.config.ArchitectureReloadedConfig;
 import org.ml_methods_group.config.Logging;
 import org.ml_methods_group.refactoring.RefactoringExecutionContext;
 import org.ml_methods_group.ui.AlgorithmsSelectionPanel;
-import org.ml_methods_group.ui.EmptyResultNotification;
 import org.ml_methods_group.ui.RefactoringsToolWindow;
 import org.ml_methods_group.utils.ArchitectureReloadedBundle;
 import org.ml_methods_group.utils.NotificationUtil;
@@ -172,15 +171,12 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 .stream()
                 .filter(result -> selectedAlgorithms.contains(result.getAlgorithmName()))
                 .collect(Collectors.toList());
-        boolean isAllEmpty = true;
-        for (AlgorithmResult algorithmResult : algorithmResults) {
-            isAllEmpty = isAllEmpty && algorithmResult.getRefactorings().isEmpty();
-        }
-        if (isAllEmpty) {
-            EmptyResultNotification.createDefaultEmptyResultNotification().notify(context.getProject());
-        } else {
+        boolean notEmptyResult = algorithmResults.stream().flatMap(algorithmResult -> algorithmResult.getRefactorings().stream()).findAny().isPresent();
+        if (notEmptyResult) {
             ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
                     .show(algorithmResults, context.getEntitySearchResult(), context.getScope());
+        } else {
+            NotificationUtil.notifyEmptyResult(context.getProject());
         }
     }
 
