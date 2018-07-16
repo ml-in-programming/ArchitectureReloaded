@@ -31,7 +31,7 @@ public abstract class ScopeAbstractTest extends LightCodeInsightFixtureTestCase 
 
     @NotNull
     private VirtualFile loadFile(@NotNull String name) {
-        final String fullName = Paths.get(getTestName(true), name).toString();;
+        final String fullName = Paths.get(getTestName(true), name).toString();
         return myFixture.copyFileToProject(name, fullName);
     }
 }
