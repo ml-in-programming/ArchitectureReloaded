@@ -20,7 +20,7 @@ public class InfoCollector {
 
     private InfoCollector() {}
 
-    public @NotNull InfoCollector getInstance() {
+    public static @NotNull InfoCollector getInstance() {
         return INSTANCE;
     }
 
