@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 /**
  * This is a repository of {@link MethodInfo}. It stores {@link MethodInfo} objects for each method
- * that has been encountered and not filtered out during analysis.
+ * that has been encountered during analysis.
  */
 public class MethodInfoRepository {
     private final @NotNull Map<PsiMethod, MethodInfo> methods;
