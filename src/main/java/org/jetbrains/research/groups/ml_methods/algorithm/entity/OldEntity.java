@@ -1,7 +1,5 @@
 package org.jetbrains.research.groups.ml_methods.algorithm.entity;
 
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multiset;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
@@ -10,11 +8,12 @@ import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
 import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ElementAttributes;
 import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Code entity like class, method or field. Entity can be used inside suggestion algorithms.
