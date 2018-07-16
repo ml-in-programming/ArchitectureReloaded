@@ -136,7 +136,7 @@ public abstract class OldAlgorithm extends AbstractAlgorithm {
 
                 vectorField.set(entity, attributes.getRawFeatures());
                 vectorField.setAccessible(accessible);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
+            } catch (NoSuchFieldException | IllegalAccessException ignored) {
             }
         }
     }

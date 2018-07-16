@@ -26,18 +26,15 @@ import java.util.Set;
 public abstract class OldEntity {
     private static final VectorCalculator CLASS_ENTITY_CALCULATOR = new VectorCalculator()
             .addMetricDependence(NumMethodsClassMetric.class)
-            .addMetricDependence(NumAttributesAddedMetric.class)
-            ;
+            .addMetricDependence(NumAttributesAddedMetric.class);
 
     private static final VectorCalculator METHOD_ENTITY_CALCULATOR = new VectorCalculator()
             .addConstValue(0)
-            .addConstValue(0)
-            ;
+            .addConstValue(0);
 
     private static final VectorCalculator FIELD_ENTITY_CALCULATOR = new VectorCalculator()
             .addConstValue(0)
-            .addConstValue(0)
-            ;
+            .addConstValue(0);
 
     private static final int DIMENSION = CLASS_ENTITY_CALCULATOR.getDimension();
 
@@ -68,6 +65,7 @@ public abstract class OldEntity {
     protected OldEntity(OldEntity original) {
         relevantProperties = original.relevantProperties.copy();
         name = original.name;
+        element = original.element;
         vector = Arrays.copyOf(original.vector, original.vector.length);
         isMovable = original.isMovable;
     }

@@ -17,9 +17,11 @@ import static org.jetbrains.research.groups.ml_methods.utils.RefactoringUtil.toM
 class TestCasesCheckers {
     private static final String CHECK_METHODS_PREFIX = "check";
     private final String algorithmName;
+    private boolean isFieldRefactoringEnabled;
 
-    TestCasesCheckers(String algorithmName) {
+    TestCasesCheckers(String algorithmName, boolean isFieldRefactoringEnabled) {
         this.algorithmName = algorithmName;
+        this.isFieldRefactoringEnabled = isFieldRefactoringEnabled;
     }
 
     @NotNull
@@ -29,10 +31,12 @@ class TestCasesCheckers {
         return packageName.substring(0, 1).toLowerCase() + packageName.substring(1);
     }
 
-    private static void checkStructure(@NotNull RefactoringExecutionContext context, int classes, int methods, int fields) {
+    private void checkStructure(@NotNull RefactoringExecutionContext context, int classes, int methods, int fields) {
         assertEquals(classes, context.getClassCount());
         assertEquals(methods, context.getMethodsCount());
-        assertEquals(fields, context.getFieldsCount());
+        if (isFieldRefactoringEnabled) {
+            assertEquals(fields, context.getFieldsCount());
+        }
     }
 
     void checkMoveMethod(@NotNull RefactoringExecutionContext context) {
