@@ -1,0 +1,4 @@
+dependencies {
+    compile project(':openapi')
+    compile project(':utils')
+}
