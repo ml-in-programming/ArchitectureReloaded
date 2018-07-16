@@ -24,6 +24,6 @@ dependencies {
   compile project(':openapi')
   compile project(':utils')
   compile project(':stockmetrics')
-  complie project(':features-extraction')
+  compile project(':features-extraction')
   compile files('lib/args4j-2.32.jar', 'lib/jcommon-0.9.1.jar', 'lib/jfreechart-0.9.16.jar')
 }
