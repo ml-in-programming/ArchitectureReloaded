@@ -14,6 +14,9 @@ import com.sixrr.metrics.profile.MetricsProfile;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
+import org.jetbrains.research.groups.ml_methods.algorithm.attributes.NoRequestedMetricException;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitiesStorage;
 import org.jetbrains.research.groups.ml_methods.algorithm.*;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearcher;
@@ -31,8 +34,13 @@ import java.util.function.Consumer;
 public class RefactoringExecutionContext {
     private static final Logger LOGGER = Logging.getLogger(RefactoringExecutionContext.class);
 
-    private static final List<Class<? extends Algorithm>> ALGORITHMS = Arrays.asList(ARI.class, AKMeans.class,
-            CCDA.class, HAC.class, MRI.class);
+    private static final List<Algorithm> ALGORITHMS = Arrays.asList(
+        new ARI(),
+        new AKMeans(),
+        new CCDA(),
+        new HAC(),
+        new MRI()
+    );
 
     @NotNull
     private final MetricsRunImpl metricsRun = new MetricsRunImpl();
@@ -41,6 +49,7 @@ public class RefactoringExecutionContext {
     @NotNull
     private final MetricsProfile profile;
     private EntitySearchResult entitySearchResult;
+    private EntitiesStorage entitiesStorage;
     private final MetricsExecutionContextImpl metricsExecutionContext;
     @Nullable
     private final Consumer<RefactoringExecutionContext> continuation;
@@ -48,7 +57,7 @@ public class RefactoringExecutionContext {
     private final ExecutorService executorService = Executors.newCachedThreadPool();
     private final List<AlgorithmResult> algorithmsResults = new ArrayList<>();
     @NotNull
-    private final Collection<String> requestedAlgorithms;
+    private final Collection<Algorithm> requestedAlgorithms;
     private final boolean isFieldRefactoringAvailable;
 
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
@@ -69,7 +78,7 @@ public class RefactoringExecutionContext {
      */
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
                                        @NotNull MetricsProfile profile,
-                                       @NotNull Collection<String> requestedAlgorithms,
+                                       @NotNull Collection<Algorithm> requestedAlgorithms,
                                        boolean isFieldRefactoringAvailable,
                                        @Nullable Consumer<RefactoringExecutionContext> continuation) {
         this.project = project;
@@ -111,8 +120,9 @@ public class RefactoringExecutionContext {
         metricsRun.setTimestamp(new TimeStamp());
         entitySearchResult = ApplicationManager.getApplication()
                 .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
-        for (String algorithm : requestedAlgorithms) {
-            calculateAlgorithmForName(algorithm);
+        entitiesStorage = new EntitiesStorage(entitySearchResult);
+        for (Algorithm algorithm : requestedAlgorithms) {
+            calculate(algorithm);
         }
         indicator.setText("Finish refactorings search...");
     }
@@ -124,29 +134,29 @@ public class RefactoringExecutionContext {
         }
     }
 
-    private static Algorithm createInstance(Class<? extends Algorithm> algorithmClass) {
+    private void calculate(Algorithm algorithm) {
+        AttributesStorage attributes;
+
         try {
-            return algorithmClass.newInstance();
-        } catch (Exception e) {
-            LOGGER.error("Failed to create algorithm instance " + algorithmClass.getCanonicalName());
-            throw new RuntimeException("Failed to create instance of algorithm", e);
-        }
-    }
+            attributes = new AttributesStorage(
+                entitiesStorage,
+                algorithm.requiredMetrics(),
+                metricsRun
+            );
+        } catch (NoRequestedMetricException e) {
+            LOGGER.error(
+                "Error during attributes creation for '" + algorithm.getDescriptionString() +
+                "' algorithm: " + e.getMessage() + " - " + algorithm.getDescriptionString() +
+                "is aborted"
+            );
 
-    private void calculate(Class<? extends Algorithm> algorithmClass) {
-        final Algorithm algorithm = createInstance(algorithmClass);
-        final AlgorithmResult result = algorithm.execute(entitySearchResult, executorService, isFieldRefactoringAvailable, scope);
+            return;
+        }
+
+        final AlgorithmResult result =
+            algorithm.execute(attributes, executorService, isFieldRefactoringAvailable, scope);
+
         algorithmsResults.add(result);
-    }
-
-    private void calculateAlgorithmForName(String algorithm) {
-        for (Class<? extends Algorithm> algorithmClass : ALGORITHMS) {
-            if (algorithm.equals(algorithmClass.getSimpleName())) {
-                calculate(algorithmClass);
-                return;
-            }
-        }
-        throw new IllegalArgumentException("Unknown algorithm: " + algorithm);
     }
 
     public List<AlgorithmResult> getAlgorithmResults() {
@@ -188,9 +198,7 @@ public class RefactoringExecutionContext {
         return profile;
     }
 
-    public static String[] getAvailableAlgorithms() {
-        return ALGORITHMS.stream()
-                .map(Class::getSimpleName)
-                .toArray(String[]::new);
+    public static Algorithm[] getAvailableAlgorithms() {
+        return ALGORITHMS.toArray(new Algorithm[ALGORITHMS.size()]);
     }
 }

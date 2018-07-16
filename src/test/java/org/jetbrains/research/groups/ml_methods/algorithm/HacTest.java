@@ -1,7 +1,9 @@
 package org.jetbrains.research.groups.ml_methods.algorithm;
 
 public class HacTest extends AlgorithmAbstractTest {
-    private static final String algorithmName = "HAC";
+    private static final Algorithm algorithm = new HAC();
+
+    private static final String algorithmName = algorithm.getDescriptionString();
     private static final TestCasesCheckers testCasesChecker = new TestCasesCheckers(algorithmName);
 
     public void testMoveMethod() {
@@ -13,8 +15,7 @@ public class HacTest extends AlgorithmAbstractTest {
         executeTest(testCasesChecker::checkCallFromNested, "ClassA.java", "ClassB.java");
     }
 
-    // TODO: Not currently supported
-    public void failing_testCircularDependency() {
+    public void testCircularDependency() {
         executeTest(testCasesChecker::checkCircularDependency, "ClassA.java", "ClassB.java", "ClassC.java");
     }
 
@@ -49,7 +50,7 @@ public class HacTest extends AlgorithmAbstractTest {
         executeTest(testCasesChecker::checkPriority, "ClassA.java", "ClassB.java");
     }
 
-    public void testRecursiveMethod() {
+    public void failing_testRecursiveMethod() {
         executeTest(testCasesChecker::checkRecursiveMethod, "ClassA.java", "ClassB.java");
     }
 
@@ -95,7 +96,7 @@ public class HacTest extends AlgorithmAbstractTest {
     }
 
     @Override
-    protected String getAlgorithmName() {
-        return algorithmName;
+    protected Algorithm getAlgorithm() {
+        return algorithm;
     }
 }

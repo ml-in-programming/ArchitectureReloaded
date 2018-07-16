@@ -21,7 +21,7 @@ import java.util.*;
 import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHumanReadableName;
 
 /**
- * Extracts every {@link Entity} from {@link AnalysisScope} according to a {@link FinderStrategy} that is uses.
+ * Extracts every {@link OldEntity} from {@link AnalysisScope} according to a {@link FinderStrategy} that is uses.
  * It is also responsible for relevant properties extraction.
  */
 public class EntitySearcher {
@@ -29,7 +29,7 @@ public class EntitySearcher {
     private static final Logger LOGGER = Logging.getLogger(EntitySearcher.class);
 
     private final Map<String, PsiClass> classForName = new HashMap<>();
-    private final Map<PsiElement, Entity> entities = new HashMap<>();
+    private final Map<PsiElement, OldEntity> entities = new HashMap<>();
     private final AnalysisScope scope;
     private final long startTime;
     private final FinderStrategy strategy;
@@ -75,11 +75,11 @@ public class EntitySearcher {
 
     private EntitySearchResult prepareResult(MetricsRun metricsRun) {
         LOGGER.info("Preparing results...");
-        final List<ClassEntity> classes = new ArrayList<>();
-        final List<MethodEntity> methods = new ArrayList<>();
-        final List<FieldEntity> fields = new ArrayList<>();
-        final List<Entity> validEntities = new ArrayList<>();
-        for (Entity entity : entities.values()) {
+        final List<ClassOldEntity> classes = new ArrayList<>();
+        final List<MethodOldEntity> methods = new ArrayList<>();
+        final List<FieldOldEntity> fields = new ArrayList<>();
+        final List<OldEntity> validEntities = new ArrayList<>();
+        for (OldEntity entity : entities.values()) {
             indicator.checkCanceled();
             try {
                 entity.calculateVector(metricsRun);
@@ -90,13 +90,13 @@ public class EntitySearcher {
             validEntities.add(entity);
             switch (entity.getCategory()) {
                 case Class:
-                    classes.add((ClassEntity) entity);
+                    classes.add((ClassOldEntity) entity);
                     break;
                 case Method:
-                    methods.add((MethodEntity) entity);
+                    methods.add((MethodOldEntity) entity);
                     break;
                 default:
-                    fields.add((FieldEntity) entity);
+                    fields.add((FieldOldEntity) entity);
                     break;
             }
         }
@@ -125,7 +125,7 @@ public class EntitySearcher {
             if (!strategy.acceptClass(aClass)) {
                 return;
             }
-            entities.put(aClass, new ClassEntity(aClass));
+            entities.put(aClass, new ClassOldEntity(aClass));
             super.visitClass(aClass);
         }
 
@@ -135,7 +135,7 @@ public class EntitySearcher {
                 return;
             }
             indicator.checkCanceled();
-            entities.put(field, new FieldEntity(field));
+            entities.put(field, new FieldOldEntity(field));
             super.visitField(field);
         }
 
@@ -145,7 +145,7 @@ public class EntitySearcher {
                 return;
             }
             indicator.checkCanceled();
-            entities.put(method, new MethodEntity(method));
+            entities.put(method, new MethodOldEntity(method));
             super.visitMethod(method);
         }
     }
@@ -166,7 +166,7 @@ public class EntitySearcher {
         @Override
         public void visitClass(PsiClass aClass) {
             indicator.checkCanceled();
-            final Entity entity = entities.get(aClass);
+            final OldEntity entity = entities.get(aClass);
             if (entity == null) {
                 super.visitClass(aClass);
                 return;
@@ -204,7 +204,7 @@ public class EntitySearcher {
         @Override
         public void visitMethod(PsiMethod method) {
             indicator.checkCanceled();
-            final Entity entity = entities.get(method);
+            final OldEntity entity = entities.get(method);
             if (entity == null) {
                 super.visitMethod(method);
                 return;
@@ -255,7 +255,7 @@ public class EntitySearcher {
         @Override
         public void visitField(PsiField field) {
             indicator.checkCanceled();
-            final Entity entity = entities.get(field);
+            final OldEntity entity = entities.get(field);
             if (entity == null) {
                 super.visitField(field);
                 return;
@@ -300,6 +300,6 @@ public class EntitySearcher {
 
     private Optional<RelevantProperties> propertiesFor(PsiElement element) {
         return Optional.ofNullable(entities.get(element))
-                .map(Entity::getRelevantProperties);
+                .map(OldEntity::getRelevantProperties);
     }
 }

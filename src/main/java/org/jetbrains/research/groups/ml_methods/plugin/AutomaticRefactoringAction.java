@@ -19,8 +19,8 @@ import com.sixrr.metrics.profile.MetricsProfileRepository;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmResult;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.Entity;
 import org.jetbrains.research.groups.ml_methods.config.ArchitectureReloadedConfig;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringExecutionContext;
@@ -115,25 +115,41 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
      * @param analysisScope scope (set of files) that must be analysed.
      */
     @Override
-    protected void analyze(@NotNull final Project project, @NotNull final AnalysisScope analysisScope) {
+    protected void analyze(
+        @NotNull final Project project,
+        @NotNull final AnalysisScope analysisScope
+    ) {
         if (analysisScope.getFileCount() == 0) {
             NotificationUtil.notifyEmptyScope(project);
             return;
         }
 
         LOGGER.info("Run analysis (scope=" + analysisScope.getDisplayName() + ")");
-        final MetricsProfile metricsProfile = getMetricsProfile();
+
+        Set<Algorithm> selectedAlgorithms =
+                ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
+
+        final MetricsProfile metricsProfile = getMetricsProfile(selectedAlgorithms);
         assert metricsProfile != null;
-        final Collection<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
-        final boolean isFieldRefactoringAvailable = ArchitectureReloadedConfig.getInstance().isFieldRefactoringAvailable();
-        new RefactoringExecutionContext(project, analysisScope, metricsProfile, selectedAlgorithms, isFieldRefactoringAvailable, this::showDialogs)
-                .executeAsync();
+        final boolean isFieldRefactoringAvailable =
+            ArchitectureReloadedConfig.getInstance().isFieldRefactoringAvailable();
+
+        new RefactoringExecutionContext(
+            project,
+            analysisScope,
+            metricsProfile,
+            selectedAlgorithms,
+            isFieldRefactoringAvailable,
+            this::showDialogs
+        ).executeAsync();
     }
 
     public void analyzeBackground(@NotNull final Project project, @NotNull final AnalysisScope analysisScope,
                                   String identifier) {
-        final MetricsProfile metricsProfile = getMetricsProfile();
+        List<Algorithm> availableAlgorithms = Arrays.asList(RefactoringExecutionContext.getAvailableAlgorithms());
+        final MetricsProfile metricsProfile = getMetricsProfile(new HashSet<>(availableAlgorithms));
         assert metricsProfile != null;
+
         final RefactoringExecutionContext context =
                 new RefactoringExecutionContext(project, analysisScope, metricsProfile, this::updateResults);
         processes.computeIfPresent(identifier, (x, process) -> {
@@ -166,8 +182,14 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     private void showDialogs(@NotNull RefactoringExecutionContext context) {
         updateResults(context);
-        final Set<String> selectedAlgorithms = ArchitectureReloadedConfig.getInstance().getSelectedAlgorithms();
-        final List<AlgorithmResult> algorithmResults = context.getAlgorithmResults()
+        final Set<String> selectedAlgorithms =
+            ArchitectureReloadedConfig.getInstance()
+                .getSelectedAlgorithms()
+                .stream()
+                .map(Algorithm::getDescriptionString)
+                .collect(Collectors.toSet());
+
+        final List<AlgorithmResult> algorithmResult = context.getAlgorithmResults()
                 .stream()
                 .filter(result -> selectedAlgorithms.contains(result.getAlgorithmName()))
                 .collect(Collectors.toList());
@@ -183,8 +205,12 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         }
     }
 
-    private static void checkRefactoringProfile() {
-        final Set<Class<? extends Metric>> requestedSet = Entity.getRequestedMetrics();
+    private static void checkRefactoringProfile(final @NotNull Set<Algorithm> selectedAlgorithms) {
+        final Set<Metric> requestedSet =
+            selectedAlgorithms.stream()
+                .flatMap(it -> it.requiredMetrics().stream())
+                .collect(Collectors.toSet());
+
         final String profileName = ArchitectureReloadedBundle.message(REFACTORING_PROFILE_KEY);
         final MetricsProfileRepository repository = MetricsProfileRepository.getInstance();
         if (MetricsProfilesUtil.checkMetricsList(profileName, requestedSet, repository)) {
@@ -194,8 +220,10 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         repository.addProfile(MetricsProfilesUtil.createProfile(profileName, requestedSet));
     }
 
-    private static MetricsProfile getMetricsProfile() {
-        checkRefactoringProfile();
+    private static MetricsProfile getMetricsProfile(
+        final @NotNull Set<Algorithm> selectedAlgorithms
+    ) {
+        checkRefactoringProfile(selectedAlgorithms);
         final String profileName = ArchitectureReloadedBundle.message(REFACTORING_PROFILE_KEY);
         return MetricsProfileRepository.getInstance().getProfileForName(profileName);
     }

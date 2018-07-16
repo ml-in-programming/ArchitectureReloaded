@@ -1,32 +1,42 @@
 package org.jetbrains.research.groups.ml_methods.algorithm;
 
+import com.sixrr.metrics.Metric;
+import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
+import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.apache.log4j.Logger;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.ClassEntity;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.Entity;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.ClassOldEntity;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.OldEntity;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 import org.jetbrains.research.groups.ml_methods.utils.AlgorithmsUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ARI extends Algorithm {
+public class ARI extends OldAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(ARI.class);
     private static final double ACCURACY = 1;
 
-    private final List<Entity> units = new ArrayList<>();
-    private final List<ClassEntity> classEntities = new ArrayList<>();
+    private final List<OldEntity> units = new ArrayList<>();
+    private final List<ClassOldEntity> classEntities = new ArrayList<>();
     private final AtomicInteger progressCount = new AtomicInteger();
-    private ExecutionContext context;
+    private OldExecutionContext context;
 
     public ARI() {
         super("ARI", true);
     }
 
     @Override
-    protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) {
+    public @NotNull List<Metric> requiredMetrics() {
+        return Arrays.asList(new NumMethodsClassMetric(), new NumAttributesAddedMetric());
+    }
+
+    @Override
+    protected List<Refactoring> calculateRefactorings(OldExecutionContext context, boolean enableFieldRefactorings) {
         units.clear();
         classEntities.clear();
         final EntitySearchResult entities = context.getEntities();
@@ -37,19 +47,19 @@ public class ARI extends Algorithm {
         }
         progressCount.set(0);
         this.context = context;
-        return runParallel(units, context, ArrayList<Refactoring>::new, this::findRefactoring, AlgorithmsUtil::combineLists);
+        return context.runParallel(units, ArrayList<Refactoring>::new, this::findRefactoring, AlgorithmsUtil::combineLists);
     }
 
-    private List<Refactoring> findRefactoring(Entity entity, List<Refactoring> accumulator) {
-        reportProgress((double) progressCount.incrementAndGet() / units.size(), context);
+    private List<Refactoring> findRefactoring(OldEntity entity, List<Refactoring> accumulator) {
+        context.reportProgress((double) progressCount.incrementAndGet() / units.size());
         context.checkCanceled();
         if (!entity.isMovable() || classEntities.size() < 2) {
             return accumulator;
         }
         double minDistance = Double.POSITIVE_INFINITY;
         double difference = Double.POSITIVE_INFINITY;
-        ClassEntity targetClass = null;
-        for (final ClassEntity classEntity : classEntities) {
+        ClassOldEntity targetClass = null;
+        for (final ClassOldEntity classEntity : classEntities) {
 
             final double distance = entity.distance(classEntity);
             if (distance < minDistance) {

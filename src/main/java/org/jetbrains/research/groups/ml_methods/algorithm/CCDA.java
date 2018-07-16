@@ -1,7 +1,11 @@
 package org.jetbrains.research.groups.ml_methods.algorithm;
 
+import com.sixrr.metrics.Metric;
+import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
+import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.apache.log4j.Logger;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.Entity;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.OldEntity;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.RelevantProperties;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
@@ -12,17 +16,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class CCDA extends Algorithm {
+public class CCDA extends OldAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(CCDA.class);
     private static final double ACCURACY = 1;
 
     private final Map<String, Integer> communityIds = new HashMap<>();
-    private final Map<Entity, Integer> entityCommunities = new HashMap<>();
+    private final Map<OldEntity, Integer> entityCommunities = new HashMap<>();
     private final List<String> idCommunity = new ArrayList<>();
     private final List<Integer> aCoefficients = new ArrayList<>();
-    private final List<Entity> nodes = new ArrayList<>();
+    private final List<OldEntity> nodes = new ArrayList<>();
     private final Map<String, Set<String>> graph = new HashMap<>();
-    private ExecutionContext context;
+    private OldExecutionContext context;
 
     private double quality;
     private double edges;
@@ -45,7 +49,7 @@ public class CCDA extends Algorithm {
         entities.getClasses().stream()
                 .peek(entity -> communityIds.put(entity.getName(), communityIds.size() + 1))
                 .peek(entity -> entityCommunities.put(entity, communityIds.get(entity.getClassName())))
-                .map(Entity::getName)
+                .map(OldEntity::getName)
                 .forEach(idCommunity::add);
         Stream.of(entities.getFields(), entities.getMethods())
                 .flatMap(List::stream)
@@ -61,7 +65,7 @@ public class CCDA extends Algorithm {
         LOGGER.info("Building graph");
         graph.clear();
         int iteration = 0;
-        for (Entity entity : nodes) {
+        for (OldEntity entity : nodes) {
             final RelevantProperties properties = entity.getRelevantProperties();
             final Set<String> neighbors = graph.getOrDefault(entity.getName(), new HashSet<>());
 
@@ -75,11 +79,11 @@ public class CCDA extends Algorithm {
             context.checkCanceled();
             graph.put(entity.getName(), neighbors);
             iteration++;
-            reportProgress((0.1 * iteration) / nodes.size(), context);
+            context.reportProgress((0.1 * iteration) / nodes.size());
         }
     }
 
-    private void addNode(String entityName, Entity entity, Collection<String> neighbors) {
+    private void addNode(String entityName, OldEntity entity, Collection<String> neighbors) {
         if (entityName.equals(entity.getName()) || !communityIds.containsKey(entityName)) {
             return;
         }
@@ -89,15 +93,15 @@ public class CCDA extends Algorithm {
     }
 
     @Override
-    protected List<Refactoring> calculateRefactorings(ExecutionContext context, boolean enableFieldRefactorings) {
+    protected List<Refactoring> calculateRefactorings(OldExecutionContext context, boolean enableFieldRefactorings) {
         this.context = context;
         init();
-        final Map<Entity, String> refactorings = new HashMap<>();
+        final Map<OldEntity, String> refactorings = new HashMap<>();
         context.checkCanceled();
         quality = calculateQualityIndex();
         double progress = 0;
         while (true) {
-            final Holder optimum = runParallel(nodes, context, Holder::new, this::attempt, this::max);
+            final Holder optimum = context.runParallel(nodes, Holder::new, this::attempt, this::max);
             if (optimum.delta <= eps) {
                 break;
             }
@@ -106,12 +110,12 @@ public class CCDA extends Algorithm {
             communityIds.put(optimum.targetEntity.getName(), optimum.community);
             entityCommunities.put(optimum.targetEntity, optimum.community);
             progress = Math.max(progress, eps / optimum.delta);
-            reportProgress(0.1 + 0.9 * progress, context);
+            context.reportProgress(0.1 + 0.9 * progress);
             LOGGER.info("Finish iteration. Current quality is " + quality + " (delta is " + optimum.delta + ")");
             context.checkCanceled();
         }
 
-        final Map<Integer, List<Entity>> entities = entityCommunities.entrySet().stream()
+        final Map<Integer, List<OldEntity>> entities = entityCommunities.entrySet().stream()
                 .collect(Collectors.groupingBy(Map.Entry::getValue))
                 .entrySet()
                 .stream()
@@ -140,7 +144,7 @@ public class CCDA extends Algorithm {
                 .collect(Collectors.toList());
     }
 
-    private Holder attempt(Entity entity, Holder optimum) {
+    private Holder attempt(OldEntity entity, Holder optimum) {
         final int currentCommunityID = communityIds.get(entity.getName());
         for (int i = 1; i <= idCommunity.size(); ++i) {
             if (i == currentCommunityID) {
@@ -157,9 +161,14 @@ public class CCDA extends Algorithm {
         return optimum;
     }
 
+    @Override
+    public @NotNull List<Metric> requiredMetrics() {
+        return Arrays.asList(new NumMethodsClassMetric(), new NumAttributesAddedMetric());
+    }
+
     private class Holder {
         private double delta = 0;
-        private Entity targetEntity;
+        private OldEntity targetEntity;
         private int community = -1;
     }
 
@@ -167,7 +176,7 @@ public class CCDA extends Algorithm {
         return first.delta >= second.delta ? first : second;
     }
 
-    private double move(Entity ent, int to, boolean rollback) {
+    private double move(OldEntity ent, int to, boolean rollback) {
         final String name = ent.getName();
         final int from = communityIds.get(name);
         double dq = 0.0;

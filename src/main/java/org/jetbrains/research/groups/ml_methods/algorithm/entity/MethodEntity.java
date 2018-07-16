@@ -6,41 +6,43 @@ import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.utils.PSIUtil;
 
-public class MethodEntity extends Entity {
+public class MethodEntity extends CodeEntity {
     private final @NotNull PsiMethod psiMethod;
 
-    MethodEntity(final @NotNull PsiMethod psiMethod) {
-        super(psiMethod);
+    private final boolean isMovable;
+
+    public MethodEntity(
+        final @NotNull PsiMethod psiMethod,
+        final @NotNull RelevantProperties relevantProperties
+    ) {
+        super(relevantProperties);
         this.psiMethod = psiMethod;
+
         isMovable = !PSIUtil.isOverriding(psiMethod) &&
                 !MethodUtils.isAbstract(psiMethod) && !psiMethod.isConstructor();
     }
 
-    private MethodEntity(MethodEntity original) {
-        super(original);
-        this.psiMethod = original.psiMethod;
+    @Override
+    public @NotNull String getIdentifier() {
+        return MethodUtils.calculateSignature(psiMethod);
     }
 
     @Override
-    public MetricCategory getCategory() {
-        return MetricCategory.Method;
+    public boolean isMovable() {
+        return isMovable;
     }
 
     @Override
-    public String getClassName() {
-        final String signature = getName();
+    public @NotNull String getContainingClassName() {
+        final String signature = getIdentifier();
         final String name = signature.substring(0, signature.indexOf('('));
         return name.substring(0, name.lastIndexOf('.'));
     }
 
     @Override
-    public MethodEntity copy() {
-        return new MethodEntity(this);
-    }
-
-    @Override
-    public boolean isField() {
-        return false;
+    public @NotNull
+    MetricCategory getMetricCategory() {
+        return MetricCategory.Method;
     }
 
     public @NotNull PsiMethod getPsiMethod() {

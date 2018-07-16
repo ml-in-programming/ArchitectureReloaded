@@ -10,30 +10,25 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class MetricsProfilesUtil {
-    public static MetricsProfile createProfile(String name, Collection<Class<? extends Metric>> requestedMetrics) {
+    public static MetricsProfile createProfile(String name, Collection<Metric> requestedMetrics) {
         final List<MetricInstance> metrics = new ArrayList<>();
-        for (Class<? extends Metric> metricClass : requestedMetrics) {
-            try {
-                MetricInstance instance = new MetricInstanceImpl(metricClass.newInstance());
-                instance.setEnabled(true);
-                metrics.add(instance);
-            } catch (Exception e) {
-                System.out.println("Failed to create metric for name: " + metricClass.getCanonicalName());
-            }
+        for (Metric metric : requestedMetrics) {
+            MetricInstance instance = new MetricInstanceImpl(metric);
+            instance.setEnabled(true);
+            metrics.add(instance);
         }
         return new MetricsProfileImpl(name, metrics);
     }
 
-    public static boolean checkMetricsList(String profileName, Set<Class<? extends Metric>> expected,
+    public static boolean checkMetricsList(String profileName, Set<Metric> expected,
                                            MetricsProfileRepository repository) {
         final MetricsProfile refactoringProfile = repository.getProfileForName(profileName);
         if (refactoringProfile == null) {
             return false;
         }
-        Set<Class<? extends Metric>> currentSet = refactoringProfile.getMetricInstances()
+        Set<Metric> currentSet = refactoringProfile.getMetricInstances()
                 .stream()
                 .map(MetricInstance::getMetric)
-                .map(Metric::getClass)
                 .collect(Collectors.toSet());
         return expected.equals(currentSet);
     }
