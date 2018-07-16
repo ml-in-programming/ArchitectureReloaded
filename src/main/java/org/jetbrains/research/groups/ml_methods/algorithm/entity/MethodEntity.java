@@ -24,7 +24,7 @@ public class MethodEntity extends CodeEntity {
 
     @Override
     public @NotNull String getIdentifier() {
-        return MethodUtils.calculateSignature(psiMethod);
+        return MethodUtils.calculateCanonicalSignature(psiMethod);
     }
 
     @Override

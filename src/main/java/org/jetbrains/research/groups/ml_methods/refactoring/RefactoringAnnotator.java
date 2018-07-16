@@ -44,7 +44,7 @@ public class RefactoringAnnotator implements Annotator {
         if (refactorings == null || refactorings.isEmpty()) {
             return;
         }
-        final String name = PsiSearchUtil.getHumanReadableName(element);
+        final String name = PsiSearchUtil.getCanonicalName(element);
         if (refactorings.containsKey(name)) {
             final Annotation annotation = holder.createWarningAnnotation(
                     getAnnotationPart(element),

@@ -13,7 +13,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.function.Function;
 
-import static java.nio.file.Files.*;
+import static java.nio.file.Files.createFile;
+import static java.nio.file.Files.write;
 
 public class ExportResultsUtil {
     private static final Logger LOGGER = Logging.getLogger(ExportResultsUtil.class);
@@ -42,6 +43,6 @@ public class ExportResultsUtil {
     }
 
     private static String defaultRefactoringView(Refactoring r) {
-        return String.format("%s --> %s (%s)", r.getEntityName(), r.getTargetName(), r.getAccuracy());
+        return String.format("%s --> %s (%s)", r.getEntityHumanReadableName(), r.getTargetHumanReadableName(), r.getAccuracy());
     }
 }

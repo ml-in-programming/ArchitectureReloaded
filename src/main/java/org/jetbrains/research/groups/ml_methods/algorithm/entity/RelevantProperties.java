@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BinaryOperator;
 
-import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHumanReadableName;
+import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getCanonicalName;
 
 /**
  * A set of properties of an {@link CodeEntity}. A property is a method, a class or a field which has
@@ -70,7 +70,7 @@ public class RelevantProperties {
      * @param weight a weight which will be assigned to this method.
      */
     void addMethod(PsiMethod method, Integer weight) {
-        addMethod(getHumanReadableName(method), weight);
+        addMethod(getCanonicalName(method), weight);
     }
 
     /**
@@ -92,7 +92,7 @@ public class RelevantProperties {
     }
 
     void addClass(PsiClass aClass, Integer weight) {
-        String name = getHumanReadableName(aClass);
+        String name = getCanonicalName(aClass);
         if (classes.getOrDefault(name, 0) < weight) {
             classes.put(name, weight);
         }
@@ -103,7 +103,7 @@ public class RelevantProperties {
     }
 
     void addField(PsiField field, Integer weight) {
-        final String name = getHumanReadableName(field);
+        final String name = getCanonicalName(field);
         if (fields.getOrDefault(name , 0) < weight) {
             fields.put(name, weight);
         }
@@ -114,9 +114,9 @@ public class RelevantProperties {
     }
 
     void addOverrideMethod(PsiMethod method, Integer weight) {
-        String name = getHumanReadableName(method);
+        String name = getCanonicalName(method);
         if (allMethods.getOrDefault(name, 0) < weight) {
-            allMethods.put(getHumanReadableName(method), weight);
+            allMethods.put(getCanonicalName(method), weight);
         }
     }
 

@@ -11,8 +11,8 @@ import java.util.Set;
 import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
 import static com.intellij.testFramework.UsefulTestCase.assertOneOf;
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
 import static org.jetbrains.research.groups.ml_methods.utils.RefactoringUtil.toMap;
+import static org.junit.Assert.assertEquals;
 
 class TestCasesCheckers {
     private static final String CHECK_METHODS_PREFIX = "check";
@@ -205,7 +205,7 @@ class TestCasesCheckers {
 
         final Map<String, String> refactorings = toMap(context.getResultForName(algorithmName).getRefactorings());
         final Map<String, String> expected = new HashMap<>();
-        expected.put(getPackageName() + ".Customer.getMovie(Movie)", getPackageName() + ".Rental");
+        expected.put(getPackageName() + ".Customer.getMovie(" + getPackageName() + ".Movie)", getPackageName() + ".Rental");
         assertEquals(expected, refactorings);
     }
 

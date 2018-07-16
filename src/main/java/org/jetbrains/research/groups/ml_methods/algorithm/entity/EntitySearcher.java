@@ -18,7 +18,7 @@ import org.jetbrains.research.groups.ml_methods.utils.PSIUtil;
 
 import java.util.*;
 
-import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHumanReadableName;
+import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getCanonicalName;
 
 /**
  * Extracts every {@link OldEntity} from {@link AnalysisScope} according to a {@link FinderStrategy} that is uses.
@@ -121,7 +121,7 @@ public class EntitySearcher {
         @Override
         public void visitClass(PsiClass aClass) {
             indicator.checkCanceled();
-            classForName.put(getHumanReadableName(aClass), aClass);
+            classForName.put(getCanonicalName(aClass), aClass);
             if (!strategy.acceptClass(aClass)) {
                 return;
             }
@@ -198,7 +198,7 @@ public class EntitySearcher {
 
         @Contract("null -> false")
         private boolean isClassInProject(final @Nullable PsiClass aClass) {
-            return aClass != null && classForName.containsKey(getHumanReadableName(aClass));
+            return aClass != null && classForName.containsKey(getCanonicalName(aClass));
         }
 
         @Override
