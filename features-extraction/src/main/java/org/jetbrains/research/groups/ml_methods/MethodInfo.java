@@ -8,7 +8,7 @@ import java.util.Map;
 
 /**
  * This class contains structural information gathered for a particular method. It stores methods
- * that call this method or methods that this method calls etc.
+ * that call this method, methods that this method calls etc.
  */
 public class MethodInfo {
     private final @NotNull Map<PsiMethod, Integer> outsideInvocations;
