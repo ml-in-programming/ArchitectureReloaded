@@ -2,8 +2,8 @@ package org.jetbrains.research.groups.ml_methods.algorithm;
 
 public class AriTest extends AlgorithmAbstractTest {
     private static final Algorithm algorithm = new ARI();
-
     private static final String algorithmName = algorithm.getDescriptionString();
+    private static final TestCasesCheckers testCasesChecker = new TestCasesCheckers(algorithmName, true);
 
     public void testMoveMethod() {
         executeTest(testCasesChecker::checkMoveMethod, "ClassA.java", "ClassB.java");

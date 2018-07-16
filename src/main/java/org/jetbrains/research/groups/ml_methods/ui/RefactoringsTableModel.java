@@ -138,9 +138,9 @@ public class RefactoringsTableModel extends AbstractTableModel {
             case SELECTION_COLUMN_INDEX:
                 return isSelected[rowIndex];
             case ENTITY_COLUMN_INDEX:
-                return refactorings.get(rowIndex).getEntityName();
+                return refactorings.get(rowIndex).getEntityHumanReadableName();
             case MOVE_TO_COLUMN_INDEX:
-                return refactorings.get(rowIndex).getTargetName();
+                return refactorings.get(rowIndex).getTargetHumanReadableName();
             case ACCURACY_COLUMN_INDEX:
                 final double accuracy = refactorings.get(rowIndex).getAccuracy();
                 return String.format("%.2f", accuracy);
@@ -152,9 +152,9 @@ public class RefactoringsTableModel extends AbstractTableModel {
         final int row = virtualRows.get(virtualRow);
         switch (column) {
             case ENTITY_COLUMN_INDEX:
-                return refactorings.get(row).getEntityName();
+                return refactorings.get(row).getEntityCanonicalName();
             case MOVE_TO_COLUMN_INDEX:
-                return refactorings.get(row).getTargetName();
+                return refactorings.get(row).getEntityCanonicalName();
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }

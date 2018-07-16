@@ -11,15 +11,17 @@ import java.util.Set;
 import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
 import static com.intellij.testFramework.UsefulTestCase.assertOneOf;
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
 import static org.jetbrains.research.groups.ml_methods.utils.RefactoringUtil.toMap;
+import static org.junit.Assert.assertEquals;
 
 class TestCasesCheckers {
     private static final String CHECK_METHODS_PREFIX = "check";
     private final String algorithmName;
+    private boolean isFieldRefactoringEnabled;
 
-    TestCasesCheckers(String algorithmName) {
+    TestCasesCheckers(String algorithmName, boolean isFieldRefactoringEnabled) {
         this.algorithmName = algorithmName;
+        this.isFieldRefactoringEnabled = isFieldRefactoringEnabled;
     }
 
     @NotNull
@@ -29,10 +31,12 @@ class TestCasesCheckers {
         return packageName.substring(0, 1).toLowerCase() + packageName.substring(1);
     }
 
-    private static void checkStructure(@NotNull RefactoringExecutionContext context, int classes, int methods, int fields) {
+    private void checkStructure(@NotNull RefactoringExecutionContext context, int classes, int methods, int fields) {
         assertEquals(classes, context.getClassCount());
         assertEquals(methods, context.getMethodsCount());
-        assertEquals(fields, context.getFieldsCount());
+        if (isFieldRefactoringEnabled) {
+            assertEquals(fields, context.getFieldsCount());
+        }
     }
 
     void checkMoveMethod(@NotNull RefactoringExecutionContext context) {
@@ -201,7 +205,7 @@ class TestCasesCheckers {
 
         final Map<String, String> refactorings = toMap(context.getResultForName(algorithmName).getRefactorings());
         final Map<String, String> expected = new HashMap<>();
-        expected.put(getPackageName() + ".Customer.getMovie(Movie)", getPackageName() + ".Rental");
+        expected.put(getPackageName() + ".Customer.getMovie(" + getPackageName() + ".Movie)", getPackageName() + ".Rental");
         assertEquals(expected, refactorings);
     }
 

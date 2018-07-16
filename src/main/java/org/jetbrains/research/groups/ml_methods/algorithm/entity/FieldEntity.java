@@ -5,7 +5,7 @@ import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 
-import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHumanReadableName;
+import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getCanonicalName;
 
 public class FieldEntity extends CodeEntity {
     private final @NotNull PsiField psiField;
@@ -24,7 +24,7 @@ public class FieldEntity extends CodeEntity {
 
     @Override
     public @NotNull String getIdentifier() {
-        return getHumanReadableName(psiField.getContainingClass()) + "." + psiField.getName();
+        return getCanonicalName(psiField.getContainingClass()) + "." + psiField.getName();
     }
 
     @Override

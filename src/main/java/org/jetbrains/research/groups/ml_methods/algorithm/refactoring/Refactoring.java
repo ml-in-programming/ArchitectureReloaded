@@ -12,14 +12,12 @@ import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 
 public abstract class Refactoring {
     private final @NotNull PsiElement entity;
-
     private final @NotNull PsiElement target;
-
-    private final String entityName;
-
-    private final String targetName;
-
+    private final String entityCanonicalName;
+    private final String targetCanonicalName;
     private final double accuracy;
+    private final String targetHumanReadableName;
+    private final String entityHumanReadableName;
 
     /**
      * This factory method is a replacement for old ctor. Previously {@link Refactoring} class
@@ -69,12 +67,20 @@ public abstract class Refactoring {
         this.entity = entity;
         this.target = target;
 
-        this.entityName = ApplicationManager.getApplication().runReadAction(
-            (Computable<String>) () -> PsiSearchUtil.getHumanReadableName(entity)
+        this.entityCanonicalName = ApplicationManager.getApplication().runReadAction(
+            (Computable<String>) () -> PsiSearchUtil.getCanonicalName(entity)
         );
 
-        this.targetName = ApplicationManager.getApplication().runReadAction(
-            (Computable<String>) () -> PsiSearchUtil.getHumanReadableName(target)
+        this.targetCanonicalName = ApplicationManager.getApplication().runReadAction(
+            (Computable<String>) () -> PsiSearchUtil.getCanonicalName(target)
+        );
+
+        this.entityHumanReadableName = ApplicationManager.getApplication().runReadAction(
+                (Computable<String>) () -> PsiSearchUtil.getHumanReadableName(entity)
+        );
+
+        this.targetHumanReadableName = ApplicationManager.getApplication().runReadAction(
+                (Computable<String>) () -> PsiSearchUtil.getHumanReadableName(target)
         );
 
         this.accuracy = accuracy;
@@ -94,8 +100,8 @@ public abstract class Refactoring {
      * Use {@link #getEntity()} instead.
      */
     @Deprecated
-    public String getEntityName() {
-        return entityName;
+    public String getEntityCanonicalName() {
+        return entityCanonicalName;
     }
 
     /**
@@ -104,8 +110,8 @@ public abstract class Refactoring {
      * Use {@link #getTarget()} instead.
      */
     @Deprecated
-    public String getTargetName() {
-        return targetName;
+    public String getTargetCanonicalName() {
+        return targetCanonicalName;
     }
 
     public double getAccuracy() {
@@ -140,5 +146,13 @@ public abstract class Refactoring {
                 "entity=" + entity +
                 ", target=" + target +
                 '}';
+    }
+
+    public String getEntityHumanReadableName() {
+        return entityHumanReadableName;
+    }
+
+    public String getTargetHumanReadableName() {
+        return targetHumanReadableName;
     }
 }

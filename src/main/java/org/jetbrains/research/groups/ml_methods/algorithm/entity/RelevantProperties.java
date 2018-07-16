@@ -1,8 +1,11 @@
 package org.jetbrains.research.groups.ml_methods.algorithm.entity;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,7 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BinaryOperator;
 
-import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHumanReadableName;
+import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getCanonicalName;
 
 /**
  * A set of properties of an {@link CodeEntity}. A property is a method, a class or a field which has
@@ -18,13 +21,20 @@ import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHu
  * weight which corresponds to importance of this property.
  */
 public class RelevantProperties {
-
+    @NotNull
+    private final Multiset<String> bag = HashMultiset.create();
+    @NotNull
+    private final Map<String, Double> contextualVector;
     private final Map<String, Integer> methods = new HashMap<>();
     private final Map<String, Integer> classes = new HashMap<>();
     private final Map<String, Integer> fields = new HashMap<>();
     private final Map<String, Integer> allMethods = new HashMap<>();
 
     private final Integer DEFAULT_PROPERTY_WEIGHT = 1;
+
+    public RelevantProperties() {
+        contextualVector = new HashMap<>();
+    }
 
     void removeMethod(String method) {
         methods.remove(method);
@@ -60,7 +70,7 @@ public class RelevantProperties {
      * @param weight a weight which will be assigned to this method.
      */
     void addMethod(PsiMethod method, Integer weight) {
-        addMethod(getHumanReadableName(method), weight);
+        addMethod(getCanonicalName(method), weight);
     }
 
     /**
@@ -82,7 +92,7 @@ public class RelevantProperties {
     }
 
     void addClass(PsiClass aClass, Integer weight) {
-        String name = getHumanReadableName(aClass);
+        String name = getCanonicalName(aClass);
         if (classes.getOrDefault(name, 0) < weight) {
             classes.put(name, weight);
         }
@@ -93,7 +103,7 @@ public class RelevantProperties {
     }
 
     void addField(PsiField field, Integer weight) {
-        final String name = getHumanReadableName(field);
+        final String name = getCanonicalName(field);
         if (fields.getOrDefault(name , 0) < weight) {
             fields.put(name, weight);
         }
@@ -104,9 +114,9 @@ public class RelevantProperties {
     }
 
     void addOverrideMethod(PsiMethod method, Integer weight) {
-        String name = getHumanReadableName(method);
+        String name = getCanonicalName(method);
         if (allMethods.getOrDefault(name, 0) < weight) {
-            allMethods.put(getHumanReadableName(method), weight);
+            allMethods.put(getCanonicalName(method), weight);
         }
     }
 
@@ -176,10 +186,22 @@ public class RelevantProperties {
 
     public RelevantProperties copy() {
         final RelevantProperties copy = new RelevantProperties();
+        copy.bag.addAll(bag);
+        copy.contextualVector.putAll(contextualVector);
         copy.classes.putAll(classes);
         copy.allMethods.putAll(allMethods);
         copy.methods.putAll(methods);
         copy.fields.putAll(fields);
         return copy;
+    }
+
+    @NotNull
+    Multiset<String> getBag() {
+        return bag;
+    }
+
+    @NotNull
+    public Map<String, Double> getContextualVector() {
+        return contextualVector;
     }
 }

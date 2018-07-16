@@ -14,14 +14,14 @@ import com.sixrr.metrics.profile.MetricsProfile;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.research.groups.ml_methods.algorithm.*;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.RmmrEntitySearcher;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.NoRequestedMetricException;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitiesStorage;
-import org.jetbrains.research.groups.ml_methods.algorithm.*;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearcher;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
-
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,7 +39,8 @@ public class RefactoringExecutionContext {
         new AKMeans(),
         new CCDA(),
         new HAC(),
-        new MRI()
+        new MRI(),
+        new RMMR()
     );
 
     @NotNull
@@ -118,10 +119,17 @@ public class RefactoringExecutionContext {
         metricsRun.setProfileName(profile.getName());
         metricsRun.setContext(scope);
         metricsRun.setTimestamp(new TimeStamp());
-        entitySearchResult = ApplicationManager.getApplication()
-                .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
-        entitiesStorage = new EntitiesStorage(entitySearchResult);
         for (Algorithm algorithm : requestedAlgorithms) {
+            switch (algorithm.getDescriptionString()) {
+                case RMMR.NAME:
+                    entitySearchResult = ApplicationManager.getApplication()
+                            .runReadAction((Computable<EntitySearchResult>) () -> RmmrEntitySearcher.analyze(scope));
+                    break;
+                default:
+                    entitySearchResult = ApplicationManager.getApplication()
+                            .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
+            }
+            entitiesStorage = new EntitiesStorage(entitySearchResult);
             calculate(algorithm);
         }
         indicator.setText("Finish refactorings search...");
