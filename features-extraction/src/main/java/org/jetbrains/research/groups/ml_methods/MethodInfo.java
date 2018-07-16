@@ -3,7 +3,6 @@ package org.jetbrains.research.groups.ml_methods;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,19 +24,21 @@ public class MethodInfo {
     }
 
     /**
-     * Returns map of methods that call method this info object is created for. Each method is
-     * mapped to a number of calls it makes.
+     * Returns number of times given invoker calls method this {@link MethodInfo} object is created
+     * for.
      */
-    public @NotNull Map<PsiMethod, Integer> getOutsideInvocations() {
-        return Collections.unmodifiableMap(outsideInvocations);
+    public @NotNull Integer getOutsideInvocations(
+        final @NotNull PsiMethod invoker
+    ) {
+        return outsideInvocations.getOrDefault(invoker, 0);
     }
 
     /**
-     * Returns map of methods that method this info object is created for calls. Each method is
-     * mapped to a number of times it's called.
+     * Returns number of times method this {@link MethodInfo} object is created for calls given
+     * target method.
      */
-    public @NotNull Map<PsiMethod, Integer> getInsideCalls() {
-        return Collections.unmodifiableMap(insideCalls);
+    public @NotNull Integer getInsideCalls(final @NotNull PsiMethod target) {
+        return insideCalls.getOrDefault(target, 0);
     }
 
     public static class Builder {
