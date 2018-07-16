@@ -189,17 +189,17 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 .map(Algorithm::getDescriptionString)
                 .collect(Collectors.toSet());
 
-        final List<AlgorithmResult> algorithmResult = context.getAlgorithmResults()
+        final List<AlgorithmResult> algorithmsResults = context.getAlgorithmResults()
                 .stream()
                 .filter(result -> selectedAlgorithms.contains(result.getAlgorithmName()))
                 .collect(Collectors.toList());
 
-        boolean notEmptyResult = algorithmResults.stream().flatMap(result -> result.getRefactorings()
+        boolean notEmptyResult = algorithmsResults.stream().flatMap(result -> result.getRefactorings()
                 .stream()).findAny().isPresent();
         
         if (notEmptyResult) {
             ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
-                    .show(algorithmResults, context.getEntitySearchResult(), context.getScope());
+                    .show(algorithmsResults, context.getEntitySearchResult(), context.getScope());
         } else {
             NotificationUtil.notifyEmptyResult(context.getProject());
         }
