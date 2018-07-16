@@ -1,4 +1,4 @@
-package org.jetbrains.research.groups.ml_methods.algorithm;
+package org.jetbrains.research.groups.ml_methods;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.vfs.VirtualFile;

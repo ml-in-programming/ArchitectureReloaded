@@ -26,4 +26,6 @@ dependencies {
   compile project(':stockmetrics')
   compile project(':features-extraction')
   compile files('lib/args4j-2.32.jar', 'lib/jcommon-0.9.1.jar', 'lib/jfreechart-0.9.16.jar')
+
+  testCompile project(':utils').sourceSets.test.output
 }

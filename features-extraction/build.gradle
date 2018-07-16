@@ -1,4 +1,6 @@
 dependencies {
     compile project(':openapi')
     compile project(':utils')
+
+    testCompile project(':utils').sourceSets.test.output
 }
