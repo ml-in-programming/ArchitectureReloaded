@@ -3,9 +3,7 @@ package org.jetbrains.research.groups.ml_methods;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -20,10 +18,27 @@ public class MethodInfoRepository {
     }
 
     /**
-     * Returns a map from {@link PsiMethod} to a {@link MethodInfo} that corresponds to this method.
+     * Returns all the methods that have been put inside this repository.
      */
-    public @NotNull Map<PsiMethod, MethodInfo> getMethods() {
-        return Collections.unmodifiableMap(methods);
+    public @NotNull List<PsiMethod> getMethods() {
+        return new ArrayList<>(methods.keySet());
+    }
+
+    /**
+     * Returns a {@link MethodInfo} that corresponds to a given {@link PsiMethod}.
+     *
+     * @param psiMethod a {@link PsiMethod} to get {@link MethodInfo} for.
+     * @return {@link Optional} that contains {@link MethodInfo} for a given {@link PsiMethod} or
+     *         empty if given method hasn't been put to this repository.
+     */
+    public @NotNull Optional<MethodInfo> getMethodInfo(final @NotNull PsiMethod psiMethod) {
+        MethodInfo info = methods.get(psiMethod);
+
+        if (info == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(info);
     }
 
     public static class Builder {
@@ -35,6 +50,10 @@ public class MethodInfoRepository {
                        .stream()
                        .collect(Collectors.toMap(Map.Entry::getKey, it -> it.getValue().build()))
             );
+        }
+
+        public void addMethod(final @NotNull PsiMethod psiMethod) {
+            builders.computeIfAbsent(psiMethod, it -> new MethodInfo.Builder());
         }
 
         public void addMethodCall(
