@@ -9,13 +9,13 @@ import java.util.stream.Stream;
  * an {@link EntitySearcher} as valid.
  */
 public class EntitySearchResult {
-    private final List<ClassEntity> classes;
-    private final List<MethodEntity> methods;
-    private final List<FieldEntity> fields;
+    private final List<ClassOldEntity> classes;
+    private final List<MethodOldEntity> methods;
+    private final List<FieldOldEntity> fields;
     private final int propertiesCount;
     private final long searchTime;
 
-    public EntitySearchResult(List<ClassEntity> classes, List<MethodEntity> methods, List<FieldEntity> fields,
+    public EntitySearchResult(List<ClassOldEntity> classes, List<MethodOldEntity> methods, List<FieldOldEntity> fields,
                               long searchTime) {
         this.classes = classes;
         this.methods = methods;
@@ -23,23 +23,23 @@ public class EntitySearchResult {
         this.searchTime = searchTime;
         propertiesCount = Stream.of(classes, methods, fields)
                 .flatMap(List::stream)
-                .map(Entity::getRelevantProperties)
+                .map(OldEntity::getRelevantProperties)
                 .mapToInt(RelevantProperties::size)
                 .sum();
     }
 
     /** Returns classes stored in this result. */
-    public List<ClassEntity> getClasses() {
+    public List<ClassOldEntity> getClasses() {
         return Collections.unmodifiableList(classes);
     }
 
     /** Returns methods stored in this result. */
-    public List<MethodEntity> getMethods() {
+    public List<MethodOldEntity> getMethods() {
         return Collections.unmodifiableList(methods);
     }
 
     /** Returns fields stored in this result. */
-    public List<FieldEntity> getFields() {
+    public List<FieldOldEntity> getFields() {
         return Collections.unmodifiableList(fields);
     }
 

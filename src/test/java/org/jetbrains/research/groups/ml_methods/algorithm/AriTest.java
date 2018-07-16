@@ -1,7 +1,9 @@
 package org.jetbrains.research.groups.ml_methods.algorithm;
 
 public class AriTest extends AlgorithmAbstractTest {
-    private static final String algorithmName = "ARI";
+    private static final Algorithm algorithm = new ARI();
+
+    private static final String algorithmName = algorithm.getDescriptionString();
 
     public void testMoveMethod() {
         executeTest(testCasesChecker::checkMoveMethod, "ClassA.java", "ClassB.java");
@@ -97,7 +99,7 @@ public class AriTest extends AlgorithmAbstractTest {
     }
 
     @Override
-    protected String getAlgorithmName() {
-        return algorithmName;
+    protected Algorithm getAlgorithm() {
+        return algorithm;
     }
 }
