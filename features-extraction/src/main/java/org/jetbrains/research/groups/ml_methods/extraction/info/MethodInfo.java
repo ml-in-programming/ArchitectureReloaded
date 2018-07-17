@@ -1,4 +1,4 @@
-package org.jetbrains.research.groups.ml_methods;
+package org.jetbrains.research.groups.ml_methods.extraction.info;
 
 import com.intellij.psi.*;
 import com.sixrr.metrics.utils.MethodUtils;

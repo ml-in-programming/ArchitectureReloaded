@@ -1,9 +1,10 @@
-package org.jetbrains.research.groups.ml_methods;
+package org.jetbrains.research.groups.ml_methods.extraction.info;
 
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.ScopeAbstractTest;
 import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 
 import java.util.Arrays;
