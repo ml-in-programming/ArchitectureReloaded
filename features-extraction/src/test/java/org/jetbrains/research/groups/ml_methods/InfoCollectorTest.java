@@ -6,6 +6,7 @@ import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,6 +31,70 @@ public class InfoCollectorTest extends ScopeAbstractTest {
             @Override
             public @NotNull List<String> getAccessedFields(@NotNull String methodName) {
                 return Collections.singletonList("simpleFieldAccess.A.field");
+            }
+        });
+    }
+
+    public void testForeignFieldAccess() throws Exception {
+        runTestCase(new AbstractInfoValidator() {
+            @Override
+            public @NotNull List<String> methodNames() {
+                return Collections.singletonList("foreignFieldAccess.A.method()");
+            }
+
+            @Override
+            public @NotNull List<String> getAccessedFields(@NotNull String methodName) {
+                return Collections.singletonList("foreignFieldAccess.B.field");
+            }
+        });
+    }
+
+    public void testSameObjectCall() throws Exception {
+        runTestCase(new AbstractInfoValidator() {
+            @Override
+            public @NotNull List<String> methodNames() {
+                return Arrays.asList("sameObjectCall.A.method1()", "sameObjectCall.A.method2()");
+            }
+
+            public @NotNull List<String> getSameObjectCallers(@NotNull String methodName) {
+                if (methodName.equals("sameObjectCall.A.method2()")) {
+                    return Collections.singletonList("sameObjectCall.A.method1()");
+                }
+
+                return Collections.emptyList();
+            }
+
+            public @NotNull List<String> getSameObjectTargets(@NotNull String methodName) {
+                if (methodName.equals("sameObjectCall.A.method1()")) {
+                    return Collections.singletonList("sameObjectCall.A.method2()");
+                }
+
+                return Collections.emptyList();
+            }
+        });
+    }
+
+    public void testAnotherObjectCall() throws Exception {
+        runTestCase(new AbstractInfoValidator() {
+            @Override
+            public @NotNull List<String> methodNames() {
+                return Arrays.asList("anotherObjectCall.A.method1()", "anotherObjectCall.A.method2()");
+            }
+
+            public @NotNull List<String> getAnotherObjectCallers(@NotNull String methodName) {
+                if (methodName.equals("anotherObjectCall.A.method2()")) {
+                    return Collections.singletonList("anotherObjectCall.A.method1()");
+                }
+
+                return Collections.emptyList();
+            }
+
+            public @NotNull List<String> getAnotherObjectTargets(@NotNull String methodName) {
+                if (methodName.equals("anotherObjectCall.A.method1()")) {
+                    return Collections.singletonList("anotherObjectCall.A.method2()");
+                }
+
+                return Collections.emptyList();
             }
         });
     }
