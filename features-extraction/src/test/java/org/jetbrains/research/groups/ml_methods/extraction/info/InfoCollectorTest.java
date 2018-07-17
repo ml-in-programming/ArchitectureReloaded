@@ -122,7 +122,7 @@ public class InfoCollectorTest extends ScopeAbstractTest {
             );
 
             assertSameElements(
-                info.getSameObjectCallers()
+                info.getSameInstanceCallers()
                     .stream()
                     .map(MethodUtils::calculateSignature)
                     .collect(Collectors.toList()),
@@ -130,7 +130,7 @@ public class InfoCollectorTest extends ScopeAbstractTest {
             );
 
             assertSameElements(
-                info.getAnotherObjectCallers()
+                info.getAnotherInstanceCallers()
                     .stream()
                     .map(MethodUtils::calculateSignature)
                     .collect(Collectors.toList()),
@@ -138,7 +138,7 @@ public class InfoCollectorTest extends ScopeAbstractTest {
             );
 
             assertSameElements(
-                info.getSameObjectTargets()
+                info.getSameInstanceTargets()
                     .stream()
                     .map(MethodUtils::calculateSignature)
                     .collect(Collectors.toList()),
@@ -146,7 +146,7 @@ public class InfoCollectorTest extends ScopeAbstractTest {
             );
 
             assertSameElements(
-                info.getAnotherObjectTargets()
+                info.getAnotherInstanceTargets()
                     .stream()
                     .map(MethodUtils::calculateSignature)
                     .collect(Collectors.toList()),

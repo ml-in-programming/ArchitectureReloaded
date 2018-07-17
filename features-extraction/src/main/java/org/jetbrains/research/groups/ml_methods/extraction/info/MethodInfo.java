@@ -11,27 +11,27 @@ import java.util.*;
  * that call this method, methods that this method calls etc.
  */
 public class MethodInfo {
-    private final @NotNull List<PsiMethod> sameObjectCallers;
+    private final @NotNull List<PsiMethod> sameInstanceCallers;
 
-    private final @NotNull List<PsiMethod> anotherObjectCallers;
+    private final @NotNull List<PsiMethod> anotherInstanceCallers;
 
-    private final @NotNull List<PsiMethod> sameObjectTargets;
+    private final @NotNull List<PsiMethod> sameInstanceTargets;
 
-    private final @NotNull List<PsiMethod> anotherObjectTargets;
+    private final @NotNull List<PsiMethod> anotherInstanceTargets;
 
     private final @NotNull List<PsiField> accessedFields;
 
     private MethodInfo(
-        final @NotNull List<PsiMethod> sameObjectCallers,
-        final @NotNull List<PsiMethod> anotherObjectCallers,
-        final @NotNull List<PsiMethod> sameObjectTargets,
-        final @NotNull List<PsiMethod> anotherObjectTargets,
+        final @NotNull List<PsiMethod> sameInstanceCallers,
+        final @NotNull List<PsiMethod> anotherInstanceCallers,
+        final @NotNull List<PsiMethod> sameInstanceTargets,
+        final @NotNull List<PsiMethod> anotherInstanceTargets,
         final @NotNull List<PsiField> accessedFields
     ) {
-        this.sameObjectCallers = sameObjectCallers;
-        this.anotherObjectCallers = anotherObjectCallers;
-        this.sameObjectTargets = sameObjectTargets;
-        this.anotherObjectTargets = anotherObjectTargets;
+        this.sameInstanceCallers = sameInstanceCallers;
+        this.anotherInstanceCallers = anotherInstanceCallers;
+        this.sameInstanceTargets = sameInstanceTargets;
+        this.anotherInstanceTargets = anotherInstanceTargets;
         this.accessedFields = accessedFields;
     }
 
@@ -39,32 +39,32 @@ public class MethodInfo {
      * Returns {@link List} of methods that call method this info object is created for through
      * {@code this} object.
      */
-    public @NotNull List<PsiMethod> getSameObjectCallers() {
-        return Collections.unmodifiableList(sameObjectCallers);
+    public @NotNull List<PsiMethod> getSameInstanceCallers() {
+        return Collections.unmodifiableList(sameInstanceCallers);
     }
 
     /**
      * Returns {@link List} of methods that call method this info object is created for not through
      * {@code this} object.
      */
-    public @NotNull List<PsiMethod> getAnotherObjectCallers() {
-        return Collections.unmodifiableList(anotherObjectCallers);
+    public @NotNull List<PsiMethod> getAnotherInstanceCallers() {
+        return Collections.unmodifiableList(anotherInstanceCallers);
     }
 
     /**
      * Returns {@link List} of methods that are called by method this info object is created for
      * through {@code this} object.
      */
-    public @NotNull List<PsiMethod> getSameObjectTargets() {
-        return Collections.unmodifiableList(sameObjectTargets);
+    public @NotNull List<PsiMethod> getSameInstanceTargets() {
+        return Collections.unmodifiableList(sameInstanceTargets);
     }
 
     /**
      * Returns {@link List} of methods that are called by method this info object is created for
      * not through {@code this} object.
      */
-    public @NotNull List<PsiMethod> getAnotherObjectTargets() {
-        return Collections.unmodifiableList(anotherObjectTargets);
+    public @NotNull List<PsiMethod> getAnotherInstanceTargets() {
+        return Collections.unmodifiableList(anotherInstanceTargets);
     }
 
     /**
@@ -78,13 +78,13 @@ public class MethodInfo {
     public static class Builder {
         private final @NotNull PsiMethod method;
 
-        private final @NotNull Set<PsiMethod> sameObjectCallers = new HashSet<>();
+        private final @NotNull Set<PsiMethod> sameInstanceCallers = new HashSet<>();
 
-        private final @NotNull Set<PsiMethod> anotherObjectCallers = new HashSet<>();
+        private final @NotNull Set<PsiMethod> anotherInstanceCallers = new HashSet<>();
 
-        private final @NotNull Set<PsiMethod> sameObjectTargets = new HashSet<>();
+        private final @NotNull Set<PsiMethod> sameInstanceTargets = new HashSet<>();
 
-        private final @NotNull Set<PsiMethod> anotherObjectTargets = new HashSet<>();
+        private final @NotNull Set<PsiMethod> anotherInstanceTargets = new HashSet<>();
 
         private final @NotNull Set<PsiField> accessedFields = new HashSet<>();
 
@@ -94,10 +94,10 @@ public class MethodInfo {
 
         public @NotNull MethodInfo build() {
             return new MethodInfo(
-                new ArrayList<>(sameObjectCallers),
-                new ArrayList<>(anotherObjectCallers),
-                new ArrayList<>(sameObjectTargets),
-                new ArrayList<>(anotherObjectTargets),
+                new ArrayList<>(sameInstanceCallers),
+                new ArrayList<>(anotherInstanceCallers),
+                new ArrayList<>(sameInstanceTargets),
+                new ArrayList<>(anotherInstanceTargets),
                 new ArrayList<>(accessedFields)
             );
         }
@@ -107,9 +107,9 @@ public class MethodInfo {
             final @NotNull PsiMethodCallExpression expression
         ) {
             if (isCallFromTheSameObject(method, expression)) {
-                sameObjectCallers.add(caller);
+                sameInstanceCallers.add(caller);
             } else {
-                anotherObjectCallers.add(caller);
+                anotherInstanceCallers.add(caller);
             }
         }
 
@@ -118,9 +118,9 @@ public class MethodInfo {
             final @NotNull PsiMethodCallExpression expression
         ) {
             if (isCallFromTheSameObject(target, expression)) {
-                sameObjectTargets.add(target);
+                sameInstanceTargets.add(target);
             } else {
-                anotherObjectTargets.add(target);
+                anotherInstanceTargets.add(target);
             }
         }
 
