@@ -4,6 +4,7 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -11,34 +12,24 @@ import java.util.stream.Collectors;
 
 public class InfoCollectorTest extends ScopeAbstractTest {
     public void testSingleMethod() throws Exception {
-        runTestCase(new InfoValidator() {
+        runTestCase(new AbstractInfoValidator() {
             @Override
             public @NotNull List<String> methodNames() {
                 return Collections.singletonList("singleMethod.A.method()");
             }
+        });
+    }
 
-            @NotNull
+    public void testSimpleFieldAccess() throws Exception {
+        runTestCase(new AbstractInfoValidator() {
             @Override
-            public List<String> getSameObjectCallers(@NotNull String methodName) {
-                return Collections.emptyList();
+            public @NotNull List<String> methodNames() {
+                return Collections.singletonList("simpleFieldAccess.A.method()");
             }
 
-            @NotNull
             @Override
-            public List<String> getAnotherObjectCallers(@NotNull String methodName) {
-                return Collections.emptyList();
-            }
-
-            @NotNull
-            @Override
-            public List<String> getSameObjectTargets(@NotNull String methodName) {
-                return Collections.emptyList();
-            }
-
-            @NotNull
-            @Override
-            public List<String> getAnotherObjectTargets(@NotNull String methodName) {
-                return Collections.emptyList();
+            public @NotNull List<String> getAccessedFields(@NotNull String methodName) {
+                return Collections.singletonList("simpleFieldAccess.A.field");
             }
         });
     }
@@ -95,6 +86,14 @@ public class InfoCollectorTest extends ScopeAbstractTest {
                     .collect(Collectors.toList()),
                 validator.getAnotherObjectTargets(methodName)
             );
+
+            assertSameElements(
+                info.getAccessedFields()
+                    .stream()
+                    .map(PsiSearchUtil::getHumanReadableName)
+                    .collect(Collectors.toList()),
+                validator.getAccessedFields(methodName)
+            );
         }
     }
 
@@ -108,5 +107,29 @@ public class InfoCollectorTest extends ScopeAbstractTest {
         @NotNull List<String> getSameObjectTargets(@NotNull String methodName);
 
         @NotNull List<String> getAnotherObjectTargets(@NotNull String methodName);
+
+        @NotNull List<String> getAccessedFields(@NotNull String methodName);
+    }
+
+    private static abstract class AbstractInfoValidator implements InfoValidator {
+        public @NotNull List<String> getSameObjectCallers(@NotNull String methodName) {
+            return Collections.emptyList();
+        }
+
+        public @NotNull List<String> getAnotherObjectCallers(@NotNull String methodName) {
+            return Collections.emptyList();
+        }
+
+        public @NotNull List<String> getSameObjectTargets(@NotNull String methodName) {
+            return Collections.emptyList();
+        }
+
+        public @NotNull List<String> getAnotherObjectTargets(@NotNull String methodName) {
+            return Collections.emptyList();
+        }
+
+        public @NotNull List<String> getAccessedFields(@NotNull String methodName) {
+            return Collections.emptyList();
+        }
     }
 }

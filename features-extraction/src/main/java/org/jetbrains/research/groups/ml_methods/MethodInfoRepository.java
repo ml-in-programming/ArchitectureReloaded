@@ -1,5 +1,6 @@
 package org.jetbrains.research.groups.ml_methods;
 
+import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiMethodCallExpression;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +55,7 @@ public class MethodInfoRepository {
         }
 
         public void addMethod(final @NotNull PsiMethod psiMethod) {
-            builders.computeIfAbsent(psiMethod, it -> new MethodInfo.Builder(psiMethod));
+            builders.computeIfAbsent(psiMethod, MethodInfo.Builder::new);
         }
 
         public void addMethodCall(
@@ -62,11 +63,15 @@ public class MethodInfoRepository {
             final @NotNull PsiMethod target,
             final @NotNull PsiMethodCallExpression expression
         ) {
-            builders.computeIfAbsent(caller, it -> new MethodInfo.Builder(caller))
+            builders.computeIfAbsent(caller, MethodInfo.Builder::new)
                     .addTarget(target, expression);
 
-            builders.computeIfAbsent(target, it -> new MethodInfo.Builder(target))
+            builders.computeIfAbsent(target, MethodInfo.Builder::new)
                     .addCaller(caller, expression);
+        }
+
+        public void addFieldAccess(final @NotNull PsiMethod method, final @NotNull PsiField field) {
+            builders.computeIfAbsent(method, MethodInfo.Builder::new).addFieldAccess(field);
         }
     }
 }

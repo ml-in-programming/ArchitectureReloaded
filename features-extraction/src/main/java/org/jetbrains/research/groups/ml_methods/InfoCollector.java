@@ -1,9 +1,7 @@
 package org.jetbrains.research.groups.ml_methods;
 
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.psi.JavaRecursiveElementVisitor;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiMethodCallExpression;
+import com.intellij.psi.*;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -50,7 +48,8 @@ public class InfoCollector {
 
             public void visitMethodCallExpression(PsiMethodCallExpression expression) {
                 if (currentMethod == null) {
-                    throw new IllegalStateException("Method call outside of method body");
+                    super.visitMethodCallExpression(expression);
+                    return;
                 }
 
                 PsiMethod target = expression.resolveMethod();
@@ -62,6 +61,22 @@ public class InfoCollector {
 
                 repositoryBuilder.addMethodCall(currentMethod, target, expression);
                 super.visitMethodCallExpression(expression);
+            }
+
+            public void visitReferenceExpression(PsiReferenceExpression expression) {
+                if (currentMethod == null) {
+                    super.visitReferenceExpression(expression);
+                    return;
+                }
+
+                JavaResolveResult result = expression.advancedResolve(false);
+                PsiElement element = result.getElement();
+
+                if (element instanceof PsiField) {
+                    repositoryBuilder.addFieldAccess(currentMethod, (PsiField) element);
+                }
+
+                super.visitReferenceExpression(expression);
             }
         });
 

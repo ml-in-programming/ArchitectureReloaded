@@ -1,9 +1,6 @@
 package org.jetbrains.research.groups.ml_methods;
 
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiMethodCallExpression;
-import com.intellij.psi.PsiReferenceExpression;
-import com.intellij.psi.PsiThisExpression;
+import com.intellij.psi.*;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,16 +19,20 @@ public class MethodInfo {
 
     private final @NotNull List<PsiMethod> anotherObjectTargets;
 
+    private final @NotNull List<PsiField> accessedFields;
+
     private MethodInfo(
         final @NotNull List<PsiMethod> sameObjectCallers,
         final @NotNull List<PsiMethod> anotherObjectCallers,
         final @NotNull List<PsiMethod> sameObjectTargets,
-        final @NotNull List<PsiMethod> anotherObjectTargets
+        final @NotNull List<PsiMethod> anotherObjectTargets,
+        final @NotNull List<PsiField> accessedFields
     ) {
         this.sameObjectCallers = sameObjectCallers;
         this.anotherObjectCallers = anotherObjectCallers;
         this.sameObjectTargets = sameObjectTargets;
         this.anotherObjectTargets = anotherObjectTargets;
+        this.accessedFields = accessedFields;
     }
 
     /**
@@ -66,6 +67,14 @@ public class MethodInfo {
         return Collections.unmodifiableList(anotherObjectTargets);
     }
 
+    /**
+     * Returns {@link List} of all fields that are accessed by method this info object is created
+     * for.
+     */
+    public @NotNull List<PsiField> getAccessedFields() {
+        return Collections.unmodifiableList(accessedFields);
+    }
+
     public static class Builder {
         private final @NotNull PsiMethod method;
 
@@ -77,6 +86,8 @@ public class MethodInfo {
 
         private final @NotNull Set<PsiMethod> anotherObjectTargets = new HashSet<>();
 
+        private final @NotNull Set<PsiField> accessedFields = new HashSet<>();
+
         public Builder(final @NotNull PsiMethod method) {
             this.method = method;
         }
@@ -86,7 +97,8 @@ public class MethodInfo {
                 new ArrayList<>(sameObjectCallers),
                 new ArrayList<>(anotherObjectCallers),
                 new ArrayList<>(sameObjectTargets),
-                new ArrayList<>(anotherObjectTargets)
+                new ArrayList<>(anotherObjectTargets),
+                new ArrayList<>(accessedFields)
             );
         }
 
@@ -110,6 +122,10 @@ public class MethodInfo {
             } else {
                 anotherObjectTargets.add(target);
             }
+        }
+
+        public void addFieldAccess(final @NotNull PsiField field) {
+            accessedFields.add(field);
         }
 
         private boolean isCallFromTheSameObject(
