@@ -20,10 +20,19 @@ public class MoveMethodFeaturesExtractor {
         return INSTANCE;
     }
 
+    /**
+     * Extract features for a given list of refactorings.
+     *
+     * @param scope a scope of files to work in.
+     * @param refactorings a {@link List} of "move method" refactorings to extract features for.
+     * @param extractors extractors which will be used to extract each feature.
+     * @return a {@link List} of {@link FeatureVector} for each {@link Refactoring}. It is
+     * guaranteed that features will be in the same order as refactorings.
+     */
     public @NotNull List<FeatureVector> extract(
         final @NotNull AnalysisScope scope,
-        final @NotNull Collection<Refactoring> refactorings,
-        Collection<Class<? extends MoveMethodFeaturesExtractor>> extractors
+        final @NotNull List<Refactoring> refactorings,
+        final @NotNull List<Class<? extends MoveMethodFeaturesExtractor>> extractors
     ) {
         throw new NotImplementedException();
     }
