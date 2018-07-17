@@ -17,9 +17,28 @@ public class InfoCollectorTest extends ScopeAbstractTest {
                 return Collections.singletonList("singleMethod.A.method()");
             }
 
+            @NotNull
             @Override
-            public int numberOfCalls(@NotNull String callerName, @NotNull String targetName) {
-                return 0;
+            public List<String> getSameObjectCallers(@NotNull String methodName) {
+                return Collections.emptyList();
+            }
+
+            @NotNull
+            @Override
+            public List<String> getAnotherObjectCallers(@NotNull String methodName) {
+                return Collections.emptyList();
+            }
+
+            @NotNull
+            @Override
+            public List<String> getSameObjectTargets(@NotNull String methodName) {
+                return Collections.emptyList();
+            }
+
+            @NotNull
+            @Override
+            public List<String> getAnotherObjectTargets(@NotNull String methodName) {
+                return Collections.emptyList();
             }
         });
     }
@@ -36,37 +55,58 @@ public class InfoCollectorTest extends ScopeAbstractTest {
             validator.methodNames()
         );
 
-        for (PsiMethod caller : repository.getMethods()) {
-            String callerName = MethodUtils.calculateSignature(caller);
+        for (PsiMethod method : repository.getMethods()) {
+            String methodName = MethodUtils.calculateSignature(method);
 
-            for (PsiMethod target : repository.getMethods()) {
-                String targetName = MethodUtils.calculateSignature(target);
+            MethodInfo info = repository.getMethodInfo(method).orElseThrow(
+                () -> new IllegalStateException(
+                    "Existing method doesn't have MethodInfo instance"
+                )
+            );
 
-                int expectedNumberOfCalls = validator.numberOfCalls(callerName, targetName);
+            assertSameElements(
+                info.getSameObjectCallers()
+                    .stream()
+                    .map(MethodUtils::calculateSignature)
+                    .collect(Collectors.toList()),
+                validator.getSameObjectCallers(methodName)
+            );
 
-                MethodInfo callerInfo =
-                    repository.getMethodInfo(caller).orElseThrow(
-                        () -> new IllegalStateException(
-                            "Existing method doesn't have MethodInfo instance"
-                        )
-                    );
+            assertSameElements(
+                info.getAnotherObjectCallers()
+                    .stream()
+                    .map(MethodUtils::calculateSignature)
+                    .collect(Collectors.toList()),
+                validator.getAnotherObjectCallers(methodName)
+            );
 
-                MethodInfo targetInfo =
-                    repository.getMethodInfo(target).orElseThrow(
-                        () -> new IllegalStateException(
-                            "Existing method doesn't have MethodInfo instance"
-                        )
-                    );
+            assertSameElements(
+                info.getSameObjectTargets()
+                    .stream()
+                    .map(MethodUtils::calculateSignature)
+                    .collect(Collectors.toList()),
+                validator.getSameObjectTargets(methodName)
+            );
 
-                assertEquals(expectedNumberOfCalls, (int) callerInfo.getInsideCalls(target));
-                assertEquals(expectedNumberOfCalls, (int) targetInfo.getOutsideInvocations(caller));
-            }
+            assertSameElements(
+                info.getAnotherObjectTargets()
+                    .stream()
+                    .map(MethodUtils::calculateSignature)
+                    .collect(Collectors.toList()),
+                validator.getAnotherObjectTargets(methodName)
+            );
         }
     }
 
     private interface InfoValidator {
         @NotNull List<String> methodNames();
 
-        int numberOfCalls(@NotNull String callerName, @NotNull String targetName);
+        @NotNull List<String> getSameObjectCallers(@NotNull String methodName);
+
+        @NotNull List<String> getAnotherObjectCallers(@NotNull String methodName);
+
+        @NotNull List<String> getSameObjectTargets(@NotNull String methodName);
+
+        @NotNull List<String> getAnotherObjectTargets(@NotNull String methodName);
     }
 }
