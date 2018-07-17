@@ -7,7 +7,6 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.ThrowableComputable;
 import com.sixrr.metrics.metricModel.MetricsExecutionContextImpl;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
 import com.sixrr.metrics.metricModel.TimeStamp;
@@ -124,8 +123,7 @@ public class RefactoringExecutionContext {
         metricsRun.setTimestamp(new TimeStamp());
         entitySearchResult = ApplicationManager.getApplication()
                 .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
-        entitiesStorage = ApplicationManager.getApplication().
-                runReadAction((Computable<EntitiesStorage>) () -> new EntitiesStorage(entitySearchResult));
+        entitiesStorage = new EntitiesStorage(entitySearchResult);
         for (Algorithm algorithm : requestedAlgorithms) {
             calculate(algorithm);
         }
@@ -143,13 +141,11 @@ public class RefactoringExecutionContext {
         AttributesStorage attributes;
 
         try {
-            attributes = ApplicationManager.getApplication().
-                    runReadAction((ThrowableComputable<AttributesStorage, NoRequestedMetricException>)
-                            () -> new AttributesStorage(
-                                    entitiesStorage,
-                                    algorithm.requiredMetrics(),
-                                    metricsRun
-                            ));
+            attributes = new AttributesStorage(
+                    entitiesStorage,
+                    algorithm.requiredMetrics(),
+                    metricsRun
+            );
         } catch (NoRequestedMetricException e) {
             LOGGER.error(
                 "Error during attributes creation for '" + algorithm.getDescriptionString() +
