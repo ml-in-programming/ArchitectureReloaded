@@ -2,9 +2,12 @@ package org.jetbrains.research.groups.ml_methods.extraction.info;
 
 import com.intellij.psi.*;
 import com.sixrr.metrics.utils.MethodUtils;
+import com.sun.xml.internal.xsom.impl.scd.Iterators;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * This class contains structural information gathered for a particular method. It stores methods
@@ -43,12 +46,24 @@ public class MethodInfo {
         return Collections.unmodifiableList(sameInstanceCallers);
     }
 
+    public @NotNull Stream<PsiMethod> getSameInstanceCallers(
+        final @NotNull Predicate<? super PsiMethod>... filters
+    ) {
+        return createFilteredStream(sameInstanceCallers, filters);
+    }
+
     /**
      * Returns {@link List} of methods that call method this info object is created for not through
      * {@code this} object.
      */
     public @NotNull List<PsiMethod> getAnotherInstanceCallers() {
         return Collections.unmodifiableList(anotherInstanceCallers);
+    }
+
+    public @NotNull Stream<PsiMethod> getAnotherInstanceCallers(
+        final @NotNull Predicate<? super PsiMethod>... filters
+    ) {
+        return createFilteredStream(anotherInstanceCallers, filters);
     }
 
     /**
@@ -59,12 +74,24 @@ public class MethodInfo {
         return Collections.unmodifiableList(sameInstanceTargets);
     }
 
+    public @NotNull Stream<PsiMethod> getSameInstanceTargets(
+        final @NotNull Predicate<? super PsiMethod>... filters
+    ) {
+        return createFilteredStream(sameInstanceTargets, filters);
+    }
+
     /**
      * Returns {@link List} of methods that are called by method this info object is created for
      * not through {@code this} object.
      */
     public @NotNull List<PsiMethod> getAnotherInstanceTargets() {
         return Collections.unmodifiableList(anotherInstanceTargets);
+    }
+
+    public @NotNull Stream<PsiMethod> getAnotherInstanceTargets(
+        final @NotNull Predicate<? super PsiMethod>... filters
+    ) {
+        return createFilteredStream(anotherInstanceTargets, filters);
     }
 
     /**
@@ -75,16 +102,30 @@ public class MethodInfo {
         return Collections.unmodifiableList(accessedFields);
     }
 
+    public @NotNull Stream<PsiField> getAccessedFields(
+        final @NotNull Predicate<? super PsiField>... filters
+    ) {
+        return createFilteredStream(accessedFields, filters);
+    }
+
+    private static <T> Stream<T> createFilteredStream(
+        final @NotNull List<T> list,
+        final @NotNull Predicate<? super T>[] filters
+    ) {
+        return list.stream()
+                .filter(it -> Arrays.stream(filters).allMatch(itt -> itt.test(it)));
+    }
+
     public static class Builder {
         private final @NotNull PsiMethod method;
 
         private final @NotNull Set<PsiMethod> sameInstanceCallers = new HashSet<>();
 
-        private final @NotNull Set<PsiMethod> anotherInstanceCallers = new HashSet<>();
+        private final @NotNull Set<PsiMethod> anotherObjectCallers = new HashSet<>();
 
-        private final @NotNull Set<PsiMethod> sameInstanceTargets = new HashSet<>();
+        private final @NotNull Set<PsiMethod> sameObjectTargets = new HashSet<>();
 
-        private final @NotNull Set<PsiMethod> anotherInstanceTargets = new HashSet<>();
+        private final @NotNull Set<PsiMethod> anotherObjectTargets = new HashSet<>();
 
         private final @NotNull Set<PsiField> accessedFields = new HashSet<>();
 
@@ -95,9 +136,9 @@ public class MethodInfo {
         public @NotNull MethodInfo build() {
             return new MethodInfo(
                 new ArrayList<>(sameInstanceCallers),
-                new ArrayList<>(anotherInstanceCallers),
-                new ArrayList<>(sameInstanceTargets),
-                new ArrayList<>(anotherInstanceTargets),
+                new ArrayList<>(anotherObjectCallers),
+                new ArrayList<>(sameObjectTargets),
+                new ArrayList<>(anotherObjectTargets),
                 new ArrayList<>(accessedFields)
             );
         }
@@ -109,7 +150,7 @@ public class MethodInfo {
             if (isCallFromTheSameObject(method, expression)) {
                 sameInstanceCallers.add(caller);
             } else {
-                anotherInstanceCallers.add(caller);
+                anotherObjectCallers.add(caller);
             }
         }
 
@@ -118,9 +159,9 @@ public class MethodInfo {
             final @NotNull PsiMethodCallExpression expression
         ) {
             if (isCallFromTheSameObject(target, expression)) {
-                sameInstanceTargets.add(target);
+                sameObjectTargets.add(target);
             } else {
-                anotherInstanceTargets.add(target);
+                anotherObjectTargets.add(target);
             }
         }
 
