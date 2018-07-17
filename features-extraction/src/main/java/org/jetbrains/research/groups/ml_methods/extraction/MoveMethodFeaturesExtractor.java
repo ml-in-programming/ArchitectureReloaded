@@ -4,10 +4,14 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.extraction.features.extractors.MoveMethodFeatureExtractor;
 import org.jetbrains.research.groups.ml_methods.extraction.features.vector.FeatureVector;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import org.jetbrains.research.groups.ml_methods.extraction.features.vector.MoveMethodVectorExtractor;
+import org.jetbrains.research.groups.ml_methods.extraction.info.InfoCollector;
+import org.jetbrains.research.groups.ml_methods.extraction.info.MethodInfo;
+import org.jetbrains.research.groups.ml_methods.extraction.info.MethodInfoRepository;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MoveMethodFeaturesExtractor {
@@ -25,16 +29,37 @@ public class MoveMethodFeaturesExtractor {
      *
      * @param scope a scope of files to work in.
      * @param refactorings a {@link List} of "move method" refactorings to extract features for.
-     * @param extractors extractors which will be used to extract each feature.
+     * @param extractorClasses extractors which will be used to extract each feature.
      * @return a {@link List} of {@link FeatureVector} for each {@link Refactoring}. It is
      * guaranteed that features will be in the same order as refactorings.
      */
     public @NotNull List<FeatureVector> extract(
         final @NotNull AnalysisScope scope,
         final @NotNull List<Refactoring> refactorings,
-        final @NotNull List<Class<? extends MoveMethodFeaturesExtractor>> extractors
-    ) {
-        throw new NotImplementedException();
+        final @NotNull List<Class<? extends MoveMethodFeatureExtractor>> extractorClasses
+    ) throws IllegalAccessException, InstantiationException {
+        MethodInfoRepository repository = InfoCollector.getInstance().collectInfo(scope);
+
+        List<MoveMethodFeatureExtractor> extractors = new ArrayList<>();
+        for (Class<? extends MoveMethodFeatureExtractor> extractorClass : extractorClasses) {
+            extractors.add(extractorClass.newInstance());
+        }
+
+        MoveMethodVectorExtractor extractor = new MoveMethodVectorExtractor(extractors);
+
+        List<FeatureVector> vectors = new ArrayList<>();
+        for (Refactoring refactoring : refactorings) {
+            MethodInfo methodInfo =
+                repository.getMethodInfo(refactoring.getMethod()).orElseThrow(
+                    () -> new IllegalArgumentException(
+                            "Refactoring of method which was not found in scope"
+                    )
+                );
+
+            vectors.add(extractor.extract(methodInfo, refactoring.targetClass));
+        }
+
+        return vectors;
     }
 
     public static class Refactoring {

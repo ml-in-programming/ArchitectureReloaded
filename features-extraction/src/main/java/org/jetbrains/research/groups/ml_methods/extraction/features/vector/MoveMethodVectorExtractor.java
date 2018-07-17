@@ -19,7 +19,7 @@ public class MoveMethodVectorExtractor {
     private final @NotNull List<MoveMethodFeatureExtractor> featureExtractors;
 
     public MoveMethodVectorExtractor(
-        final @NotNull Collection<MoveMethodFeatureExtractor> featureExtractors
+        final @NotNull List<MoveMethodFeatureExtractor> featureExtractors
     ) {
         this.featureExtractors = new ArrayList<>(featureExtractors);
     }
