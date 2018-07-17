@@ -14,15 +14,18 @@ import com.sixrr.metrics.profile.MetricsProfile;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.research.groups.ml_methods.algorithm.*;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.NoRequestedMetricException;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitiesStorage;
-import org.jetbrains.research.groups.ml_methods.algorithm.*;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearcher;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -58,7 +61,7 @@ public class RefactoringExecutionContext {
     private final List<AlgorithmResult> algorithmsResults = new ArrayList<>();
     @NotNull
     private final Collection<Algorithm> requestedAlgorithms;
-    private final boolean isFieldRefactoringAvailable;
+    private final boolean enableFieldRefactoring;
 
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
                                        @NotNull MetricsProfile profile,
@@ -73,20 +76,20 @@ public class RefactoringExecutionContext {
      * @param scope a scope which contains all files that should be processed by algorithms.
      * @param profile a profile of metrics that must be calculated.
      * @param requestedAlgorithms algorithm which were requested by user.
-     * @param isFieldRefactoringAvailable {@code True} if field refactoring is available.
+     * @param enableFieldRefactoring {@code True} if field refactoring is available.
      * @param continuation action that should be performed after all the calculations are done.
      */
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
                                        @NotNull MetricsProfile profile,
                                        @NotNull Collection<Algorithm> requestedAlgorithms,
-                                       boolean isFieldRefactoringAvailable,
+                                       boolean enableFieldRefactoring,
                                        @Nullable Consumer<RefactoringExecutionContext> continuation) {
         this.project = project;
         this.scope = scope;
         this.profile = profile;
         this.continuation = continuation;
         this.requestedAlgorithms = requestedAlgorithms;
-        this.isFieldRefactoringAvailable = isFieldRefactoringAvailable;
+        this.enableFieldRefactoring = enableFieldRefactoring;
         metricsExecutionContext = new MetricsExecutionContextImpl(project, scope);
     }
 
@@ -154,7 +157,7 @@ public class RefactoringExecutionContext {
         }
 
         final AlgorithmResult result =
-            algorithm.execute(attributes, executorService, isFieldRefactoringAvailable, scope);
+            algorithm.execute(attributes, executorService, enableFieldRefactoring, scope);
 
         algorithmsResults.add(result);
     }

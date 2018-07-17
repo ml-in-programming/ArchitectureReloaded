@@ -76,13 +76,13 @@ public class AlgorithmsSelectionPanel extends JPanel {
         final JCheckBox fieldsRefactoringsCheckBox = new JBCheckBox(
             ArchitectureReloadedBundle.message("search.for.move.field.refactorings")
         );
-
-        fieldsRefactoringsCheckBox.addActionListener(e -> config.setFieldRefactoringsAvailable());
+        config.setIsFieldRefactoringsCheckedValidator(fieldsRefactoringsCheckBox::isSelected);
         panel.add(fieldsRefactoringsCheckBox, constraints);
 
         return new Tab(panel, ArchitectureReloadedBundle.message("refactorings.tab.text"));
     }
 
+    @NotNull
     private static Tab createAlgorithmsTab() {
         JPanel panel = new JPanel(new GridBagLayout());
 

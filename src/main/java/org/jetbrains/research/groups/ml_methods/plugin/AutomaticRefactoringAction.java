@@ -26,8 +26,8 @@ import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringExecution
 import org.jetbrains.research.groups.ml_methods.ui.AlgorithmsSelectionPanel;
 import org.jetbrains.research.groups.ml_methods.ui.RefactoringsToolWindow;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
-import org.jetbrains.research.groups.ml_methods.utils.NotificationUtil;
 import org.jetbrains.research.groups.ml_methods.utils.MetricsProfilesUtil;
+import org.jetbrains.research.groups.ml_methods.utils.NotificationUtil;
 import org.jetbrains.research.groups.ml_methods.utils.RefactoringUtil;
 
 import javax.swing.*;
@@ -130,15 +130,15 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
         final MetricsProfile metricsProfile = getMetricsProfile(selectedAlgorithms);
         assert metricsProfile != null;
-        final boolean isFieldRefactoringAvailable =
-            ArchitectureReloadedConfig.getInstance().isFieldRefactoringAvailable();
+        final boolean enableFieldRefactoring =
+            ArchitectureReloadedConfig.getInstance().enableFieldRefactoring();
 
         new RefactoringExecutionContext(
             project,
             analysisScope,
             metricsProfile,
             selectedAlgorithms,
-            isFieldRefactoringAvailable,
+            enableFieldRefactoring,
             this::showDialogs
         ).executeAsync();
     }
