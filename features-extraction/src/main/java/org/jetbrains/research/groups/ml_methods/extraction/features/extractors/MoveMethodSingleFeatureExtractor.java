@@ -7,9 +7,9 @@ import org.jetbrains.research.groups.ml_methods.extraction.features.Feature;
 
 /**
  * An interface for "move method" refactoring feature extractor. It has
- * {@link MoveMethodFeatureExtractor#extract} method which receives all needed information and
+ * {@link MoveMethodSingleFeatureExtractor#extract} method which receives all needed information and
  * creates some {@link Feature}.
  */
-public interface MoveMethodFeatureExtractor {
+public interface MoveMethodSingleFeatureExtractor {
     Feature extract(@NotNull MethodInfo methodInfo, @NotNull PsiClass targetClass);
 }

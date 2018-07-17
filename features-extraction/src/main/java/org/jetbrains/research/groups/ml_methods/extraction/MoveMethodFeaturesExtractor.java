@@ -4,7 +4,7 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.extraction.features.extractors.MoveMethodFeatureExtractor;
+import org.jetbrains.research.groups.ml_methods.extraction.features.extractors.MoveMethodSingleFeatureExtractor;
 import org.jetbrains.research.groups.ml_methods.extraction.features.vector.FeatureVector;
 import org.jetbrains.research.groups.ml_methods.extraction.features.vector.MoveMethodVectorExtractor;
 import org.jetbrains.research.groups.ml_methods.extraction.info.InfoCollector;
@@ -36,12 +36,12 @@ public class MoveMethodFeaturesExtractor {
     public @NotNull List<FeatureVector> extract(
         final @NotNull AnalysisScope scope,
         final @NotNull List<Refactoring> refactorings,
-        final @NotNull List<Class<? extends MoveMethodFeatureExtractor>> extractorClasses
+        final @NotNull List<Class<? extends MoveMethodSingleFeatureExtractor>> extractorClasses
     ) throws IllegalAccessException, InstantiationException {
         MethodInfoRepository repository = InfoCollector.getInstance().collectInfo(scope);
 
-        List<MoveMethodFeatureExtractor> extractors = new ArrayList<>();
-        for (Class<? extends MoveMethodFeatureExtractor> extractorClass : extractorClasses) {
+        List<MoveMethodSingleFeatureExtractor> extractors = new ArrayList<>();
+        for (Class<? extends MoveMethodSingleFeatureExtractor> extractorClass : extractorClasses) {
             extractors.add(extractorClass.newInstance());
         }
 
