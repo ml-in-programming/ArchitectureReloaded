@@ -5,6 +5,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringExecutionContext;
@@ -13,14 +14,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Supplier;
 
 @State(name = "ArchitectureReloaded", storages = @Storage(file = "architecture.reloaded.xml"))
 public final class ArchitectureReloadedConfig implements PersistentStateComponent<ArchitectureReloadedConfig> {
-
     private final Set<Algorithm> selectedAlgorithms =
             new HashSet<>(Arrays.asList(RefactoringExecutionContext.getAvailableAlgorithms()));
-    private Supplier<Boolean> isFieldRefactoringsCheckedValidator;
+    private boolean enableFieldRefactoring = false;
 
     private ArchitectureReloadedConfig() {}
 
@@ -51,11 +50,12 @@ public final class ArchitectureReloadedConfig implements PersistentStateComponen
         XmlSerializerUtil.copyBean(state, this);
     }
 
-    public void setIsFieldRefactoringsCheckedValidator(Supplier<Boolean> isFieldRefactoringsCheckedValidator) {
-        this.isFieldRefactoringsCheckedValidator = isFieldRefactoringsCheckedValidator;
+    public void setEnableFieldRefactoring(boolean enableFieldRefactoring) {
+        this.enableFieldRefactoring = enableFieldRefactoring;
     }
 
+    @Contract(pure = true)
     public boolean enableFieldRefactoring() {
-        return isFieldRefactoringsCheckedValidator.get();
+        return enableFieldRefactoring;
     }
 }
