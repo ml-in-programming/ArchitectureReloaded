@@ -1,6 +1,8 @@
 package org.jetbrains.research.groups.ml_methods.algorithm;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ElementAttributes;
@@ -26,7 +28,9 @@ public abstract class OldAlgorithm extends AbstractAlgorithm {
 
     protected @NotNull Executor setUpExecutor() {
         return (context, enableFieldRefactorings) ->
-                calculateRefactorings(new OldExecutionContext(context), enableFieldRefactorings);
+                calculateRefactorings(ApplicationManager.getApplication().
+                                runReadAction((Computable<OldExecutionContext>) () -> new OldExecutionContext(context)),
+                        enableFieldRefactorings);
     }
 
     protected abstract List<Refactoring> calculateRefactorings(

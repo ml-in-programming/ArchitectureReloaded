@@ -7,6 +7,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.sixrr.metrics.metricModel.MetricsExecutionContextImpl;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
 import com.sixrr.metrics.metricModel.TimeStamp;
@@ -14,15 +15,18 @@ import com.sixrr.metrics.profile.MetricsProfile;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.research.groups.ml_methods.algorithm.*;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.NoRequestedMetricException;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitiesStorage;
-import org.jetbrains.research.groups.ml_methods.algorithm.*;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearcher;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -120,7 +124,8 @@ public class RefactoringExecutionContext {
         metricsRun.setTimestamp(new TimeStamp());
         entitySearchResult = ApplicationManager.getApplication()
                 .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
-        entitiesStorage = new EntitiesStorage(entitySearchResult);
+        entitiesStorage = ApplicationManager.getApplication().
+                runReadAction((Computable<EntitiesStorage>) () -> new EntitiesStorage(entitySearchResult));
         for (Algorithm algorithm : requestedAlgorithms) {
             calculate(algorithm);
         }
@@ -138,11 +143,13 @@ public class RefactoringExecutionContext {
         AttributesStorage attributes;
 
         try {
-            attributes = new AttributesStorage(
-                entitiesStorage,
-                algorithm.requiredMetrics(),
-                metricsRun
-            );
+            attributes = ApplicationManager.getApplication().
+                    runReadAction((ThrowableComputable<AttributesStorage, NoRequestedMetricException>)
+                            () -> new AttributesStorage(
+                                    entitiesStorage,
+                                    algorithm.requiredMetrics(),
+                                    metricsRun
+                            ));
         } catch (NoRequestedMetricException e) {
             LOGGER.error(
                 "Error during attributes creation for '" + algorithm.getDescriptionString() +
