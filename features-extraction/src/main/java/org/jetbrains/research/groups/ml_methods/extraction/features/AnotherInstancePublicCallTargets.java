@@ -8,7 +8,7 @@ package org.jetbrains.research.groups.ml_methods.extraction.features;
  * somewhere else.
  */
 public class AnotherInstancePublicCallTargets extends Feature {
-    public AnotherInstancePublicCallTargets(int value) {
+    public AnotherInstancePublicCallTargets(double value) {
         super(value);
     }
 }

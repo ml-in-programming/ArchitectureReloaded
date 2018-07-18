@@ -7,7 +7,7 @@ package org.jetbrains.research.groups.ml_methods.extraction.features;
  * called for, i.e. they use {@code this}.
  */
 public class SameInstanceCallers extends Feature {
-    public SameInstanceCallers(int value) {
+    public SameInstanceCallers(double value) {
         super(value);
     }
 }

@@ -12,7 +12,7 @@ public class SameInstancePublicCallTargetsExtractor implements MoveMethodSingleF
         final @NotNull PsiClass targetClass
     ) {
         return new SameInstancePublicCallTargets(
-            (int) methodInfo.getSameInstanceTargets(MethodFilters.isPublic).count()
+            methodInfo.getSameInstanceTargets(MethodFilters.isPublic).count()
         );
     }
 }

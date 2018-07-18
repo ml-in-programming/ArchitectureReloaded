@@ -12,7 +12,7 @@ public class AnotherInstancePublicCallTargetsExtractor implements MoveMethodSing
         final @NotNull PsiClass targetClass
     ) {
         return new AnotherInstancePublicCallTargets(
-            (int) methodInfo.getAnotherInstanceTargets(
+            methodInfo.getAnotherInstanceTargets(
                 MethodFilters.sameClass(methodInfo.getContainingClass()),
                 MethodFilters.isPublic,
                 MethodFilters.isNotStatic

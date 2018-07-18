@@ -6,7 +6,7 @@ package org.jetbrains.research.groups.ml_methods.extraction.features;
  * {@code m} calls.
  */
 public class TargetClassInstanceCallTargets extends Feature {
-    public TargetClassInstanceCallTargets(int value) {
+    public TargetClassInstanceCallTargets(double value) {
         super(value);
     }
 }

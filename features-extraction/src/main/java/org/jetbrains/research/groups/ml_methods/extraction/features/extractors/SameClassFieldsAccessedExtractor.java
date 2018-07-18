@@ -13,7 +13,7 @@ public class SameClassFieldsAccessedExtractor implements MoveMethodSingleFeature
         final @NotNull PsiClass targetClass
     ) {
         return new SameClassFieldsAccessed(
-            (int) methodInfo.getAccessedFields(
+            methodInfo.getAccessedFields(
                 FieldFilters.sameClass(methodInfo.getContainingClass())
             ).count()
         );

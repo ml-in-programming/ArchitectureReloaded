@@ -6,7 +6,7 @@ package org.jetbrains.research.groups.ml_methods.extraction.features;
  * {@code m} and that {@code m} calls.
  */
 public class SameClassStaticPublicCallTargets extends Feature {
-    public SameClassStaticPublicCallTargets(int value) {
+    public SameClassStaticPublicCallTargets(double value) {
         super(value);
     }
 }

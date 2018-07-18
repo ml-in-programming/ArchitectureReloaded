@@ -12,7 +12,7 @@ public class TargetClassFieldsAccessedExtractor implements MoveMethodSingleFeatu
         final @NotNull PsiClass targetClass
     ) {
         return new TargetClassFieldsAccessed(
-            (int) methodInfo.getAccessedFields(
+            methodInfo.getAccessedFields(
                 FieldFilters.sameClass(targetClass)
             ).count()
         );

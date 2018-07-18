@@ -12,7 +12,7 @@ public class AnotherInstanceNotPublicCallTargetsExtractor implements MoveMethodS
         final @NotNull PsiClass targetClass
     ) {
         return new AnotherInstanceNotPublicCallTargets(
-            (int) methodInfo.getAnotherInstanceTargets(
+            methodInfo.getAnotherInstanceTargets(
                 MethodFilters.sameClass(methodInfo.getContainingClass()),
                 MethodFilters.isNotPublic,
                 MethodFilters.isNotStatic

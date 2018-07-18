@@ -6,7 +6,7 @@ package org.jetbrains.research.groups.ml_methods.extraction.features;
  * {@code m} accesses.
  */
 public class TargetClassFieldsAccessed extends Feature {
-    public TargetClassFieldsAccessed(int value) {
+    public TargetClassFieldsAccessed(double value) {
         super(value);
     }
 }

@@ -6,7 +6,7 @@ package org.jetbrains.research.groups.ml_methods.extraction.features;
  * {@code m} and that {@code m} accesses.
  */
 public class SameClassFieldsAccessed extends Feature {
-    public SameClassFieldsAccessed(int value) {
+    public SameClassFieldsAccessed(double value) {
         super(value);
     }
 }

@@ -7,7 +7,7 @@ package org.jetbrains.research.groups.ml_methods.extraction.features;
  * for, i.e. it uses {@code this}.
  */
 public final class SameInstancePublicCallTargets extends Feature {
-    public SameInstancePublicCallTargets(int value) {
+    public SameInstancePublicCallTargets(double value) {
         super(value);
     }
 }

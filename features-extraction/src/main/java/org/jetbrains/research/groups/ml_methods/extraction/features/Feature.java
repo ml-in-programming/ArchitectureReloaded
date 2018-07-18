@@ -5,13 +5,13 @@ package org.jetbrains.research.groups.ml_methods.extraction.features;
  * will allow to distinguish different features from each other by comparing their classes.
  */
 public abstract class Feature {
-    private final int value;
+    private final double value;
 
-    public Feature(final int value) {
+    public Feature(final double value) {
         this.value = value;
     }
 
-    public int getValue() {
+    public double getValue() {
         return value;
     }
 }

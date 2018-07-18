@@ -5,7 +5,7 @@ package org.jetbrains.research.groups.ml_methods.extraction.features;
  * {@link AnotherInstancePublicCallTargets} but it count not public methods but all the rest.
  */
 public class AnotherInstanceNotPublicCallTargets extends Feature {
-    public AnotherInstanceNotPublicCallTargets(int value) {
+    public AnotherInstanceNotPublicCallTargets(double value) {
         super(value);
     }
 }

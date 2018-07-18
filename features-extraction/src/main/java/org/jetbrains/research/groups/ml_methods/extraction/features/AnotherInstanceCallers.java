@@ -8,7 +8,7 @@ package org.jetbrains.research.groups.ml_methods.extraction.features;
  * somewhere else.
  */
 public class AnotherInstanceCallers extends Feature {
-    public AnotherInstanceCallers(int value) {
+    public AnotherInstanceCallers(double value) {
         super(value);
     }
 }
