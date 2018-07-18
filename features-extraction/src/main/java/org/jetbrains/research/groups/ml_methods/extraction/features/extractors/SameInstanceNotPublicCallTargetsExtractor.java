@@ -7,12 +7,12 @@ import org.jetbrains.research.groups.ml_methods.extraction.info.MethodInfo;
 
 public class SameInstanceNotPublicCallTargetsExtractor implements MoveMethodSingleFeatureExtractor {
     @Override
-    public SameInstanceNotPublicCallTargets extract(
+    public @NotNull SameInstanceNotPublicCallTargets extract(
         final @NotNull MethodInfo methodInfo,
         final @NotNull PsiClass targetClass
     ) {
         return new SameInstanceNotPublicCallTargets(
-            (int) methodInfo.getSameInstanceTargets(Filters.isNotPublic).count()
+            (int) methodInfo.getSameInstanceTargets(MethodFilters.isNotPublic).count()
         );
     }
 }

@@ -2,19 +2,19 @@ package org.jetbrains.research.groups.ml_methods.extraction.features.extractors;
 
 import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.extraction.features.SameClassStaticPublicCallTargets;
+import org.jetbrains.research.groups.ml_methods.extraction.features.SameClassStaticNotPublicCallTargets;
 import org.jetbrains.research.groups.ml_methods.extraction.info.MethodInfo;
 
-public class SameClassStaticPublicCallTargetsExtractor implements MoveMethodSingleFeatureExtractor {
+public class SameClassStaticNotPublicCallTargetsExtractor implements MoveMethodSingleFeatureExtractor {
     @Override
-    public @NotNull SameClassStaticPublicCallTargets extract(
-        @NotNull MethodInfo methodInfo,
-        @NotNull PsiClass targetClass
+    public @NotNull SameClassStaticNotPublicCallTargets extract(
+        final @NotNull MethodInfo methodInfo,
+        final @NotNull PsiClass targetClass
     ) {
-        return new SameClassStaticPublicCallTargets(
+        return new SameClassStaticNotPublicCallTargets(
             (int) methodInfo.getAnotherInstanceTargets(
                 MethodFilters.sameClass(methodInfo.getContainingClass()),
-                MethodFilters.isPublic,
+                MethodFilters.isNotPublic,
                 MethodFilters.isStatic
             ).count()
         );
