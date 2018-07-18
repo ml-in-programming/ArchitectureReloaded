@@ -6,6 +6,8 @@ package org.jetbrains.research.groups.ml_methods.extraction.features;
  * {@code m} and that {@code m} calls.
  */
 public class SameClassStaticPublicCallTargets extends Feature {
+    private static final long serialVersionUID = 3469408110250730924L;
+
     public SameClassStaticPublicCallTargets(double value) {
         super(value);
     }

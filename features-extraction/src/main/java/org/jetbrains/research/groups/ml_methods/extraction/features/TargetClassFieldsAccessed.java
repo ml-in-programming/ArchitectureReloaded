@@ -6,6 +6,8 @@ package org.jetbrains.research.groups.ml_methods.extraction.features;
  * {@code m} accesses.
  */
 public class TargetClassFieldsAccessed extends Feature {
+    private static final long serialVersionUID = 4619505886035772957L;
+
     public TargetClassFieldsAccessed(double value) {
         super(value);
     }

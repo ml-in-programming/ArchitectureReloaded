@@ -6,6 +6,8 @@ package org.jetbrains.research.groups.ml_methods.extraction.features;
  * {@code m}.
  */
 public class TargetClassCallers extends Feature {
+    private static final long serialVersionUID = -999232955576934448L;
+
     public TargetClassCallers(double value) {
         super(value);
     }

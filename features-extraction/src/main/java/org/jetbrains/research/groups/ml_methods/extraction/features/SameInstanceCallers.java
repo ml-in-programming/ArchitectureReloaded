@@ -7,6 +7,8 @@ package org.jetbrains.research.groups.ml_methods.extraction.features;
  * called for, i.e. they use {@code this}.
  */
 public class SameInstanceCallers extends Feature {
+    private static final long serialVersionUID = -7006989490422320287L;
+
     public SameInstanceCallers(double value) {
         super(value);
     }

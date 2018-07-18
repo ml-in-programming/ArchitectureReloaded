@@ -7,6 +7,8 @@ package org.jetbrains.research.groups.ml_methods.extraction.features;
  * for, i.e. it uses {@code this}.
  */
 public final class SameInstancePublicCallTargets extends Feature {
+    private static final long serialVersionUID = -2217592415612029756L;
+
     public SameInstancePublicCallTargets(double value) {
         super(value);
     }

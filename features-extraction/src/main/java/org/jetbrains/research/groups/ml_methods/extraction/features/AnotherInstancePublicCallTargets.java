@@ -8,6 +8,8 @@ package org.jetbrains.research.groups.ml_methods.extraction.features;
  * somewhere else.
  */
 public class AnotherInstancePublicCallTargets extends Feature {
+    private static final long serialVersionUID = 280140284010704519L;
+
     public AnotherInstancePublicCallTargets(double value) {
         super(value);
     }
