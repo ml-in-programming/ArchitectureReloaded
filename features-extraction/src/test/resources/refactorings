@@ -1,0 +1,3 @@
+Num methods need move 20
+method org.jhotdraw.samples.svg.gui.ViewToolBar::setEditor():void need move to org.jhotdraw.samples.svg.SVGDrawingPanel
+method net.n3.nanoxml.XMLElement::print():void need move to org.jhotdraw.xml.NanoXMLDOMOutput

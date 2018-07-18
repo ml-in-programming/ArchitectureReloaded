@@ -1,8 +1,6 @@
 package org.jetbrains.research.groups.ml_methods.extraction;
 
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.extraction.features.extractors.MoveMethodSingleFeatureExtractor;
 import org.jetbrains.research.groups.ml_methods.extraction.features.vector.FeatureVector;
@@ -10,6 +8,7 @@ import org.jetbrains.research.groups.ml_methods.extraction.features.vector.MoveM
 import org.jetbrains.research.groups.ml_methods.extraction.info.InfoCollector;
 import org.jetbrains.research.groups.ml_methods.extraction.info.MethodInfo;
 import org.jetbrains.research.groups.ml_methods.extraction.info.MethodInfoRepository;
+import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +19,8 @@ public class MoveMethodFeaturesExtractor {
 
     private MoveMethodFeaturesExtractor() {}
 
-    public @NotNull MoveMethodFeaturesExtractor getInstance() {
+    public static @NotNull
+    MoveMethodFeaturesExtractor getInstance() {
         return INSTANCE;
     }
 
@@ -56,28 +56,9 @@ public class MoveMethodFeaturesExtractor {
                     )
                 );
 
-            vectors.add(extractor.extract(methodInfo, refactoring.targetClass));
+            vectors.add(extractor.extract(methodInfo, refactoring.getTargetClass()));
         }
 
         return vectors;
-    }
-
-    public static class Refactoring {
-        private final @NotNull PsiMethod method;
-
-        private final @NotNull PsiClass targetClass;
-
-        public Refactoring(final @NotNull PsiMethod method, final @NotNull PsiClass targetClass) {
-            this.method = method;
-            this.targetClass = targetClass;
-        }
-
-        public @NotNull PsiMethod getMethod() {
-            return method;
-        }
-
-        public @NotNull PsiClass getTargetClass() {
-            return targetClass;
-        }
     }
 }
