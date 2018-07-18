@@ -19,8 +19,7 @@ public class MoveMethodFeaturesExtractor {
 
     private MoveMethodFeaturesExtractor() {}
 
-    public static @NotNull
-    MoveMethodFeaturesExtractor getInstance() {
+    public static @NotNull MoveMethodFeaturesExtractor getInstance() {
         return INSTANCE;
     }
 
