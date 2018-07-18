@@ -14,6 +14,8 @@ import java.util.stream.Stream;
  * that call this method, methods that this method calls etc.
  */
 public class MethodInfo {
+    private final @NotNull PsiClass containingClass;
+
     private final @NotNull List<PsiMethod> sameInstanceCallers;
 
     private final @NotNull List<PsiMethod> anotherInstanceCallers;
@@ -25,17 +27,26 @@ public class MethodInfo {
     private final @NotNull List<PsiField> accessedFields;
 
     private MethodInfo(
+        final @NotNull PsiClass containingClass,
         final @NotNull List<PsiMethod> sameInstanceCallers,
         final @NotNull List<PsiMethod> anotherInstanceCallers,
         final @NotNull List<PsiMethod> sameInstanceTargets,
         final @NotNull List<PsiMethod> anotherInstanceTargets,
         final @NotNull List<PsiField> accessedFields
     ) {
+        this.containingClass = containingClass;
         this.sameInstanceCallers = sameInstanceCallers;
         this.anotherInstanceCallers = anotherInstanceCallers;
         this.sameInstanceTargets = sameInstanceTargets;
         this.anotherInstanceTargets = anotherInstanceTargets;
         this.accessedFields = accessedFields;
+    }
+
+    /**
+     * Returns {@link PsiClass} that contains {@link PsiMethod} this info object is created for.
+     */
+    public @NotNull PsiClass getContainingClass() {
+        return containingClass;
     }
 
     /**
@@ -134,7 +145,13 @@ public class MethodInfo {
         }
 
         public @NotNull MethodInfo build() {
+            PsiClass containingClass = method.getContainingClass();
+            if (containingClass == null) {
+                throw new NullPointerException("Failed to resolve containing class of a method");
+            }
+
             return new MethodInfo(
+                containingClass,
                 new ArrayList<>(sameInstanceCallers),
                 new ArrayList<>(anotherObjectCallers),
                 new ArrayList<>(sameObjectTargets),
