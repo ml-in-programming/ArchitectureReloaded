@@ -1,11 +1,13 @@
 package org.jetbrains.research.groups.ml_methods.extraction.refactoring;
 
-import com.intellij.analysis.AnalysisScope;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMethod;
+import com.sixrr.metrics.utils.MethodUtils;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class TextFormRefactoring {
     private final String targetClassQualifiedName;
@@ -13,7 +15,8 @@ public class TextFormRefactoring {
     private final String methodName;
     private final List<String> paramsClasses;
 
-    public TextFormRefactoring(String methodPackage, String methodName, List<String> params, String destinationClassQualifiedName) {
+    public TextFormRefactoring(String methodPackage, String methodName,
+                               List<String> params, String destinationClassQualifiedName) {
         this.methodPackage = methodPackage;
         this.methodName = methodName;
         this.paramsClasses = params;
@@ -31,7 +34,7 @@ public class TextFormRefactoring {
                 Objects.equals(paramsClasses, that.paramsClasses);
     }
 
-    String getMethodsSignature() {
+    private String getMethodsSignature() {
         StringBuilder methodsSignature = new StringBuilder();
         methodsSignature.append(methodPackage);
         methodsSignature.append(".");
@@ -46,12 +49,36 @@ public class TextFormRefactoring {
         return methodsSignature.toString();
     }
 
-    @Nullable
-    Refactoring toRefactoring(AnalysisScope scope) {
-        return RefactoringsFinder.find(scope, Collections.singletonList(this)).get(0);
+    private String getClassQualifiedName() {
+        return targetClassQualifiedName;
     }
 
-    String getClassQualifiedName() {
-        return targetClassQualifiedName;
+    private boolean isOfGivenMethod(PsiMethod method) {
+        String methodsSignature = MethodUtils.calculateSignature(method);
+        String methodsSignatureWithoutParams = methodsSignature.split("\\(")[0];
+        String refactoringSignature = getMethodsSignature();
+        return refactoringSignature.equals(methodsSignature) ||
+                refactoringSignature.equals(methodsSignatureWithoutParams);
+    }
+
+    private boolean isToGivenPsiClass(PsiClass aClass) {
+        return getClassQualifiedName().equals(aClass.getQualifiedName());
+    }
+
+    static Optional<TextFormRefactoring> getRefactoringOfGivenMethod(List<TextFormRefactoring> textualRefactorings,
+                                                                     PsiMethod method) {
+        List<TextFormRefactoring> matchedRefactorings = textualRefactorings.stream().
+                filter(textualRefactoring -> textualRefactoring.isOfGivenMethod(method)).collect(Collectors.toList());
+        if (matchedRefactorings.size() > 1) {
+            throw new IllegalStateException("Refactorings list is ambiguous");
+        }
+        return Optional.ofNullable(matchedRefactorings.isEmpty() ? null : matchedRefactorings.get(0));
+    }
+
+    static List<TextFormRefactoring> getRefactoringsToGivenClass(List<TextFormRefactoring> textualRefactorings,
+                                                                 PsiClass aClass) {
+        return textualRefactorings.stream().
+                filter(textualRefactoring -> textualRefactoring.isToGivenPsiClass(aClass)).
+                collect(Collectors.toList());
     }
 }
