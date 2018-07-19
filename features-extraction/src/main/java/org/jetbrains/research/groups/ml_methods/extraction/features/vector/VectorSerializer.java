@@ -17,7 +17,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public final class VectorSerializer {
-    private final @NotNull VectorSerializer INSTANCE = new VectorSerializer();
+    private static final @NotNull VectorSerializer INSTANCE = new VectorSerializer();
 
     private static final @NotNull Logger LOGGER = Logger.getLogger(VectorSerializer.class);
 
@@ -30,7 +30,7 @@ public final class VectorSerializer {
 
     private VectorSerializer() {}
 
-    public @NotNull VectorSerializer getInstance() {
+    public static @NotNull VectorSerializer getInstance() {
         return INSTANCE;
     }
 
@@ -54,7 +54,7 @@ public final class VectorSerializer {
         final @NotNull Path path
     ) throws IOException, ClassNotFoundException {
         List<Path> filePaths = Files.walk(path).filter(Files::isRegularFile)
-                                           .filter(it -> it.endsWith(fileExtension))
+                                           .filter(it -> it.toString().endsWith(fileExtension))
                                            .collect(Collectors.toList());
 
         List<FeatureVector> vectors = new ArrayList<>();
