@@ -39,9 +39,7 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
         System.out.println("Visited method: " + method.getName());
         Optional<TextFormRefactoring> refactoringOfPsiMethod = getRefactoringOfGivenMethod(textualRefactorings, method);
         refactoringOfPsiMethod.ifPresent(textFormRefactoring -> {
-            if (!refactorings.computeIfAbsent(textFormRefactoring, k -> new RefactoringPair()).setMethod(method)) {
-                throw new IllegalStateException("Refactorings list is ambiguous");
-            }
+            refactorings.computeIfAbsent(textFormRefactoring, k -> new RefactoringPair()).setMethod(method);
         });
         super.visitMethod(method);
     }
@@ -50,9 +48,7 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
     public void visitClass(PsiClass aClass) {
         System.out.println("Visited class: " + aClass.getName());
         for (TextFormRefactoring refactoringToPsiClass : getRefactoringsToGivenClass(textualRefactorings, aClass)) {
-            if (!refactorings.computeIfAbsent(refactoringToPsiClass, k -> new RefactoringPair()).setClass(aClass)) {
-                throw new IllegalStateException("Refactorings list is ambiguous");
-            }
+            refactorings.computeIfAbsent(refactoringToPsiClass, k -> new RefactoringPair()).setClass(aClass);
         }
         super.visitClass(aClass);
     }
@@ -61,16 +57,32 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
         private PsiMethod method;
         private PsiClass aClass;
 
-        private boolean setMethod(@NotNull PsiMethod method) {
+        private void setMethod(@NotNull PsiMethod method) {
             PsiMethod oldMethod = this.method;
             this.method = method;
-            return oldMethod == null || MethodUtils.calculateSignature(oldMethod).equals(MethodUtils.calculateSignature(method));
+
+            if (oldMethod != null) {
+                String oldSignature = MethodUtils.calculateSignature(oldMethod);
+                String newSignature = MethodUtils.calculateSignature(method);
+
+                if (!oldSignature.equals(newSignature)) {
+                    throw new IllegalStateException("Refactorings list is ambiguous. Candidates: " + oldSignature + ", " + newSignature);
+                }
+            }
         }
 
-        private boolean setClass(@NotNull PsiClass aClass) {
+        private void setClass(@NotNull PsiClass aClass) {
             PsiClass oldClass = this.aClass;
             this.aClass = aClass;
-            return oldClass == null || Objects.equals(oldClass.getQualifiedName(), aClass.getQualifiedName());
+
+            if (oldClass != null) {
+                String oldName = oldClass.getQualifiedName();
+                String newName = aClass.getQualifiedName();
+
+                if (!Objects.equals(oldName, newName)) {
+                    throw new IllegalStateException("Refactorings list is ambiguous. Candidates: ");
+                }
+            }
         }
     }
 }
