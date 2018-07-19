@@ -47,6 +47,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <!--<annotator language="JAVA" implementationClass="org.jetbrains.research.groups.ml_methods.refactoring.RefactoringAnnotator"/>-->
         <appStarter implementation="com.sixrr.metrics.offline.MetricsCommandLine"/>
+        <appStarter implementation="org.jetbrains.research.groups.ml_methods.extraction.FeaturesExtractionApplicationStarter"/>
         <applicationService serviceImplementation="com.sixrr.metrics.config.MetricsReloadedConfig"/>
         <applicationService serviceImplementation="com.sixrr.metrics.profile.MetricsProfileRepository"/>
         <applicationService serviceImplementation="org.jetbrains.research.groups.ml_methods.config.ArchitectureReloadedConfig"/>

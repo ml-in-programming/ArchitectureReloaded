@@ -29,3 +29,12 @@ dependencies {
 
   testCompile project(':utils').sourceSets.test.output
 }
+
+task runConsole(dependsOn: runIde) {}
+
+gradle.taskGraph.whenReady { graph ->
+  if (graph.hasTask(runConsole)) {
+    runIde.args 'features-extraction', "$pathToProject", "$pathToRefactorings"
+    runIde.jvmArgs '-Djava.awt.headless=true'
+  }
+}
