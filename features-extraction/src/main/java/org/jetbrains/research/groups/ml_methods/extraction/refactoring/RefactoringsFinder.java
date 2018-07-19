@@ -65,9 +65,7 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
                 String oldSignature = MethodUtils.calculateSignature(oldMethod);
                 String newSignature = MethodUtils.calculateSignature(method);
 
-                if (!oldSignature.equals(newSignature)) {
-                    throw new IllegalStateException("Refactorings list is ambiguous. Candidates: " + oldSignature + ", " + newSignature);
-                }
+                throw new IllegalStateException("Refactorings list is ambiguous. Candidates: " + oldSignature + ", " + newSignature);
             }
         }
 
@@ -79,9 +77,7 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
                 String oldName = oldClass.getQualifiedName();
                 String newName = aClass.getQualifiedName();
 
-                if (!Objects.equals(oldName, newName)) {
-                    throw new IllegalStateException("Refactorings list is ambiguous. Candidates: ");
-                }
+                throw new IllegalStateException("Refactorings list is ambiguous. Candidates: " + oldName + ", " + newName);
             }
         }
     }
