@@ -45,6 +45,8 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
         Path projectPath = Paths.get(args[1]);
         Path refactoringsPath = Paths.get(args[2]);
         System.out.println("Opening project...");
+        System.out.println(projectPath.toAbsolutePath().toString());
+
         final Project project = ProjectUtil.openOrImport(projectPath.toAbsolutePath().toString(), null, false);
         if (project == null) {
             System.err.println("Cannot open project. Check that path is correct.");
@@ -55,11 +57,13 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
         try {
             System.out.println("Start finding refactorings...");
             refactorings = RefactoringsLoader.load(refactoringsPath, RefactoringsFileParsers.getParserForJMoveDataSet(), scope);
-        } catch (IOException e) {
-            System.err.println("Error during reading file with refactorings. Reason: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error during refactorings search. Reason: " + e.getMessage());
+
             APPLICATION.exit(true, true);
             return;
         }
+
         System.out.println("Found " + refactorings.size() + " refactorings: ");
         refactorings.forEach(refactoring -> System.out.println(refactoring.getMethod() + "->" + refactoring.getTargetClass()));
         APPLICATION.exit(true, true);
