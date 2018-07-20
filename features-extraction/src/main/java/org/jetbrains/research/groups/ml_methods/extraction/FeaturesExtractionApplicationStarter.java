@@ -23,10 +23,7 @@ import org.jetbrains.research.groups.ml_methods.extraction.refactoring.parsers.R
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 import static org.jetbrains.research.groups.ml_methods.utils.MethodUtils.extractMethodDeclaration;
 
@@ -98,7 +95,7 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
         try {
             vectors = MoveMethodFeaturesExtractor.getInstance().extract(
                 scope,
-                refactorings,
+                new LinkedList<>(refactorings),
                 Arrays.asList(
                     AnotherInstanceCallersExtractor.class,
                     AnotherInstanceNotPublicCallTargetsExtractor.class,
