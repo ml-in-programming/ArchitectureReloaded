@@ -22,6 +22,14 @@ public class ParserForJMoveDataSetTest {
                         Collections.emptyList(), "org.jhotdraw.samples.svg.SVGDrawingPanel"
                 ),
                 new TextFormRefactoring(
+                        "net.n3.nanoxml.XMLElement", "withParams",
+                        Arrays.asList("Movie", "Rental"), "org.jhotdraw.xml.NanoXMLDOMOutput"
+                ),
+                new TextFormRefactoring(
+                        "net.n3.nanoxml.XMLElement", "withOneParam",
+                        Collections.singletonList("Price"), "org.jhotdraw.xml.NanoXMLDOMOutput"
+                ),
+                new TextFormRefactoring(
                         "net.n3.nanoxml.XMLElement", "print",
                         Collections.emptyList(), "org.jhotdraw.xml.NanoXMLDOMOutput"
                 )
