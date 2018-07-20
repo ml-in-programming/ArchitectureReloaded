@@ -7,16 +7,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ParserForJMoveDataSet implements RefactoringsFileParser {
     @Override
-    public List<TextFormRefactoring> parse(Path refactoringsPath) throws IOException {
+    public Set<TextFormRefactoring> parse(Path refactoringsPath) throws IOException {
         return Files.lines(refactoringsPath).
                 filter(line -> line.startsWith("method")).
                 map(line -> new TextFormRefactoring(getMethodPackage(line), getMethodName(line),
                         Collections.emptyList(), getClassQualifiedName(line))).
-                collect(Collectors.toList());
+                collect(Collectors.toSet());
     }
 
     private String getClassQualifiedName(String line) {

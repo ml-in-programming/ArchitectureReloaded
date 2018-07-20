@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 public class FeaturesExtractionApplicationStarter implements ApplicationStarter {
     private static final ApplicationEx APPLICATION = (ApplicationEx) ApplicationManager.getApplication();
@@ -53,7 +54,7 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
             APPLICATION.exit(true, true);
         }
         final AnalysisScope scope = new AnalysisScope(Objects.requireNonNull(project));
-        List<Refactoring> refactorings;
+        Set<Refactoring> refactorings;
         try {
             System.out.println("Start finding refactorings...");
             refactorings = RefactoringsLoader.load(refactoringsPath, RefactoringsFileParsers.getParserForJMoveDataSet(), scope);

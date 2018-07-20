@@ -5,7 +5,8 @@ import org.jetbrains.research.groups.ml_methods.extraction.refactoring.TextFormR
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 
 public interface RefactoringsFileParser {
-    List<TextFormRefactoring> parse(Path refactoringsPath) throws IOException;
+    Set<TextFormRefactoring> parse(Path refactoringsPath) throws IOException;
 }

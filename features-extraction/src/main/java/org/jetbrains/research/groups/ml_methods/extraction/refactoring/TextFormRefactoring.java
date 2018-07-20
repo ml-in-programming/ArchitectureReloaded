@@ -7,6 +7,7 @@ import com.sixrr.metrics.utils.MethodUtils;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class TextFormRefactoring {
@@ -24,6 +25,11 @@ public class TextFormRefactoring {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(targetClassQualifiedName, methodPackage, methodName, paramsClasses);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -34,7 +40,7 @@ public class TextFormRefactoring {
                 Objects.equals(paramsClasses, that.paramsClasses);
     }
 
-    private String getMethodsSignature() {
+    String getMethodsSignature() {
         StringBuilder methodsSignature = new StringBuilder();
         methodsSignature.append(methodPackage);
         methodsSignature.append(".");
@@ -49,7 +55,7 @@ public class TextFormRefactoring {
         return methodsSignature.toString();
     }
 
-    private String getClassQualifiedName() {
+    String getClassQualifiedName() {
         return targetClassQualifiedName;
     }
 
@@ -65,20 +71,20 @@ public class TextFormRefactoring {
         return getClassQualifiedName().equals(aClass.getQualifiedName());
     }
 
-    static Optional<TextFormRefactoring> getRefactoringOfGivenMethod(List<TextFormRefactoring> textualRefactorings,
+    static Optional<TextFormRefactoring> getRefactoringOfGivenMethod(Set<TextFormRefactoring> textualRefactorings,
                                                                      PsiMethod method) {
-        List<TextFormRefactoring> matchedRefactorings = textualRefactorings.stream().
-                filter(textualRefactoring -> textualRefactoring.isOfGivenMethod(method)).collect(Collectors.toList());
+        Set<TextFormRefactoring> matchedRefactorings = textualRefactorings.stream().
+                filter(textualRefactoring -> textualRefactoring.isOfGivenMethod(method)).collect(Collectors.toSet());
         if (matchedRefactorings.size() > 1) {
-            throw new IllegalStateException("Refactorings list is ambiguous");
+            throw new IllegalStateException("Refactorings set is ambiguous");
         }
-        return Optional.ofNullable(matchedRefactorings.isEmpty() ? null : matchedRefactorings.get(0));
+        return Optional.ofNullable(matchedRefactorings.isEmpty() ? null : matchedRefactorings.iterator().next());
     }
 
-    static List<TextFormRefactoring> getRefactoringsToGivenClass(List<TextFormRefactoring> textualRefactorings,
-                                                                 PsiClass aClass) {
+    static Set<TextFormRefactoring> getRefactoringsToGivenClass(Set<TextFormRefactoring> textualRefactorings,
+                                                                PsiClass aClass) {
         return textualRefactorings.stream().
                 filter(textualRefactoring -> textualRefactoring.isToGivenPsiClass(aClass)).
-                collect(Collectors.toList());
+                collect(Collectors.toSet());
     }
 }
