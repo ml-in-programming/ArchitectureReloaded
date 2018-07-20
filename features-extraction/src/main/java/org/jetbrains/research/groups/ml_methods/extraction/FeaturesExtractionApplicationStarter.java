@@ -100,7 +100,10 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
         }
 
         try {
-            VectorSerializer.getInstance().serialize(vectors, Paths.get(args[3]).toAbsolutePath());
+            Path path = Paths.get(args[3]).toAbsolutePath();
+            path.toFile().mkdirs();
+
+            VectorSerializer.getInstance().serialize(vectors, path);
         } catch (IOException e) {
             System.err.println(
                 "Error during features serialization. Reason: " +
