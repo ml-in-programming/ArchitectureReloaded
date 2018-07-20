@@ -6,10 +6,16 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationStarter;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiMethod;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.extraction.features.extractors.*;
 import org.jetbrains.research.groups.ml_methods.extraction.features.vector.FeatureVector;
 import org.jetbrains.research.groups.ml_methods.extraction.features.vector.VectorSerializer;
+import org.jetbrains.research.groups.ml_methods.extraction.info.InfoCollector;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringsLoader;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.parsers.RefactoringsFileParsers;
@@ -20,9 +26,20 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
+
+import static org.jetbrains.research.groups.ml_methods.utils.MethodUtils.extractMethodDeclaration;
 
 public class FeaturesExtractionApplicationStarter implements ApplicationStarter {
     private static final ApplicationEx APPLICATION = (ApplicationEx) ApplicationManager.getApplication();
+
+    private static final @NotNull Logger LOGGER =
+        Logger.getLogger(FeaturesExtractionApplicationStarter.class);
+
+    static {
+        LOGGER.setLevel(Level.INFO);
+        LOGGER.addAppender(new ConsoleAppender(new PatternLayout("%p %m%n")));
+    }
 
     private static void checkCommandLineArguments(@NotNull String[] args) {
         if (args.length != 4) {
@@ -69,7 +86,12 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
         }
 
         System.out.println("Found " + refactorings.size() + " refactorings: ");
-        refactorings.forEach(refactoring -> System.out.println(refactoring.getMethod() + "->" + refactoring.getTargetClass()));
+        refactorings.forEach(refactoring ->
+            LOGGER.info(
+                refactoring.getMethod() + "->" +
+                refactoring.getTargetClass() + System.lineSeparator() +
+                extractMethodDeclaration(refactoring.getMethod()))
+        );
 
         List<FeatureVector> vectors;
         try {
