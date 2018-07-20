@@ -35,7 +35,7 @@ task runConsole(dependsOn: runIde) {}
 
 gradle.taskGraph.whenReady { graph ->
   if (graph.hasTask(runConsole)) {
-    runIde.args 'features-extraction', "$pathToProject", "$pathToRefactorings"
+    runIde.args 'features-extraction', "$pathToProject", "$pathToRefactorings", "$pathToFeatures"
     runIde.jvmArgs '-Djava.awt.headless=true'
   }
 }
