@@ -6,7 +6,16 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationStarter;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiMethod;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.extraction.features.extractors.*;
+import org.jetbrains.research.groups.ml_methods.extraction.features.vector.FeatureVector;
+import org.jetbrains.research.groups.ml_methods.extraction.features.vector.VectorSerializer;
+import org.jetbrains.research.groups.ml_methods.extraction.info.InfoCollector;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringsLoader;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.parsers.RefactoringsFileParsers;
@@ -14,22 +23,34 @@ import org.jetbrains.research.groups.ml_methods.extraction.refactoring.parsers.R
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
+import static org.jetbrains.research.groups.ml_methods.utils.MethodUtils.extractMethodDeclaration;
+
 
 public class FeaturesExtractionApplicationStarter implements ApplicationStarter {
     private static final ApplicationEx APPLICATION = (ApplicationEx) ApplicationManager.getApplication();
 
+    private static final @NotNull Logger LOGGER =
+        Logger.getLogger(FeaturesExtractionApplicationStarter.class);
+
+    static {
+        LOGGER.setLevel(Level.INFO);
+        LOGGER.addAppender(new ConsoleAppender(new PatternLayout("%p %m%n")));
+    }
+
     private static void checkCommandLineArguments(@NotNull String[] args) {
-        if (args.length != 3) {
+        if (args.length != 4) {
             printUsage();
             APPLICATION.exit(true, true);
         }
     }
 
     private static void printUsage() {
-        System.out.println("Usage: features-extraction <path to project> <path to correct refactorings>");
+        System.out.println("Usage: features-extraction <path to project> <path to correct refactorings> <path to output folder>");
     }
 
     @Override
@@ -66,7 +87,56 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
         }
 
         System.out.println("Found " + refactorings.size() + " refactorings: ");
-        refactorings.forEach(refactoring -> System.out.println(refactoring.getMethod() + "->" + refactoring.getTargetClass()));
+        refactorings.forEach(refactoring ->
+            LOGGER.info(
+                refactoring.getMethod() + "->" +
+                refactoring.getTargetClass() + System.lineSeparator() +
+                extractMethodDeclaration(refactoring.getMethod()))
+        );
+
+        List<FeatureVector> vectors;
+        try {
+            vectors = MoveMethodFeaturesExtractor.getInstance().extract(
+                scope,
+                refactorings,
+                Arrays.asList(
+                    AnotherInstanceCallersExtractor.class,
+                    AnotherInstanceNotPublicCallTargetsExtractor.class,
+                    AnotherInstancePublicCallTargetsExtractor.class,
+                    SameClassFieldsAccessedExtractor.class,
+                    SameClassStaticNotPublicCallTargetsExtractor.class,
+                    SameClassStaticPublicCallTargetsExtractor.class,
+                    SameInstanceCallersExtractor.class,
+                    SameInstanceNotPublicCallTargetsExtractor.class,
+                    SameInstancePublicCallTargetsExtractor.class,
+                    TargetClassCallersExtractor.class,
+                    TargetClassFieldsAccessedExtractor.class,
+                    TargetClassInstanceCallTargetsExtractor.class,
+                    TargetClassStaticCallTargetsExtractor.class
+                )
+            );
+        } catch (IllegalAccessException | InstantiationException e) {
+            System.err.println("Error during features extraction. Reason: " + e.getMessage());
+
+            APPLICATION.exit(true, true);
+            return;
+        }
+
+        try {
+            Path path = Paths.get(args[3]).toAbsolutePath();
+            path.toFile().mkdirs();
+
+            VectorSerializer.getInstance().serialize(vectors, path);
+        } catch (IOException e) {
+            System.err.println(
+                "Error during features serialization. Reason: " +
+                e.getClass().getSimpleName() + ". " + e.getMessage()
+            );
+
+            APPLICATION.exit(true, true);
+            return;
+        }
+
         APPLICATION.exit(true, true);
     }
 }

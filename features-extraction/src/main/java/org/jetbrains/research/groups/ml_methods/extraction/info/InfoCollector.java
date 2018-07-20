@@ -55,7 +55,12 @@ public class InfoCollector {
                 PsiMethod target = expression.resolveMethod();
 
                 if (target == null) {
-                    LOGGER.warn("Failed to resolve method call");
+                    LOGGER.warn(
+                        "Failed to resolve method call: " +
+                        expression.getText() + "; in " +
+                        expression.getContainingFile()
+                    );
+                    
                     return;
                 }
 

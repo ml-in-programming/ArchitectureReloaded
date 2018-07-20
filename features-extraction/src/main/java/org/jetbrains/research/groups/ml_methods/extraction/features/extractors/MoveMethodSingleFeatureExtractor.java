@@ -11,5 +11,5 @@ import org.jetbrains.research.groups.ml_methods.extraction.features.Feature;
  * creates some {@link Feature}.
  */
 public interface MoveMethodSingleFeatureExtractor {
-    Feature extract(@NotNull MethodInfo methodInfo, @NotNull PsiClass targetClass);
+    @NotNull Feature extract(@NotNull MethodInfo methodInfo, @NotNull PsiClass targetClass);
 }
