@@ -13,12 +13,12 @@ import org.jetbrains.research.groups.ml_methods.generation.constraints.Generatio
 import java.util.*;
 
 public class RefactoringsGenerator {
-    public static Set<Refactoring> generate(Map<GenerationConstraint, Integer> toGenerate,
+    public static List<Refactoring> generate(Map<GenerationConstraint, Integer> toGenerate,
                                             AnalysisScope scope) {
         return new RefactoringsGeneratorVisitor(toGenerate, scope).generate();
     }
 
-    public static Set<Refactoring> generate(GenerationConstraint constraint, Integer numberOfRefactorings,
+    public static List<Refactoring> generate(GenerationConstraint constraint, Integer numberOfRefactorings,
                                             AnalysisScope scope) {
         return generate(new HashMap<GenerationConstraint, Integer>(){{put(constraint, numberOfRefactorings);}}, scope);
     }
@@ -39,9 +39,9 @@ public class RefactoringsGenerator {
 
         private Map<GenerationConstraint, Integer> toGenerate;
         private final AnalysisScope scope;
-        private final Map<GenerationConstraint, Set<PsiMethod>> acceptedMethods = new HashMap<>();
-        private final Map<GenerationConstraint, Set<PsiClass>> acceptedTargetClasses = new HashMap<>();
-        private final Map<GenerationConstraint, Set<Refactoring>> acceptedRefactorings = new HashMap<>();
+        private final Map<GenerationConstraint, List<PsiMethod>> acceptedMethods = new HashMap<>();
+        private final Map<GenerationConstraint, List<PsiClass>> acceptedTargetClasses = new HashMap<>();
+        private final Map<GenerationConstraint, List<Refactoring>> acceptedRefactorings = new HashMap<>();
 
         RefactoringsGeneratorVisitor(Map<GenerationConstraint, Integer> toGenerate, AnalysisScope scope) {
             this.toGenerate = toGenerate;
@@ -71,7 +71,7 @@ public class RefactoringsGenerator {
             super.visitMethod(method);
         }
 
-        Set<Refactoring> generate() {
+        List<Refactoring> generate() {
             LOGGER.info("Started walking through PSI Tree");
             scope.accept(this);
             LOGGER.info("Started creating refactorings");
@@ -82,17 +82,17 @@ public class RefactoringsGenerator {
 
         private void initializeAllConstraints() {
             for (GenerationConstraint constraint : toGenerate.keySet()) {
-                acceptedTargetClasses.put(constraint, new HashSet<>());
-                acceptedMethods.put(constraint, new HashSet<>());
-                acceptedRefactorings.put(constraint, new HashSet<>());
+                acceptedTargetClasses.put(constraint, new LinkedList<>());
+                acceptedMethods.put(constraint, new LinkedList<>());
+                acceptedRefactorings.put(constraint, new LinkedList<>());
             }
         }
 
-        private Set<Refactoring> getRandomRefactorings() {
-            final Set<Refactoring> generatedRefactorings = new HashSet<>();
+        private List<Refactoring> getRandomRefactorings() {
+            final List<Refactoring> generatedRefactorings = new LinkedList<>();
 
             toGenerate.forEach((constraint, number) -> {
-                List<Refactoring> refactorings = new ArrayList<>(acceptedRefactorings.get(constraint));
+                List<Refactoring> refactorings = acceptedRefactorings.get(constraint);
                 Collections.shuffle(refactorings);
                 if (refactorings.size() < number) {
                     throw new IllegalStateException("Cannot find for constraint enough refactorings, only " +
@@ -106,9 +106,9 @@ public class RefactoringsGenerator {
         private void createRefactoringsAfterVisitingPsiTree() {
             for (GenerationConstraint constraint : toGenerate.keySet()) {
                 LOGGER.info("New constraint");
-                Set<PsiClass> acceptedClassesForConstraint = acceptedTargetClasses.get(constraint);
-                Set<PsiMethod> acceptedMethodsForConstraint = acceptedMethods.get(constraint);
-                Set<Refactoring> acceptedRefactoringsForConstraint = acceptedRefactorings.get(constraint);
+                List<PsiClass> acceptedClassesForConstraint = acceptedTargetClasses.get(constraint);
+                List<PsiMethod> acceptedMethodsForConstraint = acceptedMethods.get(constraint);
+                List<Refactoring> acceptedRefactoringsForConstraint = acceptedRefactorings.get(constraint);
                 LOGGER.info("Classes: "+ acceptedClassesForConstraint.size());
                 LOGGER.info("Methods: "+ acceptedMethodsForConstraint.size());
                 for (PsiClass acceptedClass: acceptedClassesForConstraint) {

@@ -66,7 +66,7 @@ public class RefactoringsGenerationApplicationStarter implements ApplicationStar
                 APPLICATION.exit(true, true);
             }
             final AnalysisScope scope = new AnalysisScope(Objects.requireNonNull(project));
-            Set<Refactoring> generatedRefactoring = RefactoringsGenerator.generate(GenerationConstraintsFactory.get(
+            List<Refactoring> generatedRefactoring = RefactoringsGenerator.generate(GenerationConstraintsFactory.get(
                     GenerationConstraintType.ACCEPT_METHOD_PARAMS), 100, scope);
             printGeneratedRefactorings(generatedRefactoring);
         } catch (Throwable throwable) {
@@ -76,7 +76,7 @@ public class RefactoringsGenerationApplicationStarter implements ApplicationStar
         APPLICATION.exit(true, true);
     }
 
-    private void printGeneratedRefactorings(Set<Refactoring> generatedRefactoring) {
+    private void printGeneratedRefactorings(List<Refactoring> generatedRefactoring) {
         System.out.println("Generated " + generatedRefactoring.size() + " refactorings");
         for (Refactoring refactoring : generatedRefactoring) {
             System.out.print("method ");
