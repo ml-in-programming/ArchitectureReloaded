@@ -12,7 +12,10 @@ public class SameInstanceNotPublicCallTargetsExtractor implements MoveMethodSing
         final @NotNull PsiClass targetClass
     ) {
         return new SameInstanceNotPublicCallTargets(
-            methodInfo.getSameInstanceTargets(MethodFilters.isNotPublic).count()
+            methodInfo.getSameInstanceTargets()
+                .stream()
+                .filter(MethodFilters.isNotPublic)
+                .count()
         );
     }
 }

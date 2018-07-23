@@ -13,10 +13,11 @@ public class TargetClassInstanceCallTargetsExtractor implements MoveMethodSingle
         final @NotNull PsiClass targetClass
     ) {
         return new TargetClassInstanceCallTargets(
-            methodInfo.getAnotherInstanceTargets(
-                MethodFilters.sameClass(targetClass),
-                MethodFilters.isNotStatic
-            ).count()
+            methodInfo.getAnotherInstanceTargets()
+                .stream()
+                .filter(MethodFilters.sameClass(targetClass))
+                .filter(MethodFilters.isNotStatic)
+                .count()
         );
     }
 }
