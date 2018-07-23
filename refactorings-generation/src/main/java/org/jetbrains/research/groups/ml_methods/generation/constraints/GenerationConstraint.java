@@ -9,5 +9,4 @@ public interface GenerationConstraint {
     boolean acceptTargetClass(PsiClass aClass);
     boolean acceptMethod(PsiMethod method);
     boolean acceptRefactoring(PsiMethod method, PsiClass aClass);
-    boolean acceptField(PsiField field);
 }

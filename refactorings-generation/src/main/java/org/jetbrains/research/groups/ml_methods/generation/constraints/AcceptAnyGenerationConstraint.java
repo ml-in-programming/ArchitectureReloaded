@@ -19,9 +19,4 @@ public class AcceptAnyGenerationConstraint implements GenerationConstraint {
     public boolean acceptRefactoring(PsiMethod method, PsiClass aClass) {
         return method.getContainingClass() == null || !method.getContainingClass().equals(aClass);
     }
-
-    @Override
-    public boolean acceptField(PsiField field) {
-        return true;
-    }
 }

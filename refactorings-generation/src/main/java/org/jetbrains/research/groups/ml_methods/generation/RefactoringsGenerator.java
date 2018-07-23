@@ -40,7 +40,6 @@ public class RefactoringsGenerator {
         private Map<GenerationConstraint, Integer> toGenerate;
         private final AnalysisScope scope;
         private final Map<GenerationConstraint, Set<PsiMethod>> acceptedMethods = new HashMap<>();
-        private final Map<GenerationConstraint, Set<PsiField>> acceptedFields = new HashMap<>();
         private final Map<GenerationConstraint, Set<PsiClass>> acceptedTargetClasses = new HashMap<>();
         private final Map<GenerationConstraint, Set<Refactoring>> acceptedRefactorings = new HashMap<>();
 
@@ -72,17 +71,6 @@ public class RefactoringsGenerator {
             super.visitMethod(method);
         }
 
-        @Override
-        public void visitField(PsiField field) {
-            LOGGER.info("visited field: " + field.getName());
-            toGenerate.forEach((constraint, integer) -> {
-                if (constraint.acceptField(field)) {
-                    acceptedFields.get(constraint).add(field);
-                }
-            });
-            super.visitField(field);
-        }
-
         Set<Refactoring> generate() {
             LOGGER.info("Started walking through PSI Tree");
             scope.accept(this);
@@ -96,7 +84,6 @@ public class RefactoringsGenerator {
             for (GenerationConstraint constraint : toGenerate.keySet()) {
                 acceptedTargetClasses.put(constraint, new HashSet<>());
                 acceptedMethods.put(constraint, new HashSet<>());
-                acceptedFields.put(constraint, new HashSet<>());
                 acceptedRefactorings.put(constraint, new HashSet<>());
             }
         }
@@ -107,6 +94,10 @@ public class RefactoringsGenerator {
             toGenerate.forEach((constraint, number) -> {
                 List<Refactoring> refactorings = new ArrayList<>(acceptedRefactorings.get(constraint));
                 Collections.shuffle(refactorings);
+                if (refactorings.size() < number) {
+                    throw new IllegalStateException("Cannot find for constraint enough refactorings, only " +
+                            refactorings.size() + " found.");
+                }
                 generatedRefactorings.addAll(refactorings.subList(0, number));
             });
             return generatedRefactorings;

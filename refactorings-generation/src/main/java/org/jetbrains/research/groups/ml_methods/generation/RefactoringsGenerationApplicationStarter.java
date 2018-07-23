@@ -15,10 +15,11 @@ import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactori
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory.GenerationConstraintType;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+
+import static com.sixrr.metrics.utils.MethodUtils.calculateSignature;
 
 public class RefactoringsGenerationApplicationStarter implements ApplicationStarter {
     private static final ApplicationEx APPLICATION = (ApplicationEx) ApplicationManager.getApplication();
@@ -66,15 +67,23 @@ public class RefactoringsGenerationApplicationStarter implements ApplicationStar
             }
             final AnalysisScope scope = new AnalysisScope(Objects.requireNonNull(project));
             Set<Refactoring> generatedRefactoring = RefactoringsGenerator.generate(GenerationConstraintsFactory.get(
-                    GenerationConstraintType.ACCEPT_ANY), 100, scope);
-            for (Refactoring refactoring : generatedRefactoring) {
-                System.out.println(refactoring.getMethod().getName() + " -> " +
-                        refactoring.getTargetClass().getQualifiedName());
-            }
-            APPLICATION.exit(true, true);
+                    GenerationConstraintType.ACCEPT_METHOD_PARAMS), 100, scope);
+            printGeneratedRefactorings(generatedRefactoring);
         } catch (Throwable throwable) {
             System.out.println("Error: "+ throwable.getMessage());
             throwable.printStackTrace();
+        }
+        APPLICATION.exit(true, true);
+    }
+
+    private void printGeneratedRefactorings(Set<Refactoring> generatedRefactoring) {
+        System.out.println("Generated " + generatedRefactoring.size() + " refactorings");
+        for (Refactoring refactoring : generatedRefactoring) {
+            System.out.print("method ");
+            System.out.print(calculateSignature(refactoring.getMethod()));
+            System.out.print(" need move to ");
+            System.out.print(refactoring.getTargetClass().getQualifiedName());
+            System.out.print('\n');
         }
     }
 }
