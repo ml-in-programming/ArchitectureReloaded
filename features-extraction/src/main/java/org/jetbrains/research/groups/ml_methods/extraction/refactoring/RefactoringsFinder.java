@@ -1,5 +1,6 @@
 package org.jetbrains.research.groups.ml_methods.extraction.refactoring;
 
+import com.google.common.collect.Sets;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiClass;
@@ -15,23 +16,56 @@ import static org.jetbrains.research.groups.ml_methods.extraction.refactoring.Te
 // TODO: understand why we come into one method more than once.
 public class RefactoringsFinder extends JavaRecursiveElementVisitor {
     private final Map<TextFormRefactoring, RefactoringPair> refactorings = new HashMap<>();
-    private final List<TextFormRefactoring> textualRefactorings;
+    private final Set<TextFormRefactoring> textualRefactorings;
 
-    private RefactoringsFinder(List<TextFormRefactoring> textualRefactorings) {
+    private RefactoringsFinder(Set<TextFormRefactoring> textualRefactorings) {
         this.textualRefactorings = textualRefactorings;
     }
 
     @NotNull
-    static List<Refactoring> find(AnalysisScope scope, List<TextFormRefactoring> textualRefactorings) {
+    static Set<Refactoring> find(AnalysisScope scope, Set<TextFormRefactoring> textualRefactorings) {
         RefactoringsFinder refactoringFinder = new RefactoringsFinder(textualRefactorings);
         System.out.println("Started finder...");
         scope.accept(refactoringFinder);
-        return refactoringFinder.refactorings.values().stream().
-                filter(refactoringPair ->
-                        refactoringPair.method != null && refactoringPair.aClass != null).
+        return refactoringFinder.createFoundRefactorings();
+    }
+
+    private Set<Refactoring> createFoundRefactorings() {
+        checkSearchResult();
+        return refactorings.values().stream().
                 map(refactoringPair ->
                         new Refactoring(refactoringPair.method, refactoringPair.aClass)).
-                collect(Collectors.toList());
+                collect(Collectors.toSet());
+    }
+
+    private void checkSearchResult() {
+        // Check that method and class are found both
+        for (Map.Entry<TextFormRefactoring, RefactoringPair> entry : refactorings.entrySet()) {
+            TextFormRefactoring textFormRefactoring = entry.getKey();
+            RefactoringPair refactoringPair = entry.getValue();
+            if (refactoringPair.method == null) {
+                throw new IllegalStateException("No method found for: " + textFormRefactoring.getMethodsSignature() +
+                        " -> " + textFormRefactoring.getClassQualifiedName());
+            }
+            if (refactoringPair.aClass == null) {
+                throw new IllegalStateException("No class found for: " + textFormRefactoring.getMethodsSignature() +
+                        " -> " + textFormRefactoring.getClassQualifiedName());
+            }
+        }
+        // Check that we haven't found something extra
+        Sets.SetView<TextFormRefactoring> foundWithoutNeeded =
+                Sets.difference(refactorings.keySet(), new HashSet<>(textualRefactorings));
+        foundWithoutNeeded.immutableCopy().stream().findAny().ifPresent(textFormRefactoring -> {
+            throw new IllegalStateException("Found unnecessary: " + textFormRefactoring.getMethodsSignature() +
+                    " -> " + textFormRefactoring.getClassQualifiedName());
+        });
+        // Check that we found all that is necessary
+        Sets.SetView<TextFormRefactoring> neededWithoutFound =
+                Sets.difference(new HashSet<>(textualRefactorings), refactorings.keySet());
+        neededWithoutFound.immutableCopy().stream().findAny().ifPresent(textFormRefactoring -> {
+            throw new IllegalStateException("Not found: " + textFormRefactoring.getMethodsSignature() +
+                    " -> " + textFormRefactoring.getClassQualifiedName());
+        });
     }
 
     @Override
@@ -65,7 +99,7 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
                 String oldSignature = MethodUtils.calculateSignature(oldMethod);
                 String newSignature = MethodUtils.calculateSignature(method);
 
-                throw new IllegalStateException("Refactorings list is ambiguous. Candidates: " + oldSignature + ", " + newSignature);
+                throw new IllegalStateException("Refactorings set is ambiguous. Candidates: " + oldSignature + ", " + newSignature);
             }
         }
 
@@ -77,7 +111,7 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
                 String oldName = oldClass.getQualifiedName();
                 String newName = aClass.getQualifiedName();
 
-                throw new IllegalStateException("Refactorings list is ambiguous. Candidates: " + oldName + ", " + newName);
+                throw new IllegalStateException("Refactorings set is ambiguous. Candidates: " + oldName + ", " + newName);
             }
         }
     }
