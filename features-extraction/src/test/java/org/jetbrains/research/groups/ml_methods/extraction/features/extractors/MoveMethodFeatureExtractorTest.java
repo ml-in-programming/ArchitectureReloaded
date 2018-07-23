@@ -48,6 +48,10 @@ public abstract class MoveMethodFeatureExtractorTest {
         doReturn(Arrays.asList(methods)).when(info).getAnotherInstanceCallers();
     }
 
+    protected void mockAnotherInstanceTargets(final PsiMethod... methods) {
+        doReturn(Arrays.asList(methods)).when(info).getAnotherInstanceTargets();
+    }
+
     protected @NotNull PsiMethod mockPsiMethod(
         final @NotNull PsiClass containingClass,
         final String... modifiers
