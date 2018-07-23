@@ -1,6 +1,7 @@
 package org.jetbrains.research.groups.ml_methods.extraction.features.extractors;
 
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.extraction.features.Feature;
@@ -18,7 +19,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public abstract class MoveMethodFeatureExtractorTest {
     @Mock
     private MethodInfo info;
@@ -52,6 +53,18 @@ public abstract class MoveMethodFeatureExtractorTest {
         doReturn(Arrays.asList(methods)).when(info).getAnotherInstanceTargets();
     }
 
+    protected void mockAccessedFields(final PsiField... fields) {
+        doReturn(Arrays.asList(fields)).when(info).getAccessedFields();
+    }
+
+    protected void mockSameInstanceCallers(final PsiMethod... methods) {
+        doReturn(Arrays.asList(methods)).when(info).getSameInstanceCallers();
+    }
+
+    protected void mockSameInstanceTargets(final PsiMethod... methods) {
+        doReturn(Arrays.asList(methods)).when(info).getSameInstanceTargets();
+    }
+
     protected @NotNull PsiMethod mockPsiMethod(
         final @NotNull PsiClass containingClass,
         final String... modifiers
@@ -64,5 +77,12 @@ public abstract class MoveMethodFeatureExtractorTest {
         }
 
         return method;
+    }
+
+    protected @NotNull PsiField mockPsiField(final @NotNull PsiClass containingClass) {
+        PsiField field = mock(PsiField.class);
+        doReturn(containingClass).when(field).getContainingClass();
+
+        return field;
     }
 }

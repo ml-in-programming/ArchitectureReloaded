@@ -4,14 +4,14 @@ import com.intellij.psi.PsiModifier;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-public class AnotherInstanceNotPublicCallTargetsExtractorTest extends MoveMethodFeatureExtractorTest {
+public class SameClassStaticNotPublicCallTargetsExtractorTest extends MoveMethodFeatureExtractorTest {
     @Test
     public void emptyList() throws Exception {
         assertExtractedFeatureIs(0.);
     }
 
     @Test
-    public void noAnotherInstanceTargets() throws Exception {
+    public void anotherClassTargets() throws Exception {
         mockAnotherInstanceTargets(
             mockPsiMethod(anotherClass),
             mockPsiMethod(anotherClass)
@@ -21,9 +21,29 @@ public class AnotherInstanceNotPublicCallTargetsExtractorTest extends MoveMethod
     }
 
     @Test
+    public void anotherClassStaticTargets() throws Exception {
+        mockAnotherInstanceTargets(
+            mockPsiMethod(anotherClass, PsiModifier.STATIC, PsiModifier.PUBLIC),
+            mockPsiMethod(anotherClass, PsiModifier.STATIC, PsiModifier.PROTECTED)
+        );
+
+        assertExtractedFeatureIs(0.);
+    }
+
+    @Test
     public void targetClassTarget() throws Exception {
         mockAnotherInstanceTargets(
             mockPsiMethod(targetClass)
+        );
+
+        assertExtractedFeatureIs(0.);
+    }
+
+    @Test
+    public void targetClassStaticTargets() throws Exception {
+        mockAnotherInstanceTargets(
+            mockPsiMethod(targetClass, PsiModifier.STATIC, PsiModifier.PUBLIC),
+            mockPsiMethod(targetClass, PsiModifier.STATIC, PsiModifier.PROTECTED)
         );
 
         assertExtractedFeatureIs(0.);
@@ -48,11 +68,23 @@ public class AnotherInstanceNotPublicCallTargetsExtractorTest extends MoveMethod
             mockPsiMethod(containingClass)
         );
 
+        assertExtractedFeatureIs(0.);
+    }
+
+    @Test
+    public void sameClassStaticAllModifiersTargets() throws Exception {
+        mockAnotherInstanceTargets(
+            mockPsiMethod(containingClass, PsiModifier.STATIC, PsiModifier.PUBLIC),
+            mockPsiMethod(containingClass, PsiModifier.STATIC, PsiModifier.PROTECTED),
+            mockPsiMethod(containingClass, PsiModifier.STATIC, PsiModifier.PRIVATE),
+            mockPsiMethod(containingClass, PsiModifier.STATIC)
+        );
+
         assertExtractedFeatureIs(3.);
     }
 
     @Override
     protected @NotNull MoveMethodSingleFeatureExtractor createExtractor() {
-        return new AnotherInstanceNotPublicCallTargetsExtractor();
+        return new SameClassStaticNotPublicCallTargetsExtractor();
     }
 }

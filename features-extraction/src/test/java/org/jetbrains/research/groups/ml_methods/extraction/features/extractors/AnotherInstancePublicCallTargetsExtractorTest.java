@@ -4,7 +4,7 @@ import com.intellij.psi.PsiModifier;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-public class AnotherInstanceNotPublicCallTargetsExtractorTest extends MoveMethodFeatureExtractorTest {
+public class AnotherInstancePublicCallTargetsExtractorTest extends MoveMethodFeatureExtractorTest {
     @Test
     public void emptyList() throws Exception {
         assertExtractedFeatureIs(0.);
@@ -36,7 +36,7 @@ public class AnotherInstanceNotPublicCallTargetsExtractorTest extends MoveMethod
             mockPsiMethod(containingClass, PsiModifier.PUBLIC)
         );
 
-        assertExtractedFeatureIs(0.);
+        assertExtractedFeatureIs(2.);
     }
 
     @Test
@@ -48,11 +48,11 @@ public class AnotherInstanceNotPublicCallTargetsExtractorTest extends MoveMethod
             mockPsiMethod(containingClass)
         );
 
-        assertExtractedFeatureIs(3.);
+        assertExtractedFeatureIs(1.);
     }
 
     @Override
     protected @NotNull MoveMethodSingleFeatureExtractor createExtractor() {
-        return new AnotherInstanceNotPublicCallTargetsExtractor();
+        return new AnotherInstancePublicCallTargetsExtractor();
     }
 }
