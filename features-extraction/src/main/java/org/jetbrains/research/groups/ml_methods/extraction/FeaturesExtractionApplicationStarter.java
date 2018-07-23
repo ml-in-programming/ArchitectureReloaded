@@ -74,7 +74,6 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
         final AnalysisScope scope = new AnalysisScope(Objects.requireNonNull(project));
         Set<Refactoring> refactorings;
         try {
-            System.out.println("Start finding refactorings...");
             refactorings = RefactoringsLoader.load(refactoringsPath, RefactoringsFileParsers.getParserForJMoveDataSet(), scope);
         } catch (Exception e) {
             System.err.println("Error during refactorings search. Reason: " + e.getMessage());
