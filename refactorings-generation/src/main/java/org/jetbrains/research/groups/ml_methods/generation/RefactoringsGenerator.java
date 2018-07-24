@@ -114,7 +114,7 @@ public class RefactoringsGenerator {
                 LOGGER.info("Classes: "+ acceptedClassesForConstraint.size());
                 LOGGER.info("Methods: "+ acceptedMethodsForConstraint.size());
                 for (PsiClass acceptedClass: acceptedClassesForConstraint) {
-                    LOGGER.info("New class");
+                    LOGGER.info("New class: " + acceptedClass.getQualifiedName());
                     for (PsiMethod acceptedMethod : acceptedMethodsForConstraint) {
                         if (constraint.acceptRefactoring(acceptedMethod, acceptedClass)) {
                             acceptedRefactoringsForConstraint.add(new Refactoring(acceptedMethod, acceptedClass));
