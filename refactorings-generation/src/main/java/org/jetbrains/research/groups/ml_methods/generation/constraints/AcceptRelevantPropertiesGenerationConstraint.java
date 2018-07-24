@@ -17,7 +17,7 @@ public class AcceptRelevantPropertiesGenerationConstraint implements GenerationC
     @Override
     public boolean acceptTargetClass(@NotNull PsiClass aClass) {
         return !(ClassUtils.isAnonymous(aClass) || aClass.getQualifiedName() == null
-                || aClass.isEnum() || aClass.isInterface());
+                || aClass.isEnum() || aClass.isInterface() || aClass.getQualifiedName().endsWith("Test"));
     }
 
     private boolean isValidMethodToMove(@NotNull PsiMethod method) {
