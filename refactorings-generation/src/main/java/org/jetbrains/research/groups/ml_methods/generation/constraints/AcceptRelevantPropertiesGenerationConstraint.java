@@ -46,7 +46,6 @@ public class AcceptRelevantPropertiesGenerationConstraint implements GenerationC
         Set<PsiClass> usedClassesInBody = classesUsedInMethodBody.get(method);
         Set<PsiClass> classesThatCallMethod = classesWhereMethodUsed.get(method);
         return !Objects.requireNonNull(method.getContainingClass()).equals(aClass) &&
-                usedClassesInBody.size() >= 2 &&
                 (usedClassesInBody.contains(aClass) || classesThatCallMethod.contains(aClass));
     }
 
