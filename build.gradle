@@ -25,16 +25,26 @@ dependencies {
   compile project(':utils')
   compile project(':stockmetrics')
   compile project(':features-extraction')
+  compile project(':refactorings-generation')
   compile files('lib/args4j-2.32.jar', 'lib/jcommon-0.9.1.jar', 'lib/jfreechart-0.9.16.jar')
 
   testCompile project(':utils').sourceSets.test.output
   testCompile files('hamcrest-all-1.3.jar')
 }
 
-task runConsole(dependsOn: runIde) {}
+task runRefactoringsGeneration(dependsOn: runIde) {}
 
 gradle.taskGraph.whenReady { graph ->
-  if (graph.hasTask(runConsole)) {
+  if (graph.hasTask(runRefactoringsGeneration)) {
+    runIde.args 'refactorings-generation', "$pathToProject", "$pathToOutput"
+    runIde.jvmArgs '-Djava.awt.headless=true', '-Xmx2048m'
+  }
+}
+
+task runFeaturesExtraction(dependsOn: runIde) {}
+
+gradle.taskGraph.whenReady { graph ->
+  if (graph.hasTask(runFeaturesExtraction)) {
     runIde.args 'features-extraction', "$pathToProject", "$pathToRefactorings", "$pathToFeatures"
     runIde.jvmArgs '-Djava.awt.headless=true'
   }
