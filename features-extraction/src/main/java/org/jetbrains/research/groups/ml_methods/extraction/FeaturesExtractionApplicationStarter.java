@@ -77,7 +77,7 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
             refactorings = RefactoringsLoader.load(refactoringsPath, RefactoringsFileParsers.getParserForJMoveDataSet(), scope);
         } catch (Exception e) {
             System.err.println("Error during refactorings search. Reason: " + e.getMessage());
-
+            e.printStackTrace();
             APPLICATION.exit(true, true);
             return;
         }
@@ -113,7 +113,7 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
             );
         } catch (IllegalAccessException | InstantiationException e) {
             System.err.println("Error during features extraction. Reason: " + e.getMessage());
-
+            e.printStackTrace();
             APPLICATION.exit(true, true);
             return;
         }
@@ -128,7 +128,7 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
                 "Error during features serialization. Reason: " +
                 e.getClass().getSimpleName() + ". " + e.getMessage()
             );
-
+            e.printStackTrace();
             APPLICATION.exit(true, true);
             return;
         }
