@@ -29,18 +29,16 @@ public class AcceptRelevantPropertiesGenerationConstraint implements GenerationC
                 !MethodUtils.isOverriding(method) &&
                 !MethodUtils.isSynchronized(method) &&
                 !MethodUtils.isStatic(method) &&
-                !containingClass.isInterface();
+                !containingClass.isInterface() &&
+                classesUsedInMethodBody.get(method).size() >= 2;
     }
 
     @Override
     public boolean acceptMethod(@NotNull PsiMethod method, @NotNull AnalysisScope scope) {
-        if (!isValidMethodToMove(method)) {
-            return false;
-        }
         classesUsedInMethodBody.put(method, new HashSet<>());
         classesWhereMethodUsed.put(method, new HashSet<>());
         method.accept(new PropertiesCalculator(method, scope));
-        return true;
+        return isValidMethodToMove(method);
     }
 
     @Override
@@ -74,9 +72,9 @@ public class AcceptRelevantPropertiesGenerationConstraint implements GenerationC
         @Override
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
             final PsiMethod called = expression.resolveMethod();
-            classesWhereMethodUsed.computeIfAbsent(called, ignored -> new HashSet<>()).add(method.getContainingClass());
             final PsiClass usedClass = called != null ? called.getContainingClass() : null;
             if (isClassInScope(usedClass)) {
+                classesWhereMethodUsed.computeIfAbsent(called, ignored -> new HashSet<>()).add(method.getContainingClass());
                 classesUsedInMethodBody.get(method).add(usedClass);
             }
             super.visitMethodCallExpression(expression);
