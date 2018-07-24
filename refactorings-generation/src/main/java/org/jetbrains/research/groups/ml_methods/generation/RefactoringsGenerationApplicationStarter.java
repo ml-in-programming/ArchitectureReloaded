@@ -17,7 +17,8 @@ import org.jetbrains.research.groups.ml_methods.generation.constraints.Generatio
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 
 import static com.sixrr.metrics.utils.MethodUtils.calculateSignature;
 
@@ -66,8 +67,14 @@ public class RefactoringsGenerationApplicationStarter implements ApplicationStar
                 APPLICATION.exit(true, true);
             }
             final AnalysisScope scope = new AnalysisScope(Objects.requireNonNull(project));
+            if (scope.getFileCount() == 0) {
+                System.err.println("Empty scope. Probably project cannot be open. Reload it with IDEA.");
+                APPLICATION.exit(true, true);
+            }
+            int numberOfRefactoringsToGenerate = (int) (scope.getFileCount() * 0.03);
             List<Refactoring> generatedRefactoring = RefactoringsGenerator.generate(GenerationConstraintsFactory.get(
-                    GenerationConstraintType.ACCEPT_METHOD_PARAMS), 100, scope);
+                    GenerationConstraintType.ACCEPT_RELEVANT_PROPERTIES), numberOfRefactoringsToGenerate, scope);
+            System.out.println("Asked to generate: " + numberOfRefactoringsToGenerate);
             printGeneratedRefactorings(generatedRefactoring);
         } catch (Throwable throwable) {
             System.out.println("Error: "+ throwable.getMessage());

@@ -1,7 +1,9 @@
 package org.jetbrains.research.groups.ml_methods.generation;
 
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaRecursiveElementVisitor;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMethod;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -64,7 +66,7 @@ public class RefactoringsGenerator {
         public void visitMethod(PsiMethod method) {
             LOGGER.info("visited method: " + method.getName());
             toGenerate.forEach((constraint, integer) -> {
-                if (constraint.acceptMethod(method)) {
+                if (constraint.acceptMethod(method, scope)) {
                     acceptedMethods.get(constraint).add(method);
                 }
             });

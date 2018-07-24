@@ -1,5 +1,6 @@
 package org.jetbrains.research.groups.ml_methods.generation.constraints;
 
+import com.intellij.analysis.AnalysisScope;
 import com.intellij.psi.*;
 import com.sixrr.metrics.utils.ClassUtils;
 import com.sixrr.metrics.utils.MethodUtils;
@@ -13,7 +14,7 @@ public class AcceptMethodParamsGenerationConstraint implements GenerationConstra
     }
 
     @Override
-    public boolean acceptMethod(@NotNull PsiMethod method) {
+    public boolean acceptMethod(@NotNull PsiMethod method, AnalysisScope scope) {
         if (method.isConstructor() || MethodUtils.isAbstract(method)) {
             return false;
         }

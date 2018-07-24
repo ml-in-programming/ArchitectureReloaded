@@ -1,7 +1,7 @@
 package org.jetbrains.research.groups.ml_methods.generation.constraints;
 
+import com.intellij.analysis.AnalysisScope;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 
 public class AcceptAnyGenerationConstraint implements GenerationConstraint {
@@ -11,7 +11,7 @@ public class AcceptAnyGenerationConstraint implements GenerationConstraint {
     }
 
     @Override
-    public boolean acceptMethod(PsiMethod method) {
+    public boolean acceptMethod(PsiMethod method, AnalysisScope scope) {
         return true;
     }
 
