@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
+import org.jetbrains.research.groups.ml_methods.extraction.refactoring.parsers.ParserForJMoveDataSet;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory.GenerationConstraintType;
 
@@ -94,10 +95,7 @@ public class RefactoringsGenerationApplicationStarter implements ApplicationStar
 
         try (PrintWriter out = new PrintWriter(Files.newOutputStream(outputPath))) {
             for (Refactoring refactoring : generatedRefactoring) {
-                out.print("method ");
-                out.print(calculateSignature(refactoring.getMethod()));
-                out.print(" need move to ");
-                out.print(refactoring.getTargetClass().getQualifiedName());
+                out.print(ParserForJMoveDataSet.getRefactoringInTextForm(refactoring));
                 out.print(System.lineSeparator());
             }
         } catch (IOException e) {

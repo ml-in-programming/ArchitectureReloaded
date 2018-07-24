@@ -1,5 +1,6 @@
 package org.jetbrains.research.groups.ml_methods.extraction.refactoring.parsers;
 
+import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.TextFormRefactoring;
 
 import java.io.IOException;
@@ -36,5 +37,18 @@ public class ParserForJMoveDataSet implements RefactoringsFileParser {
 
     private String getMethodPackage(String line) {
         return line.split(" ")[1].split("::")[0];
+    }
+
+    public static String getRefactoringInTextForm(Refactoring refactoring) {
+        TextFormRefactoring textFormRefactoring = refactoring.toTextFormRefactoring();
+        String s = "";
+        s += "method ";
+        s += textFormRefactoring.getMethodPackageWithClass();
+        s += "::";
+        s += textFormRefactoring.getMethodName();
+        s += "()";
+        s += ":RETURN_TYPE_NOT_NEEDED need move to ";
+        s += textFormRefactoring.getTargetClassQualifiedName();
+        return s;
     }
 }

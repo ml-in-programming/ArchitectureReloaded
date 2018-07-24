@@ -11,14 +11,30 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class TextFormRefactoring {
+    public String getTargetClassQualifiedName() {
+        return targetClassQualifiedName;
+    }
+
+    public String getMethodPackageWithClass() {
+        return methodPackageWithClass;
+    }
+
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public List<String> getParamsClasses() {
+        return paramsClasses;
+    }
+
     private final String targetClassQualifiedName;
-    private final String methodPackage;
+    private final String methodPackageWithClass;
     private final String methodName;
     private final List<String> paramsClasses;
 
     public TextFormRefactoring(String methodPackage, String methodName,
                                List<String> params, String destinationClassQualifiedName) {
-        this.methodPackage = methodPackage;
+        this.methodPackageWithClass = methodPackage;
         this.methodName = methodName;
         this.paramsClasses = params;
         this.targetClassQualifiedName = destinationClassQualifiedName;
@@ -26,7 +42,7 @@ public class TextFormRefactoring {
 
     @Override
     public int hashCode() {
-        return Objects.hash(targetClassQualifiedName, methodPackage, methodName, paramsClasses);
+        return Objects.hash(targetClassQualifiedName, methodPackageWithClass, methodName, paramsClasses);
     }
 
     @Override
@@ -35,14 +51,14 @@ public class TextFormRefactoring {
         if (o == null || getClass() != o.getClass()) return false;
         TextFormRefactoring that = (TextFormRefactoring) o;
         return Objects.equals(targetClassQualifiedName, that.targetClassQualifiedName) &&
-                Objects.equals(methodPackage, that.methodPackage) &&
+                Objects.equals(methodPackageWithClass, that.methodPackageWithClass) &&
                 Objects.equals(methodName, that.methodName) &&
                 Objects.equals(paramsClasses, that.paramsClasses);
     }
 
     String getMethodsSignature() {
         StringBuilder methodsSignature = new StringBuilder();
-        methodsSignature.append(methodPackage);
+        methodsSignature.append(methodPackageWithClass);
         methodsSignature.append(".");
         methodsSignature.append(methodName);
         if (paramsClasses.isEmpty()) {
