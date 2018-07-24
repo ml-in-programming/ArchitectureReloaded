@@ -64,10 +64,14 @@ public class TextFormRefactoring {
         if (paramsClasses.isEmpty()) {
             return methodsSignature.toString();
         }
-        methodsSignature.append("(");
-        paramsClasses.forEach(s -> methodsSignature.append(s).append(","));
-        methodsSignature.deleteCharAt(methodsSignature.length() - 1);
-        methodsSignature.append(")");
+        if (paramsClasses.size() == 1 && paramsClasses.get(0).equals("void")) {
+            methodsSignature.append("()");
+        } else {
+            methodsSignature.append("(");
+            paramsClasses.forEach(s -> methodsSignature.append(s).append(","));
+            methodsSignature.deleteCharAt(methodsSignature.length() - 1);
+            methodsSignature.append(")");
+        }
         return methodsSignature.toString();
     }
 

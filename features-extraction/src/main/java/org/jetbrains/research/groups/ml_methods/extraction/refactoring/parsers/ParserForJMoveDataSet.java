@@ -59,6 +59,9 @@ public class ParserForJMoveDataSet implements RefactoringsFileParser {
             }
             s.append(parameters[i]);
         }
+        if (parameters.length == 0) {
+            s.append("void");
+        }
         s.append(')');
         s.append(":RETURN_TYPE_NOT_NEEDED need move to ");
         s.append(textFormRefactoring.getTargetClassQualifiedName());
