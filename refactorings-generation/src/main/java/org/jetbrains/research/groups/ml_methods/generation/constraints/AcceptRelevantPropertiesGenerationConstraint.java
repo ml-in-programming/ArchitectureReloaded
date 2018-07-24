@@ -30,7 +30,7 @@ public class AcceptRelevantPropertiesGenerationConstraint implements GenerationC
                 !MethodUtils.isAbstract(method) &&
                 !MethodUtils.isOverriding(method) &&
                 !MethodUtils.isSynchronized(method) &&
-                !MethodUtils.isPrivate(method) &&
+                MethodUtils.isPublic(method) &&
                 !MethodUtils.isStatic(method) &&
                 !containingClass.isInterface() &&
                 classesUsedInMethodBody.get(method).size() >= 2;

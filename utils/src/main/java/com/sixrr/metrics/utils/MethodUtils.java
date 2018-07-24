@@ -75,6 +75,10 @@ public final class MethodUtils {
         return unit.hasModifierProperty(PsiModifier.PRIVATE);
     }
 
+    public static boolean isPublic(PsiModifierListOwner unit) {
+        return unit.hasModifierProperty(PsiModifier.PUBLIC);
+    }
+
     public static int parametersCount(PsiMethod method) {
         return method.getParameterList().getParametersCount();
     }
