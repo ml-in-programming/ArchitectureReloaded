@@ -27,12 +27,13 @@ public class ParserForJMoveDataSet implements RefactoringsFileParser {
     }
 
     private List<String> getMethodParams(String line) {
-        List<String> params = Arrays.asList(line.split("\\(")[1].split("\\)")[0].split(","));
+        List<String> params = Arrays.asList(line.split("\\(")[1].split("\\)")[0].split(",(?=[a-zA-Z])"));
         return params.size() == 1 && params.get(0).equals("") ? Collections.emptyList() : params;
     }
 
     private String getClassQualifiedName(String line) {
-        return line.split(" ")[5];
+        String[] words = line.split(" ");
+        return words[words.length - 1];
     }
 
     private String getMethodName(String line) {

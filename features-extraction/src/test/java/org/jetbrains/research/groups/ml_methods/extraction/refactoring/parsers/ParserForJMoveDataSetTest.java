@@ -32,6 +32,10 @@ public class ParserForJMoveDataSetTest {
                 new TextFormRefactoring(
                         "net.n3.nanoxml.XMLElement", "print",
                         Collections.emptyList(), "org.jhotdraw.xml.NanoXMLDOMOutput"
+                ),
+                new TextFormRefactoring(
+                        "org.jhotdraw.samples.svg.io.SVGInputFormat", "readTransformAttribute",
+                        Arrays.asList("IXMLElement", "HashMap<AttributeKey, Object>"), "org.jhotdraw.draw.AttributeKeys"
                 )
         ));
         assertEquals(expectedRefactorings, refactorings);
