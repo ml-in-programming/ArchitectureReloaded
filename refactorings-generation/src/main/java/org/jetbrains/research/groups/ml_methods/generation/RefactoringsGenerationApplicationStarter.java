@@ -15,6 +15,11 @@ import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactori
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory.GenerationConstraintType;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -35,14 +40,14 @@ public class RefactoringsGenerationApplicationStarter implements ApplicationStar
     }
 
     private static void checkCommandLineArguments(@NotNull String[] args) {
-        if (args.length != 2) {
+        if (args.length != 3) {
             printUsage();
             APPLICATION.exit(true, true);
         }
     }
 
     private static void printUsage() {
-        System.out.println("Usage: refactorings-generation <path to project>");
+        System.out.println("Usage: refactorings-generation <path to project> <path to output file>");
     }
 
     @Override
@@ -75,7 +80,7 @@ public class RefactoringsGenerationApplicationStarter implements ApplicationStar
             List<Refactoring> generatedRefactoring = RefactoringsGenerator.generate(GenerationConstraintsFactory.get(
                     GenerationConstraintType.ACCEPT_RELEVANT_PROPERTIES), numberOfRefactoringsToGenerate, scope);
             System.out.println("Asked to generate: " + numberOfRefactoringsToGenerate);
-            printGeneratedRefactorings(generatedRefactoring);
+            printGeneratedRefactorings(generatedRefactoring, Paths.get(args[2]));
         } catch (Throwable throwable) {
             System.out.println("Error: "+ throwable.getMessage());
             throwable.printStackTrace();
@@ -83,14 +88,20 @@ public class RefactoringsGenerationApplicationStarter implements ApplicationStar
         APPLICATION.exit(true, true);
     }
 
-    private void printGeneratedRefactorings(List<Refactoring> generatedRefactoring) {
+    private void printGeneratedRefactorings(List<Refactoring> generatedRefactoring, Path outputPath) throws IOException {
         System.out.println("Generated " + generatedRefactoring.size() + " refactorings");
-        for (Refactoring refactoring : generatedRefactoring) {
-            System.out.print("method ");
-            System.out.print(calculateSignature(refactoring.getMethod()));
-            System.out.print(" need move to ");
-            System.out.print(refactoring.getTargetClass().getQualifiedName());
-            System.out.print('\n');
+
+        try (PrintWriter out = new PrintWriter(Files.newOutputStream(outputPath))) {
+            for (Refactoring refactoring : generatedRefactoring) {
+                out.print("method ");
+                out.print(calculateSignature(refactoring.getMethod()));
+                out.print(" need move to ");
+                out.print(refactoring.getTargetClass().getQualifiedName());
+                out.print(System.lineSeparator());
+            }
+        } catch (IOException e) {
+            LOGGER.error("Failed to save feature on disk: " + e.getMessage());
+            throw e;
         }
     }
 }
