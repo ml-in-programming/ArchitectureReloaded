@@ -24,6 +24,8 @@ public class AcceptRelevantPropertiesGenerationConstraint implements GenerationC
         final PsiClass containingClass = method.getContainingClass();
         return  containingClass != null &&
                 containingClass.getMethods().length > 1 &&
+                containingClass.getQualifiedName() != null &&
+                !containingClass.getQualifiedName().endsWith("Test") &&
                 !method.isConstructor() &&
                 !MethodUtils.isAbstract(method) &&
                 !MethodUtils.isOverriding(method) &&
