@@ -67,6 +67,7 @@ public class RefactoringsGenerationApplicationStarter implements ApplicationStar
                 APPLICATION.exit(true, true);
             }
             final AnalysisScope scope = new AnalysisScope(Objects.requireNonNull(project));
+            scope.setIncludeTestSource(false);
             if (scope.getFileCount() == 0) {
                 System.err.println("Empty scope. Probably project cannot be open. Reload it with IDEA.");
                 APPLICATION.exit(true, true);
