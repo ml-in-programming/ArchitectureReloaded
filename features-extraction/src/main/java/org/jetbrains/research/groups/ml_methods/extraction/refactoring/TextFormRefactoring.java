@@ -87,14 +87,10 @@ public class TextFormRefactoring {
         return getClassQualifiedName().equals(aClass.getQualifiedName());
     }
 
-    static Optional<TextFormRefactoring> getRefactoringOfGivenMethod(Set<TextFormRefactoring> textualRefactorings,
+    static Set<TextFormRefactoring> getRefactoringOfGivenMethod(Set<TextFormRefactoring> textualRefactorings,
                                                                      PsiMethod method) {
-        Set<TextFormRefactoring> matchedRefactorings = textualRefactorings.stream().
+        return textualRefactorings.stream().
                 filter(textualRefactoring -> textualRefactoring.isOfGivenMethod(method)).collect(Collectors.toSet());
-        if (matchedRefactorings.size() > 1) {
-            throw new IllegalStateException("Refactorings set is ambiguous");
-        }
-        return Optional.ofNullable(matchedRefactorings.isEmpty() ? null : matchedRefactorings.iterator().next());
     }
 
     static Set<TextFormRefactoring> getRefactoringsToGivenClass(Set<TextFormRefactoring> textualRefactorings,

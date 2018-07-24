@@ -70,10 +70,10 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
 
     @Override
     public void visitMethod(PsiMethod method) {
-        Optional<TextFormRefactoring> refactoringOfPsiMethod = getRefactoringOfGivenMethod(textualRefactorings, method);
-        refactoringOfPsiMethod.ifPresent(textFormRefactoring -> {
-            refactorings.computeIfAbsent(textFormRefactoring, k -> new RefactoringPair()).setMethod(method);
-        });
+        Set<TextFormRefactoring> refactoringsOfPsiMethod = getRefactoringOfGivenMethod(textualRefactorings, method);
+        refactoringsOfPsiMethod.forEach(textFormRefactoring ->
+                refactorings.computeIfAbsent(textFormRefactoring, k -> new RefactoringPair()).
+                        setMethod(method));
         super.visitMethod(method);
     }
 
