@@ -15,18 +15,15 @@ import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactori
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.parsers.ParserForJMoveDataSet;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory.GenerationConstraintType;
+import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
-
-import static com.sixrr.metrics.utils.MethodUtils.calculateSignature;
 
 public class RefactoringsGenerationApplicationStarter implements ApplicationStarter {
     private static final ApplicationEx APPLICATION = (ApplicationEx) ApplicationManager.getApplication();
@@ -78,9 +75,11 @@ public class RefactoringsGenerationApplicationStarter implements ApplicationStar
                 System.err.println("Empty scope. Probably project cannot be open. Reload it with IDEA.");
                 APPLICATION.exit(true, true);
             }
-            int numberOfRefactoringsToGenerate = (int) (scope.getFileCount() * 0.03);
+            int numberOfJavaFiles = PsiSearchUtil.getNumberOfJavaFiles(project, false);
+            int numberOfRefactoringsToGenerate = (int) (numberOfJavaFiles * 0.03);
             List<Refactoring> generatedRefactoring = RefactoringsGenerator.generate(GenerationConstraintsFactory.get(
                     GenerationConstraintType.ACCEPT_RELEVANT_PROPERTIES), numberOfRefactoringsToGenerate, scope);
+            System.out.println("Number of java files without test sources: " + numberOfJavaFiles);
             System.out.println("Asked to generate: " + numberOfRefactoringsToGenerate);
             printGeneratedRefactorings(generatedRefactoring, Paths.get(args[2]));
         } catch (Throwable throwable) {
