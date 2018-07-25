@@ -6,6 +6,7 @@ import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.ide.plugins.PluginManager;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.components.ServiceManager;
@@ -188,12 +189,20 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
                 .map(Algorithm::getDescriptionString)
                 .collect(Collectors.toSet());
 
-        final List<AlgorithmResult> algorithmResult = context.getAlgorithmResults()
+        final List<AlgorithmResult> algorithmsResults = context.getAlgorithmResults()
                 .stream()
                 .filter(result -> selectedAlgorithms.contains(result.getAlgorithmName()))
                 .collect(Collectors.toList());
-        ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
-                .show(algorithmResult, context.getEntitySearchResult(), context.getScope());
+
+        boolean notEmptyResult = algorithmsResults.stream().flatMap(result -> result.getRefactorings()
+                .stream()).findAny().isPresent();
+        
+        if (notEmptyResult) {
+            ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
+                    .show(algorithmsResults, context.getEntitySearchResult(), context.getScope());
+        } else {
+            NotificationUtil.notifyEmptyResult(context.getProject());
+        }
     }
 
     private static void checkRefactoringProfile(final @NotNull Set<Algorithm> selectedAlgorithms) {
