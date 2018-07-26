@@ -16,7 +16,7 @@ public class IsOverridingMetricTest extends MetricAbstractTest {
     public void testInterface() {
         String aPackage = "isOverridingMetric.testInterface";
         Metric metric = new IsOverridingMetric();
-        MetricsResultsHolderTestImpl metricResults = runMetricOnTestCase(metric, aPackage.replace('.', '/'));
+        MetricsResultsHolderTestImpl metricResults = runMetricOnTestCase(metric);
         assertEquals(0.0, metricResults.getMethodMetric(metric, aPackage + ".InterfaceB.methodA()"));
         assertEquals(1.0, metricResults.getMethodMetric(metric, aPackage + ".ClassA.methodA()"));
     }
