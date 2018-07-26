@@ -10,7 +10,8 @@ public class NumSameClassCalledMethodsCalculator extends AbstractNumCalledMethod
             PsiClass currentMethodClass = currentMethod.getContainingClass();
 
             return currentMethodClass != null && calledMethodClass != null &&
-                    PSIUtil.getAllSupers(currentMethodClass).contains(calledMethodClass);
+                (currentMethodClass.equals(calledMethodClass) ||
+                 PSIUtil.getAllSupers(currentMethodClass).contains(calledMethodClass));
         });
     }
 }
