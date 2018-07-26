@@ -10,10 +10,12 @@ import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricsResultsHolder;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.sixrr.metrics.utils.MethodUtils.calculateSignature;
+import static junit.framework.TestCase.fail;
 
 public class MetricsResultsHolderTestImpl implements MetricsResultsHolder {
     private Map<Metric, Double> projectMetrics = new HashMap<>();
@@ -111,9 +113,15 @@ public class MetricsResultsHolderTestImpl implements MetricsResultsHolder {
     }
 
     private PsiMethod findMethodBySignature(Metric metric, String methodSignature) {
-        return methodMetrics.get(metric).keySet().stream().
+        List<PsiMethod> methods = methodMetrics.get(metric).keySet().stream().
                 filter(method -> calculateSignature(method).equals(methodSignature)).
-                collect(Collectors.toList()).get(0);
+                collect(Collectors.toList());
+
+        if (methods.isEmpty()) {
+            fail("Unknown method: " + methodSignature);
+        }
+
+        return methods.get(0);
     }
 
     public Pair<Double, Double> getMethodMetricFraction(Metric metric, PsiMethod method) {

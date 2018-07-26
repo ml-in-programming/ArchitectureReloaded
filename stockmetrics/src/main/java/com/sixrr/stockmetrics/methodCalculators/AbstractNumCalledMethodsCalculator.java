@@ -67,7 +67,7 @@ public abstract class AbstractNumCalledMethodsCalculator extends MethodCalculato
             }
 
             if (methodsFilter.filter(calledMethod, currentMethod)) {
-                calledMethod.add(calledMethod);
+                calledMethods.add(calledMethod);
             }
         }
     }
