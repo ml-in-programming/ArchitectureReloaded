@@ -70,6 +70,11 @@ public class RefactoringSessionInfoRenderer implements ObjectRenderer {
                            features.getTargetClassMetricsValues()
                        )).append(lineSeparator);
 
+                builder.append("Source class metrics: ")
+                        .append(serializeMetricCalculationResults(
+                            features.getSourceClassMetricsValues()
+                        )).append(lineSeparator);
+
                 builder.append("Method metrics: ")
                         .append(serializeMetricCalculationResults(
                             features.getMethodMetricsValues()
@@ -87,6 +92,11 @@ public class RefactoringSessionInfoRenderer implements ObjectRenderer {
                         .append(serializeMetricCalculationResults(
                             features.getTargetClassMetricsValues()
                         ));
+
+                builder.append("Source class metrics: ")
+                        .append(serializeMetricCalculationResults(
+                            features.getSourceClassMetricsValues()
+                        )).append(lineSeparator);
 
                 return builder.toString();
             }

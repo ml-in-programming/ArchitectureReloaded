@@ -17,6 +17,8 @@ import java.util.List;
 public class MoveFieldRefactoringFeatures extends RefactoringFeatures {
     private final @NotNull List<MetricCalculationResult> targetClassMetricsValues;
 
+    private final @NotNull List<MetricCalculationResult> sourceClassMetricsValues;
+
     /**
      * Extracts features from a given {@link MoveFieldRefactoring}.
      *
@@ -35,6 +37,11 @@ public class MoveFieldRefactoringFeatures extends RefactoringFeatures {
             refactoring.getTargetClass().getQualifiedName(),
             resultsForClasses
         );
+
+        sourceClassMetricsValues = extractMetricsResultsFor(
+            refactoring.getContainingClass().getQualifiedName(),
+            resultsForClasses
+        );
     }
 
     /**
@@ -43,6 +50,14 @@ public class MoveFieldRefactoringFeatures extends RefactoringFeatures {
      */
     public @NotNull List<MetricCalculationResult> getTargetClassMetricsValues() {
         return new ArrayList<>(targetClassMetricsValues);
+    }
+
+    /**
+     * Returns {@link List} of {@link MetricCalculationResult} with all extracted metrics values for
+     * a source class of initial {@link MoveMethodRefactoring}.
+     */
+    public @NotNull List<MetricCalculationResult> getSourceClassMetricsValues() {
+        return new ArrayList<>(sourceClassMetricsValues);
     }
 
     @NotNull
