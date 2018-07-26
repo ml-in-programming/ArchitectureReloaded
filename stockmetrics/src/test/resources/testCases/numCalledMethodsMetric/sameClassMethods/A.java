@@ -1,5 +1,3 @@
-package numCalledMethodsMetric.sameClassMethods;
-
 public class A {
     void method1() {
         method2();

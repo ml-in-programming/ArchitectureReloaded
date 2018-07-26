@@ -1,5 +1,3 @@
-package numCalledMethodsMetric.anotherClassMethods;
-
 public class A {
     void method1() {
         B b = new B();

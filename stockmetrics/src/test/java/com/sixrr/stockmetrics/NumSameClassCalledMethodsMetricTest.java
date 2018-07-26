@@ -7,35 +7,35 @@ public class NumSameClassCalledMethodsMetricTest extends MetricAbstractTest {
     private final Metric metric = new NumSameClassCalledMethodsMetric();
 
     public void testSameClassMethods() {
-        MetricsResultsHolderTestImpl metricResults = runMetricOnTestCase(metric, "numSameClassCalledMethodsMetric/sameClassMethods/");
+        MetricsResultsHolderTestImpl metricResults = runMetricOnTestCase(metric);
 
-        assertEquals(2.0, metricResults.getMethodMetric(metric, "numSameClassCalledMethodsMetric.sameClassMethods.A.method1()"));
-        assertEquals(0.0, metricResults.getMethodMetric(metric, "numSameClassCalledMethodsMetric.sameClassMethods.A.method2()"));
-        assertEquals(0.0, metricResults.getMethodMetric(metric, "numSameClassCalledMethodsMetric.sameClassMethods.A.method3()"));
-        assertEquals(0.0, metricResults.getMethodMetric(metric, "numSameClassCalledMethodsMetric.sameClassMethods.A.method4()"));
+        assertEquals(2.0, metricResults.getMethodMetric(metric, "A.method1()"));
+        assertEquals(0.0, metricResults.getMethodMetric(metric, "A.method2()"));
+        assertEquals(0.0, metricResults.getMethodMetric(metric, "A.method3()"));
+        assertEquals(0.0, metricResults.getMethodMetric(metric, "A.method4()"));
     }
 
     public void testRecursiveCalls() {
-        MetricsResultsHolderTestImpl metricResults = runMetricOnTestCase(metric, "numSameClassCalledMethodsMetric/recursiveCalls/");
+        MetricsResultsHolderTestImpl metricResults = runMetricOnTestCase(metric);
 
-        assertEquals(1.0, metricResults.getMethodMetric(metric, "numSameClassCalledMethodsMetric.recursiveCalls.A.method1()"));
-        assertEquals(0.0, metricResults.getMethodMetric(metric, "numSameClassCalledMethodsMetric.recursiveCalls.A.method2()"));
+        assertEquals(1.0, metricResults.getMethodMetric(metric, "A.method1()"));
+        assertEquals(0.0, metricResults.getMethodMetric(metric, "A.method2()"));
     }
 
     public void testAnotherClassMethods() {
-        MetricsResultsHolderTestImpl metricResults = runMetricOnTestCase(metric, "numSameClassCalledMethodsMetric/anotherClassMethods/");
+        MetricsResultsHolderTestImpl metricResults = runMetricOnTestCase(metric);
 
-        assertEquals(0.0, metricResults.getMethodMetric(metric, "numSameClassCalledMethodsMetric.anotherClassMethods.A.method1()"));
-        assertEquals(0.0, metricResults.getMethodMetric(metric, "numSameClassCalledMethodsMetric.anotherClassMethods.B.method1()"));
-        assertEquals(0.0, metricResults.getMethodMetric(metric, "numSameClassCalledMethodsMetric.anotherClassMethods.B.method2()"));
-        assertEquals(0.0, metricResults.getMethodMetric(metric, "numSameClassCalledMethodsMetric.anotherClassMethods.B.method3()"));
+        assertEquals(0.0, metricResults.getMethodMetric(metric, "A.method1()"));
+        assertEquals(0.0, metricResults.getMethodMetric(metric, "B.method1()"));
+        assertEquals(0.0, metricResults.getMethodMetric(metric, "B.method2()"));
+        assertEquals(0.0, metricResults.getMethodMetric(metric, "B.method3()"));
     }
 
     public void testSameMethodTwice() {
-        MetricsResultsHolderTestImpl metricResults = runMetricOnTestCase(metric, "numSameClassCalledMethodsMetric/sameMethodTwice/");
+        MetricsResultsHolderTestImpl metricResults = runMetricOnTestCase(metric);
 
-        assertEquals(3.0, metricResults.getMethodMetric(metric, "numSameClassCalledMethodsMetric.sameMethodTwice.A.method1()"));
-        assertEquals(0.0, metricResults.getMethodMetric(metric, "numSameClassCalledMethodsMetric.sameMethodTwice.A.method2()"));
-        assertEquals(0.0, metricResults.getMethodMetric(metric, "numSameClassCalledMethodsMetric.sameMethodTwice.A.method3()"));
+        assertEquals(3.0, metricResults.getMethodMetric(metric, "A.method1()"));
+        assertEquals(0.0, metricResults.getMethodMetric(metric, "A.method2()"));
+        assertEquals(0.0, metricResults.getMethodMetric(metric, "A.method3()"));
     }
 }

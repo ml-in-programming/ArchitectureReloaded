@@ -1,5 +1,3 @@
-package numSameClassCalledMethodsMetric.sameMethodTwice;
-
 interface I {
     void method1();
 

@@ -1,5 +1,3 @@
-package numCalledMethodsMetric.sameMethodTwice;
-
 public class A {
     void method1() {
         B b = new B();
