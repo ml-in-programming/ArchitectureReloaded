@@ -253,4 +253,12 @@ public final class MethodUtils {
                                            boolean considerSupers) {
         return getOverloads(method, containingClass, considerSupers).size();
     }
+
+    // TODO: find better way than parsing
+    public static boolean isGeneric(PsiMethod method) {
+        String methodText = method.getText();
+        String textBeforeReturnValue = methodText.substring(0,
+                methodText.indexOf(Objects.requireNonNull(method.getReturnTypeElement()).getText()));
+        return textBeforeReturnValue.contains("<");
+    }
 }
