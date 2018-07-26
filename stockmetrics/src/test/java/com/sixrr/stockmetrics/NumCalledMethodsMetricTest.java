@@ -39,4 +39,11 @@ public class NumCalledMethodsMetricTest extends MetricAbstractTest {
         assertEquals(0.0, metricResults.getMethodMetric(metric, "B.method2()"));
         assertEquals(0.0, metricResults.getMethodMetric(metric, "B.method3()"));
     }
+
+    public void testInnerMethod() {
+        MetricsResultsHolderTestImpl metricResults = runMetricOnTestCase(metric);
+
+        assertEquals(0.0, metricResults.getMethodMetric(metric, "A.method1()"));
+        assertEquals(0.0, metricResults.getMethodMetric(metric, "A.method2()"));
+    }
 }
