@@ -4,6 +4,7 @@ import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiMethod;
+import com.sixrr.metrics.utils.MethodUtils;
 
 public class NumOverloadsCalculator extends MethodCalculator {
     @Override
@@ -16,14 +17,7 @@ public class NumOverloadsCalculator extends MethodCalculator {
         public void visitMethod(PsiMethod method) {
             PsiClass containingClass = method.getContainingClass();
             if (containingClass != null) {
-                int numberOfOverloads = 0;
-                for (PsiMethod methodInClass : containingClass.getMethods()) {
-                    if (methodInClass.getName().equals(method.getName())) {
-                        numberOfOverloads++;
-                    }
-                }
-                numberOfOverloads--;
-                postMetric(method, numberOfOverloads);
+                postMetric(method, MethodUtils.getNumberOfOverloads(method, containingClass, true));
             }
             super.visitMethod(method);
         }

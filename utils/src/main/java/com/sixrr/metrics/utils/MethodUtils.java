@@ -205,4 +205,52 @@ public final class MethodUtils {
     public static boolean isOverriding(PsiMethod method) {
         return method.findSuperMethods().length != 0;
     }
+
+    /**
+     * This method looks for not overriding methods, located in super or containing class and which are overloads of given method (have the same name).
+     * It doesn't exclude from return set the original passed method (or its deepest super method).
+     * @param method whose overloads we need to find.
+     * @param containingClass class where method is located.
+     * @param considerSupers true if we need look into supers.
+     * @return all methods that are not overriding, located in supers or in containingClass and have the same name as method.
+     */
+    public static List<PsiMethod> getAllRootOverloads(@NotNull PsiMethod method, @NotNull PsiClass containingClass,
+                                                     boolean considerSupers) {
+        String methodName = method.getName();
+        List<PsiMethod> overloads = new ArrayList<>();
+        for (PsiMethod methodInClass : containingClass.getMethods()) {
+            if (methodInClass.getName().equals(methodName) && !isOverriding(methodInClass)) {
+                overloads.add(methodInClass);
+            }
+        }
+        if (considerSupers) {
+            processSupers(method, containingClass, overloads);
+        }
+        return overloads;
+    }
+
+    private static void processSupers(@NotNull PsiMethod method, @NotNull PsiClass containingClass, @NotNull List<PsiMethod> overloads) {
+        for (PsiClass superClass : containingClass.getSupers()) {
+            for (PsiMethod methodInClass : superClass.getMethods()) {
+                if (methodInClass.getName().equals(method.getName()) && !isOverriding(methodInClass)) {
+                    overloads.add(methodInClass);
+                }
+            }
+            processSupers(method, superClass, overloads);
+        }
+    }
+
+    public static List<PsiMethod> getOverloads(@NotNull PsiMethod method, @NotNull PsiClass containingClass,
+                                           boolean considerSupers) {
+        List<PsiMethod> overloads = getAllRootOverloads(method, containingClass, considerSupers);
+        if (!overloads.remove(isOverriding(method) ? method.findDeepestSuperMethods()[0] : method)) {
+            throw new IllegalStateException("Set of overloaded methods must contain original method");
+        }
+        return overloads;
+    }
+
+    public static int getNumberOfOverloads(@NotNull PsiMethod method, @NotNull PsiClass containingClass,
+                                           boolean considerSupers) {
+        return getOverloads(method, containingClass, considerSupers).size();
+    }
 }
