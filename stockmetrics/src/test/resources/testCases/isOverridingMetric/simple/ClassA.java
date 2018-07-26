@@ -1,7 +1,3 @@
-package isOverridingMetric.simpleTest;
-
-import org.jetbrains.annotations.NotNull;
-
 public class ClassA extends ClassB {
     void methodA1() {
     }
