@@ -201,4 +201,8 @@ public final class MethodUtils {
         }
         return false;
     }
+
+    public static boolean isOverriding(PsiMethod method) {
+        return method.findSuperMethods().length != 0;
+    }
 }

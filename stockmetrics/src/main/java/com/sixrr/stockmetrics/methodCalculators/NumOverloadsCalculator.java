@@ -14,17 +14,17 @@ public class NumOverloadsCalculator extends MethodCalculator {
     private class Visitor extends JavaRecursiveElementVisitor {
         @Override
         public void visitMethod(PsiMethod method) {
-            int numberOfOverloads = 0;
             PsiClass containingClass = method.getContainingClass();
             if (containingClass != null) {
+                int numberOfOverloads = 0;
                 for (PsiMethod methodInClass : containingClass.getMethods()) {
                     if (methodInClass.getName().equals(method.getName())) {
                         numberOfOverloads++;
                     }
                 }
                 numberOfOverloads--;
+                postMetric(method, numberOfOverloads);
             }
-            postMetric(method, numberOfOverloads);
             super.visitMethod(method);
         }
     }
