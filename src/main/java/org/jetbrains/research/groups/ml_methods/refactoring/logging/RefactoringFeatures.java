@@ -18,6 +18,19 @@ import java.util.*;
  * from features of accepted and rejected refactorings.
  */
 public abstract class RefactoringFeatures {
+    private static final @NotNull Set<Class<? extends Metric>> requestedMetrics =
+        new HashSet<>(Arrays.asList(
+            FormalParametersCountMethodMetric.class,
+            LinesOfCodeMethodMetric.class,
+            NumAssertsMetric.class,
+            NumLoopsMetric.class,
+            NumLocalVarsMetric.class,
+            IsStaticMethodMetric.class,
+            IsPrivateMethodMetric.class,
+            NameLenMethodMetric.class,
+            NumExceptionsThrownMetric.class
+        ));
+
     @NotNull
     public abstract <R> R accept(final @NotNull RefactoringFeaturesVisitor<R> visitor);
 
@@ -53,17 +66,7 @@ public abstract class RefactoringFeatures {
      * features extraction is required.
      */
     public static @NotNull Set<Class<? extends Metric>> getRequestedMetrics() {
-        return new HashSet<>(Arrays.asList(
-            FormalParametersCountMethodMetric.class,
-            LinesOfCodeMethodMetric.class,
-            NumAssertsMetric.class,
-            NumLoopsMetric.class,
-            NumLocalVarsMetric.class,
-            IsStaticMethodMetric.class,
-            IsPrivateMethodMetric.class,
-            NameLenMethodMetric.class,
-            NumExceptionsThrownMetric.class
-        ));
+        return requestedMetrics;
     }
 
     protected static List<MetricCalculationResult> extractMetricsResultsFor(
