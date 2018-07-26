@@ -1,5 +1,3 @@
-package numOverloadsMetric.simpleTest;
-
 public class ClassA {
     static int attributeA1;
     static int attributeA2;

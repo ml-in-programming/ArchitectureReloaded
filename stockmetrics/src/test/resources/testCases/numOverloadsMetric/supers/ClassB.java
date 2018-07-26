@@ -1,5 +1,3 @@
-package numOverloadsMetric.testSupers;
-
 public class ClassB extends ClassA {
     @Override
     void methodA1() {
