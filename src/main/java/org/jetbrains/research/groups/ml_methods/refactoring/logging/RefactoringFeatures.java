@@ -78,6 +78,10 @@ public abstract class RefactoringFeatures {
         Metric[] metrics = results.getMetrics();
 
         for (Metric metric : metrics) {
+            if (!requestedMetrics.contains(metric.getClass())) {
+                continue;
+            }
+
             double metricValue = results.getValueForMetric(metric, measuredObject);
 
             extractedResults.add(
