@@ -208,4 +208,8 @@ public final class ClassUtils {
     public static int getNumberOfVolatileFields(PsiClass aClass) {
         return getVolatileFields(aClass).size();
     }
+
+    public static boolean isGeneric(PsiClass aClass) {
+        return aClass.getTypeParameters().length != 0;
+    }
 }
