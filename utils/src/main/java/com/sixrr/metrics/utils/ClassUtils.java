@@ -30,7 +30,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public final class ClassUtils {
 
@@ -150,5 +152,64 @@ public final class ClassUtils {
             return null;
         }
         return JavaDirectoryService.getInstance().getPackage(directory);
+    }
+
+    public static List<PsiField> getPublicFields(PsiClass aClass) {
+        return Arrays.stream(aClass.getFields()).filter(MethodUtils::isPublic).collect(Collectors.toList());
+    }
+
+    public static int getNumberOfPublicFields(PsiClass aClass) {
+        return getPublicFields(aClass).size();
+    }
+
+    public static List<PsiField> getPrivateFields(PsiClass aClass) {
+        return Arrays.stream(aClass.getFields()).filter(MethodUtils::isPrivate).collect(Collectors.toList());
+    }
+
+    public static int getNumberOfPrivateFields(PsiClass aClass) {
+        return getPrivateFields(aClass).size();
+    }
+
+    public static List<PsiField> getProtectedFields(PsiClass aClass) {
+        return Arrays.stream(aClass.getFields()).filter(MethodUtils::isProtected).collect(Collectors.toList());
+    }
+
+    public static int getNumberOfProtectedFields(PsiClass aClass) {
+        return getProtectedFields(aClass).size();
+    }
+
+    public static List<PsiField> getPackagePrivateFields(PsiClass aClass) {
+        return Arrays.stream(aClass.getFields()).filter(MethodUtils::isPackagePrivate).collect(Collectors.toList());
+    }
+
+    public static int getNumberOfPackagePrivateFields(PsiClass aClass) {
+        return getPackagePrivateFields(aClass).size();
+    }
+
+    public static List<PsiField> getStaticFields(PsiClass aClass) {
+        return Arrays.stream(aClass.getFields()).filter(MethodUtils::isStatic).collect(Collectors.toList());
+    }
+
+    public static int getNumberOfStaticFields(PsiClass aClass) {
+        return getStaticFields(aClass).size();
+    }
+
+    public static List<PsiField> getFinalFields(PsiClass aClass) {
+        return Arrays.stream(aClass.getFields()).filter(MethodUtils::isFinal).collect(Collectors.toList());
+    }
+
+    public static int getNumberOfFinalFields(PsiClass aClass) {
+        return getFinalFields(aClass).size();
+    }
+
+    public static List<PsiField> getVolatileFields(PsiClass aClass) {
+        return Arrays.stream(aClass.getFields()).filter(MethodUtils::isVolatile).collect(Collectors.toList());
+    }
+    public static int getNumberOfVolatileFields(PsiClass aClass) {
+        return getVolatileFields(aClass).size();
+    }
+
+    public static boolean isGeneric(PsiClass aClass) {
+        return aClass.getTypeParameters().length != 0;
     }
 }
