@@ -12,6 +12,7 @@ import com.sixrr.metrics.MetricsResultsHolder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.sixrr.metrics.utils.MethodUtils.calculateSignature;
@@ -55,7 +56,7 @@ public class MetricsResultsHolderTestImpl implements MetricsResultsHolder {
 
     @Override
     public void postClassMetric(Metric metric, PsiClass aClass, double value) {
-
+        classMetrics.computeIfAbsent(metric, ignored -> new HashMap<>()).put(aClass, value);
     }
 
     @Override
@@ -110,6 +111,26 @@ public class MetricsResultsHolderTestImpl implements MetricsResultsHolder {
 
     double getMethodMetric(Metric metric, String methodSignature) {
         return getMethodMetric(metric, findMethodBySignature(metric, methodSignature));
+    }
+
+    double getClassMetric(Metric metric, PsiClass aClass) {
+        return classMetrics.get(metric).get(aClass);
+    }
+
+    double getClassMetric(Metric metric, String classQualifiedName) {
+        return getClassMetric(metric, findClassByQualifiedName(metric, classQualifiedName));
+    }
+
+    private PsiClass findClassByQualifiedName(Metric metric, String classQualifiedName) {
+        List<PsiClass> classes = classMetrics.get(metric).keySet().stream().
+                filter(aClass -> Objects.equals(aClass.getQualifiedName(), classQualifiedName)).
+                collect(Collectors.toList());
+
+        if (classes.isEmpty()) {
+            fail("Unknown method: " + classQualifiedName);
+        }
+
+        return classes.get(0);
     }
 
     private PsiMethod findMethodBySignature(Metric metric, String methodSignature) {
