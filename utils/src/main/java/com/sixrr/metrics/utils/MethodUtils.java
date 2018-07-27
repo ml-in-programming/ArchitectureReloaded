@@ -71,6 +71,22 @@ public final class MethodUtils {
         return unit.hasModifierProperty(PsiModifier.PUBLIC);
     }
 
+    public static boolean isProtected(PsiModifierListOwner unit) {
+        return unit.hasModifierProperty(PsiModifier.PROTECTED);
+    }
+
+    public static boolean isPackagePrivate(PsiModifierListOwner unit) {
+        return unit.hasModifierProperty(PsiModifier.PACKAGE_LOCAL);
+    }
+
+    public static boolean isFinal(PsiModifierListOwner unit) {
+        return unit.hasModifierProperty(PsiModifier.FINAL);
+    }
+
+    public static boolean isVolatile(PsiModifierListOwner unit) {
+        return unit.hasModifierProperty(PsiModifier.VOLATILE);
+    }
+
     public static int parametersCount(PsiMethod method) {
         return method.getParameterList().getParametersCount();
     }
