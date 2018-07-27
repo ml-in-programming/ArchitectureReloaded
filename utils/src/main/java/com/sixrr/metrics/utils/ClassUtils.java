@@ -30,7 +30,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public final class ClassUtils {
 
@@ -150,5 +152,13 @@ public final class ClassUtils {
             return null;
         }
         return JavaDirectoryService.getInstance().getPackage(directory);
+    }
+
+    public static List<PsiField> getPublicFields(PsiClass aClass) {
+        return Arrays.stream(aClass.getFields()).filter(MethodUtils::isPublic).collect(Collectors.toList());
+    }
+
+    public static int getNumberOfPublicFields(PsiClass aClass) {
+        return getPublicFields(aClass).size();
     }
 }
