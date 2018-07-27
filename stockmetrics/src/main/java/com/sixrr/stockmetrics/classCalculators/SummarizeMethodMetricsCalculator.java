@@ -30,6 +30,10 @@ public abstract class SummarizeMethodMetricsCalculator extends ClassCalculator {
     abstract protected Metric getMethodMetric();
     abstract protected MethodCalculator getMethodCalculator();
 
+    protected double accumulate(double accumulated, double newValue) {
+        return accumulated + newValue;
+    }
+
     @Override
     protected PsiElementVisitor createVisitor() {
         return new Visitor();
@@ -50,7 +54,7 @@ public abstract class SummarizeMethodMetricsCalculator extends ClassCalculator {
         }
 
         private class SummarizeMetricResultsHolder implements MetricsResultsHolder {
-            private int sum = 0;
+            private double sum = 0;
 
             @Override
             public void postProjectMetric(Metric metric, double value) {
@@ -84,7 +88,7 @@ public abstract class SummarizeMethodMetricsCalculator extends ClassCalculator {
 
             @Override
             public void postMethodMetric(Metric metric, PsiMethod method, double value) {
-                sum += value;
+                sum = accumulate(sum, value);
             }
 
             @Override
