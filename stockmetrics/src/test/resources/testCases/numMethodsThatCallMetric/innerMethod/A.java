@@ -2,7 +2,7 @@ interface I {
     void method();
 }
 
-public class A {
+class A {
     void method1() {
         new I() {
             public void method() {
@@ -11,7 +11,6 @@ public class A {
         };
     }
 
-    void method2() {
-
+    public void method2() {
     }
 }

@@ -5,13 +5,12 @@ interface I {
 public class A {
     void method1() {
         new I() {
-            void method() {
+            public void method() {
                 method2();
             }
-        }
+        };
     }
 
     void method2() {
-
     }
 }
