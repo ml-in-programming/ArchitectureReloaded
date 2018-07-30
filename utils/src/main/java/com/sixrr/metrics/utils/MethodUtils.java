@@ -23,6 +23,7 @@ import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
 import com.intellij.util.Processor;
 import com.intellij.util.Query;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -276,5 +277,104 @@ public final class MethodUtils {
 
     public static boolean isGeneric(PsiMethod method) {
         return method.getTypeParameters().length != 0;
+    }
+
+    public static @NotNull Set<PsiClass> getMeaningfulClasses(final @NotNull PsiMethod mainMethod) {
+        Set<PsiClass> meaningfulClasses = new HashSet<>();
+
+        mainMethod.accept(new JavaRecursiveElementVisitor() {
+            @Override
+            public void visitMethod(PsiMethod method) {
+                if (!method.equals(mainMethod)) {
+                    return;
+                }
+
+                super.visitMethod(method);
+
+                convertToClass(method.getReturnType()).ifPresent(meaningfulClasses::add);
+
+                for (PsiClassType classType : method.getThrowsList().getReferencedTypes()) {
+                    PsiClass psiClass = classType.resolve();
+                    if (psiClass != null) {
+                        meaningfulClasses.add(psiClass);
+                    }
+                }
+            }
+
+            @Override
+            public void visitClass(PsiClass aClass) {}
+
+            @Override
+            public void visitMethodCallExpression(PsiMethodCallExpression expression) {
+                super.visitMethodCallExpression(expression);
+
+                PsiMethod calledMethod = expression.resolveMethod();
+                if (calledMethod == null) {
+                    return;
+                }
+
+                PsiClass containingClass = calledMethod.getContainingClass();
+                if (containingClass != null) {
+                    meaningfulClasses.add(containingClass);
+                }
+            }
+
+            @Override
+            public void visitReferenceExpression(PsiReferenceExpression expression) {
+                super.visitReferenceExpression(expression);
+
+                JavaResolveResult result = expression.advancedResolve(false);
+                PsiElement element = result.getElement();
+
+                if (!(element instanceof PsiField)) {
+                    return;
+                }
+
+                PsiField field = (PsiField) element;
+
+                convertToClass(field.getType()).ifPresent(meaningfulClasses::add);
+            }
+
+            @Override
+            public void visitNewExpression(PsiNewExpression exp) {
+                super.visitNewExpression(exp);
+
+                PsiJavaCodeReferenceElement classReference = exp.getClassReference();
+                if (classReference == null) {
+                    return;
+                }
+
+                PsiClass psiClass = (PsiClass) classReference.resolve();
+                if (psiClass != null) {
+                    meaningfulClasses.add(psiClass);
+                }
+            }
+
+            @Override
+            public void visitDeclarationStatement(PsiDeclarationStatement statement) {
+                super.visitDeclarationStatement(statement);
+
+                for (PsiElement element : statement.getDeclaredElements()) {
+                    if (element instanceof PsiLocalVariable) {
+                        PsiLocalVariable localVariable = (PsiLocalVariable) element;
+                        convertToClass(localVariable.getTypeElement().getType()).ifPresent(meaningfulClasses::add);
+                    }
+                }
+            }
+
+            private @NotNull Optional<PsiClass> convertToClass(final @Nullable PsiType type) {
+                if (type == null) {
+                    return Optional.empty();
+                }
+
+                if (!(type instanceof PsiClassType)) {
+                    return Optional.empty();
+                }
+
+                return Optional.ofNullable(((PsiClassType) type).resolve());
+            }
+        });
+
+        return meaningfulClasses;
     }
 }
