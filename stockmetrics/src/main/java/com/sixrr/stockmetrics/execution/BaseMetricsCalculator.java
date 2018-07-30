@@ -49,7 +49,7 @@ public abstract class BaseMetricsCalculator implements MetricCalculator {
     protected Metric metric = null;
     protected MetricsResultsHolder resultsHolder = null;
     protected MetricsExecutionContext executionContext = null;
-    private PsiElementVisitor visitor;
+    protected PsiElementVisitor visitor;
 
     @Override
     public void beginMetricsRun(Metric metric, MetricsResultsHolder resultsHolder,
