@@ -24,11 +24,13 @@ import com.sixrr.metrics.MetricsResultsHolder;
 import com.sixrr.stockmetrics.methodCalculators.MethodCalculator;
 
 public abstract class SummarizeMethodMetricsCalculator extends ClassCalculator {
-    private final Metric methodMetric = getMethodMetric();
-    private final MethodCalculator methodCalculator = getMethodCalculator();
+    private final Metric methodMetric;
+    private final MethodCalculator methodCalculator;
 
-    abstract protected Metric getMethodMetric();
-    abstract protected MethodCalculator getMethodCalculator();
+    public SummarizeMethodMetricsCalculator(Metric methodMetric) {
+        this.methodMetric = methodMetric;
+        methodCalculator = (MethodCalculator) this.methodMetric.createCalculator();
+    }
 
     protected double accumulate(double accumulated, double newValue) {
         return accumulated + newValue;
@@ -45,11 +47,11 @@ public abstract class SummarizeMethodMetricsCalculator extends ClassCalculator {
         public void visitClass(PsiClass aClass) {
             super.visitClass(aClass);
             SummarizeMetricResultsHolder holder = new SummarizeMetricResultsHolder();
-            getMethodCalculator().beginMetricsRun(methodMetric, holder, null);
+            methodCalculator.beginMetricsRun(methodMetric, holder, null);
             for (PsiMethod method : aClass.getMethods()) {
                 methodCalculator.processMethod(method);
             }
-            getMethodCalculator().endMetricsRun();
+            methodCalculator.endMetricsRun();
             postMetric(aClass, holder.sum);
         }
 

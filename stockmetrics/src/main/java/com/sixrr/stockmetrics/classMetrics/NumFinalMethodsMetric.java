@@ -18,26 +18,25 @@ package com.sixrr.stockmetrics.classMetrics;
 
 import com.sixrr.metrics.MetricCalculator;
 import com.sixrr.metrics.MetricType;
-import com.sixrr.stockmetrics.classCalculators.NumOverriddenCalculator;
+import com.sixrr.stockmetrics.classCalculators.NumFinalMethodsCalculator;
 import com.sixrr.stockmetrics.i18n.StockMetricsBundle;
 import org.jetbrains.annotations.NotNull;
 
-public class NumOverriddenMetric extends ClassMetric {
+public class NumFinalMethodsMetric extends ClassMetric {
     @NotNull
     @Override
     public String getDisplayName() {
-        return StockMetricsBundle.message("num.overriding.metric.display.name");
+        return StockMetricsBundle.message("num.final.methods.metric.display.name");
     }
 
     @NotNull
     @Override
     public String getAbbreviation() {
-        return StockMetricsBundle.message("num.overriding.metric.abbreviation");
+        return StockMetricsBundle.message("num.final.methods.metric.abbreviation");
     }
 
     @NotNull
     @Override
-    // TODO: consider if it is a score...
     public MetricType getType() {
         return MetricType.Count;
     }
@@ -45,6 +44,6 @@ public class NumOverriddenMetric extends ClassMetric {
     @NotNull
     @Override
     public MetricCalculator createCalculator() {
-        return new NumOverriddenCalculator();
+        return new NumFinalMethodsCalculator();
     }
 }
