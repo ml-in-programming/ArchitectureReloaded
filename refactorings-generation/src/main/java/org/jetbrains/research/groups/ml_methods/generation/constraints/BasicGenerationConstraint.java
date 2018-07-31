@@ -3,14 +3,13 @@ package org.jetbrains.research.groups.ml_methods.generation.constraints;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
-import com.sixrr.metrics.utils.ClassUtils;
 
 import java.util.Objects;
 
 public class BasicGenerationConstraint implements GenerationConstraint {
     @Override
     public boolean acceptTargetClass(PsiClass aClass) {
-        return aClass.getQualifiedName() == null;
+        return aClass.getQualifiedName() != null;
     }
 
     @Override

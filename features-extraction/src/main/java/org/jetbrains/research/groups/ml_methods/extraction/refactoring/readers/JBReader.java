@@ -1,18 +1,18 @@
-package org.jetbrains.research.groups.ml_methods.extraction.refactoring.parsers;
+package org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class JBReader implements RefactoringsReader {
     private static final Gson JSON_CONVERTER = new GsonBuilder().setPrettyPrinting().create();

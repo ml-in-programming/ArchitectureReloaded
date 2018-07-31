@@ -1,6 +1,5 @@
 package org.jetbrains.research.groups.ml_methods.generation;
 
-import com.google.common.collect.Lists;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -14,15 +13,11 @@ import org.apache.log4j.PatternLayout;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.parsers.JMoveReader;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers.RefactoringsWriter;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers.RefactoringsWriters;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory.GenerationConstraintType;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;

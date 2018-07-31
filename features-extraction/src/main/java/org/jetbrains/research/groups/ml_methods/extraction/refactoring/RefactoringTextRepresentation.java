@@ -3,10 +3,11 @@ package org.jetbrains.research.groups.ml_methods.extraction.refactoring;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
-import com.sixrr.metrics.utils.MethodUtils;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class RefactoringTextRepresentation {
@@ -42,11 +43,6 @@ public class RefactoringTextRepresentation {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(targetClassQualifiedName, sourceClassQualifiedName, methodName, paramsClasses);
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -55,6 +51,12 @@ public class RefactoringTextRepresentation {
                 Objects.equals(sourceClassQualifiedName, that.sourceClassQualifiedName) &&
                 Objects.equals(methodName, that.methodName) &&
                 Objects.equals(paramsClasses, that.paramsClasses);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(targetClassQualifiedName, sourceClassQualifiedName, methodName, paramsClasses);
     }
 
     String getMethodsSignature() {
@@ -77,7 +79,6 @@ public class RefactoringTextRepresentation {
     }
 
     private boolean isOfGivenMethod(PsiMethod method) {
-        /*
         List<String> methodsParams = Arrays.stream(method.getParameterList().getParameters()).
                 map(psiParameter -> psiParameter.getType().getCanonicalText()).
                 collect(Collectors.toList());
@@ -85,12 +86,6 @@ public class RefactoringTextRepresentation {
                 methodName.equals(method.getName()) &&
                 sourceClassQualifiedName.equals(method.getContainingClass().getQualifiedName()) &&
                 paramsClasses.equals(methodsParams);
-        */
-        String methodsSignature = MethodUtils.calculateSignature(method);
-        String methodsSignatureWithoutParams = methodsSignature.split("\\(")[0];
-        String refactoringSignature = getMethodsSignature();
-        return refactoringSignature.equals(methodsSignature) ||
-                refactoringSignature.equals(methodsSignatureWithoutParams);
     }
 
     private boolean isToGivenPsiClass(PsiClass aClass) {

@@ -17,13 +17,16 @@ import org.jetbrains.research.groups.ml_methods.extraction.features.vector.Vecto
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringsLoader;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.parsers.RefactoringsReaders;
+import org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers.RefactoringsReaders;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers.RefactoringsWriters;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.jetbrains.research.groups.ml_methods.utils.MethodUtils.extractMethodDeclaration;
@@ -76,7 +79,7 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
             final AnalysisScope scope = new AnalysisScope(Objects.requireNonNull(project));
             List<Refactoring> refactorings;
             try {
-                refactorings = RefactoringsLoader.load(refactoringsPath, RefactoringsReaders.getJMoveReader(), scope);
+                refactorings = RefactoringsLoader.load(refactoringsPath, RefactoringsReaders.getJBReader(), scope);
             } catch (Exception e) {
                 System.err.println("Error during refactorings search. Reason: " + e.getMessage());
                 e.printStackTrace();
@@ -94,7 +97,7 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
             RefactoringsWriters.getJBWriter().write(refactorings.stream().
                             map(RefactoringTextRepresentation::new).collect(Collectors.toList()),
                     Paths.get(args[3]).toAbsolutePath());
-            /*
+
             List<FeatureVector> vectors;
             try {
                 vectors = MoveMethodFeaturesExtractor.getInstance().extract(
@@ -137,7 +140,6 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
                 APPLICATION.exit(true, true);
                 return;
             }
-            */
             APPLICATION.exit(true, true);
         } catch (Throwable throwable) {
             System.out.println("Error: "+ throwable.getMessage());

@@ -1,13 +1,14 @@
-package org.jetbrains.research.groups.ml_methods.extraction.refactoring.parsers;
+package org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers;
 
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers.RefactoringsWriter;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -23,16 +24,16 @@ public class JMoveReaderTest {
                         Collections.emptyList(), "org.jhotdraw.samples.svg.SVGDrawingPanel"
                 ),
                 new RefactoringTextRepresentation(
+                        "net.n3.nanoxml.XMLElement", "print",
+                        Collections.emptyList(), "org.jhotdraw.xml.NanoXMLDOMOutput"
+                ),
+                new RefactoringTextRepresentation(
                         "net.n3.nanoxml.XMLElement", "withParams",
                         Arrays.asList("Movie", "Rental"), "org.jhotdraw.xml.NanoXMLDOMOutput"
                 ),
                 new RefactoringTextRepresentation(
                         "net.n3.nanoxml.XMLElement", "withOneParam",
                         Collections.singletonList("Price"), "org.jhotdraw.xml.NanoXMLDOMOutput"
-                ),
-                new RefactoringTextRepresentation(
-                        "net.n3.nanoxml.XMLElement", "print",
-                        Collections.emptyList(), "org.jhotdraw.xml.NanoXMLDOMOutput"
                 ),
                 new RefactoringTextRepresentation(
                         "org.jhotdraw.samples.svg.io.SVGInputFormat", "readTransformAttribute",

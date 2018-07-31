@@ -1,4 +1,4 @@
-package org.jetbrains.research.groups.ml_methods.extraction.refactoring.parsers;
+package org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers;
 
 public class RefactoringsReaders {
     private final static JMoveReader JMOVE_READER = new JMoveReader();
