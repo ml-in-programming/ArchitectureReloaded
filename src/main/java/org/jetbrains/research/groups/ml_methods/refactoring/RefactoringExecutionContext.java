@@ -61,7 +61,7 @@ public class RefactoringExecutionContext {
     private final List<AlgorithmResult> algorithmsResults = new ArrayList<>();
     @NotNull
     private final Collection<Algorithm> requestedAlgorithms;
-    private final boolean isFieldRefactoringAvailable;
+    private final boolean enableFieldRefactoring;
 
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
                                        @NotNull MetricsProfile profile,
@@ -76,20 +76,20 @@ public class RefactoringExecutionContext {
      * @param scope a scope which contains all files that should be processed by algorithms.
      * @param profile a profile of metrics that must be calculated.
      * @param requestedAlgorithms algorithm which were requested by user.
-     * @param isFieldRefactoringAvailable {@code True} if field refactoring is available.
+     * @param enableFieldRefactoring {@code True} if field refactoring is available.
      * @param continuation action that should be performed after all the calculations are done.
      */
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
                                        @NotNull MetricsProfile profile,
                                        @NotNull Collection<Algorithm> requestedAlgorithms,
-                                       boolean isFieldRefactoringAvailable,
+                                       boolean enableFieldRefactoring,
                                        @Nullable Consumer<RefactoringExecutionContext> continuation) {
         this.project = project;
         this.scope = scope;
         this.profile = profile;
         this.continuation = continuation;
         this.requestedAlgorithms = requestedAlgorithms;
-        this.isFieldRefactoringAvailable = isFieldRefactoringAvailable;
+        this.enableFieldRefactoring = enableFieldRefactoring;
         metricsExecutionContext = new MetricsExecutionContextImpl(project, scope);
     }
 
@@ -157,7 +157,7 @@ public class RefactoringExecutionContext {
         }
 
         final AlgorithmResult result =
-            algorithm.execute(attributes, executorService, isFieldRefactoringAvailable, scope);
+            algorithm.execute(attributes, executorService, enableFieldRefactoring, scope);
 
         algorithmsResults.add(result);
     }
