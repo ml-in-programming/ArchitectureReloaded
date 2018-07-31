@@ -1,3 +1,4 @@
 rootProject.name = 'ArchitectureReloaded'
 
-include 'ArchitectureReloaded', 'utils', 'openapi', 'stockmetrics'
+include 'ArchitectureReloaded', 'utils', 'openapi', 'stockmetrics', 'algorithms-evaluation'
+
