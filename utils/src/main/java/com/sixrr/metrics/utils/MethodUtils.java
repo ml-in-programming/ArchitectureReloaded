@@ -63,8 +63,20 @@ public final class MethodUtils {
         return unit.hasModifierProperty(PsiModifier.STATIC);
     }
 
+    public static boolean isSynchronized(PsiModifierListOwner unit) {
+        return unit.hasModifierProperty(PsiModifier.SYNCHRONIZED);
+    }
+
+    public static boolean isOverriding(PsiMethod method) {
+        return method.findSuperMethods().length != 0;
+    }
+
     public static boolean isPrivate(PsiModifierListOwner unit) {
         return unit.hasModifierProperty(PsiModifier.PRIVATE);
+    }
+
+    public static boolean isPublic(PsiModifierListOwner unit) {
+        return unit.hasModifierProperty(PsiModifier.PUBLIC);
     }
 
     public static int parametersCount(PsiMethod method) {

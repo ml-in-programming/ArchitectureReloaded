@@ -1,0 +1,6 @@
+Num methods need move 20
+method org.jhotdraw.samples.svg.gui.ViewToolBar::setEditor():void need move to org.jhotdraw.samples.svg.SVGDrawingPanel
+method net.n3.nanoxml.XMLElement::print():void need move to org.jhotdraw.xml.NanoXMLDOMOutput
+method net.n3.nanoxml.XMLElement::withParams(Movie,Rental):void need move to org.jhotdraw.xml.NanoXMLDOMOutput
+method net.n3.nanoxml.XMLElement::withOneParam(Price):void need move to org.jhotdraw.xml.NanoXMLDOMOutput
+method org.jhotdraw.samples.svg.io.SVGInputFormat::readTransformAttribute(IXMLElement,HashMap<AttributeKey, Object>):RETURN_TYPE_NOT_NEEDED need move to org.jhotdraw.draw.AttributeKeys
