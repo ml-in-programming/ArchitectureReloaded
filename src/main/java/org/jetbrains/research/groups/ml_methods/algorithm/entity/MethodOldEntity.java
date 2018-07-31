@@ -1,5 +1,7 @@
 package org.jetbrains.research.groups.ml_methods.algorithm.entity;
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.utils.MethodUtils;
@@ -9,8 +11,9 @@ public class MethodOldEntity extends OldEntity {
 
     public MethodOldEntity(PsiMethod method) {
         super(method);
-        isMovable = !PSIUtil.isOverriding(method) &&
-                !MethodUtils.isAbstract(method) && !method.isConstructor();
+        isMovable = ApplicationManager.getApplication().runReadAction((Computable<Boolean>)
+                () ->  !PSIUtil.isOverriding(method) &&
+                        !MethodUtils.isAbstract(method) && !method.isConstructor());
     }
 
     private MethodOldEntity(MethodOldEntity original) {
