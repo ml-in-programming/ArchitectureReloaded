@@ -16,6 +16,7 @@ import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactori
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers.RefactoringsWriters;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory.GenerationConstraintType;
+import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -74,9 +75,11 @@ public class RefactoringsGenerationApplicationStarter implements ApplicationStar
                 System.err.println("Empty scope. Probably project cannot be open. Reload it with IDEA.");
                 APPLICATION.exit(true, true);
             }
-            int numberOfRefactoringsToGenerate = (int) (scope.getFileCount() * 0.03);
+            int numberOfJavaFiles = PsiSearchUtil.getNumberOfJavaFiles(project, false);
+            int numberOfRefactoringsToGenerate = (int) (numberOfJavaFiles * 0.03);
             List<Refactoring> generatedRefactoring = RefactoringsGenerator.generate(GenerationConstraintsFactory.get(
                     GenerationConstraintType.ACCEPT_RELEVANT_PROPERTIES), numberOfRefactoringsToGenerate, scope);
+            System.out.println("Number of java files without test sources: " + numberOfJavaFiles);
             System.out.println("Asked to generate: " + numberOfRefactoringsToGenerate);
             printGeneratedRefactorings(generatedRefactoring, Paths.get(args[2]));
         } catch (Throwable throwable) {
