@@ -21,14 +21,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmResult;
+import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository;
 import org.jetbrains.research.groups.ml_methods.config.ArchitectureReloadedConfig;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringExecutionContext;
 import org.jetbrains.research.groups.ml_methods.ui.AlgorithmsSelectionPanel;
 import org.jetbrains.research.groups.ml_methods.ui.RefactoringsToolWindow;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
-import org.jetbrains.research.groups.ml_methods.utils.NotificationUtil;
 import org.jetbrains.research.groups.ml_methods.utils.MetricsProfilesUtil;
+import org.jetbrains.research.groups.ml_methods.utils.NotificationUtil;
 import org.jetbrains.research.groups.ml_methods.utils.RefactoringUtil;
 
 import javax.swing.*;
@@ -146,7 +147,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     public void analyzeBackground(@NotNull final Project project, @NotNull final AnalysisScope analysisScope,
                                   String identifier) {
-        List<Algorithm> availableAlgorithms = Arrays.asList(RefactoringExecutionContext.getAvailableAlgorithms());
+        List<Algorithm> availableAlgorithms = AlgorithmsRepository.getAvailableAlgorithms();
         final MetricsProfile metricsProfile = getMetricsProfile(new HashSet<>(availableAlgorithms));
         assert metricsProfile != null;
 

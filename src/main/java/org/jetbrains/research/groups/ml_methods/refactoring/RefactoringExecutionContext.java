@@ -14,15 +14,19 @@ import com.sixrr.metrics.profile.MetricsProfile;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
+import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmResult;
+import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.NoRequestedMetricException;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitiesStorage;
-import org.jetbrains.research.groups.ml_methods.algorithm.*;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearcher;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -33,15 +37,6 @@ import java.util.function.Consumer;
  */
 public class RefactoringExecutionContext {
     private static final Logger LOGGER = Logging.getLogger(RefactoringExecutionContext.class);
-
-    private static final List<Algorithm> ALGORITHMS = Arrays.asList(
-        new ARI(),
-        new AKMeans(),
-        new CCDA(),
-        new HAC(),
-        new MRI()
-    );
-
     @NotNull
     private final MetricsRunImpl metricsRun = new MetricsRunImpl();
     private final Project project;
@@ -63,7 +58,7 @@ public class RefactoringExecutionContext {
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
                                        @NotNull MetricsProfile profile,
                                        @Nullable Consumer<RefactoringExecutionContext> continuation) {
-        this(project, scope, profile, Arrays.asList(getAvailableAlgorithms()), true, continuation);
+        this(project, scope, profile, AlgorithmsRepository.getAvailableAlgorithms(), true, continuation);
     }
 
     /**
@@ -196,9 +191,5 @@ public class RefactoringExecutionContext {
     @NotNull
     public MetricsProfile getProfile() {
         return profile;
-    }
-
-    public static Algorithm[] getAvailableAlgorithms() {
-        return ALGORITHMS.toArray(new Algorithm[ALGORITHMS.size()]);
     }
 }
