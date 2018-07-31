@@ -1,4 +1,3 @@
 rootProject.name = 'ArchitectureReloaded'
 
 include 'ArchitectureReloaded', 'utils', 'openapi', 'stockmetrics', 'features-extraction', 'refactorings-generation', 'algorithms-evaluation'
-
