@@ -10,22 +10,22 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class AcceptRelevantPropertiesGenerationConstraint implements GenerationConstraint {
+public class AcceptRelevantPropertiesGenerationConstraint extends BasicGenerationConstraint {
     private final Map<PsiMethod, Set<PsiClass>> classesUsedInMethodBody = new HashMap<>();
     private final Map<PsiMethod, Set<PsiClass>> classesWhereMethodUsed = new HashMap<>();
 
     @Override
     public boolean acceptTargetClass(@NotNull PsiClass aClass) {
-        return !(ClassUtils.isAnonymous(aClass) || aClass.getQualifiedName() == null
-                || aClass.isEnum() || aClass.isInterface() || aClass.getQualifiedName().endsWith("Test"));
+        return super.acceptTargetClass(aClass) &&
+                !(ClassUtils.isAnonymous(aClass) ||
+                        aClass.isEnum() || aClass.isInterface() ||
+                        Objects.requireNonNull(aClass.getQualifiedName()).endsWith("Test"));
     }
 
     private boolean isValidMethodToMove(@NotNull PsiMethod method) {
         final PsiClass containingClass = method.getContainingClass();
-        return  containingClass != null &&
-                containingClass.getMethods().length > 1 &&
-                containingClass.getQualifiedName() != null &&
-                !containingClass.getQualifiedName().endsWith("Test") &&
+        return  Objects.requireNonNull(containingClass).getMethods().length > 1 &&
+                !Objects.requireNonNull(containingClass.getQualifiedName()).endsWith("Test") &&
                 !method.isConstructor() &&
                 !MethodUtils.isAbstract(method) &&
                 !MethodUtils.isOverriding(method) &&
@@ -41,15 +41,17 @@ public class AcceptRelevantPropertiesGenerationConstraint implements GenerationC
         classesUsedInMethodBody.put(method, new HashSet<>());
         classesWhereMethodUsed.put(method, new HashSet<>());
         method.accept(new PropertiesCalculator(method, scope));
-        return isValidMethodToMove(method);
+        return super.acceptMethod(method, scope) && isValidMethodToMove(method);
     }
 
     @Override
     public boolean acceptRefactoring(PsiMethod method, PsiClass aClass) {
+        if (!super.acceptRefactoring(method, aClass)) {
+            return false;
+        }
         Set<PsiClass> usedClassesInBody = classesUsedInMethodBody.get(method);
         Set<PsiClass> classesThatCallMethod = classesWhereMethodUsed.get(method);
-        return !Objects.requireNonNull(method.getContainingClass()).equals(aClass) &&
-                (usedClassesInBody.contains(aClass) || classesThatCallMethod.contains(aClass));
+        return usedClassesInBody.contains(aClass) || classesThatCallMethod.contains(aClass);
     }
 
     private class PropertiesCalculator extends JavaRecursiveElementVisitor {

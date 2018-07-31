@@ -11,66 +11,67 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.jetbrains.research.groups.ml_methods.extraction.refactoring.TextFormRefactoring.*;
+import static org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation.*;
 
 // TODO: understand why we come into one method more than once.
 public class RefactoringsFinder extends JavaRecursiveElementVisitor {
-    private final Map<TextFormRefactoring, RefactoringPair> refactorings = new HashMap<>();
-    private final Set<TextFormRefactoring> textualRefactorings;
+    private final Map<RefactoringTextRepresentation, RefactoringPair> refactorings = new HashMap<>();
+    private final List<RefactoringTextRepresentation> textualRefactorings;
 
-    private RefactoringsFinder(Set<TextFormRefactoring> textualRefactorings) {
+    private RefactoringsFinder(List<RefactoringTextRepresentation> textualRefactorings) {
         this.textualRefactorings = textualRefactorings;
     }
 
     @NotNull
-    static Set<Refactoring> find(AnalysisScope scope, Set<TextFormRefactoring> textualRefactorings) {
+    static List<Refactoring> find(AnalysisScope scope, List<RefactoringTextRepresentation> textualRefactorings) {
         RefactoringsFinder refactoringFinder = new RefactoringsFinder(textualRefactorings);
         System.out.println("Started finder...");
         scope.accept(refactoringFinder);
         return refactoringFinder.createFoundRefactorings();
     }
 
-    private Set<Refactoring> createFoundRefactorings() {
+    private List<Refactoring> createFoundRefactorings() {
         checkSearchResult();
         return refactorings.values().stream().
                 map(refactoringPair ->
                         new Refactoring(refactoringPair.method, refactoringPair.aClass)).
-                collect(Collectors.toSet());
+                collect(Collectors.toList());
     }
 
     private void checkSearchResult() {
         // Check that method and class are found both
-        for (Map.Entry<TextFormRefactoring, RefactoringPair> entry : refactorings.entrySet()) {
-            TextFormRefactoring textFormRefactoring = entry.getKey();
+        for (Map.Entry<RefactoringTextRepresentation, RefactoringPair> entry : refactorings.entrySet()) {
+            RefactoringTextRepresentation textFormRefactoring = entry.getKey();
             RefactoringPair refactoringPair = entry.getValue();
             if (refactoringPair.method == null) {
                 throw new IllegalStateException("No method found for: " + textFormRefactoring.getMethodsSignature() +
-                        " -> " + textFormRefactoring.getClassQualifiedName());
+                        " -> " + textFormRefactoring.getTargetClassQualifiedName());
             }
             if (refactoringPair.aClass == null) {
                 throw new IllegalStateException("No class found for: " + textFormRefactoring.getMethodsSignature() +
-                        " -> " + textFormRefactoring.getClassQualifiedName());
+                        " -> " + textFormRefactoring.getTargetClassQualifiedName());
             }
         }
         // Check that we haven't found something extra
-        Sets.SetView<TextFormRefactoring> foundWithoutNeeded =
-                Sets.difference(refactorings.keySet(), new HashSet<>(textualRefactorings));
+        Set<RefactoringTextRepresentation> textualRefactoringsSet = new HashSet<>(textualRefactorings);
+        Sets.SetView<RefactoringTextRepresentation> foundWithoutNeeded =
+                Sets.difference(refactorings.keySet(), textualRefactoringsSet);
         foundWithoutNeeded.immutableCopy().stream().findAny().ifPresent(textFormRefactoring -> {
             throw new IllegalStateException("Found unnecessary: " + textFormRefactoring.getMethodsSignature() +
-                    " -> " + textFormRefactoring.getClassQualifiedName());
+                    " -> " + textFormRefactoring.getTargetClassQualifiedName());
         });
         // Check that we found all that is necessary
-        Sets.SetView<TextFormRefactoring> neededWithoutFound =
-                Sets.difference(new HashSet<>(textualRefactorings), refactorings.keySet());
+        Sets.SetView<RefactoringTextRepresentation> neededWithoutFound =
+                Sets.difference(textualRefactoringsSet, refactorings.keySet());
         neededWithoutFound.immutableCopy().stream().findAny().ifPresent(textFormRefactoring -> {
             throw new IllegalStateException("Not found: " + textFormRefactoring.getMethodsSignature() +
-                    " -> " + textFormRefactoring.getClassQualifiedName());
+                    " -> " + textFormRefactoring.getTargetClassQualifiedName());
         });
     }
 
     @Override
     public void visitMethod(PsiMethod method) {
-        Set<TextFormRefactoring> refactoringsOfPsiMethod = getRefactoringOfGivenMethod(textualRefactorings, method);
+        List<RefactoringTextRepresentation> refactoringsOfPsiMethod = getRefactoringOfGivenMethod(textualRefactorings, method);
         refactoringsOfPsiMethod.forEach(textFormRefactoring ->
                 refactorings.computeIfAbsent(textFormRefactoring, k -> new RefactoringPair()).
                         setMethod(method));
@@ -79,7 +80,7 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
 
     @Override
     public void visitClass(PsiClass aClass) {
-        for (TextFormRefactoring refactoringToPsiClass : getRefactoringsToGivenClass(textualRefactorings, aClass)) {
+        for (RefactoringTextRepresentation refactoringToPsiClass : getRefactoringsToGivenClass(textualRefactorings, aClass)) {
             refactorings.computeIfAbsent(refactoringToPsiClass, k -> new RefactoringPair()).setClass(aClass);
         }
         super.visitClass(aClass);

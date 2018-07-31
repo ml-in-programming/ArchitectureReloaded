@@ -12,18 +12,18 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.parsers.ParserForJMoveDataSet;
+import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation;
+import org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers.RefactoringsWriters;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory.GenerationConstraintType;
 import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class RefactoringsGenerationApplicationStarter implements ApplicationStarter {
     private static final ApplicationEx APPLICATION = (ApplicationEx) ApplicationManager.getApplication();
@@ -91,15 +91,8 @@ public class RefactoringsGenerationApplicationStarter implements ApplicationStar
 
     private void printGeneratedRefactorings(List<Refactoring> generatedRefactoring, Path outputPath) throws IOException {
         System.out.println("Generated " + generatedRefactoring.size() + " refactorings");
-
-        try (PrintWriter out = new PrintWriter(Files.newOutputStream(outputPath))) {
-            for (Refactoring refactoring : generatedRefactoring) {
-                out.print(ParserForJMoveDataSet.getRefactoringInTextForm(refactoring));
-                out.print(System.lineSeparator());
-            }
-        } catch (IOException e) {
-            LOGGER.error("Failed to save feature on disk: " + e.getMessage());
-            throw e;
-        }
+        RefactoringsWriters.getJBWriter().write(generatedRefactoring.stream().
+                map(RefactoringTextRepresentation::new).collect(Collectors.toList()),
+                outputPath);
     }
 }
