@@ -22,6 +22,9 @@ public class AlgorithmEvaluator {
                 MetricsProfilesUtil.createProfile("evaluation_profile", algorithm.requiredMetrics());
         RefactoringExecutionContext context = new RefactoringExecutionContext(scope.getProject(), scope, profile,
                 Collections.singletonList(algorithm), false, null);
+
+        context.executeSynchronously();
+
         List<Refactoring> foundRefactorings =
                 context.getAlgorithmResults()
                         .get(0)

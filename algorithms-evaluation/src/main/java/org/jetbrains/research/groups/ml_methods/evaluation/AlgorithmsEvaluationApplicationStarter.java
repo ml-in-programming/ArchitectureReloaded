@@ -1,37 +1,17 @@
 package org.jetbrains.research.groups.ml_methods.evaluation;
 
-import com.intellij.analysis.AnalysisScope;
-import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationStarter;
 import com.intellij.openapi.application.ex.ApplicationEx;
-import com.intellij.openapi.project.Project;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository;
-import org.jetbrains.research.groups.ml_methods.extraction.MoveMethodFeaturesExtractor;
-import org.jetbrains.research.groups.ml_methods.extraction.features.extractors.*;
-import org.jetbrains.research.groups.ml_methods.extraction.features.vector.FeatureVector;
-import org.jetbrains.research.groups.ml_methods.extraction.features.vector.VectorSerializer;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringsLoader;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers.RefactoringsReaders;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers.RefactoringsWriters;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import static org.jetbrains.research.groups.ml_methods.utils.MethodUtils.extractMethodDeclaration;
 
 
 public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarter {
@@ -81,7 +61,7 @@ public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarte
             System.out.println("Number of bad: " + evaluationResult.getNumberOfBad());
             System.out.println("Number of found bad: " + evaluationResult.getNumberOfFoundBad());
         } catch (Throwable throwable) {
-            System.out.println("Error: "+ throwable.getMessage());
+            System.out.println(throwable.getClass().getSimpleName() + ": " + throwable.getMessage());
             throwable.printStackTrace();
         } finally {
             APPLICATION.exit(true, true);

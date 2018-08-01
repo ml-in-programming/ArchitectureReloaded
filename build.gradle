@@ -27,6 +27,7 @@ dependencies {
   compile project(':features-extraction')
   compile project(':refactorings-generation')
   compile project(':algorithms-evaluation')
+  compile project(':algorithms')
   compile files('lib/args4j-2.32.jar', 'lib/jcommon-0.9.1.jar', 'lib/jfreechart-0.9.16.jar')
 
   testCompile project(':utils').sourceSets.test.output

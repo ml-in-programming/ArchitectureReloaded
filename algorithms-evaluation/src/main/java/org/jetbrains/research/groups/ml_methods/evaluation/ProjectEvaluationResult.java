@@ -1,6 +1,7 @@
 package org.jetbrains.research.groups.ml_methods.evaluation;
 
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
 
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ public class ProjectEvaluationResult implements EvaluationResult {
     private final List<Refactoring> goodRefactorings;
     private final List<Refactoring> foundBadRefactorings;
     private final List<Refactoring> badRefactorings;
+    private final @NotNull List<Refactoring> foundOthersRefactorings;
 
     public ProjectEvaluationResult(List<Refactoring> foundRefactorings,
                                    List<Refactoring> goodRefactorings,
@@ -24,6 +26,11 @@ public class ProjectEvaluationResult implements EvaluationResult {
         foundBadRefactorings.removeIf(refactoring -> !foundRefactoringsSet.contains(refactoring));
         this.goodRefactorings = new ArrayList<>(goodRefactorings);
         this.badRefactorings = new ArrayList<>(badRefactorings);
+
+        foundOthersRefactorings = new ArrayList<>(foundRefactorings);
+        foundOthersRefactorings.removeIf(
+            refactoring -> goodRefactorings.contains(refactoring) || badRefactorings.contains(refactoring)
+        );
     }
 
     @Override
@@ -44,5 +51,10 @@ public class ProjectEvaluationResult implements EvaluationResult {
     @Override
     public int getNumberOfBad() {
         return badRefactorings.size();
+    }
+
+    @Override
+    public int getNumberOfFoundOthers() {
+        return foundOthersRefactorings.size();
     }
 }
