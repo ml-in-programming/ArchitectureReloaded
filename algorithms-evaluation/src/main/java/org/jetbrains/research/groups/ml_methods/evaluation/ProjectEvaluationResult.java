@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class ProjectEvaluationResult implements EvaluationResult {
+public class ProjectEvaluationResult extends AbstractEvaluationResult {
     private final List<Refactoring> foundGoodRefactorings;
     private final List<Refactoring> goodRefactorings;
     private final List<Refactoring> foundBadRefactorings;

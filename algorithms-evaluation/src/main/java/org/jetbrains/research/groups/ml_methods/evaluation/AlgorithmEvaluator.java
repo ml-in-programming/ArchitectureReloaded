@@ -30,6 +30,7 @@ public class AlgorithmEvaluator {
                         .get(0)
                         .getRefactorings()
                         .stream()
+                        .peek(it -> System.out.println(it.getAccuracy()))
                         .map(refactoring -> (MoveMethodRefactoring) refactoring)
                         .map(moveMethodRefactoring -> new Refactoring(moveMethodRefactoring.getMethod(),
                                 moveMethodRefactoring.getTargetClass()))

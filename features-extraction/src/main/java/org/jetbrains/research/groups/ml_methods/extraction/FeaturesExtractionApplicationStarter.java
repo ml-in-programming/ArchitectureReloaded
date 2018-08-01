@@ -1,11 +1,11 @@
 package org.jetbrains.research.groups.ml_methods.extraction;
 
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationStarter;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.project.Project;
+import com.sixrr.metrics.utils.ProjectUtils;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static org.jetbrains.research.groups.ml_methods.utils.MethodUtils.extractMethodDeclaration;
+import static com.sixrr.metrics.utils.MethodUtils.extractMethodDeclaration;
 
 
 public class FeaturesExtractionApplicationStarter implements ApplicationStarter {
@@ -71,7 +71,7 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
             System.out.println("Opening project...");
             System.out.println(projectPath.toAbsolutePath().toString());
 
-            final Project project = ProjectUtil.openOrImport(projectPath.toAbsolutePath().toString(), null, false);
+            final Project project = ProjectUtils.loadProjectWithAllDependencies(projectPath);
             if (project == null) {
                 System.err.println("Cannot open project. Check that path is correct.");
                 APPLICATION.exit(true, true);

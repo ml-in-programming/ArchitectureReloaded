@@ -1,8 +1,8 @@
 package org.jetbrains.research.groups.ml_methods.evaluation;
 
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.project.Project;
+import com.sixrr.metrics.utils.ProjectUtils;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringsLoader;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers.RefactoringsReaders;
@@ -13,8 +13,7 @@ import java.util.List;
 
 public class ProjectLoader {
     public static ProjectToEvaluate loadForEvaluation(Path rootFolder) throws IOException {
-        final Project project = ProjectUtil.openOrImport(rootFolder.resolve("project").toAbsolutePath().toString(),
-                null, false);
+        final Project project = ProjectUtils.loadProjectWithAllDependencies(rootFolder.resolve("project"));
         if (project == null) {
             throw new IllegalArgumentException("Cannot open project. Check that path is correct.");
         }

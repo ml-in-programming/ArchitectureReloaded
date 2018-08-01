@@ -6,17 +6,23 @@ import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.utils.MethodUtils;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation.*;
+import static org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation.getRefactoringOfGivenMethod;
+import static org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation.getRefactoringsToGivenClass;
 
 // TODO: understand why we come into one method more than once.
 public class RefactoringsFinder extends JavaRecursiveElementVisitor {
+    private static final @NotNull Logger LOGGER = Logger.getLogger(RefactoringsFinder.class);
+
     private final Map<RefactoringTextRepresentation, RefactoringPair> refactorings = new HashMap<>();
     private final List<RefactoringTextRepresentation> textualRefactorings;
+    private int visitedMethods = 0;
+    private int visitedClasses = 0;
 
     private RefactoringsFinder(List<RefactoringTextRepresentation> textualRefactorings) {
         this.textualRefactorings = textualRefactorings;
@@ -25,12 +31,15 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
     @NotNull
     static List<Refactoring> find(AnalysisScope scope, List<RefactoringTextRepresentation> textualRefactorings) {
         RefactoringsFinder refactoringFinder = new RefactoringsFinder(textualRefactorings);
-        System.out.println("Started finder...");
+        LOGGER.info("Started finder...");
         scope.accept(refactoringFinder);
+        LOGGER.info("Finder finished. Gathering results.");
         return refactoringFinder.createFoundRefactorings();
     }
 
     private List<Refactoring> createFoundRefactorings() {
+        LOGGER.info("Visited methods: " + visitedMethods);
+        LOGGER.info("Visited classes: " + visitedClasses);
         checkSearchResult();
         return refactorings.values().stream().
                 map(refactoringPair ->
@@ -71,6 +80,7 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
 
     @Override
     public void visitMethod(PsiMethod method) {
+        visitedMethods++;
         List<RefactoringTextRepresentation> refactoringsOfPsiMethod = getRefactoringOfGivenMethod(textualRefactorings, method);
         refactoringsOfPsiMethod.forEach(textFormRefactoring ->
                 refactorings.computeIfAbsent(textFormRefactoring, k -> new RefactoringPair()).
@@ -80,6 +90,7 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
 
     @Override
     public void visitClass(PsiClass aClass) {
+        visitedClasses++;
         for (RefactoringTextRepresentation refactoringToPsiClass : getRefactoringsToGivenClass(textualRefactorings, aClass)) {
             refactorings.computeIfAbsent(refactoringToPsiClass, k -> new RefactoringPair()).setClass(aClass);
         }

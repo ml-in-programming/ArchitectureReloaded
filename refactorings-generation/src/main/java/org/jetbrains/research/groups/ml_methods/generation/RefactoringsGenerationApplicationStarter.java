@@ -1,11 +1,11 @@
 package org.jetbrains.research.groups.ml_methods.generation;
 
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationStarter;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.project.Project;
+import com.sixrr.metrics.utils.ProjectUtils;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -63,8 +63,7 @@ public class RefactoringsGenerationApplicationStarter implements ApplicationStar
             Path projectPath = Paths.get(args[1]);
             System.out.println("Opening project...");
             System.out.println(projectPath.toAbsolutePath().toString());
-            final Project project = ProjectUtil.openOrImport(projectPath.toAbsolutePath().toString(),
-                    null, false);
+            final Project project = ProjectUtils.loadProjectWithAllDependencies(projectPath);
             if (project == null) {
                 System.err.println("Cannot open project. Check that path is correct.");
                 APPLICATION.exit(true, true);

@@ -2,8 +2,8 @@ package org.jetbrains.research.groups.ml_methods.extraction.features.extractors;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
+import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.utils.MethodUtils;
 
 import java.util.function.Predicate;
 

@@ -10,4 +10,12 @@ public interface EvaluationResult {
     int getNumberOfFoundBad();
 
     int getNumberOfFoundOthers();
+
+    double getGoodPrecision();
+
+    double getGoodRecall();
+
+    double getBadPrecision();
+
+    double getBadRecall();
 }
