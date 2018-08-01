@@ -132,15 +132,15 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
         final MetricsProfile metricsProfile = getMetricsProfile(selectedAlgorithms);
         assert metricsProfile != null;
-        final boolean isFieldRefactoringAvailable =
-            ArchitectureReloadedConfig.getInstance().isFieldRefactoringAvailable();
+        final boolean enableFieldRefactoring =
+            ArchitectureReloadedConfig.getInstance().enableFieldRefactoring();
 
         new RefactoringExecutionContext(
             project,
             analysisScope,
             metricsProfile,
             selectedAlgorithms,
-            isFieldRefactoringAvailable,
+            enableFieldRefactoring,
             this::showDialogs
         ).executeAsync();
     }

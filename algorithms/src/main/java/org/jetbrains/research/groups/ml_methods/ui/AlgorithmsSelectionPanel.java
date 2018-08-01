@@ -49,6 +49,7 @@ public class AlgorithmsSelectionPanel extends JPanel {
         add(tabbedPane, constraints);
     }
 
+    @NotNull
     private static Tab createRefactoringsTab() {
         final ArchitectureReloadedConfig config = ArchitectureReloadedConfig.getInstance();
 
@@ -76,8 +77,9 @@ public class AlgorithmsSelectionPanel extends JPanel {
         final JCheckBox fieldsRefactoringsCheckBox = new JBCheckBox(
             ArchitectureReloadedBundle.message("search.for.move.field.refactorings")
         );
-
-        fieldsRefactoringsCheckBox.addActionListener(e -> config.setFieldRefactoringsAvailable());
+        fieldsRefactoringsCheckBox.setSelected(config.enableFieldRefactoring());
+        fieldsRefactoringsCheckBox.addActionListener(e ->
+                config.setEnableFieldRefactoring(fieldsRefactoringsCheckBox.isSelected()));
         panel.add(fieldsRefactoringsCheckBox, constraints);
 
         return new Tab(panel, ArchitectureReloadedBundle.message("refactorings.tab.text"));
