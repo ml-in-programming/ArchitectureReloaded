@@ -26,6 +26,7 @@ dependencies {
   compile project(':stockmetrics')
   compile project(':features-extraction')
   compile project(':refactorings-generation')
+  compile project(':algorithms-evaluation')
   compile files('lib/args4j-2.32.jar', 'lib/jcommon-0.9.1.jar', 'lib/jfreechart-0.9.16.jar')
 
   testCompile project(':utils').sourceSets.test.output
@@ -46,6 +47,15 @@ task runFeaturesExtraction(dependsOn: runIde) {}
 gradle.taskGraph.whenReady { graph ->
   if (graph.hasTask(runFeaturesExtraction)) {
     runIde.args 'features-extraction', "$pathToProject", "$pathToRefactorings", "$pathToFeatures"
+    runIde.jvmArgs '-Djava.awt.headless=true'
+  }
+}
+
+task runAlgorithmsEvaluation(dependsOn: runIde) {}
+
+gradle.taskGraph.whenReady { graph ->
+  if (graph.hasTask(runAlgorithmsEvaluation)) {
+    runIde.args 'algorithms-evaluation', "$pathToDataset", "$algorithmName"
     runIde.jvmArgs '-Djava.awt.headless=true'
   }
 }

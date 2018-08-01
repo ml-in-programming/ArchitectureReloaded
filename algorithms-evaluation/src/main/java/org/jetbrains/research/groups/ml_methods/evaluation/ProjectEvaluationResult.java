@@ -25,4 +25,24 @@ public class ProjectEvaluationResult implements EvaluationResult {
         this.goodRefactorings = new ArrayList<>(goodRefactorings);
         this.badRefactorings = new ArrayList<>(badRefactorings);
     }
+
+    @Override
+    public int getNumberOfFoundGood() {
+        return foundGoodRefactorings.size();
+    }
+
+    @Override
+    public int getNumberOfFoundBad() {
+        return foundBadRefactorings.size();
+    }
+
+    @Override
+    public int getNumberOfGood() {
+        return goodRefactorings.size();
+    }
+
+    @Override
+    public int getNumberOfBad() {
+        return badRefactorings.size();
+    }
 }

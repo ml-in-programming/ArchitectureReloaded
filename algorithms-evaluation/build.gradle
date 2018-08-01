@@ -1,4 +1,3 @@
 dependencies {
     compile project(':features-extraction')
-    compile project(':')
 }
