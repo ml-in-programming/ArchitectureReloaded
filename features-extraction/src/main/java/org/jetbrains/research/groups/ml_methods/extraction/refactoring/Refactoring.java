@@ -2,11 +2,8 @@ package org.jetbrains.research.groups.ml_methods.extraction.refactoring;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiParameter;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
 
 public class Refactoring {
@@ -21,7 +18,23 @@ public class Refactoring {
         this.targetClass = targetClass;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Refactoring that = (Refactoring) o;
+        return Objects.equals(method, that.method) &&
+                Objects.equals(targetClass, that.targetClass);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(method, targetClass);
+    }
+
     public @NotNull
+
     PsiMethod getMethod() {
         return method;
     }
