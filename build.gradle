@@ -48,7 +48,7 @@ task runFeaturesExtraction(dependsOn: runIde) {}
 gradle.taskGraph.whenReady { graph ->
   if (graph.hasTask(runFeaturesExtraction)) {
     runIde.args 'features-extraction', "$pathToProject", "$pathToRefactorings", "$pathToFeatures"
-    runIde.jvmArgs '-Djava.awt.headless=true'
+    runIde.jvmArgs '-Djava.awt.headless=true', '-Xmx2048m'
   }
 }
 
@@ -57,7 +57,7 @@ task runReformatRefactorings(dependsOn: runIde) {}
 gradle.taskGraph.whenReady { graph ->
   if (graph.hasTask(runReformatRefactorings)) {
     runIde.args 'reformat-refactorings', "$pathToProject", "$pathIn", "$inFormatName", "$pathOut", "$outFormatName"
-    runIde.jvmArgs '-Djava.awt.headless=true'
+    runIde.jvmArgs '-Djava.awt.headless=true', '-Xmx2048m'
   }
 }
 
@@ -66,6 +66,6 @@ task runAlgorithmsEvaluation(dependsOn: runIde) {}
 gradle.taskGraph.whenReady { graph ->
   if (graph.hasTask(runAlgorithmsEvaluation)) {
     runIde.args 'algorithms-evaluation', "$pathToDataset", "$algorithmName"
-    runIde.jvmArgs '-Djava.awt.headless=true'
+    runIde.jvmArgs '-Djava.awt.headless=true', '-Xmx2048m'
   }
 }

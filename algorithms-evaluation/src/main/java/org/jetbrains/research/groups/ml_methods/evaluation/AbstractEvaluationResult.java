@@ -1,26 +1,31 @@
 package org.jetbrains.research.groups.ml_methods.evaluation;
 
 public abstract class AbstractEvaluationResult implements EvaluationResult {
-    private final int numberOfFoundBadAndGood = getNumberOfFoundBad() + getNumberOfFoundGood();
-    private final int numberOfBadAndGood = getNumberOfBad() + getNumberOfGood();
-
     @Override
     public double getGoodPrecision() {
-        return getNumberOfFoundGood() / numberOfFoundBadAndGood;
+        return (double) getNumberOfFoundGood() / getNumberOfFoundBadAndGood();
     }
 
     @Override
     public double getGoodRecall() {
-        return getNumberOfFoundGood() / getNumberOfGood();
+        return (double) getNumberOfFoundGood() / getNumberOfGood();
     }
 
     @Override
     public double getBadPrecision() {
-        return (getNumberOfBad() - getNumberOfFoundBad()) / (numberOfBadAndGood - numberOfFoundBadAndGood);
+        return (double) (getNumberOfBad() - getNumberOfFoundBad()) / (getNumberOfBadAndGood() - getNumberOfFoundBadAndGood());
     }
 
     @Override
     public double getBadRecall() {
-        return (getNumberOfBad() - getNumberOfFoundBad()) / getNumberOfBad();
+        return (double) (getNumberOfBad() - getNumberOfFoundBad()) / getNumberOfBad();
+    }
+
+    private int getNumberOfBadAndGood() {
+        return getNumberOfBad() + getNumberOfGood();
+    }
+
+    private int getNumberOfFoundBadAndGood() {
+        return getNumberOfFoundBad() + getNumberOfFoundGood();
     }
 }

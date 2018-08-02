@@ -43,4 +43,13 @@ public class AlgorithmEvaluator {
                                             @NotNull List<Refactoring> good, @NotNull List<Refactoring> bad) {
         return evaluate(new AnalysisScope(project), algorithm, good, bad);
     }
+
+    @NotNull
+    public static EvaluationResult evaluate(@NotNull ProjectToEvaluate projectToEvaluate,
+                                            @NotNull Algorithm algorithm) {
+        return evaluate(projectToEvaluate.getProject(),
+                algorithm,
+                projectToEvaluate.getGoodRefactorings(),
+                projectToEvaluate.getBadRefactorings());
+    }
 }

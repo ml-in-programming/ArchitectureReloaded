@@ -8,6 +8,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository;
 
 import java.nio.file.Path;
@@ -50,21 +51,29 @@ public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarte
             checkCommandLineArguments(args);
             Path datasetPath = Paths.get(args[1]);
             String algorithmName = args[2];
-            ProjectToEvaluate projectToEvaluate = ProjectLoader.loadForEvaluation(datasetPath);
-            EvaluationResult evaluationResult = AlgorithmEvaluator.evaluate(projectToEvaluate.getProject(),
-                    AlgorithmsRepository.getAlgorithmByName(algorithmName).orElseThrow(() ->
-                            new IllegalArgumentException("No such algorithm")),
-                    projectToEvaluate.getGoodRefactorings(),
-                    projectToEvaluate.getBadRefactorings());
-            System.out.println("Number of good: " + evaluationResult.getNumberOfGood());
-            System.out.println("Number of found good: " + evaluationResult.getNumberOfFoundGood());
-            System.out.println("Number of bad: " + evaluationResult.getNumberOfBad());
-            System.out.println("Number of found bad: " + evaluationResult.getNumberOfFoundBad());
+            Algorithm algorithm = AlgorithmsRepository.getAlgorithmByName(algorithmName).orElseThrow(() ->
+                    new IllegalArgumentException("No such algorithm"));
+            EvaluationResult evaluationResult = JBAlgorithmEvaluator.evaluateDataset(datasetPath, algorithm);
+            printEvaluationResult(evaluationResult);
         } catch (Throwable throwable) {
             System.out.println(throwable.getClass().getSimpleName() + ": " + throwable.getMessage());
             throwable.printStackTrace();
         } finally {
             APPLICATION.exit(true, true);
         }
+    }
+
+    private void printEvaluationResult(EvaluationResult evaluationResult) {
+        System.out.println("==================");
+        System.out.println("EVALUATION RESULT");
+        System.out.println("Number of good: " + evaluationResult.getNumberOfGood());
+        System.out.println("Number of found good: " + evaluationResult.getNumberOfFoundGood());
+        System.out.println("Number of bad: " + evaluationResult.getNumberOfBad());
+        System.out.println("Number of found bad: " + evaluationResult.getNumberOfFoundBad());
+        System.out.println("Number of found others: " + evaluationResult.getNumberOfFoundOthers());
+        System.out.println("Good precision: " + evaluationResult.getGoodPrecision());
+        System.out.println("Bad precision: " + evaluationResult.getBadPrecision());
+        System.out.println("Good recall: " + evaluationResult.getGoodRecall());
+        System.out.println("Bad recall: " + evaluationResult.getBadRecall());
     }
 }
