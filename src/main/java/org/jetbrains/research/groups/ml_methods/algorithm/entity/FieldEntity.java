@@ -1,5 +1,7 @@
 package org.jetbrains.research.groups.ml_methods.algorithm.entity;
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiField;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.utils.MethodUtils;
@@ -19,12 +21,16 @@ public class FieldEntity extends CodeEntity {
         super(relevantProperties);
         this.psiField = psiField;
 
-        isMovable = MethodUtils.isStatic(psiField);
+        isMovable = ApplicationManager.getApplication().runReadAction(
+            (Computable<Boolean>) () ->  MethodUtils.isStatic(psiField)
+        );
     }
 
     @Override
     public @NotNull String getIdentifier() {
-        return getHumanReadableName(psiField.getContainingClass()) + "." + psiField.getName();
+        return ApplicationManager.getApplication().runReadAction(
+            (Computable<String>) () -> getHumanReadableName(psiField.getContainingClass()) + "." + psiField.getName()
+        );
     }
 
     @Override

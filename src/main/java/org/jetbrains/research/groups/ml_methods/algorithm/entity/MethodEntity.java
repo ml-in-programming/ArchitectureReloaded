@@ -27,7 +27,9 @@ public class MethodEntity extends CodeEntity {
 
     @Override
     public @NotNull String getIdentifier() {
-        return MethodUtils.calculateSignature(psiMethod);
+        return ApplicationManager.getApplication().runReadAction(
+            (Computable<String>) () -> MethodUtils.calculateSignature(psiMethod)
+        );
     }
 
     @Override
