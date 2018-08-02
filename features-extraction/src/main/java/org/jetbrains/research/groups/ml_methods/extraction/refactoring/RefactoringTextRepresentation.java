@@ -5,12 +5,30 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
-public class RefactoringTextRepresentation {
+public abstract class RefactoringTextRepresentation {
+    abstract boolean isOfGivenMethod(PsiMethod method);
+    abstract boolean isToGivenPsiClass(PsiClass aClass);
+
+
+    public String getTargetClassQualifiedName() {
+        return targetClassQualifiedName;
+    }
+
+    public String getSourceClassQualifiedName() {
+        return sourceClassQualifiedName;
+    }
+
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public List<String> getParamsClasses() {
+        return paramsClasses;
+    }
+
     private final String targetClassQualifiedName;
     private final String sourceClassQualifiedName;
     private final String methodName;
@@ -43,6 +61,11 @@ public class RefactoringTextRepresentation {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(targetClassQualifiedName, sourceClassQualifiedName, methodName, paramsClasses);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -51,12 +74,6 @@ public class RefactoringTextRepresentation {
                 Objects.equals(sourceClassQualifiedName, that.sourceClassQualifiedName) &&
                 Objects.equals(methodName, that.methodName) &&
                 Objects.equals(paramsClasses, that.paramsClasses);
-    }
-
-    @Override
-    public int hashCode() {
-
-        return Objects.hash(targetClassQualifiedName, sourceClassQualifiedName, methodName, paramsClasses);
     }
 
     String getMethodsSignature() {
@@ -78,46 +95,7 @@ public class RefactoringTextRepresentation {
         return methodsSignature.toString();
     }
 
-    private boolean isOfGivenMethod(PsiMethod method) {
-        List<String> methodsParams = Arrays.stream(method.getParameterList().getParameters()).
-                map(psiParameter -> psiParameter.getType().getCanonicalText()).
-                collect(Collectors.toList());
-        return method.getContainingClass() != null &&
-                methodName.equals(method.getName()) &&
-                sourceClassQualifiedName.equals(method.getContainingClass().getQualifiedName()) &&
-                paramsClasses.equals(methodsParams);
-    }
-
-    private boolean isToGivenPsiClass(PsiClass aClass) {
-        return targetClassQualifiedName.equals(aClass.getQualifiedName());
-    }
-
-    static List<RefactoringTextRepresentation> getRefactoringOfGivenMethod(List<RefactoringTextRepresentation> textualRefactorings,
-                                                                          PsiMethod method) {
-        return textualRefactorings.stream().
-                filter(textualRefactoring -> textualRefactoring.isOfGivenMethod(method)).collect(Collectors.toList());
-    }
-
-    static List<RefactoringTextRepresentation> getRefactoringsToGivenClass(List<RefactoringTextRepresentation> textualRefactorings,
-                                                                          PsiClass aClass) {
-        return textualRefactorings.stream().
-                filter(textualRefactoring -> textualRefactoring.isToGivenPsiClass(aClass)).
-                collect(Collectors.toList());
-    }
-
-    public String getTargetClassQualifiedName() {
+    String getClassQualifiedName() {
         return targetClassQualifiedName;
-    }
-
-    public String getSourceClassQualifiedName() {
-        return sourceClassQualifiedName;
-    }
-
-    public String getMethodName() {
-        return methodName;
-    }
-
-    public List<String> getParamsClasses() {
-        return paramsClasses;
     }
 }

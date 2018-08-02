@@ -1,5 +1,6 @@
 package org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers;
 
+import org.jetbrains.research.groups.ml_methods.extraction.refactoring.JMoveRefactoringTextRepresentation;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation;
 
 import java.io.BufferedReader;
@@ -15,6 +16,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class JMoveReader implements RefactoringsReader {
+    private static final String NAME = "JMove";
+
     @Override
     public List<RefactoringTextRepresentation> read(Path refactoringsPath) throws IOException {
         return parseLines(Files.lines(refactoringsPath));
@@ -25,9 +28,14 @@ public class JMoveReader implements RefactoringsReader {
         return parseLines(new BufferedReader(new InputStreamReader(inputStream)).lines());
     }
 
+    @Override
+    public String getName() {
+        return NAME;
+    }
+
     private List<RefactoringTextRepresentation> parseLines(Stream<String> lines) {
         return lines.filter(line -> line.startsWith("method")).
-                map(line -> new RefactoringTextRepresentation(getMethodPackage(line), getMethodName(line),
+                map(line -> new JMoveRefactoringTextRepresentation(getMethodPackage(line), getMethodName(line),
                         getMethodParams(line), getClassQualifiedName(line))).
                 collect(Collectors.toList());
     }

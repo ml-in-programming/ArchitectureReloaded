@@ -12,9 +12,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation.getRefactoringOfGivenMethod;
-import static org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation.getRefactoringsToGivenClass;
-
 // TODO: understand why we come into one method more than once.
 public class RefactoringsFinder extends JavaRecursiveElementVisitor {
     private static final @NotNull Logger LOGGER = Logger.getLogger(RefactoringsFinder.class);
@@ -81,7 +78,8 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
     @Override
     public void visitMethod(PsiMethod method) {
         visitedMethods++;
-        List<RefactoringTextRepresentation> refactoringsOfPsiMethod = getRefactoringOfGivenMethod(textualRefactorings, method);
+        List<RefactoringTextRepresentation> refactoringsOfPsiMethod =
+                RefactoringUtils.getRefactoringsOfGivenMethod(textualRefactorings, method);
         refactoringsOfPsiMethod.forEach(textFormRefactoring ->
                 refactorings.computeIfAbsent(textFormRefactoring, k -> new RefactoringPair()).
                         setMethod(method));
@@ -91,7 +89,8 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
     @Override
     public void visitClass(PsiClass aClass) {
         visitedClasses++;
-        for (RefactoringTextRepresentation refactoringToPsiClass : getRefactoringsToGivenClass(textualRefactorings, aClass)) {
+        for (RefactoringTextRepresentation refactoringToPsiClass :
+                RefactoringUtils.getRefactoringsToGivenClass(textualRefactorings, aClass)) {
             refactorings.computeIfAbsent(refactoringToPsiClass, k -> new RefactoringPair()).setClass(aClass);
         }
         super.visitClass(aClass);
@@ -109,7 +108,8 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
                 String oldSignature = MethodUtils.calculateSignature(oldMethod);
                 String newSignature = MethodUtils.calculateSignature(method);
 
-                throw new IllegalStateException("Refactorings set is ambiguous. Candidates: " + oldSignature + ", " + newSignature);
+                throw new IllegalStateException("Refactorings set is ambiguous. Candidates: " +
+                        oldSignature + ", " + newSignature);
             }
         }
 

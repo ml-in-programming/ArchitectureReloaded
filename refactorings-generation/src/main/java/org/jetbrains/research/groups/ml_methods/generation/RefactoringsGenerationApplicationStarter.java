@@ -12,7 +12,6 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers.RefactoringsWriters;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory.GenerationConstraintType;
@@ -23,7 +22,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class RefactoringsGenerationApplicationStarter implements ApplicationStarter {
     private static final ApplicationEx APPLICATION = (ApplicationEx) ApplicationManager.getApplication();
@@ -90,8 +88,6 @@ public class RefactoringsGenerationApplicationStarter implements ApplicationStar
 
     private void printGeneratedRefactorings(List<Refactoring> generatedRefactoring, Path outputPath) throws IOException {
         System.out.println("Generated " + generatedRefactoring.size() + " refactorings");
-        RefactoringsWriters.getJBWriter().write(generatedRefactoring.stream().
-                map(RefactoringTextRepresentation::new).collect(Collectors.toList()),
-                outputPath);
+        RefactoringsWriters.getJBWriter().write(generatedRefactoring, outputPath);
     }
 }

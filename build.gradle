@@ -52,6 +52,15 @@ gradle.taskGraph.whenReady { graph ->
   }
 }
 
+task runReformatRefactorings(dependsOn: runIde) {}
+
+gradle.taskGraph.whenReady { graph ->
+  if (graph.hasTask(runReformatRefactorings)) {
+    runIde.args 'reformat-refactorings', "$pathToProject", "$pathIn", "$inFormatName", "$pathOut", "$outFormatName"
+    runIde.jvmArgs '-Djava.awt.headless=true'
+  }
+}
+
 task runAlgorithmsEvaluation(dependsOn: runIde) {}
 
 gradle.taskGraph.whenReady { graph ->

@@ -10,4 +10,5 @@ import java.util.List;
 public interface RefactoringsReader {
     List<RefactoringTextRepresentation> read(Path refactoringsPath) throws IOException;
     List<RefactoringTextRepresentation> read(InputStream inputStream) throws IOException;
+    String getName();
 }

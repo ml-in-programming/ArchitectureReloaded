@@ -11,29 +11,26 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.extraction.features.extractors.*;
-import org.jetbrains.research.groups.ml_methods.extraction.features.vector.FeatureVector;
-import org.jetbrains.research.groups.ml_methods.extraction.features.vector.VectorSerializer;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringsLoader;
+import org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers.RefactoringsReader;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers.RefactoringsReaders;
+import org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers.RefactoringsWriter;
+import org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers.RefactoringsWriters;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
 import static com.sixrr.metrics.utils.MethodUtils.extractMethodDeclaration;
 
 
-public class FeaturesExtractionApplicationStarter implements ApplicationStarter {
+public class FormatterApplicationStarter implements ApplicationStarter {
     private static final ApplicationEx APPLICATION = (ApplicationEx) ApplicationManager.getApplication();
 
     private static final @NotNull Logger LOGGER =
-        Logger.getLogger(FeaturesExtractionApplicationStarter.class);
+        Logger.getLogger(FormatterApplicationStarter.class);
 
     static {
         LOGGER.setLevel(Level.INFO);
@@ -41,19 +38,19 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
     }
 
     private static void checkCommandLineArguments(@NotNull String[] args) {
-        if (args.length != 4) {
+        if (args.length != 6) {
             printUsage();
             APPLICATION.exit(true, true);
         }
     }
 
     private static void printUsage() {
-        System.out.println("Usage: features-extraction <path to project> <path to correct refactorings> <path to output folder>");
+        System.out.println("Usage: reformat-refactorings <pathToProject> <in> <inFormatName> <out> <outFormatName>");
     }
 
     @Override
     public String getCommandName() {
-        return "features-extraction";
+        return "reformat-refactorings";
     }
 
     @Override
@@ -64,10 +61,17 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
         try {
             checkCommandLineArguments(args);
             Path projectPath = Paths.get(args[1]);
-            Path refactoringsPath = Paths.get(args[2]);
+            Path in = Paths.get(args[2]);
+            RefactoringsReader reader = RefactoringsReaders
+                    .getReaderByName(args[3])
+                    .orElseThrow(() -> new IllegalArgumentException("No reader in format " + args[3] + " is available"));
+            Path out = Paths.get(args[4]);
+            RefactoringsWriter writer = RefactoringsWriters
+                    .getWriterByName(args[5])
+                    .orElseThrow(() -> new IllegalArgumentException("No writer in format " + args[5] + " is available"));
+
             System.out.println("Opening project...");
             System.out.println(projectPath.toAbsolutePath().toString());
-
             final Project project = ProjectUtils.loadProjectWithAllDependencies(projectPath);
             if (project == null) {
                 System.err.println("Cannot open project. Check that path is correct.");
@@ -76,7 +80,7 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
             final AnalysisScope scope = new AnalysisScope(Objects.requireNonNull(project));
             List<Refactoring> refactorings;
             try {
-                refactorings = RefactoringsLoader.load(refactoringsPath, RefactoringsReaders.getJBReader(), scope);
+                refactorings = RefactoringsLoader.load(in, reader, scope);
             } catch (Exception e) {
                 System.err.println("Error during refactorings search. Reason: " + e.getMessage());
                 e.printStackTrace();
@@ -91,53 +95,12 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
                                     refactoring.getTargetClass() + System.lineSeparator() +
                                     extractMethodDeclaration(refactoring.getMethod()))
             );
-
-            List<FeatureVector> vectors;
-            try {
-                vectors = MoveMethodFeaturesExtractor.getInstance().extract(
-                    scope,
-                    new LinkedList<>(refactorings),
-                    Arrays.asList(
-                        AnotherInstanceCallersExtractor.class,
-                        AnotherInstanceNotPublicCallTargetsExtractor.class,
-                        AnotherInstancePublicCallTargetsExtractor.class,
-                        SameClassFieldsAccessedExtractor.class,
-                        SameClassStaticNotPublicCallTargetsExtractor.class,
-                        SameClassStaticPublicCallTargetsExtractor.class,
-                        SameInstanceCallersExtractor.class,
-                        SameInstanceNotPublicCallTargetsExtractor.class,
-                        SameInstancePublicCallTargetsExtractor.class,
-                        TargetClassCallersExtractor.class,
-                        TargetClassFieldsAccessedExtractor.class,
-                        TargetClassInstanceCallTargetsExtractor.class,
-                        TargetClassStaticCallTargetsExtractor.class
-                    )
-                );
-            } catch (IllegalAccessException | InstantiationException e) {
-                System.err.println("Error during features extraction. Reason: " + e.getMessage());
-                e.printStackTrace();
-                APPLICATION.exit(true, true);
-                return;
-            }
-
-            try {
-                Path path = Paths.get(args[3]).toAbsolutePath();
-                path.toFile().mkdirs();
-
-                VectorSerializer.getInstance().serialize(vectors, path);
-            } catch (IOException e) {
-                System.err.println(
-                    "Error during features serialization. Reason: " +
-                    e.getClass().getSimpleName() + ". " + e.getMessage()
-                );
-                e.printStackTrace();
-                APPLICATION.exit(true, true);
-                return;
-            }
-            APPLICATION.exit(true, true);
+            writer.write(refactorings, out);
         } catch (Throwable throwable) {
             System.out.println("Error: "+ throwable.getMessage());
             throwable.printStackTrace();
+        } finally {
+            APPLICATION.exit(true, true);
         }
     }
 }
