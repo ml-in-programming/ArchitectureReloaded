@@ -1,5 +1,7 @@
 package org.jetbrains.research.groups.ml_methods.evaluation;
 
+import java.util.List;
+
 public interface EvaluationResult {
     int getNumberOfGood();
 
@@ -18,4 +20,8 @@ public interface EvaluationResult {
     double getBadPrecision();
 
     double getBadRecall();
+
+    List<Double> getErrorSquares();
+
+    double getMSE();
 }

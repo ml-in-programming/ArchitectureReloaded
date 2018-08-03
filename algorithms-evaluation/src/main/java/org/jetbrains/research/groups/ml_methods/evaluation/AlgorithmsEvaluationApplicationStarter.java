@@ -75,5 +75,6 @@ public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarte
         System.out.println("Bad precision: " + evaluationResult.getBadPrecision());
         System.out.println("Good recall: " + evaluationResult.getGoodRecall());
         System.out.println("Bad recall: " + evaluationResult.getBadRecall());
+        System.out.println("Mean squared error (MSE): " + evaluationResult.getMSE());
     }
 }

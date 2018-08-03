@@ -1,11 +1,15 @@
 package org.jetbrains.research.groups.ml_methods.evaluation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CombinedEvaluationResult extends AbstractEvaluationResult {
     private int numberOfGood = 0;
     private int numberOfBad = 0;
     private int numberOfFoundGood = 0;
     private int numberOfFoundBad = 0;
     private int numberOfFoundOthers = 0;
+    private final List<Double> errorSquares = new ArrayList<>();
 
     public void addResult(EvaluationResult evaluationResult) {
         numberOfGood += evaluationResult.getNumberOfGood();
@@ -13,6 +17,7 @@ public class CombinedEvaluationResult extends AbstractEvaluationResult {
         numberOfFoundGood += evaluationResult.getNumberOfFoundGood();
         numberOfFoundBad += evaluationResult.getNumberOfFoundBad();
         numberOfFoundOthers += evaluationResult.getNumberOfFoundOthers();
+        errorSquares.addAll(evaluationResult.getErrorSquares());
     }
 
     @Override
@@ -38,5 +43,10 @@ public class CombinedEvaluationResult extends AbstractEvaluationResult {
     @Override
     public int getNumberOfFoundOthers() {
         return numberOfFoundOthers;
+    }
+
+    @Override
+    public List<Double> getErrorSquares() {
+        return errorSquares;
     }
 }

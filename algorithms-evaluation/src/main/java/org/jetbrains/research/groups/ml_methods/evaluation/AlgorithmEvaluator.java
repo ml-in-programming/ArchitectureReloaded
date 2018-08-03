@@ -24,6 +24,7 @@ public class AlgorithmEvaluator {
         context.executeSynchronously();
 
         List<Refactoring> foundRefactorings = context.getAlgorithmResults().get(0).getRefactorings();
+        foundRefactorings.forEach(refactoring -> System.out.println(refactoring.getAccuracy()));
         return new ProjectEvaluationResult(foundRefactorings, good, bad);
     }
 

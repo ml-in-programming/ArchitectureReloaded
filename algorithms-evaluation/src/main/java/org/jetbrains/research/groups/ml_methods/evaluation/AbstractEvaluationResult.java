@@ -21,6 +21,11 @@ public abstract class AbstractEvaluationResult implements EvaluationResult {
         return (double) (getNumberOfBad() - getNumberOfFoundBad()) / getNumberOfBad();
     }
 
+    @Override
+    public double getMSE() {
+        return getErrorSquares().stream().mapToDouble(Double::doubleValue).sum() / getErrorSquares().size();
+    }
+
     private int getNumberOfBadAndGood() {
         return getNumberOfBad() + getNumberOfGood();
     }
