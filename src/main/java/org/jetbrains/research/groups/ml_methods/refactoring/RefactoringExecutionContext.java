@@ -18,7 +18,6 @@ import org.jetbrains.research.groups.ml_methods.algorithm.*;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.NoRequestedMetricException;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitiesStorage;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearcher;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 
@@ -49,7 +48,6 @@ public class RefactoringExecutionContext {
     private final AnalysisScope scope;
     @NotNull
     private final MetricsProfile profile;
-    private EntitySearchResult entitySearchResult;
     private EntitiesStorage entitiesStorage;
     private final MetricsExecutionContextImpl metricsExecutionContext;
     @Nullable
@@ -119,9 +117,8 @@ public class RefactoringExecutionContext {
         metricsRun.setProfileName(profile.getName());
         metricsRun.setContext(scope);
         metricsRun.setTimestamp(new TimeStamp());
-        entitySearchResult = ApplicationManager.getApplication()
-                .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
-        entitiesStorage = new EntitiesStorage(entitySearchResult);
+        entitiesStorage = ApplicationManager.getApplication()
+                .runReadAction((Computable<EntitiesStorage>) () -> EntitySearcher.analyze(scope, metricsRun));
         for (Algorithm algorithm : requestedAlgorithms) {
             calculate(algorithm);
         }
@@ -170,20 +167,20 @@ public class RefactoringExecutionContext {
                 .findAny().orElse(null);
     }
 
-    public EntitySearchResult getEntitySearchResult() {
-        return entitySearchResult;
+    public EntitiesStorage getEntitiesStorage() {
+        return entitiesStorage;
     }
 
     public int getClassCount() {
-        return entitySearchResult.getClasses().size();
+        return entitiesStorage.getClasses().size();
     }
 
     public int getMethodsCount() {
-        return entitySearchResult.getMethods().size();
+        return entitiesStorage.getMethods().size();
     }
 
     public int getFieldsCount() {
-        return entitySearchResult.getFields().size();
+        return entitiesStorage.getFields().size();
     }
 
     public Project getProject() {

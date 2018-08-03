@@ -13,6 +13,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmResult;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitiesStorage;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
@@ -34,7 +35,7 @@ public final class RefactoringsToolWindow implements Disposable {
     private final List<ClassRefactoringPanel> contents = new ArrayList<>();
     private ToolWindow myToolWindow = null;
     private List<AlgorithmResult> results;
-    private EntitySearchResult searchResult;
+    private EntitiesStorage entitiesStorage;
     private AnalysisScope scope;
     private boolean enableHighlighting;
     private boolean excludeFieldRefactorings;
@@ -77,10 +78,10 @@ public final class RefactoringsToolWindow implements Disposable {
                 .createActionToolbar(WINDOW_ID, toolbarGroup, false);
     }
 
-    public void show(List<AlgorithmResult> results, EntitySearchResult searchResult, AnalysisScope scope) {
+    public void show(List<AlgorithmResult> results, EntitiesStorage entitiesStorage, AnalysisScope scope) {
         this.results = results;
         this.scope = scope;
-        this.searchResult = searchResult;
+        this.entitiesStorage = entitiesStorage;
         myToolWindow.getContentManager().removeAllContents(true);
         contents.clear();
         myToolWindow.setAvailable(false, null);
@@ -99,7 +100,7 @@ public final class RefactoringsToolWindow implements Disposable {
         toolWindowManager.unregisterToolWindow(WINDOW_ID);
         results = null;
         scope = null;
-        searchResult = null;
+        entitiesStorage = null;
     }
 
     private void intersect(Set<String> algorithms) {
@@ -147,8 +148,8 @@ public final class RefactoringsToolWindow implements Disposable {
 
         @Override
         public void actionPerformed(AnActionEvent e) {
-            if (results != null && searchResult != null) {
-                final DialogWrapper dialog = new ExecutionInfoDialog(project, searchResult, results);
+            if (results != null && entitiesStorage != null) {
+                final DialogWrapper dialog = new ExecutionInfoDialog(project, entitiesStorage, results);
                 dialog.show();
             }
         }

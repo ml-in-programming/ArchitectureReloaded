@@ -7,5 +7,5 @@ public interface CodeEntityVisitor<R> {
 
     R visit(@NotNull MethodEntity methodEntity);
 
-    R visit(@NotNull FieldEntity entity);
+    R visit(@NotNull FieldEntity fieldEntity);
 }

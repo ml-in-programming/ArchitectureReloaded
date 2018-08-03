@@ -10,6 +10,7 @@ import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.properties.finder_strategy.FinderStrategy;
 import org.jetbrains.research.groups.ml_methods.algorithm.properties.finder_strategy.NewStrategy;
@@ -29,7 +30,7 @@ public class EntitySearcher {
     private static final Logger LOGGER = Logging.getLogger(EntitySearcher.class);
 
     private final Map<String, PsiClass> classForName = new HashMap<>();
-    private final Map<PsiElement, OldEntity> entities = new HashMap<>();
+    private final Map<PsiElement, CodeEntityBuilder> builders = new HashMap<>();
     private final AnalysisScope scope;
     private final long startTime;
     private final FinderStrategy strategy;
@@ -52,14 +53,14 @@ public class EntitySearcher {
      *
      * @param scope a scope to search for entities in.
      * @param metricsRun this allows to obtain feature vector for each found entity.
-     * @return different sets of entities encapsulated in {@link EntitySearchResult}.
+     * @return different sets of entities encapsulated in {@link EntitiesStorage}.
      */
-    public static EntitySearchResult analyze(AnalysisScope scope, MetricsRun metricsRun) {
+    public static EntitiesStorage analyze(AnalysisScope scope, MetricsRun metricsRun) {
         final EntitySearcher finder = new EntitySearcher(scope);
         return finder.runCalculations(metricsRun);
     }
 
-    private EntitySearchResult runCalculations(MetricsRun metricsRun) {
+    private EntitiesStorage runCalculations(MetricsRun metricsRun) {
         indicator.pushState();
         indicator.setText("Searching entities");
         indicator.setIndeterminate(true);
@@ -73,41 +74,50 @@ public class EntitySearcher {
         return prepareResult(metricsRun);
     }
 
-    private EntitySearchResult prepareResult(MetricsRun metricsRun) {
+    private EntitiesStorage prepareResult(MetricsRun metricsRun) {
         LOGGER.info("Preparing results...");
-        final List<ClassOldEntity> classes = new ArrayList<>();
-        final List<MethodOldEntity> methods = new ArrayList<>();
-        final List<FieldOldEntity> fields = new ArrayList<>();
-        final List<OldEntity> validEntities = new ArrayList<>();
-        for (OldEntity entity : entities.values()) {
+        final List<ClassEntity> classes = new ArrayList<>();
+        final List<MethodEntity> methods = new ArrayList<>();
+        final List<FieldEntity> fields = new ArrayList<>();
+        for (CodeEntityBuilder builder : builders.values()) {
             indicator.checkCanceled();
-            try {
-                entity.calculateVector(metricsRun);
-            } catch (Exception e) {
-                LOGGER.warn("Failed to calculate vector for " + entity.getName());
-                continue;
-            }
-            validEntities.add(entity);
-            switch (entity.getCategory()) {
-                case Class:
-                    classes.add((ClassOldEntity) entity);
-                    break;
-                case Method:
-                    methods.add((MethodOldEntity) entity);
-                    break;
-                default:
-                    fields.add((FieldOldEntity) entity);
-                    break;
-            }
+
+            CodeEntity entity = builder.build();
+            entity.accept(new CodeEntityVisitor<Void>() {
+                @Override
+                public Void visit(final @NotNull ClassEntity classEntity) {
+                    classes.add(classEntity);
+                    return null;
+                }
+
+                @Override
+                public Void visit(final @NotNull MethodEntity methodEntity) {
+                    methods.add(methodEntity);
+                    return null;
+                }
+
+                @Override
+                public Void visit(final @NotNull FieldEntity fieldEntity) {
+                    fields.add(fieldEntity);
+                    return null;
+                }
+            });
         }
+
         LOGGER.info("Properties calculated");
         LOGGER.info("Generated " + classes.size() + " class entities");
         LOGGER.info("Generated " + methods.size() + " method entities");
         LOGGER.info("Generated " + fields.size() + " field entities");
-        return new EntitySearchResult(classes, methods, fields, System.currentTimeMillis() - startTime);
+        return new EntitiesStorage(classes, methods, fields, System.currentTimeMillis() - startTime);
+    }
+
+    private Optional<RelevantProperties> propertiesFor(PsiElement element) {
+        return Optional.ofNullable(builders.get(element))
+                .map(CodeEntityBuilder::getRelevantProperties);
     }
 
     private class UnitsFinder extends JavaRecursiveElementVisitor {
+        private @Nullable ClassEntityBuilder currentClassBuilder;
 
         @Override
         public void visitFile(PsiFile file) {
@@ -125,8 +135,12 @@ public class EntitySearcher {
             if (!strategy.acceptClass(aClass)) {
                 return;
             }
-            entities.put(aClass, new ClassOldEntity(aClass));
+
+            ClassEntityBuilder previousClassEntityBuilder = currentClassBuilder;
+            currentClassBuilder = new ClassEntityBuilder(aClass);
+            builders.put(aClass, currentClassBuilder);
             super.visitClass(aClass);
+            currentClassBuilder = previousClassEntityBuilder;
         }
 
         @Override
@@ -135,7 +149,7 @@ public class EntitySearcher {
                 return;
             }
             indicator.checkCanceled();
-            entities.put(field, new FieldOldEntity(field));
+            builders.put(field, new FieldEntityBuilder(field, currentClassBuilder));
             super.visitField(field);
         }
 
@@ -145,7 +159,7 @@ public class EntitySearcher {
                 return;
             }
             indicator.checkCanceled();
-            entities.put(method, new MethodOldEntity(method));
+            builders.put(method, new MethodEntityBuilder(method, currentClassBuilder));
             super.visitMethod(method);
         }
     }
@@ -166,12 +180,12 @@ public class EntitySearcher {
         @Override
         public void visitClass(PsiClass aClass) {
             indicator.checkCanceled();
-            final OldEntity entity = entities.get(aClass);
-            if (entity == null) {
+            final CodeEntityBuilder builder = builders.get(aClass);
+            if (builder == null) {
                 super.visitClass(aClass);
                 return;
             }
-            final RelevantProperties classProperties = entity.getRelevantProperties();
+            final RelevantProperties classProperties = builder.getRelevantProperties();
             classProperties.addClass(aClass, strategy.getWeight(aClass, aClass));
             if (strategy.processSupers()) {
                 for (PsiClass superClass : PSIUtil.getAllSupers(aClass)) {
@@ -204,13 +218,13 @@ public class EntitySearcher {
         @Override
         public void visitMethod(PsiMethod method) {
             indicator.checkCanceled();
-            final OldEntity entity = entities.get(method);
-            if (entity == null) {
+            final CodeEntityBuilder builder = builders.get(method);
+            if (builder == null) {
                 super.visitMethod(method);
                 return;
 
             }
-            final RelevantProperties methodProperties = entity.getRelevantProperties();
+            final RelevantProperties methodProperties = builder.getRelevantProperties();
             methodProperties.addMethod(method, strategy.getWeight(method, method));
             Optional.ofNullable(method.getContainingClass())
                     .ifPresent(c -> methodProperties.addClass(c, strategy.getWeight(method, c)));
@@ -219,11 +233,11 @@ public class EntitySearcher {
             }
             if (strategy.processSupers()) {
                 PSIUtil.getAllSupers(method).stream()
-                        .map(entities::get)
+                        .map(builders::get)
                         .filter(Objects::nonNull)
-                        .forEach(superMethod -> superMethod
+                        .forEach(superMethodBuilder -> superMethodBuilder
                                 .getRelevantProperties()
-                                .addOverrideMethod(method, strategy.getWeight(superMethod, method)));
+                                .addOverrideMethod(method, strategy.getWeight(superMethodBuilder, method)));
             }
             reportPropertiesCalculated();
             super.visitMethod(method);
@@ -255,19 +269,19 @@ public class EntitySearcher {
         @Override
         public void visitField(PsiField field) {
             indicator.checkCanceled();
-            final OldEntity entity = entities.get(field);
-            if (entity == null) {
+            final CodeEntityBuilder builder = builders.get(field);
+            if (builder == null) {
                 super.visitField(field);
                 return;
             }
-            RelevantProperties fieldProperties = entity.getRelevantProperties();
+            RelevantProperties fieldProperties = builder.getRelevantProperties();
             fieldProperties.addField(field, strategy.getWeight(field, field));
             final PsiClass containingClass = field.getContainingClass();
             if (containingClass != null) {
                 fieldProperties.addClass(containingClass, strategy.getWeight(field, containingClass));
                 final PsiClass fieldClass = PsiUtil.resolveClassInType(field.getType());
                 if (isClassInProject(fieldClass)) {
-                    entities.get(containingClass).getRelevantProperties().addClass(fieldClass, strategy.getWeight(containingClass, fieldClass));
+                    builders.get(containingClass).getRelevantProperties().addClass(fieldClass, strategy.getWeight(containingClass, fieldClass));
                 }
             }
             reportPropertiesCalculated();
@@ -293,13 +307,88 @@ public class EntitySearcher {
         private void reportPropertiesCalculated() {
             propertiesCalculated++;
             if (indicator != null) {
-                indicator.setFraction((double) propertiesCalculated / entities.size());
+                indicator.setFraction((double) propertiesCalculated / builders.size());
             }
         }
     }
 
-    private Optional<RelevantProperties> propertiesFor(PsiElement element) {
-        return Optional.ofNullable(entities.get(element))
-                .map(OldEntity::getRelevantProperties);
+    private static abstract class CodeEntityBuilder {
+        protected final @NotNull RelevantProperties relevantProperties = new RelevantProperties();
+
+        public @NotNull RelevantProperties getRelevantProperties() {
+            return relevantProperties;
+        }
+
+        public abstract @NotNull CodeEntity build();
+    }
+
+    private static class ClassEntityBuilder extends CodeEntityBuilder {
+        private @Nullable ClassEntity result = null;
+
+        private final @NotNull PsiClass psiClass;
+
+        public ClassEntityBuilder(final @NotNull PsiClass psiClass) {
+            this.psiClass = psiClass;
+        }
+
+        public @NotNull ClassEntity build() {
+            if (result == null) {
+                result = new ClassEntity(psiClass, relevantProperties);
+            }
+
+            return result;
+        }
+    }
+
+    private static class MethodEntityBuilder extends CodeEntityBuilder {
+        private @Nullable MethodEntity result = null;
+
+        private final @NotNull PsiMethod psiMethod;
+
+        private final @NotNull ClassEntityBuilder containingClassBuilder;
+
+        public MethodEntityBuilder(
+            final @NotNull PsiMethod psiMethod,
+            final @NotNull ClassEntityBuilder containingClassBuilder
+        ) {
+            this.psiMethod = psiMethod;
+            this.containingClassBuilder = containingClassBuilder;
+        }
+
+        public @NotNull MethodEntity build() {
+            if (result == null) {
+                result = new MethodEntity(psiMethod, containingClassBuilder.build(), relevantProperties);
+            }
+
+            return result;
+        }
+    }
+
+    private static class FieldEntityBuilder extends CodeEntityBuilder {
+        private @Nullable FieldEntity result = null;
+
+        private final @NotNull PsiField psiField;
+
+        private final @NotNull ClassEntityBuilder containingClassBuilder;
+
+        public FieldEntityBuilder(
+            final @NotNull PsiField psiField,
+            final @NotNull ClassEntityBuilder containingClassBuilder
+        ) {
+            this.psiField = psiField;
+            this.containingClassBuilder = containingClassBuilder;
+        }
+
+        public @NotNull FieldEntity build() {
+            if (result == null) {
+                if (relevantProperties == null) {
+                    throw new IllegalStateException("Attempt to create entity without RelevantProperties");
+                }
+
+                result = new FieldEntity(psiField, containingClassBuilder.build(), relevantProperties);
+            }
+
+            return result;
+        }
     }
 }
