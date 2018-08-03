@@ -8,6 +8,8 @@ import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.utils.PSIUtil;
 
+import java.util.Objects;
+
 public class MethodEntity extends CodeEntity {
     private final @NotNull PsiMethod psiMethod;
 
@@ -64,5 +66,18 @@ public class MethodEntity extends CodeEntity {
 
     public @NotNull PsiMethod getPsiMethod() {
         return psiMethod;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MethodEntity that = (MethodEntity) o;
+        return Objects.equals(psiMethod, that.psiMethod);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(psiMethod);
     }
 }

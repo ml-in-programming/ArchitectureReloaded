@@ -7,6 +7,8 @@ import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHumanReadableName;
 
 public class FieldEntity extends CodeEntity {
@@ -66,5 +68,18 @@ public class FieldEntity extends CodeEntity {
 
     public @NotNull PsiField getPsiField() {
         return psiField;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        FieldEntity that = (FieldEntity) o;
+        return Objects.equals(psiField, that.psiField);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(psiField);
     }
 }
