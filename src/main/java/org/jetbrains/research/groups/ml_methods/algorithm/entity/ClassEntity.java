@@ -32,7 +32,6 @@ public class ClassEntity extends CodeEntity {
         return getIdentifier();
     }
 
-    @NotNull
     @Override
     public <R> R accept(@NotNull CodeEntityVisitor<R> visitor) {
         return visitor.visit(this);

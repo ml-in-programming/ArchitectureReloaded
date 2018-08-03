@@ -46,7 +46,6 @@ public abstract class CodeEntity {
     @Deprecated
     public abstract @NotNull String getContainingClassName();
 
-    @NotNull
     public abstract <R> R accept(@NotNull CodeEntityVisitor<R> visitor);
 
     public abstract @NotNull MetricCategory getMetricCategory();

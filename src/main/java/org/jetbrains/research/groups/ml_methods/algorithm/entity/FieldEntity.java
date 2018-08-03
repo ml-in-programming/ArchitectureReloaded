@@ -52,7 +52,6 @@ public class FieldEntity extends CodeEntity {
         return containingClass;
     }
 
-    @NotNull
     @Override
     public <R> R accept(@NotNull CodeEntityVisitor<R> visitor) {
         return visitor.visit(this);
