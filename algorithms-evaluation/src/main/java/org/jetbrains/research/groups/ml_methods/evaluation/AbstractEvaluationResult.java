@@ -1,6 +1,20 @@
 package org.jetbrains.research.groups.ml_methods.evaluation;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
+
 public abstract class AbstractEvaluationResult implements EvaluationResult {
+    private final @NotNull Algorithm evaluatingAlgorithm;
+
+    protected AbstractEvaluationResult(@NotNull Algorithm evaluatingAlgorithm) {
+        this.evaluatingAlgorithm = evaluatingAlgorithm;
+    }
+
+    @Override
+    public Algorithm getAlgorithm() {
+        return evaluatingAlgorithm;
+    }
+
     @Override
     public double getGoodPrecision() {
         return (double) getNumberOfFoundGood() / getNumberOfFoundBadAndGood();

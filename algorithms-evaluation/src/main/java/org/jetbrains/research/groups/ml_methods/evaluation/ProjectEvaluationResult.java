@@ -2,6 +2,7 @@ package org.jetbrains.research.groups.ml_methods.evaluation;
 
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 
 import java.util.ArrayList;
@@ -20,7 +21,9 @@ public class ProjectEvaluationResult extends AbstractEvaluationResult {
 
     public ProjectEvaluationResult(List<Refactoring> foundRefactorings,
                                    List<Refactoring> goodRefactorings,
-                                   List<Refactoring> badRefactorings) {
+                                   List<Refactoring> badRefactorings,
+                                   @NotNull Algorithm evaluatingAlgorithm) {
+        super(evaluatingAlgorithm);
         foundGoodRefactorings = new ArrayList<>(foundRefactorings);
         foundBadRefactorings = new ArrayList<>(foundRefactorings);
         foundGoodRefactorings.removeIf(refactoring -> !goodRefactorings.contains(refactoring));

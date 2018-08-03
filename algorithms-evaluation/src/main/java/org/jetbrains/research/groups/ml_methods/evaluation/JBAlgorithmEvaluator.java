@@ -9,7 +9,7 @@ import java.util.Objects;
 
 public class JBAlgorithmEvaluator {
     public static EvaluationResult evaluateDataset(Path datasetPath, Algorithm algorithmToEvaluate) throws IOException {
-        CombinedEvaluationResult combinedEvaluationResult = new CombinedEvaluationResult();
+        CombinedEvaluationResult combinedEvaluationResult = new CombinedEvaluationResult(algorithmToEvaluate);
         for (File rootFolder : Objects.requireNonNull(datasetPath.toFile().listFiles())) {
             ProjectToEvaluate projectToEvaluate = ProjectLoader.loadForEvaluation(rootFolder.toPath());
             combinedEvaluationResult.addResult(AlgorithmEvaluator.evaluate(projectToEvaluate, algorithmToEvaluate));

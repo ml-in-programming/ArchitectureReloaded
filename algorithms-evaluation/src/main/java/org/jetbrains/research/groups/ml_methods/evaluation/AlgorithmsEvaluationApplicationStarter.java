@@ -11,8 +11,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarter {
@@ -51,10 +55,18 @@ public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarte
             checkCommandLineArguments(args);
             Path datasetPath = Paths.get(args[1]);
             String algorithmName = args[2];
-            Algorithm algorithm = AlgorithmsRepository.getAlgorithmByName(algorithmName).orElseThrow(() ->
-                    new IllegalArgumentException("No such algorithm"));
-            EvaluationResult evaluationResult = JBAlgorithmEvaluator.evaluateDataset(datasetPath, algorithm);
-            printEvaluationResult(evaluationResult);
+            List<Algorithm> algorithmsToEvaluate = algorithmName.equals("") ?
+                    AlgorithmsRepository.getAvailableAlgorithms() :
+                    Collections.singletonList(AlgorithmsRepository.getAlgorithmByName(algorithmName).orElseThrow(() ->
+                            new IllegalArgumentException("No such algorithm")));
+            List<EvaluationResult> evaluationResults = algorithmsToEvaluate.stream().map(algorithm -> {
+                try {
+                    return JBAlgorithmEvaluator.evaluateDataset(datasetPath, algorithm);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }).collect(Collectors.toList());
+            evaluationResults.forEach(this::printEvaluationResult);
         } catch (Throwable throwable) {
             System.out.println(throwable.getClass().getSimpleName() + ": " + throwable.getMessage());
             throwable.printStackTrace();
@@ -65,7 +77,7 @@ public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarte
 
     private void printEvaluationResult(EvaluationResult evaluationResult) {
         System.out.println("==================");
-        System.out.println("EVALUATION RESULT");
+        System.out.println("EVALUATION RESULT FOR " + evaluationResult.getAlgorithm().getDescriptionString());
         System.out.println("Number of good: " + evaluationResult.getNumberOfGood());
         System.out.println("Number of found good: " + evaluationResult.getNumberOfFoundGood());
         System.out.println("Number of bad: " + evaluationResult.getNumberOfBad());

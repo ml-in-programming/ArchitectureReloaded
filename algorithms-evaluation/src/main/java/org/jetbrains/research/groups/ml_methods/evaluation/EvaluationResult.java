@@ -1,5 +1,7 @@
 package org.jetbrains.research.groups.ml_methods.evaluation;
 
+import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
+
 import java.util.List;
 
 public interface EvaluationResult {
@@ -24,4 +26,6 @@ public interface EvaluationResult {
     List<Double> getErrorSquares();
 
     double getMSE();
+
+    Algorithm getAlgorithm();
 }

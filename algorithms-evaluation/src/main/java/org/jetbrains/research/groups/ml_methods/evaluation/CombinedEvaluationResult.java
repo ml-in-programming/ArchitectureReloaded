@@ -1,5 +1,8 @@
 package org.jetbrains.research.groups.ml_methods.evaluation;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +14,14 @@ public class CombinedEvaluationResult extends AbstractEvaluationResult {
     private int numberOfFoundOthers = 0;
     private final List<Double> errorSquares = new ArrayList<>();
 
+    public CombinedEvaluationResult(@NotNull Algorithm evaluatingAlgorithm) {
+        super(evaluatingAlgorithm);
+    }
+
     public void addResult(EvaluationResult evaluationResult) {
+        if (!getAlgorithm().equals(evaluationResult.getAlgorithm())) {
+            throw new IllegalArgumentException("Tried to add evaluation result with different algorithm");
+        }
         numberOfGood += evaluationResult.getNumberOfGood();
         numberOfBad += evaluationResult.getNumberOfBad();
         numberOfFoundGood += evaluationResult.getNumberOfFoundGood();
