@@ -39,10 +39,8 @@ public class RefactoringExecutionContext {
 
     private static final List<Algorithm> ALGORITHMS = Arrays.asList(
         new ARI(),
-        new AKMeans(),
         new CCDA(),
-        new HAC(),
-        new MRI()
+        new HAC()
     );
 
     @NotNull
