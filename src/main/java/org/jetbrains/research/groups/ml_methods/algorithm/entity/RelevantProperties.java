@@ -13,8 +13,8 @@ import java.util.function.BinaryOperator;
 import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHumanReadableName;
 
 /**
- * A set of properties of an {@link Entity}. A property is a method, a class or a field which has
- * some relation to the {@link Entity} that stores object of this class. Each property has a
+ * A set of properties of an {@link CodeEntity}. A property is a method, a class or a field which has
+ * some relation to the {@link CodeEntity} that stores object of this class. Each property has a
  * weight which corresponds to importance of this property.
  */
 public class RelevantProperties {
@@ -145,7 +145,7 @@ public class RelevantProperties {
         return m.values().stream().mapToInt(Integer::valueOf).sum();
     }
 
-    int sizeOfIntersection(RelevantProperties properties) {
+    public int sizeOfIntersection(RelevantProperties properties) {
         int result = 0;
 
         final BinaryOperator<Integer> bop = Math::min;

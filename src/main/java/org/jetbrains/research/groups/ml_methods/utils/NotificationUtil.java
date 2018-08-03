@@ -13,8 +13,20 @@ public final class NotificationUtil {
         notify(project, getEmptyScopeNotification(project));
     }
 
+    public static void notifyEmptyResult(@NotNull Project project) {
+        notify(project, getEmptyResultNotification());
+    }
+
     private static void notify(@NotNull Project project, @NotNull Notification n) {
         Notifications.Bus.notify(n, project);
+    }
+
+    @NotNull
+    private static Notification getEmptyResultNotification() {
+        return new Notification(NOTIFICATION_GROUP_ID,
+                ArchitectureReloadedBundle.message("empty.result.notification.title"),
+                ArchitectureReloadedBundle.message("empty.result.notification.message"),
+                NotificationType.INFORMATION);
     }
 
     private static Notification getEmptyScopeNotification(@NotNull Project project) {

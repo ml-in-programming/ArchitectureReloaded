@@ -3,6 +3,7 @@ package org.jetbrains.research.groups.ml_methods.ui;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBCheckBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.config.ArchitectureReloadedConfig;
 import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringExecutionContext;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
@@ -48,6 +49,7 @@ public class AlgorithmsSelectionPanel extends JPanel {
         add(tabbedPane, constraints);
     }
 
+    @NotNull
     private static Tab createRefactoringsTab() {
         final ArchitectureReloadedConfig config = ArchitectureReloadedConfig.getInstance();
 
@@ -75,17 +77,19 @@ public class AlgorithmsSelectionPanel extends JPanel {
         final JCheckBox fieldsRefactoringsCheckBox = new JBCheckBox(
             ArchitectureReloadedBundle.message("search.for.move.field.refactorings")
         );
-
-        fieldsRefactoringsCheckBox.addActionListener(e -> config.setFieldRefactoringsAvailable());
+        fieldsRefactoringsCheckBox.setSelected(config.enableFieldRefactoring());
+        fieldsRefactoringsCheckBox.addActionListener(e ->
+                config.setEnableFieldRefactoring(fieldsRefactoringsCheckBox.isSelected()));
         panel.add(fieldsRefactoringsCheckBox, constraints);
 
         return new Tab(panel, ArchitectureReloadedBundle.message("refactorings.tab.text"));
     }
 
+    @NotNull
     private static Tab createAlgorithmsTab() {
         JPanel panel = new JPanel(new GridBagLayout());
 
-        final String[] algorithms = RefactoringExecutionContext.getAvailableAlgorithms();
+        final Algorithm[] algorithms = RefactoringExecutionContext.getAvailableAlgorithms();
         final ArchitectureReloadedConfig config = ArchitectureReloadedConfig.getInstance();
 
         final GridBagConstraints constraints = new GridBagConstraints();
@@ -98,12 +102,12 @@ public class AlgorithmsSelectionPanel extends JPanel {
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.NORTHWEST;
 
-        final Set<String> currentSelection = config.getSelectedAlgorithms();
+        final Set<Algorithm> currentSelection = config.getSelectedAlgorithms();
         for (int i = 0; i < algorithms.length; i++) {
-            final String algorithm = algorithms[i];
+            final Algorithm algorithm = algorithms[i];
 
             final JCheckBox checkBox =
-                new JBCheckBox(algorithm, currentSelection.contains(algorithm));
+                new JBCheckBox(algorithm.getDescriptionString(), currentSelection.contains(algorithm));
             checkBox.addActionListener(e -> config.setSelected(algorithm, checkBox.isSelected()));
 
             constraints.gridy = i;

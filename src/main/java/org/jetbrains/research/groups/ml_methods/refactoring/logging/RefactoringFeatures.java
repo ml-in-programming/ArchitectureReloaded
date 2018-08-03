@@ -10,7 +10,11 @@ import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethod
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.RefactoringVisitor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This class contains features extracted from some {@link Refactoring}. This features should
@@ -18,18 +22,21 @@ import java.util.*;
  * from features of accepted and rejected refactorings.
  */
 public abstract class RefactoringFeatures {
-    private static final @NotNull Set<Class<? extends Metric>> requestedMetrics =
-        new HashSet<>(Arrays.asList(
-            FormalParametersCountMethodMetric.class,
-            LinesOfCodeMethodMetric.class,
-            NumAssertsMetric.class,
-            NumLoopsMetric.class,
-            NumLocalVarsMetric.class,
-            IsStaticMethodMetric.class,
-            IsPrivateMethodMetric.class,
-            NameLenMethodMetric.class,
-            NumExceptionsThrownMetric.class
-        ));
+    private static final @NotNull List<Metric> requestedMetrics =
+        Arrays.asList(
+            new FormalParametersCountMethodMetric(),
+            new LinesOfCodeMethodMetric(),
+            new NumAssertsMetric(),
+            new NumLoopsMetric(),
+            new NumLocalVarsMetric(),
+            new IsStaticMethodMetric(),
+            new IsPrivateMethodMetric(),
+            new NameLenMethodMetric(),
+            new NumExceptionsThrownMetric()
+        );
+
+    private static final @NotNull Set<String> requestedMetricsIds =
+        requestedMetrics.stream().map(Metric::getID).collect(Collectors.toSet());
 
     @NotNull
     public abstract <R> R accept(final @NotNull RefactoringFeaturesVisitor<R> visitor);
@@ -60,12 +67,12 @@ public abstract class RefactoringFeatures {
     }
 
     /**
-     * Returns {@link Set} of {@link Metric}s that are required to construct
+     * Returns {@link List} of {@link Metric}s that are required to construct
      * {@link RefactoringFeatures}. This returned metrics are supposed to be calculated during
      * common metrics calculation process and passed to {@link #extractFeatures} method when
      * features extraction is required.
      */
-    public static @NotNull Set<Class<? extends Metric>> getRequestedMetrics() {
+    public static @NotNull List<Metric> getRequestedMetrics() {
         return requestedMetrics;
     }
 
@@ -78,7 +85,7 @@ public abstract class RefactoringFeatures {
         Metric[] metrics = results.getMetrics();
 
         for (Metric metric : metrics) {
-            if (!requestedMetrics.contains(metric.getClass())) {
+            if (!requestedMetricsIds.contains(metric.getID())) {
                 continue;
             }
 
