@@ -2,17 +2,19 @@ package org.jetbrains.research.groups.ml_methods.extraction.refactoring;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class JBRefactoringTextRepresentation extends RefactoringTextRepresentation {
-    public JBRefactoringTextRepresentation(String methodPackage, String methodName, List<String> params, String destinationClassQualifiedName) {
-        super(methodPackage, methodName, params, destinationClassQualifiedName);
+    public JBRefactoringTextRepresentation(String sourceClassQualifiedName, String methodName,
+                                           List<String> params, String destinationClassQualifiedName) {
+        super(sourceClassQualifiedName, methodName, params, destinationClassQualifiedName);
     }
 
-    public JBRefactoringTextRepresentation(Refactoring refactoring) {
+    public JBRefactoringTextRepresentation(MoveMethodRefactoring refactoring) {
         super(refactoring);
     }
 

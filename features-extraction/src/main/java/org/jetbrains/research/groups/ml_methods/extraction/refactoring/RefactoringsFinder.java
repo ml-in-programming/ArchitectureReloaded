@@ -8,6 +8,7 @@ import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,7 +27,7 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
     }
 
     @NotNull
-    static List<Refactoring> find(AnalysisScope scope, List<RefactoringTextRepresentation> textualRefactorings) {
+    public static List<MoveMethodRefactoring> find(AnalysisScope scope, List<RefactoringTextRepresentation> textualRefactorings) {
         RefactoringsFinder refactoringFinder = new RefactoringsFinder(textualRefactorings);
         LOGGER.info("Started finder...");
         scope.accept(refactoringFinder);
@@ -34,13 +35,13 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
         return refactoringFinder.createFoundRefactorings();
     }
 
-    private List<Refactoring> createFoundRefactorings() {
+    private List<MoveMethodRefactoring> createFoundRefactorings() {
         LOGGER.info("Visited methods: " + visitedMethods);
         LOGGER.info("Visited classes: " + visitedClasses);
         checkSearchResult();
         return refactorings.values().stream().
                 map(refactoringPair ->
-                        new Refactoring(refactoringPair.method, refactoringPair.aClass)).
+                        new MoveMethodRefactoring(refactoringPair.method, refactoringPair.aClass)).
                 collect(Collectors.toList());
     }
 

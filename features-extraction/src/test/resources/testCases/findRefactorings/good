@@ -1,0 +1,19 @@
+[
+  {
+    "targetClassQualifiedName": "findRefactorings.B",
+    "sourceClassQualifiedName": "findRefactorings.A",
+    "methodName": "a",
+    "paramsClasses": [
+      "int"
+    ]
+  },
+  {
+    "targetClassQualifiedName": "findRefactorings.A",
+    "sourceClassQualifiedName": "findRefactorings.B",
+    "methodName": "b",
+    "paramsClasses": [
+      "Integer",
+      "List<Integer>"
+    ]
+  }
+]

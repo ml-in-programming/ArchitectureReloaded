@@ -15,7 +15,7 @@ public class BasicGenerationConstraint implements GenerationConstraint {
     @Override
     public boolean acceptMethod(PsiMethod method, AnalysisScope scope) {
         final PsiClass containingClass = method.getContainingClass();
-        return  containingClass != null && containingClass.getQualifiedName() != null;
+        return containingClass != null && containingClass.getQualifiedName() != null;
     }
 
     @Override

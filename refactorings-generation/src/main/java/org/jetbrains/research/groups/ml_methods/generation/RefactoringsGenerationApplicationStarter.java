@@ -11,7 +11,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers.RefactoringsWriters;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory.GenerationConstraintType;
@@ -74,7 +74,7 @@ public class RefactoringsGenerationApplicationStarter implements ApplicationStar
             }
             int numberOfJavaFiles = PsiSearchUtil.getNumberOfJavaFiles(project, false);
             int numberOfRefactoringsToGenerate = (int) (numberOfJavaFiles * 0.03);
-            List<Refactoring> generatedRefactoring = RefactoringsGenerator.generate(GenerationConstraintsFactory.get(
+            List<MoveMethodRefactoring> generatedRefactoring = RefactoringsGenerator.generate(GenerationConstraintsFactory.get(
                     GenerationConstraintType.ACCEPT_RELEVANT_PROPERTIES), numberOfRefactoringsToGenerate, scope);
             System.out.println("Number of java files without test sources: " + numberOfJavaFiles);
             System.out.println("Asked to generate: " + numberOfRefactoringsToGenerate);
@@ -86,7 +86,7 @@ public class RefactoringsGenerationApplicationStarter implements ApplicationStar
         APPLICATION.exit(true, true);
     }
 
-    private void printGeneratedRefactorings(List<Refactoring> generatedRefactoring, Path outputPath) throws IOException {
+    private void printGeneratedRefactorings(List<MoveMethodRefactoring> generatedRefactoring, Path outputPath) throws IOException {
         System.out.println("Generated " + generatedRefactoring.size() + " refactorings");
         RefactoringsWriters.getJBWriter().write(generatedRefactoring, outputPath);
     }

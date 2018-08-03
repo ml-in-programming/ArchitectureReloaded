@@ -11,10 +11,10 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.features.extractors.*;
 import org.jetbrains.research.groups.ml_methods.extraction.features.vector.FeatureVector;
 import org.jetbrains.research.groups.ml_methods.extraction.features.vector.VectorSerializer;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringsLoader;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers.RefactoringsReaders;
 
@@ -74,7 +74,7 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
                 APPLICATION.exit(true, true);
             }
             final AnalysisScope scope = new AnalysisScope(Objects.requireNonNull(project));
-            List<Refactoring> refactorings;
+            List<MoveMethodRefactoring> refactorings;
             try {
                 refactorings = RefactoringsLoader.load(refactoringsPath, RefactoringsReaders.getJBReader(), scope);
             } catch (Exception e) {

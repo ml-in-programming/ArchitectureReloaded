@@ -3,6 +3,7 @@ package org.jetbrains.research.groups.ml_methods.extraction.refactoring;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.utils.MethodUtils;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ public class JMoveRefactoringTextRepresentation extends RefactoringTextRepresent
         super(methodPackage, methodName, params, destinationClassQualifiedName);
     }
 
-    public JMoveRefactoringTextRepresentation(Refactoring refactoring) {
+    public JMoveRefactoringTextRepresentation(MoveMethodRefactoring refactoring) {
         super(refactoring);
     }
 

@@ -3,6 +3,7 @@ package org.jetbrains.research.groups.ml_methods.extraction.refactoring;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,15 +35,15 @@ public abstract class RefactoringTextRepresentation {
     private final String methodName;
     private final List<String> paramsClasses;
 
-    public RefactoringTextRepresentation(String methodPackage, String methodName,
+    public RefactoringTextRepresentation(String sourceClassQualifiedName, String methodName,
                                          List<String> params, String destinationClassQualifiedName) {
-        this.sourceClassQualifiedName = methodPackage;
+        this.sourceClassQualifiedName = sourceClassQualifiedName;
         this.methodName = methodName;
         this.paramsClasses = params;
         this.targetClassQualifiedName = destinationClassQualifiedName;
     }
 
-    public RefactoringTextRepresentation(Refactoring refactoring) {
+    public RefactoringTextRepresentation(MoveMethodRefactoring refactoring) {
         PsiMethod method = refactoring.getMethod();
         PsiClass targetClass = refactoring.getTargetClass();
         if (method.getContainingClass() == null || method.getContainingClass().getQualifiedName() == null) {

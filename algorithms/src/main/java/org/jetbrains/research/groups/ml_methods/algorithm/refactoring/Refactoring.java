@@ -8,6 +8,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 
 public abstract class Refactoring {
@@ -19,7 +20,8 @@ public abstract class Refactoring {
 
     private final String targetName;
 
-    private final double accuracy;
+    @Nullable
+    private final Double accuracy;
 
     /**
      * This factory method is a replacement for old ctor. Previously {@link Refactoring} class
@@ -31,7 +33,7 @@ public abstract class Refactoring {
     public static @NotNull Refactoring createRefactoring(
         final @NotNull String entity,
         final @NotNull String target,
-        final double accuracy,
+        final @Nullable Double accuracy,
         final boolean isEntityField,
         final @NotNull AnalysisScope scope
     ) {
@@ -62,9 +64,16 @@ public abstract class Refactoring {
     }
 
     public Refactoring(
+            final @NotNull PsiElement entity,
+            final @NotNull PsiElement target
+    ) {
+        this(entity, target, null);
+    }
+
+    public Refactoring(
         final @NotNull PsiElement entity,
         final @NotNull PsiElement target,
-        double accuracy
+        final @Nullable Double accuracy
     ) {
         this.entity = entity;
         this.target = target;
@@ -108,7 +117,7 @@ public abstract class Refactoring {
         return targetName;
     }
 
-    public double getAccuracy() {
+    public Double getAccuracy() {
         return accuracy;
     }
 

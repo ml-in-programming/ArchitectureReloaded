@@ -1,7 +1,7 @@
 package org.jetbrains.research.groups.ml_methods.evaluation;
 
 import com.intellij.openapi.project.Project;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 
 import java.util.List;
 

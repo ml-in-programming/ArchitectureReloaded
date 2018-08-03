@@ -7,7 +7,7 @@ import static org.jetbrains.research.groups.ml_methods.generation.constraints.Ge
 
 public class GenerationConstraintsFactory {
     public enum GenerationConstraintType {
-        ACCEPT_ANY, ACCEPT_METHOD_PARAMS, ACCEPT_RELEVANT_PROPERTIES
+        ACCEPT_ANY, ACCEPT_METHOD_PARAMS, ACCEPT_RELEVANT_PROPERTIES, BASIC
     }
 
     private static final Map<GenerationConstraintType, GenerationConstraint> CONSTRAINTS = new HashMap<>();
@@ -16,6 +16,7 @@ public class GenerationConstraintsFactory {
         CONSTRAINTS.put(ACCEPT_ANY, new AcceptAnyGenerationConstraint());
         CONSTRAINTS.put(ACCEPT_METHOD_PARAMS, new AcceptMethodParamsGenerationConstraint());
         CONSTRAINTS.put(ACCEPT_RELEVANT_PROPERTIES, new AcceptRelevantPropertiesGenerationConstraint());
+        CONSTRAINTS.put(BASIC, new BasicGenerationConstraint());
     }
 
     public static GenerationConstraint get(GenerationConstraintType constraint) {

@@ -2,7 +2,7 @@ package org.jetbrains.research.groups.ml_methods.evaluation;
 
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 
 import java.util.ArrayList;
 import java.util.HashSet;

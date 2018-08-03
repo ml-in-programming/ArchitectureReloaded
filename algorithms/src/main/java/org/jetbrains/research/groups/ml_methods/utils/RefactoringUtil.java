@@ -68,7 +68,7 @@ public final class RefactoringUtil {
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList());
                 final Set<String> accepted = moveMembersRefactoring(members, target, scope);
-                model.setAcceptedRefactorings(accepted.stream().map(m -> Refactoring.createRefactoring(m, PsiSearchUtil.getHumanReadableName(target), 0, true, scope)).collect(Collectors.toSet()));
+                model.setAcceptedRefactorings(accepted.stream().map(m -> Refactoring.createRefactoring(m, PsiSearchUtil.getHumanReadableName(target), 0.0, true, scope)).collect(Collectors.toSet()));
             }
         });
     }

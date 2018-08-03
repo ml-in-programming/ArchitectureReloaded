@@ -9,23 +9,23 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraint;
 
 import java.util.*;
 
 public class RefactoringsGenerator {
-    public static List<Refactoring> generate(Map<GenerationConstraint, Integer> toGenerate,
+    public static List<MoveMethodRefactoring> generate(Map<GenerationConstraint, Integer> toGenerate,
                                             AnalysisScope scope) {
         return new RefactoringsGeneratorVisitor(toGenerate, scope).generate();
     }
 
-    public static List<Refactoring> generate(GenerationConstraint constraint, Integer numberOfRefactorings,
+    public static List<MoveMethodRefactoring> generate(GenerationConstraint constraint, Integer numberOfRefactorings,
                                             AnalysisScope scope) {
         return generate(new HashMap<GenerationConstraint, Integer>(){{put(constraint, numberOfRefactorings);}}, scope);
     }
 
-    public static Refactoring generate(GenerationConstraint constraint, AnalysisScope scope) {
+    public static MoveMethodRefactoring generate(GenerationConstraint constraint, AnalysisScope scope) {
         return generate(constraint, 1, scope).iterator().next();
     }
 
@@ -43,7 +43,7 @@ public class RefactoringsGenerator {
         private final AnalysisScope scope;
         private final Map<GenerationConstraint, List<PsiMethod>> acceptedMethods = new HashMap<>();
         private final Map<GenerationConstraint, List<PsiClass>> acceptedTargetClasses = new HashMap<>();
-        private final Map<GenerationConstraint, List<Refactoring>> acceptedRefactorings = new HashMap<>();
+        private final Map<GenerationConstraint, List<MoveMethodRefactoring>> acceptedRefactorings = new HashMap<>();
 
         RefactoringsGeneratorVisitor(Map<GenerationConstraint, Integer> toGenerate, AnalysisScope scope) {
             this.toGenerate = toGenerate;
@@ -73,7 +73,7 @@ public class RefactoringsGenerator {
             super.visitMethod(method);
         }
 
-        List<Refactoring> generate() {
+        List<MoveMethodRefactoring> generate() {
             LOGGER.info("Started walking through PSI Tree");
             scope.accept(this);
             LOGGER.info("Started creating refactorings");
@@ -90,11 +90,11 @@ public class RefactoringsGenerator {
             }
         }
 
-        private List<Refactoring> getRandomRefactorings() {
-            final List<Refactoring> generatedRefactorings = new LinkedList<>();
+        private List<MoveMethodRefactoring> getRandomRefactorings() {
+            final List<MoveMethodRefactoring> generatedRefactorings = new LinkedList<>();
 
             toGenerate.forEach((constraint, number) -> {
-                List<Refactoring> refactorings = acceptedRefactorings.get(constraint);
+                List<MoveMethodRefactoring> refactorings = acceptedRefactorings.get(constraint);
                 Collections.shuffle(refactorings);
                 if (refactorings.size() < number) {
                     throw new IllegalStateException("Cannot find for constraint enough refactorings, only " +
@@ -110,14 +110,14 @@ public class RefactoringsGenerator {
                 LOGGER.info("New constraint");
                 List<PsiClass> acceptedClassesForConstraint = acceptedTargetClasses.get(constraint);
                 List<PsiMethod> acceptedMethodsForConstraint = acceptedMethods.get(constraint);
-                List<Refactoring> acceptedRefactoringsForConstraint = acceptedRefactorings.get(constraint);
+                List<MoveMethodRefactoring> acceptedRefactoringsForConstraint = acceptedRefactorings.get(constraint);
                 LOGGER.info("Classes: "+ acceptedClassesForConstraint.size());
                 LOGGER.info("Methods: "+ acceptedMethodsForConstraint.size());
                 for (PsiClass acceptedClass: acceptedClassesForConstraint) {
                     LOGGER.info("New class: " + acceptedClass.getQualifiedName());
                     for (PsiMethod acceptedMethod : acceptedMethodsForConstraint) {
                         if (constraint.acceptRefactoring(acceptedMethod, acceptedClass)) {
-                            acceptedRefactoringsForConstraint.add(new Refactoring(acceptedMethod, acceptedClass));
+                            acceptedRefactoringsForConstraint.add(new MoveMethodRefactoring(acceptedMethod, acceptedClass));
                         }
                     }
                 }

@@ -1,7 +1,8 @@
 package org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers;
 
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.JMoveRefactoringTextRepresentation;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.Refactoring;
+import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -20,7 +21,7 @@ public class JMoveWriter implements RefactoringsWriter {
         return NAME;
     }
 
-    private String getRefactoringInJMoveFormat(JMoveRefactoringTextRepresentation refactoring) {
+    private String getRefactoringInJMoveFormat(RefactoringTextRepresentation refactoring) {
         StringBuilder s = new StringBuilder();
         s.append("method ");
         s.append(refactoring.getSourceClassQualifiedName());
@@ -43,20 +44,35 @@ public class JMoveWriter implements RefactoringsWriter {
         return s.toString();
     }
 
-    private List<String> getRefactoringsInJMoveFormat(List<Refactoring> refactorings) {
+    private List<String> getRefactoringsInJMoveFormat(List<RefactoringTextRepresentation> refactorings) {
         return refactorings.stream()
-                .map(JMoveRefactoringTextRepresentation::new)
                 .map(this::getRefactoringInJMoveFormat)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public void write(List<Refactoring> refactorings, Path refactoringsPath) throws IOException {
+    public void write(List<MoveMethodRefactoring> refactorings, Path refactoringsPath) throws IOException {
+        writeRefactoringsInTextForm(refactorings.stream()
+                        .map(JMoveRefactoringTextRepresentation::new)
+                        .collect(Collectors.toList()),
+                refactoringsPath);
+    }
+
+    @Override
+    public void write(List<MoveMethodRefactoring> refactorings, OutputStream outputStream) throws IOException {
+        writeRefactoringsInTextForm(refactorings.stream()
+                        .map(JMoveRefactoringTextRepresentation::new)
+                        .collect(Collectors.toList()),
+                outputStream);
+    }
+
+    @Override
+    public void writeRefactoringsInTextForm(List<RefactoringTextRepresentation> refactorings, Path refactoringsPath) throws IOException {
         Files.write(refactoringsPath, getRefactoringsInJMoveFormat(refactorings));
     }
 
     @Override
-    public void write(List<Refactoring> refactorings, OutputStream outputStream) throws IOException {
+    public void writeRefactoringsInTextForm(List<RefactoringTextRepresentation> refactorings, OutputStream outputStream) throws IOException {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream))) {
             for (String refactoring : getRefactoringsInJMoveFormat(refactorings)) {
                 bufferedWriter.write(refactoring);
