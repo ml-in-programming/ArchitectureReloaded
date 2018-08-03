@@ -7,12 +7,16 @@ import org.jetbrains.research.groups.ml_methods.algorithm.entity.FieldEntity;
 public class FieldAttributes extends ElementAttributes {
     private final @NotNull FieldEntity fieldEntity;
 
+    private final @NotNull ClassAttributes containingClassAttributes;
+
     public FieldAttributes(
         final @NotNull FieldEntity fieldEntity,
-        final @NotNull double[] features
+        final @NotNull double[] features,
+        final @NotNull ClassAttributes containingClassAttributes
     ) {
         super(features);
         this.fieldEntity = fieldEntity;
+        this.containingClassAttributes = containingClassAttributes;
     }
 
     @Override
@@ -22,5 +26,9 @@ public class FieldAttributes extends ElementAttributes {
 
     public @NotNull FieldEntity getOriginalField() {
         return fieldEntity;
+    }
+
+    public @NotNull ClassAttributes getContainingClassAttributes() {
+        return containingClassAttributes;
     }
 }

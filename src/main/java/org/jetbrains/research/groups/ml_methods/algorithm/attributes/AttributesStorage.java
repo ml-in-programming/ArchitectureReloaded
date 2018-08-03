@@ -7,9 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * One object of this class must be created per {@link Algorithm} execution. This class stores all
@@ -38,14 +36,17 @@ public class AttributesStorage {
         final @NotNull List<Metric> metrics,
         final @NotNull MetricsRun metricsRun
     ) throws NoRequestedMetricException {
+        Map<ClassEntity, ClassAttributes> attributesOfClass = new HashMap<>();
+
         classesAttributes = new ArrayList<>();
         for (ClassEntity classEntity : entities.getClasses()) {
-            classesAttributes.add(
-                new ClassAttributes(
-                    classEntity,
-                    extractFeatures(classEntity, metrics, metricsRun)
-                )
+            ClassAttributes classAttributes = new ClassAttributes(
+                classEntity,
+                extractFeatures(classEntity, metrics, metricsRun)
             );
+
+            classesAttributes.add(classAttributes);
+            attributesOfClass.put(classEntity, classAttributes);
         }
 
         methodsAttributes = new ArrayList<>();
@@ -53,14 +54,19 @@ public class AttributesStorage {
             methodsAttributes.add(
                 new MethodAttributes(
                     methodEntity,
-                    extractFeatures(methodEntity, metrics, metricsRun)
+                    extractFeatures(methodEntity, metrics, metricsRun),
+                    attributesOfClass.get(methodEntity.getContainingClass())
                 )
             );
         }
 
         fieldsAttributes = new ArrayList<>();
         for (FieldEntity fieldEntity : entities.getFields()) {
-            fieldsAttributes.add(new FieldAttributes(fieldEntity, new double[0]));
+            fieldsAttributes.add(new FieldAttributes(
+                fieldEntity,
+                new double[0],
+                attributesOfClass.get(fieldEntity.getContainingClass())
+            ));
         }
     }
 
