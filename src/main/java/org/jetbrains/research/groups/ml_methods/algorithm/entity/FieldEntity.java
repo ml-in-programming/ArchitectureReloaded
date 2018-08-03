@@ -12,14 +12,18 @@ import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHu
 public class FieldEntity extends CodeEntity {
     private final @NotNull PsiField psiField;
 
+    private final @NotNull ClassEntity containingClass;
+
     private final boolean isMovable;
 
     public FieldEntity(
         final @NotNull PsiField psiField,
+        final @NotNull ClassEntity containingClass,
         final @NotNull RelevantProperties relevantProperties
     ) {
         super(relevantProperties);
         this.psiField = psiField;
+        this.containingClass = containingClass;
 
         isMovable = ApplicationManager.getApplication().runReadAction(
             (Computable<Boolean>) () ->  MethodUtils.isStatic(psiField)
@@ -44,9 +48,18 @@ public class FieldEntity extends CodeEntity {
         return name.substring(0, name.lastIndexOf('.'));
     }
 
+    public @NotNull ClassEntity getContainingClass() {
+        return containingClass;
+    }
+
+    @NotNull
     @Override
-    public @NotNull
-    MetricCategory getMetricCategory() {
+    public <R> R accept(@NotNull CodeEntityVisitor<R> visitor) {
+        return visitor.visit(this);
+    }
+
+    @Override
+    public @NotNull MetricCategory getMetricCategory() {
         throw new UnsupportedOperationException(
             "Metrics reloaded doesn't support field metrics."
         );

@@ -43,7 +43,11 @@ public abstract class CodeEntity {
      * {@link ElementAttributes} that returns
      * {@link ClassAttributes}.
      */
+    @Deprecated
     public abstract @NotNull String getContainingClassName();
+
+    @NotNull
+    public abstract <R> R accept(@NotNull CodeEntityVisitor<R> visitor);
 
     public abstract @NotNull MetricCategory getMetricCategory();
 
