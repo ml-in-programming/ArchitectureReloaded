@@ -31,4 +31,8 @@ public class FieldAttributes extends ElementAttributes {
     public @NotNull ClassAttributes getContainingClassAttributes() {
         return containingClassAttributes;
     }
+
+    public <R> R accept(final @NotNull ElementAttributesVisitor<R> visitor) {
+        return visitor.visit(this);
+    }
 }

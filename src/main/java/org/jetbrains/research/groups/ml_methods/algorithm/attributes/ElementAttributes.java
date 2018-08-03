@@ -47,6 +47,8 @@ public abstract class ElementAttributes {
         return getOriginalEntity().getRelevantProperties();
     }
 
+    public abstract <R> R accept(final @NotNull ElementAttributesVisitor<R> visitor);
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
