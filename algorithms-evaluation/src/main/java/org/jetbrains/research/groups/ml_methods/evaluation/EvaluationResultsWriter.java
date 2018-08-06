@@ -40,12 +40,13 @@ class EvaluationResultsWriter {
             List<Double> results = evaluationResults.stream()
                     .map(evaluationResult -> evaluationResult.getEvaluation(evaluation).get())
                     .collect(Collectors.toList());
-            Double max = Collections.max(results);
+            Double valueToHighlight = evaluation.equals(Evaluation.MSE) || evaluation.equals(Evaluation.ME) ?
+                    Collections.min(results) : Collections.max(results);
 
             lines.add("<tr>");
             lines.addAll(Arrays.asList("<td>", evaluationNames.get(evaluation), "</td>"));
             for (Double result : results) {
-                if (result.equals(max)) {
+                if (result.equals(valueToHighlight)) {
                     lines.addAll(Arrays.asList("<td>", "<b>", DECIMAL_FORMAT.format(result), "</b>", "</td>"));
                 } else {
                     lines.addAll(Arrays.asList("<td>", DECIMAL_FORMAT.format(result), "</td>"));
