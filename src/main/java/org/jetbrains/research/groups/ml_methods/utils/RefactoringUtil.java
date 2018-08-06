@@ -251,39 +251,27 @@ public final class RefactoringUtil {
                 .orElse(null);
     }
 
-    /**
-     * @param scope this argument is only required for backward compatibility with old version of
-     * {@link Refactoring} class. It is needed to infer {@link PsiElement} from its name. If all
-     * usages of {@link Refactoring#createRefactoring} are eliminated then this argument can also
-     * be removed.
-     */
-    public static List<CalculatedRefactoring> combine(Collection<List<CalculatedRefactoring>> refactorings, AnalysisScope scope) {
+    public static List<CalculatedRefactoring> combine(Collection<List<CalculatedRefactoring>> refactorings) {
         return refactorings.stream()
                 .flatMap(List::stream)
-                .collect(Collectors.groupingBy(it -> it.getRefactoring().getEntityName(), Collectors.toList()))
+                .collect(Collectors.groupingBy(it -> it.getRefactoring().getEntity(), Collectors.toList()))
                 .entrySet().stream()
-                .map(entry -> combine(entry.getValue(), entry.getKey(), refactorings.size(), scope))
+                .map(entry -> combine(entry.getValue()))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * @param scope this argument is only required for backward compatibility with old version of
-     * {@link Refactoring} class. It is needed to infer {@link PsiElement} from its name. If all
-     * usages of {@link Refactoring#createRefactoring} are eliminated then this argument can also
-     * be removed.
-     */
-    private static CalculatedRefactoring combine(List<CalculatedRefactoring> refactorings, String unit, int algorithmsCount, AnalysisScope scope) {
-        boolean isUnitField = refactorings.get(0).getRefactoring().isMoveFieldRefactoring();
-        final Map<String, Double> target = refactorings.stream()
-                .collect(Collectors.toMap(it -> it.getRefactoring().getTargetName(), RefactoringUtil::getSquaredAccuarcy, Double::sum));
+    private static CalculatedRefactoring combine(List<CalculatedRefactoring> refactorings) {
+        final Map<Refactoring, Double> target = refactorings.stream()
+                .collect(Collectors.groupingBy(CalculatedRefactoring::getRefactoring, Collectors.averagingDouble(RefactoringUtil::getSquaredAccuracy)));
+
         return target.entrySet().stream()
                 .max(Entry.comparingByValue())
-                .map(entry -> new CalculatedRefactoring(Refactoring.createRefactoring(unit, entry.getKey(), isUnitField, scope), Math.sqrt(entry.getValue() / algorithmsCount)))
+                .map(entry -> new CalculatedRefactoring(entry.getKey(),  Math.sqrt(entry.getValue())))
                 .orElse(null);
     }
 
-    private static double getSquaredAccuarcy(CalculatedRefactoring refactoring) {
+    private static double getSquaredAccuracy(CalculatedRefactoring refactoring) {
         return refactoring.getAccuracy() * refactoring.getAccuracy();
     }
 }
