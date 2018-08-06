@@ -22,13 +22,12 @@ public class ClassOldEntity extends OldEntity {
         return getName();
     }
 
-
     public void removeFromClass(String method) {
         getRelevantProperties().removeMethod(method);
     }
 
     public void addToClass(String method) {
-        getRelevantProperties().addMethod(method);
+        getRelevantProperties().addNotOverrideMethod(method);
     }
 
     @Override

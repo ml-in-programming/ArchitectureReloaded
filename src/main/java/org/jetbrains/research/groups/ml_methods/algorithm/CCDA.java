@@ -69,7 +69,7 @@ public class CCDA extends OldAlgorithm {
             final RelevantProperties properties = entity.getRelevantProperties();
             final Set<String> neighbors = graph.getOrDefault(entity.getName(), new HashSet<>());
 
-            properties.getMethods()
+            properties.getNotOverrideMethods()
                     .forEach(name -> addNode(name, entity, neighbors));
 
             for (String field : properties.getFields()) {
