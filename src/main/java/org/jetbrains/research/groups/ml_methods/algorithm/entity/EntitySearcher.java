@@ -12,6 +12,10 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.builders.ClassEntityBuilder;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.builders.CodeEntityBuilder;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.builders.FieldEntityBuilder;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.builders.MethodEntityBuilder;
 import org.jetbrains.research.groups.ml_methods.algorithm.properties.finder_strategy.FinderStrategy;
 import org.jetbrains.research.groups.ml_methods.algorithm.properties.finder_strategy.NewStrategy;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
@@ -117,7 +121,8 @@ public class EntitySearcher {
     }
 
     private class UnitsFinder extends JavaRecursiveElementVisitor {
-        private @Nullable ClassEntityBuilder currentClassBuilder;
+        private @Nullable
+        ClassEntityBuilder currentClassBuilder;
 
         @Override
         public void visitFile(PsiFile file) {
@@ -309,86 +314,6 @@ public class EntitySearcher {
             if (indicator != null) {
                 indicator.setFraction((double) propertiesCalculated / builders.size());
             }
-        }
-    }
-
-    private static abstract class CodeEntityBuilder {
-        protected final @NotNull RelevantProperties relevantProperties = new RelevantProperties();
-
-        public @NotNull RelevantProperties getRelevantProperties() {
-            return relevantProperties;
-        }
-
-        public abstract @NotNull CodeEntity build();
-    }
-
-    private static class ClassEntityBuilder extends CodeEntityBuilder {
-        private @Nullable ClassEntity result = null;
-
-        private final @NotNull PsiClass psiClass;
-
-        public ClassEntityBuilder(final @NotNull PsiClass psiClass) {
-            this.psiClass = psiClass;
-        }
-
-        public @NotNull ClassEntity build() {
-            if (result == null) {
-                result = new ClassEntity(psiClass, relevantProperties);
-            }
-
-            return result;
-        }
-    }
-
-    private static class MethodEntityBuilder extends CodeEntityBuilder {
-        private @Nullable MethodEntity result = null;
-
-        private final @NotNull PsiMethod psiMethod;
-
-        private final @NotNull ClassEntityBuilder containingClassBuilder;
-
-        public MethodEntityBuilder(
-            final @NotNull PsiMethod psiMethod,
-            final @NotNull ClassEntityBuilder containingClassBuilder
-        ) {
-            this.psiMethod = psiMethod;
-            this.containingClassBuilder = containingClassBuilder;
-        }
-
-        public @NotNull MethodEntity build() {
-            if (result == null) {
-                result = new MethodEntity(psiMethod, containingClassBuilder.build(), relevantProperties);
-            }
-
-            return result;
-        }
-    }
-
-    private static class FieldEntityBuilder extends CodeEntityBuilder {
-        private @Nullable FieldEntity result = null;
-
-        private final @NotNull PsiField psiField;
-
-        private final @NotNull ClassEntityBuilder containingClassBuilder;
-
-        public FieldEntityBuilder(
-            final @NotNull PsiField psiField,
-            final @NotNull ClassEntityBuilder containingClassBuilder
-        ) {
-            this.psiField = psiField;
-            this.containingClassBuilder = containingClassBuilder;
-        }
-
-        public @NotNull FieldEntity build() {
-            if (result == null) {
-                if (relevantProperties == null) {
-                    throw new IllegalStateException("Attempt to create entity without RelevantProperties");
-                }
-
-                result = new FieldEntity(psiField, containingClassBuilder.build(), relevantProperties);
-            }
-
-            return result;
         }
     }
 }
