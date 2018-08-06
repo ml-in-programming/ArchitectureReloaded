@@ -10,10 +10,8 @@ import org.jetbrains.research.groups.ml_methods.utils.PSIUtil;
 
 import java.util.Objects;
 
-public class MethodEntity extends CodeEntity {
+public class MethodEntity extends ClassInnerEntity {
     private final @NotNull PsiMethod psiMethod;
-
-    private final @NotNull ClassEntity containingClass;
 
     private final boolean isMovable;
 
@@ -22,9 +20,8 @@ public class MethodEntity extends CodeEntity {
         final @NotNull ClassEntity containingClass,
         final @NotNull RelevantProperties relevantProperties
     ) {
-        super(relevantProperties);
+        super(relevantProperties, containingClass);
         this.psiMethod = psiMethod;
-        this.containingClass = containingClass;
 
         isMovable = ApplicationManager.getApplication().runReadAction((Computable<Boolean>)
                 () ->  !PSIUtil.isOverriding(psiMethod) &&
@@ -48,10 +45,6 @@ public class MethodEntity extends CodeEntity {
         final String signature = getIdentifier();
         final String name = signature.substring(0, signature.indexOf('('));
         return name.substring(0, name.lastIndexOf('.'));
-    }
-
-    public @NotNull ClassEntity getContainingClass() {
-        return containingClass;
     }
 
     @Override

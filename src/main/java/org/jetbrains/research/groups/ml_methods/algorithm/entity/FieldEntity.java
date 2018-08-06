@@ -11,10 +11,8 @@ import java.util.Objects;
 
 import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHumanReadableName;
 
-public class FieldEntity extends CodeEntity {
+public class FieldEntity extends ClassInnerEntity {
     private final @NotNull PsiField psiField;
-
-    private final @NotNull ClassEntity containingClass;
 
     private final boolean isMovable;
 
@@ -23,9 +21,8 @@ public class FieldEntity extends CodeEntity {
         final @NotNull ClassEntity containingClass,
         final @NotNull RelevantProperties relevantProperties
     ) {
-        super(relevantProperties);
+        super(relevantProperties, containingClass);
         this.psiField = psiField;
-        this.containingClass = containingClass;
 
         isMovable = ApplicationManager.getApplication().runReadAction(
             (Computable<Boolean>) () ->  MethodUtils.isStatic(psiField)
@@ -48,10 +45,6 @@ public class FieldEntity extends CodeEntity {
     public @NotNull String getContainingClassName() {
         final String name = getIdentifier();
         return name.substring(0, name.lastIndexOf('.'));
-    }
-
-    public @NotNull ClassEntity getContainingClass() {
-        return containingClass;
     }
 
     @Override
