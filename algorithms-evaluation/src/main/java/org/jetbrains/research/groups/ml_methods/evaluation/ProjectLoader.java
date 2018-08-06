@@ -12,8 +12,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ProjectLoader {
-    public static ProjectToEvaluate loadForEvaluation(Path rootFolder) throws IOException {
+class ProjectLoader {
+    static ProjectToEvaluate loadForEvaluation(Path rootFolder) throws IOException {
         final Project project = ProjectUtils.loadProjectWithAllDependencies(rootFolder.resolve("project"));
         if (project == null) {
             throw new IllegalArgumentException("Cannot open project. Check that path is correct.");

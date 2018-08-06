@@ -12,13 +12,13 @@ public class CombinedEvaluationResult extends AbstractEvaluationResult {
     private int numberOfFoundGood = 0;
     private int numberOfFoundBad = 0;
     private int numberOfFoundOthers = 0;
-    private final List<Double> errorSquares = new ArrayList<>();
+    private final List<Double> errors = new ArrayList<>();
 
-    public CombinedEvaluationResult(@NotNull Algorithm evaluatingAlgorithm) {
+    CombinedEvaluationResult(@NotNull Algorithm evaluatingAlgorithm) {
         super(evaluatingAlgorithm);
     }
 
-    public void addResult(EvaluationResult evaluationResult) {
+    void addResult(EvaluationResult evaluationResult) {
         if (!getAlgorithm().equals(evaluationResult.getAlgorithm())) {
             throw new IllegalArgumentException("Tried to add evaluation result with different algorithm");
         }
@@ -27,7 +27,7 @@ public class CombinedEvaluationResult extends AbstractEvaluationResult {
         numberOfFoundGood += evaluationResult.getNumberOfFoundGood();
         numberOfFoundBad += evaluationResult.getNumberOfFoundBad();
         numberOfFoundOthers += evaluationResult.getNumberOfFoundOthers();
-        errorSquares.addAll(evaluationResult.getErrorSquares());
+        errors.addAll(evaluationResult.getErrors());
     }
 
     @Override
@@ -56,7 +56,7 @@ public class CombinedEvaluationResult extends AbstractEvaluationResult {
     }
 
     @Override
-    public List<Double> getErrorSquares() {
-        return errorSquares;
+    public List<Double> getErrors() {
+        return errors;
     }
 }

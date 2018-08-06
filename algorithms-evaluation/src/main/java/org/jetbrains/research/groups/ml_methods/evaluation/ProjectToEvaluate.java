@@ -5,24 +5,24 @@ import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactorin
 
 import java.util.List;
 
-public class ProjectToEvaluate {
+class ProjectToEvaluate {
     private final Project project;
     private final List<Refactoring> goodRefactorings;
     private final List<Refactoring> badRefactorings;
 
-    public Project getProject() {
+    Project getProject() {
         return project;
     }
 
-    public List<Refactoring> getGoodRefactorings() {
+    List<Refactoring> getGoodRefactorings() {
         return goodRefactorings;
     }
 
-    public List<Refactoring> getBadRefactorings() {
+    List<Refactoring> getBadRefactorings() {
         return badRefactorings;
     }
 
-    public ProjectToEvaluate(Project project, List<Refactoring> goodRefactorings, List<Refactoring> badRefactorings) {
+    ProjectToEvaluate(Project project, List<Refactoring> goodRefactorings, List<Refactoring> badRefactorings) {
         this.project = project;
         this.goodRefactorings = goodRefactorings;
         this.badRefactorings = badRefactorings;

@@ -14,7 +14,7 @@ import java.util.List;
 
 public class AlgorithmEvaluator {
     @NotNull
-    public static EvaluationResult evaluate(@NotNull AnalysisScope scope, @NotNull Algorithm algorithm,
+    static EvaluationResult evaluate(@NotNull AnalysisScope scope, @NotNull Algorithm algorithm,
                                             @NotNull List<Refactoring> good, @NotNull List<Refactoring> bad) {
         MetricsProfile profile =
                 MetricsProfilesUtil.createProfile("evaluation_profile", algorithm.requiredMetrics());
@@ -29,14 +29,14 @@ public class AlgorithmEvaluator {
     }
 
     @NotNull
-    public static EvaluationResult evaluate(@NotNull Project project, @NotNull Algorithm algorithm,
+    static EvaluationResult evaluate(@NotNull Project project, @NotNull Algorithm algorithm,
                                             @NotNull List<Refactoring> good, @NotNull List<Refactoring> bad) {
         return evaluate(new AnalysisScope(project), algorithm, good, bad);
     }
 
     @NotNull
-    public static EvaluationResult evaluate(@NotNull ProjectToEvaluate projectToEvaluate,
-                                            @NotNull Algorithm algorithm) {
+    static EvaluationResult evaluate(@NotNull ProjectToEvaluate projectToEvaluate,
+                                     @NotNull Algorithm algorithm) {
         return evaluate(projectToEvaluate.getProject(),
                 algorithm,
                 projectToEvaluate.getGoodRefactorings(),

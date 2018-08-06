@@ -22,7 +22,7 @@ public class CombinedEvaluationResultTest {
         assertEquals(0, combinedEvaluationResult.getNumberOfBad());
         assertEquals(0, combinedEvaluationResult.getNumberOfFoundBad());
         assertEquals(0, combinedEvaluationResult.getNumberOfFoundOthers());
-        assertEquals(Collections.emptyList(), combinedEvaluationResult.getErrorSquares());
+        assertEquals(Collections.emptyList(), combinedEvaluationResult.getErrors());
 
         ProjectEvaluationResult projectEvaluationResult1 = mock(ProjectEvaluationResult.class);
         when(projectEvaluationResult1.getAlgorithm()).thenReturn(TEST_ALGORITHM);
@@ -31,9 +31,9 @@ public class CombinedEvaluationResultTest {
         when(projectEvaluationResult1.getNumberOfBad()).thenReturn(6);
         when(projectEvaluationResult1.getNumberOfFoundBad()).thenReturn(2);
         when(projectEvaluationResult1.getNumberOfFoundOthers()).thenReturn(12);
-        when(projectEvaluationResult1.getErrorSquares()).thenReturn(Arrays.asList(
-                pow(1 - 0.5, 2), pow(1 - 0.9, 2), pow(1 - 0.7, 2), pow(1 - 0.85, 2),
-                pow(0.8 - 0.0, 2), pow(0.2 - 0, 2)
+        when(projectEvaluationResult1.getErrors()).thenReturn(Arrays.asList(
+                1 - 0.5, 1 - 0.9, 1 - 0.7, 1 - 0.85,
+                0.8 - 0.0, 0.2 - 0
         ));
         combinedEvaluationResult.addResult(projectEvaluationResult1);
         assertEquals(10, combinedEvaluationResult.getNumberOfGood());
@@ -42,14 +42,16 @@ public class CombinedEvaluationResultTest {
         assertEquals(2, combinedEvaluationResult.getNumberOfFoundBad());
         assertEquals(12, combinedEvaluationResult.getNumberOfFoundOthers());
         assertEquals(Arrays.asList(
-                pow(1 - 0.5, 2), pow(1 - 0.9, 2), pow(1 - 0.7, 2), pow(1 - 0.85, 2),
-                pow(0.8 - 0.0, 2), pow(0.2 - 0, 2)), combinedEvaluationResult.getErrorSquares());
+                1 - 0.5, 1 - 0.9, 1 - 0.7, 1 - 0.85,
+                0.8 - 0.0, 0.2 - 0), combinedEvaluationResult.getErrors());
         assertEquals((double) 4 / 6, combinedEvaluationResult.getGoodPrecision(), 0);
         assertEquals((double) 4 / 10, combinedEvaluationResult.getGoodRecall(), 0);
         assertEquals((double) (6 - 2) / (10 + 6 - 4 - 2), combinedEvaluationResult.getBadPrecision(), 0);
         assertEquals((double) (6 - 2) / 6, combinedEvaluationResult.getBadRecall(), 0);
         assertEquals((pow(1 - 0.5, 2) + pow(1 - 0.9, 2) + pow(1 - 0.7, 2) + pow(1 - 0.85, 2) +
                 pow(0.8 - 0.0, 2) + pow(0.2 - 0, 2)) / 6, combinedEvaluationResult.getMSE(), 0);
+        assertEquals((1 - 0.5 + 1 - 0.9 + 1 - 0.7 + 1 - 0.85 +
+                0.8 - 0.0 + 0.2 - 0) / 6, combinedEvaluationResult.getME(), 0);
 
         ProjectEvaluationResult projectEvaluationResult2 = mock(ProjectEvaluationResult.class);
         when(projectEvaluationResult2.getAlgorithm()).thenReturn(TEST_ALGORITHM);
@@ -58,9 +60,8 @@ public class CombinedEvaluationResultTest {
         when(projectEvaluationResult2.getNumberOfBad()).thenReturn(10);
         when(projectEvaluationResult2.getNumberOfFoundBad()).thenReturn(1);
         when(projectEvaluationResult2.getNumberOfFoundOthers()).thenReturn(24);
-        when(projectEvaluationResult2.getErrorSquares()).thenReturn(Arrays.asList(
-                pow(1 - 0.2, 2), pow(1 - 0.1, 2),
-                pow(0.9 - 0.0, 2)
+        when(projectEvaluationResult2.getErrors()).thenReturn(Arrays.asList(
+                1 - 0.2, 1 - 0.1, 0.9 - 0.0
         ));
         combinedEvaluationResult.addResult(projectEvaluationResult2);
         assertEquals(24, combinedEvaluationResult.getNumberOfGood());
@@ -69,16 +70,18 @@ public class CombinedEvaluationResultTest {
         assertEquals(3, combinedEvaluationResult.getNumberOfFoundBad());
         assertEquals(36, combinedEvaluationResult.getNumberOfFoundOthers());
         assertEquals(Arrays.asList(
-                pow(1 - 0.5, 2), pow(1 - 0.9, 2), pow(1 - 0.7, 2), pow(1 - 0.85, 2),
-                pow(0.8 - 0.0, 2), pow(0.2 - 0, 2), pow(1 - 0.2, 2), pow(1 - 0.1, 2),
-                pow(0.9 - 0.0, 2)), combinedEvaluationResult.getErrorSquares());
+                1 - 0.5, 1 - 0.9, 1 - 0.7, 1 - 0.85,
+                0.8 - 0.0, 0.2 - 0, 1 - 0.2, 1 - 0.1,
+                0.9 - 0.0), combinedEvaluationResult.getErrors());
         assertEquals((double) 6 / 9, combinedEvaluationResult.getGoodPrecision(), 0);
         assertEquals((double) 6 / 24, combinedEvaluationResult.getGoodRecall(), 0);
         assertEquals((double) (16 - 3) / (24 + 16 - 6 - 3), combinedEvaluationResult.getBadPrecision(), 0);
         assertEquals((double) (16 - 3) / 16, combinedEvaluationResult.getBadRecall(), 0);
         assertEquals((pow(1 - 0.5, 2) + pow(1 - 0.9, 2) + pow(1 - 0.7, 2) + pow(1 - 0.85, 2) +
                 pow(0.8 - 0.0, 2) + pow(0.2 - 0, 2) + pow(1 - 0.2, 2) + pow(1 - 0.1, 2) + pow(0.9 - 0.0, 2)) / 9,
-                combinedEvaluationResult.getMSE(),
-                0);
+                combinedEvaluationResult.getMSE(), 0);
+        assertEquals((1 - 0.5 + 1 - 0.9 + 1 - 0.7 + 1 - 0.85 +
+                        0.8 - 0.0 + 0.2 - 0 + 1 - 0.2 + 1 - 0.1 + 0.9 - 0.0) / 9,
+                combinedEvaluationResult.getME(), 0);
     }
 }

@@ -9,20 +9,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.lang.Math.pow;
-
 public class ProjectEvaluationResult extends AbstractEvaluationResult {
     private final List<Refactoring> foundGoodRefactorings;
     private final List<Refactoring> goodRefactorings;
     private final List<Refactoring> foundBadRefactorings;
     private final List<Refactoring> badRefactorings;
     private final @NotNull List<Refactoring> foundOthersRefactorings;
-    private final @NotNull List<Double> errorSquares = new ArrayList<>();
+    private final @NotNull List<Double> errors = new ArrayList<>();
 
-    public ProjectEvaluationResult(List<Refactoring> foundRefactorings,
-                                   List<Refactoring> goodRefactorings,
-                                   List<Refactoring> badRefactorings,
-                                   @NotNull Algorithm evaluatingAlgorithm) {
+    ProjectEvaluationResult(List<Refactoring> foundRefactorings,
+                            List<Refactoring> goodRefactorings,
+                            List<Refactoring> badRefactorings,
+                            @NotNull Algorithm evaluatingAlgorithm) {
         super(evaluatingAlgorithm);
         foundGoodRefactorings = new ArrayList<>(foundRefactorings);
         foundBadRefactorings = new ArrayList<>(foundRefactorings);
@@ -34,17 +32,11 @@ public class ProjectEvaluationResult extends AbstractEvaluationResult {
         foundOthersRefactorings.removeIf(
             refactoring -> goodRefactorings.contains(refactoring) || badRefactorings.contains(refactoring)
         );
-        errorSquares.addAll(foundBadRefactorings.stream()
-                .map(value -> {
-                    double accuracy = value.getAccuracy();
-                    return pow(accuracy - 0, 2);
-                })
+        errors.addAll(foundBadRefactorings.stream()
+                .map(value -> value.getAccuracy() - 0)
                 .collect(Collectors.toList()));
-        errorSquares.addAll(foundGoodRefactorings.stream()
-                .map(value -> {
-                    double accuracy = value.getAccuracy();
-                    return pow(1 - accuracy, 2);
-                })
+        errors.addAll(foundGoodRefactorings.stream()
+                .map(value -> 1 - value.getAccuracy())
                 .collect(Collectors.toList()));
     }
 
@@ -75,7 +67,7 @@ public class ProjectEvaluationResult extends AbstractEvaluationResult {
 
     @NotNull
     @Override
-    public List<Double> getErrorSquares() {
-        return errorSquares;
+    public List<Double> getErrors() {
+        return errors;
     }
 }

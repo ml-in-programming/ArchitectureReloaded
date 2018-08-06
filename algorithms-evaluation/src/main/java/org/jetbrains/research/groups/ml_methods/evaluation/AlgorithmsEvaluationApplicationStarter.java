@@ -14,14 +14,14 @@ import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 
 public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarter {
     private static final ApplicationEx APPLICATION = (ApplicationEx) ApplicationManager.getApplication();
-
+    private static final int NUMBER_OF_ARGUMENTS = 4;
     private static final @NotNull Logger LOGGER =
             Logger.getLogger(AlgorithmsEvaluationApplicationStarter.class);
 
@@ -31,14 +31,14 @@ public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarte
     }
 
     private static void checkCommandLineArguments(@NotNull String[] args) {
-        if (args.length != 3) {
+        if (args.length != NUMBER_OF_ARGUMENTS) {
             printUsage();
             APPLICATION.exit(true, true);
         }
     }
 
     private static void printUsage() {
-        System.out.println("Usage: algorithms-evaluation <path to dataset folder> <algorithm name>");
+        System.out.println("Usage: algorithms-evaluation <path to dataset folder> <algorithms names> <pathToSaveResults>");
     }
 
     @Override
@@ -54,11 +54,17 @@ public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarte
         try {
             checkCommandLineArguments(args);
             Path datasetPath = Paths.get(args[1]);
-            String algorithmName = args[2];
-            List<Algorithm> algorithmsToEvaluate = algorithmName.equals("") ?
-                    AlgorithmsRepository.getAvailableAlgorithms() :
-                    Collections.singletonList(AlgorithmsRepository.getAlgorithmByName(algorithmName).orElseThrow(() ->
-                            new IllegalArgumentException("No such algorithm")));
+            List<String> algorithmsNames = Arrays.asList(args[2].split(","));
+            Path pathToSaveResults = Paths.get(args[3]);
+            List<Algorithm> algorithmsToEvaluate;
+            if (algorithmsNames.get(0).equals("")) {
+                algorithmsToEvaluate = AlgorithmsRepository.getAvailableAlgorithms();
+            } else {
+                algorithmsToEvaluate = algorithmsNames.stream()
+                        .map(algorithmName -> AlgorithmsRepository.getAlgorithmByName(algorithmName)
+                                .orElseThrow(() -> new IllegalArgumentException("No such algorithm")))
+                        .collect(Collectors.toList());
+            }
             List<EvaluationResult> evaluationResults = algorithmsToEvaluate.stream().map(algorithm -> {
                 try {
                     return JBAlgorithmEvaluator.evaluateDataset(datasetPath, algorithm);
@@ -67,6 +73,9 @@ public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarte
                 }
             }).collect(Collectors.toList());
             evaluationResults.forEach(this::printEvaluationResult);
+            if (!pathToSaveResults.toString().equals("")) {
+                EvaluationResultsWriter.writeTable(evaluationResults, pathToSaveResults);
+            }
         } catch (Throwable throwable) {
             System.out.println(throwable.getClass().getSimpleName() + ": " + throwable.getMessage());
             throwable.printStackTrace();
@@ -88,5 +97,6 @@ public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarte
         System.out.println("Good recall: " + evaluationResult.getGoodRecall());
         System.out.println("Bad recall: " + evaluationResult.getBadRecall());
         System.out.println("Mean squared error (MSE): " + evaluationResult.getMSE());
+        System.out.println("Mean error (ME): " + evaluationResult.getME());
     }
 }
