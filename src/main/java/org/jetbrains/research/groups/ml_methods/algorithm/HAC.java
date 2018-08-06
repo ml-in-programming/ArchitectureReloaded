@@ -10,9 +10,9 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.*;
 import org.jetbrains.research.groups.ml_methods.algorithm.distance.DistanceCalculator;
 import org.jetbrains.research.groups.ml_methods.algorithm.distance.RelevanceBasedDistanceCalculator;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveFieldRefactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 import org.jetbrains.research.groups.ml_methods.utils.AlgorithmsUtil;
 
@@ -52,7 +52,7 @@ public class HAC extends AbstractAlgorithm {
         private int idGenerator = 0;
 
         @Override
-        public @NotNull List<Refactoring> execute(
+        public @NotNull List<CalculatedRefactoring> execute(
                 final @NotNull ExecutionContext context,
                 final boolean enableFieldRefactorings
         ) throws Exception {
@@ -68,7 +68,7 @@ public class HAC extends AbstractAlgorithm {
                 context.checkCanceled();
             }
 
-            final List<Refactoring> refactorings = new ArrayList<>();
+            final List<CalculatedRefactoring> refactorings = new ArrayList<>();
             for (Community community : communities) {
                 final int entitiesCount = community.entities.size();
                 if (entitiesCount == 0) {
@@ -97,9 +97,11 @@ public class HAC extends AbstractAlgorithm {
 
                             @Override
                             public Void visit(@NotNull MethodAttributes methodAttributes) {
-                                refactorings.add(new MoveMethodRefactoring(
-                                    methodAttributes.getOriginalMethod().getPsiMethod(),
-                                    targetClass,
+                                refactorings.add(new CalculatedRefactoring(
+                                    new MoveMethodRefactoring(
+                                        methodAttributes.getOriginalMethod().getPsiMethod(),
+                                        targetClass
+                                    ),
                                     accuracy
                                 ));
 
@@ -109,9 +111,11 @@ public class HAC extends AbstractAlgorithm {
                             @Override
                             public Void visit(@NotNull FieldAttributes fieldAttributes) {
                                 if (enableFieldRefactorings) {
-                                    refactorings.add(new MoveFieldRefactoring(
-                                        fieldAttributes.getOriginalField().getPsiField(),
-                                        targetClass,
+                                    refactorings.add(new CalculatedRefactoring(
+                                        new MoveFieldRefactoring(
+                                            fieldAttributes.getOriginalField().getPsiField(),
+                                            targetClass
+                                        ),
                                         accuracy
                                     ));
                                 }

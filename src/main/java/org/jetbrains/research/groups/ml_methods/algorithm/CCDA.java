@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.OldEntity;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.RelevantProperties;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 import org.jetbrains.research.groups.ml_methods.utils.AlgorithmsUtil;
@@ -93,7 +94,7 @@ public class CCDA extends OldAlgorithm {
     }
 
     @Override
-    protected List<Refactoring> calculateRefactorings(OldExecutionContext context, boolean enableFieldRefactorings) {
+    protected List<CalculatedRefactoring> calculateRefactorings(OldExecutionContext context, boolean enableFieldRefactorings) {
         this.context = context;
         init();
         final Map<OldEntity, String> refactorings = new HashMap<>();
@@ -133,9 +134,8 @@ public class CCDA extends OldAlgorithm {
                     long dominant = dominants.get(id).getValue();
                     long size = entities.get(id).size();
                     if (enableFieldRefactorings || !entry.getKey().isField()) {
-                        return Refactoring.createRefactoring(entry.getKey().getName(), entry.getValue(),
-                                AlgorithmsUtil.getDensityBasedAccuracyRating(dominant, size) * ACCURACY,
-                                entry.getKey().isField(), context.getScope());
+                        return new CalculatedRefactoring(Refactoring.createRefactoring(entry.getKey().getName(), entry.getValue(),
+                                entry.getKey().isField(), context.getScope()), AlgorithmsUtil.getDensityBasedAccuracyRating(dominant, size) * ACCURACY);
                     } else {
                         return null;
                     }

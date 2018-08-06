@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ElementAttributes;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.*;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -29,7 +29,7 @@ public abstract class OldAlgorithm extends AbstractAlgorithm {
                 calculateRefactorings(new OldExecutionContext(context), enableFieldRefactorings);
     }
 
-    protected abstract List<Refactoring> calculateRefactorings(
+    protected abstract List<CalculatedRefactoring> calculateRefactorings(
         OldExecutionContext context,
         boolean enableFieldRefactorings
     ) throws Exception;

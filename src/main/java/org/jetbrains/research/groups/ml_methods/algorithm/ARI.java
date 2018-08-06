@@ -9,9 +9,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.*;
 import org.jetbrains.research.groups.ml_methods.algorithm.distance.DistanceCalculator;
 import org.jetbrains.research.groups.ml_methods.algorithm.distance.RelevanceBasedDistanceCalculator;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveFieldRefactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 import org.jetbrains.research.groups.ml_methods.utils.AlgorithmsUtil;
 
@@ -40,7 +40,7 @@ public class ARI extends AbstractAlgorithm {
 
             @NotNull
             @Override
-            public List<Refactoring> execute(@NotNull ExecutionContext context, boolean enableFieldRefactorings) throws Exception {
+            public List<CalculatedRefactoring> execute(@NotNull ExecutionContext context, boolean enableFieldRefactorings) throws Exception {
                 units.clear();
                 classAttributes.clear();
                 final AttributesStorage attributes = context.getAttributesStorage();
@@ -51,10 +51,10 @@ public class ARI extends AbstractAlgorithm {
                 }
                 progressCount.set(0);
                 this.context = context;
-                return context.runParallel(units, ArrayList<Refactoring>::new, this::findRefactoring, AlgorithmsUtil::combineLists);
+                return context.runParallel(units, ArrayList<CalculatedRefactoring>::new, this::findRefactoring, AlgorithmsUtil::combineLists);
             }
 
-            private List<Refactoring> findRefactoring(ElementAttributes entity, List<Refactoring> accumulator) {
+            private List<CalculatedRefactoring> findRefactoring(ElementAttributes entity, List<CalculatedRefactoring> accumulator) {
                 context.reportProgress((double) progressCount.incrementAndGet() / units.size());
                 context.checkCanceled();
                 if (!entity.getOriginalEntity().isMovable() || classAttributes.size() < 2) {
@@ -84,26 +84,30 @@ public class ARI extends AbstractAlgorithm {
                     double accuracy = AlgorithmsUtil.getGapBasedAccuracyRating(minDistance, difference) * ACCURACY;
                     PsiClass targetClass = targetClassAttributes.getOriginalClass().getPsiClass();
 
-                    accumulator.add(entity.accept(new ElementAttributesVisitor<Refactoring>() {
+                    accumulator.add(entity.accept(new ElementAttributesVisitor<CalculatedRefactoring>() {
                         @Override
-                        public Refactoring visit(final @NotNull ClassAttributes classAttributes) {
+                        public CalculatedRefactoring visit(final @NotNull ClassAttributes classAttributes) {
                             throw new IllegalArgumentException("Entity is a class");
                         }
 
                         @Override
-                        public Refactoring visit(final @NotNull MethodAttributes methodAttributes) {
-                            return new MoveMethodRefactoring(
-                                methodAttributes.getOriginalMethod().getPsiMethod(),
-                                targetClass,
+                        public CalculatedRefactoring visit(final @NotNull MethodAttributes methodAttributes) {
+                            return new CalculatedRefactoring(
+                                new MoveMethodRefactoring(
+                                    methodAttributes.getOriginalMethod().getPsiMethod(),
+                                    targetClass
+                                ),
                                 accuracy
                             );
                         }
 
                         @Override
-                        public Refactoring visit(final @NotNull FieldAttributes fieldAttributes) {
-                            return new MoveFieldRefactoring(
-                                fieldAttributes.getOriginalField().getPsiField(),
-                                targetClass,
+                        public CalculatedRefactoring visit(final @NotNull FieldAttributes fieldAttributes) {
+                            return new CalculatedRefactoring(
+                                new MoveFieldRefactoring(
+                                    fieldAttributes.getOriginalField().getPsiField(),
+                                    targetClass
+                                ),
                                 accuracy
                             );
                         }

@@ -14,6 +14,7 @@ import com.intellij.ui.content.Content;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmResult;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitiesStorage;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
@@ -53,7 +54,7 @@ public final class RefactoringsToolWindow implements Disposable {
         myToolWindow.setAvailable(false, null);
     }
 
-    private void addTab(String tabName, @NotNull List<Refactoring> refactorings, boolean isClosable) {
+    private void addTab(String tabName, @NotNull List<CalculatedRefactoring> refactorings, boolean isClosable) {
         final ClassRefactoringPanel panel = new ClassRefactoringPanel(refactorings, scope);
         panel.setEnableHighlighting(enableHighlighting);
         final ActionToolbar toolbar = createToolbar();
@@ -85,10 +86,10 @@ public final class RefactoringsToolWindow implements Disposable {
         myToolWindow.getContentManager().removeAllContents(true);
         contents.clear();
         myToolWindow.setAvailable(false, null);
-        final List<List<Refactoring>> refactorings = results.stream()
+        final List<List<CalculatedRefactoring>> refactorings = results.stream()
                 .map(AlgorithmResult::getRefactorings)
                 .collect(Collectors.toList());
-        final List<Refactoring> measured = RefactoringUtil.combine(refactorings, scope);
+        final List<CalculatedRefactoring> measured = RefactoringUtil.combine(refactorings, scope);
         addTab("Total", measured, false);
         myToolWindow.setAvailable(true, null);
         myToolWindow.show(null);
@@ -104,12 +105,12 @@ public final class RefactoringsToolWindow implements Disposable {
     }
 
     private void intersect(Set<String> algorithms) {
-        final List<List<Refactoring>> refactorings = results.stream()
+        final List<List<CalculatedRefactoring>> refactorings = results.stream()
                 .filter(result -> algorithms.contains(result.getAlgorithmName()))
                 .map(AlgorithmResult::getRefactorings)
                 .collect(Collectors.toList());
         // todo may be should use combine instead of intersect
-        final List<Refactoring> intersection = RefactoringUtil.intersect(refactorings);
+        final List<CalculatedRefactoring> intersection = RefactoringUtil.intersect(refactorings);
         if (!algorithms.isEmpty()) {
             final String tabName = algorithms.stream()
                     .collect(Collectors.joining(" & "));

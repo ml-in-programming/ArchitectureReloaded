@@ -10,10 +10,9 @@ public abstract class MoveToClassRefactoring extends Refactoring {
 
     public MoveToClassRefactoring(
         final @NotNull PsiElement entity,
-        final @NotNull PsiClass targetClass,
-        final double accuracy
+        final @NotNull PsiClass targetClass
     ) {
-        super(entity, targetClass, accuracy);
+        super(entity, targetClass);
         this.targetClass = targetClass;
     }
 

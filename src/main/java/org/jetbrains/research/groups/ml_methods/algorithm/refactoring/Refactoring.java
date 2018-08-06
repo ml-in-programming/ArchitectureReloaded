@@ -19,8 +19,6 @@ public abstract class Refactoring {
 
     private final String targetName;
 
-    private final double accuracy;
-
     /**
      * This factory method is a replacement for old ctor. Previously {@link Refactoring} class
      * stored only names of entities that were involved in refactoring. Now {@link Refactoring}
@@ -31,7 +29,6 @@ public abstract class Refactoring {
     public static @NotNull Refactoring createRefactoring(
         final @NotNull String entity,
         final @NotNull String target,
-        final double accuracy,
         final boolean isEntityField,
         final @NotNull AnalysisScope scope
     ) {
@@ -49,22 +46,19 @@ public abstract class Refactoring {
         if (!isEntityField) {
             return new MoveMethodRefactoring(
                 (PsiMethod) entityElement,
-                (PsiClass) targetElement,
-                accuracy
+                (PsiClass) targetElement
             );
         } else {
             return new MoveFieldRefactoring(
                 (PsiField) entityElement,
-                (PsiClass) targetElement,
-                accuracy
+                (PsiClass) targetElement
             );
         }
     }
 
     public Refactoring(
         final @NotNull PsiElement entity,
-        final @NotNull PsiElement target,
-        double accuracy
+        final @NotNull PsiElement target
     ) {
         this.entity = entity;
         this.target = target;
@@ -76,8 +70,6 @@ public abstract class Refactoring {
         this.targetName = ApplicationManager.getApplication().runReadAction(
             (Computable<String>) () -> PsiSearchUtil.getHumanReadableName(target)
         );
-
-        this.accuracy = accuracy;
     }
 
     public @NotNull PsiElement getEntity() {
@@ -106,10 +98,6 @@ public abstract class Refactoring {
     @Deprecated
     public String getTargetName() {
         return targetName;
-    }
-
-    public double getAccuracy() {
-        return accuracy;
     }
 
     public abstract boolean isMoveFieldRefactoring();

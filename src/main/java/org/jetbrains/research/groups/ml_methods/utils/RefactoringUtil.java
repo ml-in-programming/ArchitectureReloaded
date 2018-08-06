@@ -13,6 +13,7 @@ import com.sixrr.metrics.utils.MethodUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 import org.jetbrains.research.groups.ml_methods.ui.RefactoringsTableModel;
@@ -51,7 +52,7 @@ public final class RefactoringUtil {
     private RefactoringUtil() {
     }
 
-    public static void moveRefactoring(@NotNull List<Refactoring> refactorings,
+    public static void moveRefactoring(@NotNull List<CalculatedRefactoring> refactorings,
                                        @NotNull AnalysisScope scope,
                                        @Nullable RefactoringsTableModel model) {
         if (!checkValid(refactorings)) {
@@ -68,7 +69,7 @@ public final class RefactoringUtil {
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList());
                 final Set<String> accepted = moveMembersRefactoring(members, target, scope);
-                model.setAcceptedRefactorings(accepted.stream().map(m -> Refactoring.createRefactoring(m, PsiSearchUtil.getHumanReadableName(target), 0, true, scope)).collect(Collectors.toSet()));
+                model.setAcceptedRefactorings(accepted.stream().map(m -> new CalculatedRefactoring(Refactoring.createRefactoring(m, PsiSearchUtil.getHumanReadableName(target), true, scope), 0)).collect(Collectors.toSet()));
             }
         });
     }
@@ -136,15 +137,15 @@ public final class RefactoringUtil {
         return true;
     }
 
-    public static Map<Refactoring, String> getWarnings(List<Refactoring> refactorings, AnalysisScope scope) {
+    public static Map<CalculatedRefactoring, String> getWarnings(List<CalculatedRefactoring> refactorings, AnalysisScope scope) {
         final Set<String> allUnits = refactorings.stream()
-                .map(Refactoring::getEntityName)
+                .map(it -> it.getRefactoring().getEntityName())
                 .collect(Collectors.toSet());
         final Map<String, PsiElement> psiElements = PsiSearchUtil.findAllElements(allUnits, scope, Function.identity());
-        Map<Refactoring, String> warnings = new HashMap<>();
-        for (Refactoring refactoring : refactorings) {
-            final PsiElement element = psiElements.get(refactoring.getEntityName());
-            final String target = refactoring.getTargetName();
+        Map<CalculatedRefactoring, String> warnings = new HashMap<>();
+        for (CalculatedRefactoring refactoring : refactorings) {
+            final PsiElement element = psiElements.get(refactoring.getRefactoring().getEntityName());
+            final String target = refactoring.getRefactoring().getTargetName();
             String warning = "";
             if (element != null) {
                 warning = ApplicationManager.getApplication()
@@ -175,38 +176,38 @@ public final class RefactoringUtil {
         return "";
     }
 
-    private static Map<PsiClass, List<PsiElement>> prepareRefactorings(List<Refactoring> refactorings,
+    private static Map<PsiClass, List<PsiElement>> prepareRefactorings(List<CalculatedRefactoring> refactorings,
                                                                        AnalysisScope scope) {
         final Set<String> names = new HashSet<>();
         refactorings.stream()
-                .peek(refactoring -> names.add(refactoring.getEntityName()))
-                .forEach(refactoring -> names.add(refactoring.getTargetName()));
+                .peek(refactoring -> names.add(refactoring.getRefactoring().getEntityName()))
+                .forEach(refactoring -> names.add(refactoring.getRefactoring().getTargetName()));
         final Map<String, PsiElement> elements = findAllElements(names, scope, Function.identity());
         final HashMap<PsiClass, List<PsiElement>> result = new HashMap<>();
-        for (Refactoring refactoring : refactorings) {
-            final PsiClass target = (PsiClass) elements.get(refactoring.getTargetName());
-            final PsiElement element = elements.get(refactoring.getEntityName());
+        for (CalculatedRefactoring refactoring : refactorings) {
+            final PsiClass target = (PsiClass) elements.get(refactoring.getRefactoring().getTargetName());
+            final PsiElement element = elements.get(refactoring.getRefactoring().getEntityName());
             result.computeIfAbsent(target, x -> new ArrayList<>()).add(element);
         }
         return result;
     }
 
-    public static boolean checkValid(Collection<Refactoring> refactorings) {
+    public static boolean checkValid(Collection<CalculatedRefactoring> refactorings) {
         final long uniqueUnits = refactorings.stream()
-                .map(Refactoring::getEntityName)
+                .map(it -> it.getRefactoring().getEntityName())
                 .distinct()
                 .count();
         return uniqueUnits == refactorings.size();
     }
 
-    public static List<Refactoring> filter(List<Refactoring> refactorings, AnalysisScope scope) {
+    public static List<CalculatedRefactoring> filter(List<CalculatedRefactoring> refactorings, AnalysisScope scope) {
         final Set<String> allUnits = refactorings.stream()
-                .map(Refactoring::getEntityName)
+                .map(it -> it.getRefactoring().getEntityName())
                 .collect(Collectors.toSet());
         final Map<String, PsiElement> psiElements = PsiSearchUtil.findAllElements(allUnits, scope, Function.identity());
-        final List<Refactoring> validRefactorings = new ArrayList<>();
-        for (Refactoring refactoring : refactorings) {
-            final PsiElement element = psiElements.get(refactoring.getEntityName());
+        final List<CalculatedRefactoring> validRefactorings = new ArrayList<>();
+        for (CalculatedRefactoring refactoring : refactorings) {
+            final PsiElement element = psiElements.get(refactoring.getRefactoring().getEntityName());
             if (element != null) {
                 final boolean isMovable = ApplicationManager.getApplication()
                         .runReadAction((Computable<Boolean>) () -> isMovable(element));
@@ -228,14 +229,14 @@ public final class RefactoringUtil {
         return false;
     }
 
-    public static Map<String, String> toMap(List<Refactoring> refactorings) {
-        return refactorings.stream().collect(Collectors.toMap(Refactoring::getEntityName, Refactoring::getTargetName));
+    public static Map<String, String> toMap(List<CalculatedRefactoring> refactorings) {
+        return refactorings.stream().collect(Collectors.toMap(it -> it.getRefactoring().getEntityName(),it -> it.getRefactoring().getTargetName()));
     }
 
-    public static List<Refactoring> intersect(Collection<List<Refactoring>> refactorings) {
+    public static List<CalculatedRefactoring> intersect(Collection<List<CalculatedRefactoring>> refactorings) {
         return refactorings.stream()
                 .flatMap(List::stream)
-                .collect(Collectors.groupingBy(refactoring -> refactoring.getEntityName() + "&" + refactoring.getTargetName(),
+                .collect(Collectors.groupingBy(refactoring -> refactoring.getRefactoring().getEntityName() + "&" + refactoring.getRefactoring().getTargetName(),
                         Collectors.toList()))
                 .values().stream()
                 .filter(collection -> collection.size() == refactorings.size())
@@ -244,9 +245,9 @@ public final class RefactoringUtil {
                 .collect(Collectors.toList());
     }
 
-    private static Refactoring intersect(List<Refactoring> refactorings) {
+    private static CalculatedRefactoring intersect(List<CalculatedRefactoring> refactorings) {
         return refactorings.stream()
-                .min(Comparator.comparing(Refactoring::getAccuracy))
+                .min(Comparator.comparing(CalculatedRefactoring::getAccuracy))
                 .orElse(null);
     }
 
@@ -256,10 +257,10 @@ public final class RefactoringUtil {
      * usages of {@link Refactoring#createRefactoring} are eliminated then this argument can also
      * be removed.
      */
-    public static List<Refactoring> combine(Collection<List<Refactoring>> refactorings, AnalysisScope scope) {
+    public static List<CalculatedRefactoring> combine(Collection<List<CalculatedRefactoring>> refactorings, AnalysisScope scope) {
         return refactorings.stream()
                 .flatMap(List::stream)
-                .collect(Collectors.groupingBy(Refactoring::getEntityName, Collectors.toList()))
+                .collect(Collectors.groupingBy(it -> it.getRefactoring().getEntityName(), Collectors.toList()))
                 .entrySet().stream()
                 .map(entry -> combine(entry.getValue(), entry.getKey(), refactorings.size(), scope))
                 .filter(Objects::nonNull)
@@ -272,17 +273,17 @@ public final class RefactoringUtil {
      * usages of {@link Refactoring#createRefactoring} are eliminated then this argument can also
      * be removed.
      */
-    private static Refactoring combine(List<Refactoring> refactorings, String unit, int algorithmsCount, AnalysisScope scope) {
-        boolean isUnitField = refactorings.get(0).isMoveFieldRefactoring();
+    private static CalculatedRefactoring combine(List<CalculatedRefactoring> refactorings, String unit, int algorithmsCount, AnalysisScope scope) {
+        boolean isUnitField = refactorings.get(0).getRefactoring().isMoveFieldRefactoring();
         final Map<String, Double> target = refactorings.stream()
-                .collect(Collectors.toMap(Refactoring::getTargetName, RefactoringUtil::getSquaredAccuarcy, Double::sum));
+                .collect(Collectors.toMap(it -> it.getRefactoring().getTargetName(), RefactoringUtil::getSquaredAccuarcy, Double::sum));
         return target.entrySet().stream()
                 .max(Entry.comparingByValue())
-                .map(entry -> Refactoring.createRefactoring(unit, entry.getKey(), Math.sqrt(entry.getValue() / algorithmsCount), isUnitField, scope))
+                .map(entry -> new CalculatedRefactoring(Refactoring.createRefactoring(unit, entry.getKey(), isUnitField, scope), Math.sqrt(entry.getValue() / algorithmsCount)))
                 .orElse(null);
     }
 
-    private static double getSquaredAccuarcy(Refactoring refactoring) {
+    private static double getSquaredAccuarcy(CalculatedRefactoring refactoring) {
         return refactoring.getAccuracy() * refactoring.getAccuracy();
     }
 }
