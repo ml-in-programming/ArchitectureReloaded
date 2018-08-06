@@ -89,17 +89,36 @@ public class HAC extends AbstractAlgorithm {
                         double accuracy = getDensityBasedAccuracyRating(dominantClass.getValue(), entitiesCount) * ACCURACY;
                         PsiClass targetClass = classAttributes.getOriginalClass().getPsiClass();
 
-                        if (attributes instanceof FieldAttributes) {
-                            FieldAttributes fieldAttributes = (FieldAttributes) attributes;
-                            if (enableFieldRefactorings) {
-                                refactorings.add(new MoveFieldRefactoring(fieldAttributes.getOriginalField().getPsiField(), targetClass, accuracy));
+                        attributes.accept(new ElementAttributesVisitor<Void>() {
+                            @Override
+                            public Void visit(@NotNull ClassAttributes classAttributes) {
+                                throw new IllegalStateException("Unexpected ClassAttributes");
                             }
-                        } else if (attributes instanceof MethodAttributes) {
-                            MethodAttributes methodAttributes = (MethodAttributes) attributes;
-                            refactorings.add(new MoveMethodRefactoring(methodAttributes.getOriginalMethod().getPsiMethod(), targetClass, accuracy));
-                        } else {
-                            throw new IllegalArgumentException("Entity is not a method or a field");
-                        }
+
+                            @Override
+                            public Void visit(@NotNull MethodAttributes methodAttributes) {
+                                refactorings.add(new MoveMethodRefactoring(
+                                    methodAttributes.getOriginalMethod().getPsiMethod(),
+                                    targetClass,
+                                    accuracy
+                                ));
+
+                                return null;
+                            }
+
+                            @Override
+                            public Void visit(@NotNull FieldAttributes fieldAttributes) {
+                                if (enableFieldRefactorings) {
+                                    refactorings.add(new MoveFieldRefactoring(
+                                        fieldAttributes.getOriginalField().getPsiField(),
+                                        targetClass,
+                                        accuracy
+                                    ));
+                                }
+
+                                return null;
+                            }
+                        });
                     }
                 }
             }

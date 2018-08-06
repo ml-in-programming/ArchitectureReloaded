@@ -1,5 +1,6 @@
 package org.jetbrains.research.groups.ml_methods.algorithm;
 
+import com.intellij.psi.PsiClass;
 import com.sixrr.metrics.Metric;
 import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
 import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
@@ -61,50 +62,52 @@ public class ARI extends AbstractAlgorithm {
                 }
                 double minDistance = Double.POSITIVE_INFINITY;
                 double difference = Double.POSITIVE_INFINITY;
-                ClassAttributes targetClass = null;
+                ClassAttributes targetClassAttributes = null;
                 for (final ClassAttributes classAttributes : classAttributes) {
 
                     final double distance = distanceCalculator.distance(entity, classAttributes);
                     if (distance < minDistance) {
                         difference = minDistance - distance;
                         minDistance = distance;
-                        targetClass = classAttributes;
+                        targetClassAttributes = classAttributes;
                     } else if (distance - minDistance < difference) {
                         difference = distance - minDistance;
                     }
                 }
 
-                if (targetClass == null) {
+                if (targetClassAttributes == null) {
                     LOGGER.warn("targetClass is null for " + entity.getOriginalEntity().getIdentifier());
                     return accumulator;
                 }
-                final String targetClassName = targetClass.getOriginalEntity().getIdentifier();
+                final String targetClassName = targetClassAttributes.getOriginalEntity().getIdentifier();
                 if (!targetClassName.equals(entity.getOriginalEntity().getContainingClassName())) {
                     double accuracy = AlgorithmsUtil.getGapBasedAccuracyRating(minDistance, difference) * ACCURACY;
+                    PsiClass targetClass = targetClassAttributes.getOriginalClass().getPsiClass();
 
-                    if (entity instanceof MethodAttributes) {
-                        MethodAttributes methodAttributes = (MethodAttributes) entity;
+                    accumulator.add(entity.accept(new ElementAttributesVisitor<Refactoring>() {
+                        @Override
+                        public Refactoring visit(final @NotNull ClassAttributes classAttributes) {
+                            throw new IllegalArgumentException("Entity is a class");
+                        }
 
-                        accumulator.add(
-                            new MoveMethodRefactoring(
+                        @Override
+                        public Refactoring visit(final @NotNull MethodAttributes methodAttributes) {
+                            return new MoveMethodRefactoring(
                                 methodAttributes.getOriginalMethod().getPsiMethod(),
-                                targetClass.getOriginalClass().getPsiClass(),
+                                targetClass,
                                 accuracy
-                            )
-                        );
-                    } else if (entity instanceof FieldAttributes) {
-                        FieldAttributes fieldAttributes = (FieldAttributes) entity;
+                            );
+                        }
 
-                        accumulator.add(
-                            new MoveFieldRefactoring(
+                        @Override
+                        public Refactoring visit(final @NotNull FieldAttributes fieldAttributes) {
+                            return new MoveFieldRefactoring(
                                 fieldAttributes.getOriginalField().getPsiField(),
-                                targetClass.getOriginalClass().getPsiClass(),
+                                targetClass,
                                 accuracy
-                            )
-                        );
-                    } else {
-                        throw new IllegalArgumentException("Entity is not a method or a field");
-                    }
+                            );
+                        }
+                    }));
                 }
                 return accumulator;
             }
