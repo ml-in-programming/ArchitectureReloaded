@@ -124,7 +124,7 @@ public class CCDA extends OldAlgorithm {
         final Map<Integer, Map.Entry<String, Long>> dominants = entities.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        e -> AlgorithmsUtil.getDominantClass(e.getValue()))
+                        e -> AlgorithmsUtil.getDominantClassOld(e.getValue()))
                 );
 
         return refactorings.entrySet().stream()
