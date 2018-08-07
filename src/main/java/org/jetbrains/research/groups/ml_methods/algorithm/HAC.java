@@ -74,7 +74,7 @@ public class HAC extends AbstractAlgorithm {
                 if (entitiesCount == 0) {
                     continue;
                 }
-                final Entry<ClassAttributes, Long> dominantClass = AlgorithmsUtil.getDominantClass(community.entities);
+                final Entry<ClassAttributes, Long> dominantClass = AlgorithmsUtil.getDominantClassForAttributes(community.entities);
                 final ClassAttributes classAttributes = dominantClass.getKey();
 
                 LOGGER.info("Generate class name for community (id = " + community.id +"): " + classAttributes.getOriginalClass().getIdentifier());

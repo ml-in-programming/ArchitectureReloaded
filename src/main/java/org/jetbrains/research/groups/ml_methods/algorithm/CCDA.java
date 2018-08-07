@@ -5,11 +5,13 @@ import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
 import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.FieldEntity;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.OldEntity;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.RelevantProperties;
+import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
+import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ClassAttributes;
+import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ClassInnerEntityAttributes;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.*;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveFieldRefactoring;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 import org.jetbrains.research.groups.ml_methods.utils.AlgorithmsUtil;
@@ -18,148 +20,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class CCDA extends OldAlgorithm {
+public class CCDA extends AbstractAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(CCDA.class);
     private static final double ACCURACY = 1;
-
-    private final Map<String, Integer> communityIds = new HashMap<>();
-    private final Map<OldEntity, Integer> entityCommunities = new HashMap<>();
-    private final List<String> idCommunity = new ArrayList<>();
-    private final List<Integer> aCoefficients = new ArrayList<>();
-    private final List<OldEntity> nodes = new ArrayList<>();
-    private final Map<String, Set<String>> graph = new HashMap<>();
-    private OldExecutionContext context;
-
-    private double quality;
-    private double edges;
-    private static final double eps = 5e-4;
 
     public CCDA() {
         super("CCDA", true);
 
-    }
-
-    private void init() {
-        final EntitySearchResult entities = context.getEntities();
-        LOGGER.info("Init CCDA");
-        communityIds.clear();
-        entityCommunities.clear();
-        idCommunity.clear();
-        nodes.clear();
-        aCoefficients.clear();
-        quality = 0.0;
-        entities.getClasses().stream()
-                .peek(entity -> communityIds.put(entity.getName(), communityIds.size() + 1))
-                .peek(entity -> entityCommunities.put(entity, communityIds.get(entity.getClassName())))
-                .map(OldEntity::getName)
-                .forEach(idCommunity::add);
-        Stream.of(entities.getFields(), entities.getMethods())
-                .flatMap(List::stream)
-                .filter(entity -> communityIds.containsKey(entity.getClassName()))
-                .peek(entity -> communityIds.put(entity.getName(), communityIds.get(entity.getClassName())))
-                .peek(entity -> entityCommunities.put(entity, communityIds.get(entity.getClassName())))
-                .forEach(nodes::add);
-        aCoefficients.addAll(Collections.nCopies(idCommunity.size() + 1, 0));
-        buildGraph();
-    }
-
-    private void buildGraph() {
-        LOGGER.info("Building graph");
-        graph.clear();
-        int iteration = 0;
-        for (OldEntity entity : nodes) {
-            final RelevantProperties properties = entity.getRelevantProperties();
-            final Set<String> neighbors = graph.getOrDefault(entity.getName(), new HashSet<>());
-
-            properties.getNotOverrideMethods()
-                    .forEach(method -> addNode(method.getIdentifier(), entity, neighbors));
-
-            for (FieldEntity field : properties.getFields()) {
-                addNode(field.getIdentifier(), entity, neighbors);
-            }
-
-            context.checkCanceled();
-            graph.put(entity.getName(), neighbors);
-            iteration++;
-            context.reportProgress((0.1 * iteration) / nodes.size());
-        }
-    }
-
-    private void addNode(String entityName, OldEntity entity, Collection<String> neighbors) {
-        if (entityName.equals(entity.getName()) || !communityIds.containsKey(entityName)) {
-            return;
-        }
-        neighbors.add(entityName);
-        graph.computeIfAbsent(entityName, k -> new HashSet())
-                .add(entity.getName());
-    }
-
-    @Override
-    protected List<CalculatedRefactoring> calculateRefactorings(OldExecutionContext context, boolean enableFieldRefactorings) {
-        this.context = context;
-        init();
-        final Map<OldEntity, String> refactorings = new HashMap<>();
-        context.checkCanceled();
-        quality = calculateQualityIndex();
-        double progress = 0;
-        while (true) {
-            final Holder optimum = context.runParallel(nodes, Holder::new, this::attempt, this::max);
-            if (optimum.delta <= eps) {
-                break;
-            }
-            refactorings.put(optimum.targetEntity, idCommunity.get(optimum.community - 1));
-            move(optimum.targetEntity, optimum.community, false);
-            communityIds.put(optimum.targetEntity.getName(), optimum.community);
-            entityCommunities.put(optimum.targetEntity, optimum.community);
-            progress = Math.max(progress, eps / optimum.delta);
-            context.reportProgress(0.1 + 0.9 * progress);
-            LOGGER.info("Finish iteration. Current quality is " + quality + " (delta is " + optimum.delta + ")");
-            context.checkCanceled();
-        }
-
-        final Map<Integer, List<OldEntity>> entities = entityCommunities.entrySet().stream()
-                .collect(Collectors.groupingBy(Map.Entry::getValue))
-                .entrySet()
-                .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().stream().map(Map.Entry::getKey).collect(Collectors.toList())));
-
-        final Map<Integer, Map.Entry<String, Long>> dominants = entities.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        e -> AlgorithmsUtil.getDominantClassOld(e.getValue()))
-                );
-
-        return refactorings.entrySet().stream()
-                .map(entry -> {
-                    int id = communityIds.get(entry.getValue());
-                    long dominant = dominants.get(id).getValue();
-                    long size = entities.get(id).size();
-                    if (enableFieldRefactorings || !entry.getKey().isField()) {
-                        return new CalculatedRefactoring(Refactoring.createRefactoring(entry.getKey().getName(), entry.getValue(),
-                                entry.getKey().isField(), context.getScope()), AlgorithmsUtil.getDensityBasedAccuracyRating(dominant, size) * ACCURACY);
-                    } else {
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-    }
-
-    private Holder attempt(OldEntity entity, Holder optimum) {
-        final int currentCommunityID = communityIds.get(entity.getName());
-        for (int i = 1; i <= idCommunity.size(); ++i) {
-            if (i == currentCommunityID) {
-                continue;
-            }
-            final double delta = move(entity, i, true);
-            if (delta >= optimum.delta) {
-                optimum.delta = delta;
-                optimum.targetEntity = entity;
-                optimum.community = i;
-            }
-        }
-        context.checkCanceled();
-        return optimum;
     }
 
     @Override
@@ -167,97 +34,264 @@ public class CCDA extends OldAlgorithm {
         return Arrays.asList(new NumMethodsClassMetric(), new NumAttributesAddedMetric());
     }
 
-    private class Holder {
-        private double delta = 0;
-        private OldEntity targetEntity;
-        private int community = -1;
+    @Override
+    protected @NotNull AbstractAlgorithm.Executor setUpExecutor() {
+        return new Executor();
     }
 
-    private Holder max(Holder first, Holder second) {
-        return first.delta >= second.delta ? first : second;
-    }
+    private static class Executor implements AbstractAlgorithm.Executor {
+        private final Map<CodeEntity, Integer> communityIds = new HashMap<>();
+        private final Map<CodeEntity, Integer> entityCommunities = new HashMap<>();
+        private final List<ClassEntity> idCommunity = new ArrayList<>();
+        private final List<Integer> aCoefficients = new ArrayList<>();
+        private final List<ClassInnerEntity> nodes = new ArrayList<>();
+        private final Map<ClassInnerEntity, Set<ClassInnerEntity>> graph = new HashMap<>();
+        private ExecutionContext context;
 
-    private double move(OldEntity ent, int to, boolean rollback) {
-        final String name = ent.getName();
-        final int from = communityIds.get(name);
-        double dq = 0.0;
-        dq += Math.pow(aCoefficients.get(from) * 1.0 / edges, 2.0);
-        dq += Math.pow(aCoefficients.get(to) * 1.0 / edges, 2.0);
+        private double quality;
+        private double edges;
+        private static final double eps = 5e-4;
 
-        int aFrom = 0;
-        int aTo = 0;
-        int de = 0;
-
-        for (String neighbor : graph.get(name)) {
-            if (communityIds.get(neighbor) == from) {
-                de--;
-            } else {
-                aFrom++;
+        @Override
+        public @NotNull List<CalculatedRefactoring> execute(
+            final @NotNull ExecutionContext context,
+            final boolean enableFieldRefactorings
+        ) throws Exception {
+            this.context = context;
+            init();
+            final Map<ClassInnerEntity, ClassEntity> refactorings = new HashMap<>();
+            context.checkCanceled();
+            quality = calculateQualityIndex();
+            double progress = 0;
+            while (true) {
+                final Holder optimum = context.runParallel(nodes, Holder::new, this::attempt, this::max);
+                if (optimum.delta <= eps) {
+                    break;
+                }
+                refactorings.put(optimum.targetEntity, idCommunity.get(optimum.community - 1));
+                move(optimum.targetEntity, optimum.community, false);
+                communityIds.put(optimum.targetEntity, optimum.community);
+                entityCommunities.put(optimum.targetEntity, optimum.community);
+                progress = Math.max(progress, eps / optimum.delta);
+                context.reportProgress(0.1 + 0.9 * progress);
+                LOGGER.info("Finish iteration. Current quality is " + quality + " (delta is " + optimum.delta + ")");
+                context.checkCanceled();
             }
 
-            if (communityIds.get(neighbor) == to) {
-                de++;
-            } else {
-                aTo++;
-            }
+            final Map<Integer, List<CodeEntity>> entities = entityCommunities.entrySet().stream()
+                    .collect(Collectors.groupingBy(Map.Entry::getValue))
+                    .entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().stream().map(Map.Entry::getKey).collect(Collectors.toList())));
+
+            final Map<Integer, Map.Entry<ClassEntity, Long>> dominants = entities.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            e -> AlgorithmsUtil.getDominantClass(e.getValue()))
+                    );
+
+            return refactorings.entrySet().stream()
+                    .map(entry -> {
+                        int id = communityIds.get(entry.getValue());
+                        long dominant = dominants.get(id).getValue();
+                        long size = entities.get(id).size();
+
+                        CodeEntity entity = entry.getKey();
+                        ClassEntity target = entry.getValue();
+
+                        Refactoring refactoring = entity.accept(new CodeEntityVisitor<Refactoring>() {
+                            @Override
+                            public Refactoring visit(@NotNull ClassEntity classEntity) {
+                                throw new IllegalStateException("Unexpected class entity");
+                            }
+
+                            @Override
+                            public Refactoring visit(@NotNull MethodEntity methodEntity) {
+                                return new MoveMethodRefactoring(methodEntity.getPsiMethod(), target.getPsiClass());
+                            }
+
+                            @Override
+                            public Refactoring visit(@NotNull FieldEntity fieldEntity) {
+                                if (!enableFieldRefactorings) {
+                                    return null;
+                                }
+
+                                return new MoveFieldRefactoring(fieldEntity.getPsiField(), target.getPsiClass());
+                            }
+                        });
+
+                        if (refactoring == null) {
+                            return null;
+                        }
+
+                        return new CalculatedRefactoring(refactoring, AlgorithmsUtil.getDensityBasedAccuracyRating(dominant, size) * ACCURACY);
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
         }
 
-        aFrom = aCoefficients.get(from) - aFrom;
-        aTo = aCoefficients.get(to) + aTo;
-
-        if (!rollback) {
-            aCoefficients.set(from, aFrom);
-            aCoefficients.set(to, aTo);
+        private void init() {
+            final AttributesStorage entities = context.getAttributesStorage();
+            LOGGER.info("Init CCDA");
+            communityIds.clear();
+            entityCommunities.clear();
+            idCommunity.clear();
+            nodes.clear();
+            aCoefficients.clear();
+            quality = 0.0;
+            entities.getClassesAttributes().stream().map(ClassAttributes::getOriginalClass)
+                    .peek(entity -> communityIds.put(entity, communityIds.size() + 1))
+                    .peek(entity -> entityCommunities.put(entity, communityIds.get(entity)))
+                    .forEach(idCommunity::add);
+            Stream.of(entities.getFieldsAttributes(), entities.getMethodsAttributes())
+                    .flatMap(List::stream).map(ClassInnerEntityAttributes::getClassInnerEntity)
+                    .filter(entity -> communityIds.containsKey(entity.getContainingClass()))
+                    .peek(entity -> communityIds.put(entity, communityIds.get(entity.getContainingClass())))
+                    .peek(entity -> entityCommunities.put(entity, communityIds.get(entity.getContainingClass())))
+                    .forEach(nodes::add);
+            aCoefficients.addAll(Collections.nCopies(idCommunity.size() + 1, 0));
+            buildGraph();
         }
 
-        dq += (double) de * 1.0 / edges;
-        dq -= Math.pow((double) aFrom * 1.0 / edges, 2.0);
-        dq -= Math.pow((double) aTo * 1.0 / edges, 2.0);
+        private void buildGraph() {
+            LOGGER.info("Building graph");
+            graph.clear();
+            int iteration = 0;
+            for (ClassInnerEntity entity : nodes) {
+                final RelevantProperties properties = entity.getRelevantProperties();
+                final Set<ClassInnerEntity> neighbors = graph.getOrDefault(entity, new HashSet<>());
 
-        if (!rollback) {
-            quality += dq;
-        }
+                properties.getNotOverrideMethods()
+                        .forEach(method -> addNode(method, entity, neighbors));
 
-        return dq;
-    }
-
-    private double calculateQualityIndex() {
-        double qualityIndex = 0.0;
-
-        edges = 0.0;
-        for (String node : graph.keySet()) {
-            edges += (double) graph.get(node).size();
-        }
-        edges /= 2.0;
-
-        for (int i = 1; i <= idCommunity.size(); ++i) {
-            final String community = idCommunity.get(i - 1);
-            int e = 0;
-            int a = 0;
-
-            for (String node : graph.keySet()) {
-                if (!communityIds.containsKey(node)) {
-                    LOGGER.warn("ERROR: unknown community: " + node);
+                for (FieldEntity field : properties.getFields()) {
+                    addNode(field, entity, neighbors);
                 }
 
-                if (!communityIds.get(node).equals(communityIds.get(community))) {
+                context.checkCanceled();
+                graph.put(entity, neighbors);
+                iteration++;
+                context.reportProgress((0.1 * iteration) / nodes.size());
+            }
+        }
+
+        private void addNode(ClassInnerEntity entityName, ClassInnerEntity entity, Collection<ClassInnerEntity> neighbors) {
+            if (entityName.equals(entity) || !communityIds.containsKey(entityName)) {
+                return;
+            }
+            neighbors.add(entityName);
+            graph.computeIfAbsent(entityName, k -> new HashSet<>())
+                    .add(entity);
+        }
+
+        private Holder attempt(ClassInnerEntity entity, Holder optimum) {
+            final int currentCommunityID = communityIds.get(entity);
+            for (int i = 1; i <= idCommunity.size(); ++i) {
+                if (i == currentCommunityID) {
                     continue;
                 }
-                for (String neighbor : graph.get(node)) {
-                    if (communityIds.get(neighbor).equals(communityIds.get(community))) {
-                        e++;
-                    } else {
-                        a++;
-                    }
+                final double delta = move(entity, i, true);
+                if (delta >= optimum.delta) {
+                    optimum.delta = delta;
+                    optimum.targetEntity = entity;
+                    optimum.community = i;
+                }
+            }
+            context.checkCanceled();
+            return optimum;
+        }
+
+        private class Holder {
+            private double delta = 0;
+            private ClassInnerEntity targetEntity;
+            private int community = -1;
+        }
+
+        private Holder max(Holder first, Holder second) {
+            return first.delta >= second.delta ? first : second;
+        }
+
+        private double move(ClassInnerEntity ent, int to, boolean rollback) {
+            final int from = communityIds.get(ent);
+            double dq = 0.0;
+            dq += Math.pow(aCoefficients.get(from) * 1.0 / edges, 2.0);
+            dq += Math.pow(aCoefficients.get(to) * 1.0 / edges, 2.0);
+
+            int aFrom = 0;
+            int aTo = 0;
+            int de = 0;
+
+            for (ClassInnerEntity neighbor : graph.get(ent)) {
+                if (communityIds.get(neighbor) == from) {
+                    de--;
+                } else {
+                    aFrom++;
+                }
+
+                if (communityIds.get(neighbor) == to) {
+                    de++;
+                } else {
+                    aTo++;
                 }
             }
 
-            e /= 2;
-            a += e;
-            qualityIndex += ((double) e * 1.0 / edges) - Math.pow((double) a * 1.0 / edges, 2.0);
-            aCoefficients.set(i, a);
+            aFrom = aCoefficients.get(from) - aFrom;
+            aTo = aCoefficients.get(to) + aTo;
+
+            if (!rollback) {
+                aCoefficients.set(from, aFrom);
+                aCoefficients.set(to, aTo);
+            }
+
+            dq += (double) de * 1.0 / edges;
+            dq -= Math.pow((double) aFrom * 1.0 / edges, 2.0);
+            dq -= Math.pow((double) aTo * 1.0 / edges, 2.0);
+
+            if (!rollback) {
+                quality += dq;
+            }
+
+            return dq;
         }
 
-        return qualityIndex;
+        private double calculateQualityIndex() {
+            double qualityIndex = 0.0;
+
+            edges = 0.0;
+            for (ClassInnerEntity node : graph.keySet()) {
+                edges += (double) graph.get(node).size();
+            }
+            edges /= 2.0;
+
+            for (int i = 1; i <= idCommunity.size(); ++i) {
+                final ClassEntity community = idCommunity.get(i - 1);
+                int e = 0;
+                int a = 0;
+
+                for (ClassInnerEntity node : graph.keySet()) {
+                    if (!communityIds.containsKey(node)) {
+                        LOGGER.warn("ERROR: unknown community: " + node);
+                    }
+
+                    if (!communityIds.get(node).equals(communityIds.get(community))) {
+                        continue;
+                    }
+                    for (ClassInnerEntity neighbor : graph.get(node)) {
+                        if (communityIds.get(neighbor).equals(communityIds.get(community))) {
+                            e++;
+                        } else {
+                            a++;
+                        }
+                    }
+                }
+
+                e /= 2;
+                a += e;
+                qualityIndex += ((double) e * 1.0 / edges) - Math.pow((double) a * 1.0 / edges, 2.0);
+                aCoefficients.set(i, a);
+            }
+
+            return qualityIndex;
+        }
     }
 }

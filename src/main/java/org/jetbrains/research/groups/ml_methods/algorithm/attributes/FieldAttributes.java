@@ -1,6 +1,7 @@
 package org.jetbrains.research.groups.ml_methods.algorithm.attributes;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.ClassInnerEntity;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.CodeEntity;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.FieldEntity;
 
@@ -22,6 +23,11 @@ public class FieldAttributes extends ClassInnerEntityAttributes {
     }
 
     public @NotNull FieldEntity getOriginalField() {
+        return fieldEntity;
+    }
+
+    @Override
+    public @NotNull ClassInnerEntity getClassInnerEntity() {
         return fieldEntity;
     }
 
