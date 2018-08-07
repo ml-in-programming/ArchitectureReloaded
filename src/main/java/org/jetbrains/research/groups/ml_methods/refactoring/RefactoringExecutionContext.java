@@ -118,7 +118,7 @@ public class RefactoringExecutionContext {
         metricsRun.setContext(scope);
         metricsRun.setTimestamp(new TimeStamp());
         entitiesStorage = ApplicationManager.getApplication()
-                .runReadAction((Computable<EntitiesStorage>) () -> EntitySearcher.analyze(scope, metricsRun));
+                .runReadAction((Computable<EntitiesStorage>) () -> EntitySearcher.analyze(scope));
         for (Algorithm algorithm : requestedAlgorithms) {
             calculate(algorithm);
         }

@@ -35,6 +35,13 @@ public class EntitySearcher {
 
     private final Map<String, PsiClass> classForName = new HashMap<>();
     private final Map<PsiElement, CodeEntityBuilder> builders = new HashMap<>();
+
+    final List<ClassEntity> classes = new ArrayList<>();
+    final List<MethodEntity> methods = new ArrayList<>();
+    final List<FieldEntity> fields = new ArrayList<>();
+
+    final Map<PsiElement, CodeEntity> entities = new HashMap<>();
+
     private final AnalysisScope scope;
     private final long startTime;
     private final FinderStrategy strategy;
@@ -56,59 +63,65 @@ public class EntitySearcher {
      * of features derived from a given {@link MetricsRun}.
      *
      * @param scope a scope to search for entities in.
-     * @param metricsRun this allows to obtain feature vector for each found entity.
      * @return different sets of entities encapsulated in {@link EntitiesStorage}.
      */
-    public static EntitiesStorage analyze(AnalysisScope scope, MetricsRun metricsRun) {
+    public static EntitiesStorage analyze(AnalysisScope scope) {
         final EntitySearcher finder = new EntitySearcher(scope);
-        return finder.runCalculations(metricsRun);
+        return finder.runCalculations();
     }
 
-    private EntitiesStorage runCalculations(MetricsRun metricsRun) {
+    private EntitiesStorage runCalculations() {
         indicator.pushState();
         indicator.setText("Searching entities");
         indicator.setIndeterminate(true);
         LOGGER.info("Indexing entities...");
         scope.accept(new UnitsFinder());
-        indicator.setIndeterminate(false);
-        LOGGER.info("Calculating properties...");
-        indicator.setText("Calculating properties");
-        scope.accept(new PropertiesCalculator());
-        indicator.popState();
-        return prepareResult(metricsRun);
-    }
 
-    private EntitiesStorage prepareResult(MetricsRun metricsRun) {
-        LOGGER.info("Preparing results...");
-        final List<ClassEntity> classes = new ArrayList<>();
-        final List<MethodEntity> methods = new ArrayList<>();
-        final List<FieldEntity> fields = new ArrayList<>();
-        for (CodeEntityBuilder builder : builders.values()) {
+        for (Map.Entry<PsiElement, CodeEntityBuilder> entry : builders.entrySet()) {
             indicator.checkCanceled();
+
+            PsiElement element = entry.getKey();
+            CodeEntityBuilder builder = entry.getValue();
 
             CodeEntity entity = builder.build();
             entity.accept(new CodeEntityVisitor<Void>() {
                 @Override
                 public Void visit(final @NotNull ClassEntity classEntity) {
                     classes.add(classEntity);
+                    entities.put(element, classEntity);
+
                     return null;
                 }
 
                 @Override
                 public Void visit(final @NotNull MethodEntity methodEntity) {
                     methods.add(methodEntity);
+                    entities.put(element, methodEntity);
+
                     return null;
                 }
 
                 @Override
                 public Void visit(final @NotNull FieldEntity fieldEntity) {
                     fields.add(fieldEntity);
+                    entities.put(element, fieldEntity);
+
                     return null;
                 }
             });
         }
 
-        LOGGER.info("Properties calculated");
+        indicator.setIndeterminate(false);
+        LOGGER.info("Calculating properties...");
+        indicator.setText("Calculating properties");
+        scope.accept(new PropertiesCalculator());
+        indicator.popState();
+        return prepareResult();
+    }
+
+    private EntitiesStorage prepareResult() {
+        LOGGER.info("Preparing results...");
+
         LOGGER.info("Generated " + classes.size() + " class entities");
         LOGGER.info("Generated " + methods.size() + " method entities");
         LOGGER.info("Generated " + fields.size() + " field entities");
@@ -116,8 +129,8 @@ public class EntitySearcher {
     }
 
     private Optional<RelevantProperties> propertiesFor(PsiElement element) {
-        return Optional.ofNullable(builders.get(element))
-                .map(CodeEntityBuilder::getRelevantProperties);
+        return Optional.ofNullable(entities.get(element))
+                .map(CodeEntity::getRelevantProperties);
     }
 
     private class UnitsFinder extends JavaRecursiveElementVisitor {
@@ -185,12 +198,12 @@ public class EntitySearcher {
         @Override
         public void visitClass(PsiClass aClass) {
             indicator.checkCanceled();
-            final CodeEntityBuilder builder = builders.get(aClass);
-            if (builder == null) {
+            final CodeEntity entity = entities.get(aClass);
+            if (entity == null) {
                 super.visitClass(aClass);
                 return;
             }
-            final RelevantProperties classProperties = builder.getRelevantProperties();
+            final RelevantProperties classProperties = entity.getRelevantProperties();
             classProperties.addClass(aClass, strategy.getWeight(aClass, aClass));
             if (strategy.processSupers()) {
                 for (PsiClass superClass : PSIUtil.getAllSupers(aClass)) {
@@ -223,13 +236,13 @@ public class EntitySearcher {
         @Override
         public void visitMethod(PsiMethod method) {
             indicator.checkCanceled();
-            final CodeEntityBuilder builder = builders.get(method);
-            if (builder == null) {
+            final CodeEntity entity = entities.get(method);
+            if (entity == null) {
                 super.visitMethod(method);
                 return;
 
             }
-            final RelevantProperties methodProperties = builder.getRelevantProperties();
+            final RelevantProperties methodProperties = entity.getRelevantProperties();
             methodProperties.addNotOverrideMethod(method, strategy.getWeight(method, method));
             Optional.ofNullable(method.getContainingClass())
                     .ifPresent(c -> methodProperties.addClass(c, strategy.getWeight(method, c)));
@@ -238,7 +251,7 @@ public class EntitySearcher {
             }
             if (strategy.processSupers()) {
                 PSIUtil.getAllSupers(method).stream()
-                        .map(builders::get)
+                        .map(entities::get)
                         .filter(Objects::nonNull)
                         .forEach(superMethodBuilder -> superMethodBuilder
                                 .getRelevantProperties()
@@ -274,19 +287,19 @@ public class EntitySearcher {
         @Override
         public void visitField(PsiField field) {
             indicator.checkCanceled();
-            final CodeEntityBuilder builder = builders.get(field);
-            if (builder == null) {
+            final CodeEntity entity = entities.get(field);
+            if (entity == null) {
                 super.visitField(field);
                 return;
             }
-            RelevantProperties fieldProperties = builder.getRelevantProperties();
+            RelevantProperties fieldProperties = entity.getRelevantProperties();
             fieldProperties.addField(field, strategy.getWeight(field, field));
             final PsiClass containingClass = field.getContainingClass();
             if (containingClass != null) {
                 fieldProperties.addClass(containingClass, strategy.getWeight(field, containingClass));
                 final PsiClass fieldClass = PsiUtil.resolveClassInType(field.getType());
                 if (isClassInProject(fieldClass)) {
-                    builders.get(containingClass).getRelevantProperties().addClass(fieldClass, strategy.getWeight(containingClass, fieldClass));
+                    entities.get(containingClass).getRelevantProperties().addClass(fieldClass, strategy.getWeight(containingClass, fieldClass));
                 }
             }
             reportPropertiesCalculated();

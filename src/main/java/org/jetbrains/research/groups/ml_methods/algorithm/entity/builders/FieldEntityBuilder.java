@@ -4,6 +4,7 @@ import com.intellij.psi.PsiField;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.FieldEntity;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.RelevantProperties;
 
 public class FieldEntityBuilder extends CodeEntityBuilder {
     private @Nullable FieldEntity result = null;
@@ -22,7 +23,7 @@ public class FieldEntityBuilder extends CodeEntityBuilder {
 
     public @NotNull FieldEntity build() {
         if (result == null) {
-            result = new FieldEntity(psiField, containingClassBuilder.build(), relevantProperties);
+            result = new FieldEntity(psiField, containingClassBuilder.build(), new RelevantProperties());
         }
 
         return result;

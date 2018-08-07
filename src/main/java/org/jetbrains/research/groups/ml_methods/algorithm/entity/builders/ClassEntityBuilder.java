@@ -4,6 +4,7 @@ import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.ClassEntity;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.RelevantProperties;
 
 public class ClassEntityBuilder extends CodeEntityBuilder {
     private @Nullable ClassEntity result = null;
@@ -16,7 +17,7 @@ public class ClassEntityBuilder extends CodeEntityBuilder {
 
     public @NotNull ClassEntity build() {
         if (result == null) {
-            result = new ClassEntity(psiClass, relevantProperties);
+            result = new ClassEntity(psiClass, new RelevantProperties());
         }
 
         return result;
