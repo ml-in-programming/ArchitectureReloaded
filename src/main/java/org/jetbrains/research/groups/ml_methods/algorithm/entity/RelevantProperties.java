@@ -3,6 +3,7 @@ package org.jetbrains.research.groups.ml_methods.algorithm.entity;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,94 +19,54 @@ import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHu
  * weight which corresponds to importance of this property.
  */
 public class RelevantProperties {
+    private final @NotNull Map<MethodEntity, Integer> notOverrideMethods = new HashMap<>();
 
-    private final Map<String, Integer> notOverrideMethods = new HashMap<>();
-    private final Map<String, Integer> classes = new HashMap<>();
-    private final Map<String, Integer> fields = new HashMap<>();
-    private final Map<String, Integer> overrideMethods = new HashMap<>();
+    private final @NotNull Map<ClassEntity, Integer> classes = new HashMap<>();
+
+    private final @NotNull Map<FieldEntity, Integer> fields = new HashMap<>();
+
+    private final @NotNull Map<MethodEntity, Integer> overrideMethods = new HashMap<>();
 
     private final Integer DEFAULT_PROPERTY_WEIGHT = 1;
 
-    void removeMethod(String method) {
-        notOverrideMethods.remove(method);
-    }
-
-    /**
-     * Add method with a given name to this set of properties. Method will have a default weight. If
-     * the method is already in the set then its weight will be updated to be the maximum of
-     * given weight and the old one.
-     *
-     * @param method a name of a method to add.
-     */
-    void addNotOverrideMethod(String method) {
+    void addNotOverrideMethod(MethodEntity method) {
         addNotOverrideMethod(method, DEFAULT_PROPERTY_WEIGHT);
     }
 
-    /**
-     * Add given method to this set of properties. Method will have a default weight. If the method is
-     * already in the set then its weight will be updated to be the maximum of given weight and
-     * the old one.
-     *
-     * @param method a PSI method to add.
-     */
-    void addNotOverrideMethod(PsiMethod method) {
-        addNotOverrideMethod(method, DEFAULT_PROPERTY_WEIGHT);
-    }
 
-    /**
-     * Add given method to this set of properties with a given weight. If the method is already in the set then
-     * its weight will be updated to be the maximum of given weight and the old one.
-     *
-     * @param method a PSI method to add.
-     * @param weight a weight which will be assigned to this method.
-     */
-    void addNotOverrideMethod(PsiMethod method, Integer weight) {
-        addNotOverrideMethod(getHumanReadableName(method), weight);
-    }
-
-    /**
-     * Add method with a given name to this set of properties with a given weight. If the method is already
-     * in the set then its weight will be updated to be the maximum of given weight and the old one.
-     *
-     * @param method a name of a method to add.
-     * @param weight a weight which will be assigned to this method.
-     */
-    void addNotOverrideMethod(String method, Integer weight) {
+    void addNotOverrideMethod(MethodEntity method, Integer weight) {
         if (notOverrideMethods.getOrDefault(method, 0) < weight) {
             notOverrideMethods.put(method, weight);
         }
     }
 
-    void addClass(PsiClass aClass) {
+    void addClass(ClassEntity aClass) {
         addClass(aClass, DEFAULT_PROPERTY_WEIGHT);
     }
 
-    void addClass(PsiClass aClass, Integer weight) {
-        String name = getHumanReadableName(aClass);
-        if (classes.getOrDefault(name, 0) < weight) {
-            classes.put(name, weight);
+    void addClass(ClassEntity aClass, Integer weight) {
+        if (classes.getOrDefault(aClass, 0) < weight) {
+            classes.put(aClass, weight);
         }
     }
 
-    void addField(PsiField field) {
+    void addField(FieldEntity field) {
         addField(field, DEFAULT_PROPERTY_WEIGHT);
     }
 
-    void addField(PsiField field, Integer weight) {
-        final String name = getHumanReadableName(field);
-        if (fields.getOrDefault(name , 0) < weight) {
-            fields.put(name, weight);
+    void addField(FieldEntity field, Integer weight) {
+        if (fields.getOrDefault(field, 0) < weight) {
+            fields.put(field, weight);
         }
     }
 
-    void addOverrideMethod(PsiMethod method) {
+    void addOverrideMethod(MethodEntity method) {
         addOverrideMethod(method, DEFAULT_PROPERTY_WEIGHT);
     }
 
-    void addOverrideMethod(PsiMethod method, Integer weight) {
-        String name = getHumanReadableName(method);
-        if (overrideMethods.getOrDefault(name, 0) < weight) {
-            overrideMethods.put(getHumanReadableName(method), weight);
+    void addOverrideMethod(MethodEntity method, Integer weight) {
+        if (overrideMethods.getOrDefault(method, 0) < weight) {
+            overrideMethods.put(method, weight);
         }
     }
 
@@ -113,20 +74,19 @@ public class RelevantProperties {
         return notOverrideMethods.size();
     }
 
-    /** Returns names of all field properties that are stored in this set. */
-    public Set<String> getFields() {
+    public Set<FieldEntity> getFields() {
         return Collections.unmodifiableSet(fields.keySet());
     }
 
-    public Set<String> getNotOverrideMethods() {
+    public Set<MethodEntity> getNotOverrideMethods() {
         return Collections.unmodifiableSet(notOverrideMethods.keySet());
     }
     
-    public Set<String> getOverrideMethods() {
+    public Set<MethodEntity> getOverrideMethods() {
         return Collections.unmodifiableSet(overrideMethods.keySet());
     }
 
-    public Set<String> getClasses() {
+    public Set<ClassEntity> getClasses() {
         return Collections.unmodifiableSet(classes.keySet());
     }
 

@@ -40,7 +40,9 @@ public class EntitySearcher {
     final List<MethodEntity> methods = new ArrayList<>();
     final List<FieldEntity> fields = new ArrayList<>();
 
-    final Map<PsiElement, CodeEntity> entities = new HashMap<>();
+    final Map<PsiClass, ClassEntity> classEntities = new HashMap<>();
+    final Map<PsiMethod, MethodEntity> methodEntities = new HashMap<>();
+    final Map<PsiField, FieldEntity> fieldEntities = new HashMap<>();
 
     private final AnalysisScope scope;
     private final long startTime;
@@ -88,7 +90,7 @@ public class EntitySearcher {
                 @Override
                 public Void visit(final @NotNull ClassEntity classEntity) {
                     classes.add(classEntity);
-                    entities.put(element, classEntity);
+                    classEntities.put(classEntity.getPsiClass(), classEntity);
 
                     return null;
                 }
@@ -96,7 +98,7 @@ public class EntitySearcher {
                 @Override
                 public Void visit(final @NotNull MethodEntity methodEntity) {
                     methods.add(methodEntity);
-                    entities.put(element, methodEntity);
+                    methodEntities.put(methodEntity.getPsiMethod(), methodEntity);
 
                     return null;
                 }
@@ -104,7 +106,7 @@ public class EntitySearcher {
                 @Override
                 public Void visit(final @NotNull FieldEntity fieldEntity) {
                     fields.add(fieldEntity);
-                    entities.put(element, fieldEntity);
+                    fieldEntities.put(fieldEntity.getPsiField(), fieldEntity);
 
                     return null;
                 }
@@ -129,8 +131,19 @@ public class EntitySearcher {
     }
 
     private Optional<RelevantProperties> propertiesFor(PsiElement element) {
-        return Optional.ofNullable(entities.get(element))
-                .map(CodeEntity::getRelevantProperties);
+        CodeEntity entity = classEntities.get(element);
+        if (entity == null) {
+            entity = methodEntities.get(element);
+            if (entity == null) {
+                entity = fieldEntities.get(element);
+            }
+        }
+
+        if (entity == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(entity.getRelevantProperties());
     }
 
     private class UnitsFinder extends JavaRecursiveElementVisitor {
@@ -198,28 +211,28 @@ public class EntitySearcher {
         @Override
         public void visitClass(PsiClass aClass) {
             indicator.checkCanceled();
-            final CodeEntity entity = entities.get(aClass);
+            final CodeEntity entity = classEntities.get(aClass);
             if (entity == null) {
                 super.visitClass(aClass);
                 return;
             }
             final RelevantProperties classProperties = entity.getRelevantProperties();
-            classProperties.addClass(aClass, strategy.getWeight(aClass, aClass));
+            classProperties.addClass(classEntities.get(aClass), strategy.getWeight(aClass, aClass));
             if (strategy.processSupers()) {
                 for (PsiClass superClass : PSIUtil.getAllSupers(aClass)) {
                     if (superClass.isInterface()) {
-                        classProperties.addClass(superClass, strategy.getWeight(aClass, superClass));
+                        classProperties.addClass(classEntities.get(superClass), strategy.getWeight(aClass, superClass));
                     } else {
-                        propertiesFor(superClass).ifPresent(p -> p.addClass(aClass, strategy.getWeight(superClass, aClass)));
+                        propertiesFor(superClass).ifPresent(p -> p.addClass(classEntities.get(aClass), strategy.getWeight(superClass, aClass)));
                     }
                 }
             }
             Arrays.stream(aClass.getMethods())
                     .filter(m -> isProperty(aClass, m))
-                    .forEach(m -> classProperties.addNotOverrideMethod(m, strategy.getWeight(aClass, m)));
+                    .forEach(m -> classProperties.addNotOverrideMethod(methodEntities.get(m), strategy.getWeight(aClass, m)));
             Arrays.stream(aClass.getFields())
                     .filter(f -> isProperty(aClass, f))
-                    .forEach(f -> classProperties.addField(f, strategy.getWeight(aClass, f)));
+                    .forEach(f -> classProperties.addField(fieldEntities.get(f), strategy.getWeight(aClass, f)));
             reportPropertiesCalculated();
             super.visitClass(aClass);
         }
@@ -236,26 +249,26 @@ public class EntitySearcher {
         @Override
         public void visitMethod(PsiMethod method) {
             indicator.checkCanceled();
-            final CodeEntity entity = entities.get(method);
+            final CodeEntity entity = methodEntities.get(method);
             if (entity == null) {
                 super.visitMethod(method);
                 return;
 
             }
             final RelevantProperties methodProperties = entity.getRelevantProperties();
-            methodProperties.addNotOverrideMethod(method, strategy.getWeight(method, method));
+            methodProperties.addNotOverrideMethod(methodEntities.get(method), strategy.getWeight(method, method));
             Optional.ofNullable(method.getContainingClass())
-                    .ifPresent(c -> methodProperties.addClass(c, strategy.getWeight(method, c)));
+                    .ifPresent(c -> methodProperties.addClass(classEntities.get(c), strategy.getWeight(method, c)));
             if (currentMethod == null) {
                 currentMethod = method;
             }
             if (strategy.processSupers()) {
                 PSIUtil.getAllSupers(method).stream()
-                        .map(entities::get)
+                        .map(methodEntities::get)
                         .filter(Objects::nonNull)
                         .forEach(superMethodBuilder -> superMethodBuilder
                                 .getRelevantProperties()
-                                .addOverrideMethod(method, strategy.getWeight(superMethodBuilder, method)));
+                                .addOverrideMethod(methodEntities.get(method), strategy.getWeight(superMethodBuilder, method)));
             }
             reportPropertiesCalculated();
             super.visitMethod(method);
@@ -272,13 +285,13 @@ public class EntitySearcher {
                     && isClassInProject(((PsiField) element).getContainingClass()) && strategy.isRelation(expression)) {
                 final PsiField field = (PsiField) element;
                 propertiesFor(currentMethod)
-                        .ifPresent(p -> p.addField(field, strategy.getWeight(currentMethod, field)));
+                        .ifPresent(p -> p.addField(fieldEntities.get(field), strategy.getWeight(currentMethod, field)));
 //                propertiesFor(field)
 //                        .ifPresent(p -> p.addNotOverrideMethod(currentMethod, strategy.getWeight(field, currentMethod)));
                 final PsiClass fieldClass = PsiUtil.resolveClassInType(field.getType());
                 if (isClassInProject(fieldClass)) {
                     propertiesFor(currentMethod)
-                            .ifPresent(p -> p.addClass(fieldClass, strategy.getWeight(currentMethod, fieldClass)));
+                            .ifPresent(p -> p.addClass(classEntities.get(fieldClass), strategy.getWeight(currentMethod, fieldClass)));
                 }
             }
             super.visitReferenceExpression(expression);
@@ -287,19 +300,19 @@ public class EntitySearcher {
         @Override
         public void visitField(PsiField field) {
             indicator.checkCanceled();
-            final CodeEntity entity = entities.get(field);
+            final CodeEntity entity = fieldEntities.get(field);
             if (entity == null) {
                 super.visitField(field);
                 return;
             }
             RelevantProperties fieldProperties = entity.getRelevantProperties();
-            fieldProperties.addField(field, strategy.getWeight(field, field));
+            fieldProperties.addField(fieldEntities.get(field), strategy.getWeight(field, field));
             final PsiClass containingClass = field.getContainingClass();
             if (containingClass != null) {
-                fieldProperties.addClass(containingClass, strategy.getWeight(field, containingClass));
+                fieldProperties.addClass(classEntities.get(containingClass), strategy.getWeight(field, containingClass));
                 final PsiClass fieldClass = PsiUtil.resolveClassInType(field.getType());
                 if (isClassInProject(fieldClass)) {
-                    entities.get(containingClass).getRelevantProperties().addClass(fieldClass, strategy.getWeight(containingClass, fieldClass));
+                    classEntities.get(containingClass).getRelevantProperties().addClass(classEntities.get(fieldClass), strategy.getWeight(containingClass, fieldClass));
                 }
             }
             reportPropertiesCalculated();
@@ -315,8 +328,8 @@ public class EntitySearcher {
                     && strategy.isRelation(expression)) {
                 propertiesFor(currentMethod)
                         .ifPresent(p -> {
-                            p.addNotOverrideMethod(called, strategy.getWeight(currentMethod, called));
-                            p.addClass(usedClass, strategy.getWeight(currentMethod, usedClass));
+                            p.addNotOverrideMethod(methodEntities.get(called), strategy.getWeight(currentMethod, called));
+                            p.addClass(classEntities.get(usedClass), strategy.getWeight(currentMethod, usedClass));
                         });
             }
             super.visitMethodCallExpression(expression);

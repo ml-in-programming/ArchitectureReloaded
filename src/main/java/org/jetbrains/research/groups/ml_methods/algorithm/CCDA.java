@@ -5,6 +5,7 @@ import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
 import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.FieldEntity;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.OldEntity;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.RelevantProperties;
@@ -71,10 +72,10 @@ public class CCDA extends OldAlgorithm {
             final Set<String> neighbors = graph.getOrDefault(entity.getName(), new HashSet<>());
 
             properties.getNotOverrideMethods()
-                    .forEach(name -> addNode(name, entity, neighbors));
+                    .forEach(method -> addNode(method.getIdentifier(), entity, neighbors));
 
-            for (String field : properties.getFields()) {
-                addNode(field, entity, neighbors);
+            for (FieldEntity field : properties.getFields()) {
+                addNode(field.getIdentifier(), entity, neighbors);
             }
 
             context.checkCanceled();
