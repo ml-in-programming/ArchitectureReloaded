@@ -12,10 +12,6 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.builders.ClassEntityBuilder;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.builders.CodeEntityBuilder;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.builders.FieldEntityBuilder;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.builders.MethodEntityBuilder;
 import org.jetbrains.research.groups.ml_methods.algorithm.properties.finder_strategy.FinderStrategy;
 import org.jetbrains.research.groups.ml_methods.algorithm.properties.finder_strategy.NewStrategy;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
@@ -34,7 +30,6 @@ public class EntitySearcher {
     private static final Logger LOGGER = Logging.getLogger(EntitySearcher.class);
 
     private final Map<String, PsiClass> classForName = new HashMap<>();
-    private final Map<PsiElement, CodeEntityBuilder> builders = new HashMap<>();
 
     final List<ClassEntity> classes = new ArrayList<>();
     final List<MethodEntity> methods = new ArrayList<>();
@@ -48,6 +43,30 @@ public class EntitySearcher {
     private final long startTime;
     private final FinderStrategy strategy;
     private final ProgressIndicator indicator;
+
+    private ClassEntity getCodeEntity(final @NotNull PsiClass psiClass) {
+        return classEntities.computeIfAbsent(psiClass, ClassEntity::new);
+    }
+
+    private MethodEntity getCodeEntity(final @NotNull PsiMethod psiMethod) {
+        return methodEntities.computeIfAbsent(psiMethod, psi -> new MethodEntity(psi, getCodeEntity(psi.getContainingClass())));
+    }
+
+    private FieldEntity getCodeEntity(final @NotNull PsiField psiField) {
+        return fieldEntities.computeIfAbsent(psiField, psi -> new FieldEntity(psi, getCodeEntity(psi.getContainingClass())));
+    }
+
+    private void addCodeEntityFor(final @NotNull PsiClass psiClass) {
+        classes.add(getCodeEntity(psiClass));
+    }
+
+    private void addCodeEntityFor(final @NotNull PsiMethod psiMethod) {
+        methods.add(getCodeEntity(psiMethod));
+    }
+
+    private void addCodeEntityFor(final @NotNull PsiField psiField) {
+        fields.add(getCodeEntity(psiField));
+    }
 
     private EntitySearcher(AnalysisScope scope) {
         this.scope = scope;
@@ -78,41 +97,6 @@ public class EntitySearcher {
         indicator.setIndeterminate(true);
         LOGGER.info("Indexing entities...");
         scope.accept(new UnitsFinder());
-
-        for (Map.Entry<PsiElement, CodeEntityBuilder> entry : builders.entrySet()) {
-            indicator.checkCanceled();
-
-            PsiElement element = entry.getKey();
-            CodeEntityBuilder builder = entry.getValue();
-
-            CodeEntity entity = builder.build();
-            entity.accept(new CodeEntityVisitor<Void>() {
-                @Override
-                public Void visit(final @NotNull ClassEntity classEntity) {
-                    classes.add(classEntity);
-                    classEntities.put(classEntity.getPsiClass(), classEntity);
-
-                    return null;
-                }
-
-                @Override
-                public Void visit(final @NotNull MethodEntity methodEntity) {
-                    methods.add(methodEntity);
-                    methodEntities.put(methodEntity.getPsiMethod(), methodEntity);
-
-                    return null;
-                }
-
-                @Override
-                public Void visit(final @NotNull FieldEntity fieldEntity) {
-                    fields.add(fieldEntity);
-                    fieldEntities.put(fieldEntity.getPsiField(), fieldEntity);
-
-                    return null;
-                }
-            });
-        }
-
         indicator.setIndeterminate(false);
         LOGGER.info("Calculating properties...");
         indicator.setText("Calculating properties");
@@ -130,14 +114,28 @@ public class EntitySearcher {
         return new EntitiesStorage(classes, methods, fields, System.currentTimeMillis() - startTime);
     }
 
-    private Optional<RelevantProperties> propertiesFor(PsiElement element) {
+    private Optional<RelevantProperties> propertiesFor(PsiClass element) {
         CodeEntity entity = classEntities.get(element);
+
         if (entity == null) {
-            entity = methodEntities.get(element);
-            if (entity == null) {
-                entity = fieldEntities.get(element);
-            }
+            return Optional.empty();
         }
+
+        return Optional.of(entity.getRelevantProperties());
+    }
+
+    private Optional<RelevantProperties> propertiesFor(PsiMethod element) {
+        CodeEntity entity = methodEntities.get(element);
+
+        if (entity == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(entity.getRelevantProperties());
+    }
+
+    private Optional<RelevantProperties> propertiesFor(PsiField element) {
+        CodeEntity entity = fieldEntities.get(element);
 
         if (entity == null) {
             return Optional.empty();
@@ -147,9 +145,6 @@ public class EntitySearcher {
     }
 
     private class UnitsFinder extends JavaRecursiveElementVisitor {
-        private @Nullable
-        ClassEntityBuilder currentClassBuilder;
-
         @Override
         public void visitFile(PsiFile file) {
             indicator.checkCanceled();
@@ -167,11 +162,8 @@ public class EntitySearcher {
                 return;
             }
 
-            ClassEntityBuilder previousClassEntityBuilder = currentClassBuilder;
-            currentClassBuilder = new ClassEntityBuilder(aClass);
-            builders.put(aClass, currentClassBuilder);
+            addCodeEntityFor(aClass);
             super.visitClass(aClass);
-            currentClassBuilder = previousClassEntityBuilder;
         }
 
         @Override
@@ -180,7 +172,8 @@ public class EntitySearcher {
                 return;
             }
             indicator.checkCanceled();
-            builders.put(field, new FieldEntityBuilder(field, currentClassBuilder));
+
+            addCodeEntityFor(field);
             super.visitField(field);
         }
 
@@ -190,7 +183,8 @@ public class EntitySearcher {
                 return;
             }
             indicator.checkCanceled();
-            builders.put(method, new MethodEntityBuilder(method, currentClassBuilder));
+
+            addCodeEntityFor(method);
             super.visitMethod(method);
         }
     }
@@ -211,28 +205,28 @@ public class EntitySearcher {
         @Override
         public void visitClass(PsiClass aClass) {
             indicator.checkCanceled();
-            final CodeEntity entity = classEntities.get(aClass);
+            final CodeEntity entity = getCodeEntity(aClass);
             if (entity == null) {
                 super.visitClass(aClass);
                 return;
             }
             final RelevantProperties classProperties = entity.getRelevantProperties();
-            classProperties.addClass(classEntities.get(aClass), strategy.getWeight(aClass, aClass));
+            classProperties.addClass(getCodeEntity(aClass), strategy.getWeight(aClass, aClass));
             if (strategy.processSupers()) {
                 for (PsiClass superClass : PSIUtil.getAllSupers(aClass)) {
                     if (superClass.isInterface()) {
-                        classProperties.addClass(classEntities.get(superClass), strategy.getWeight(aClass, superClass));
+                        classProperties.addClass(getCodeEntity(superClass), strategy.getWeight(aClass, superClass));
                     } else {
-                        propertiesFor(superClass).ifPresent(p -> p.addClass(classEntities.get(aClass), strategy.getWeight(superClass, aClass)));
+                        propertiesFor(superClass).ifPresent(p -> p.addClass(getCodeEntity(aClass), strategy.getWeight(superClass, aClass)));
                     }
                 }
             }
             Arrays.stream(aClass.getMethods())
                     .filter(m -> isProperty(aClass, m))
-                    .forEach(m -> classProperties.addNotOverrideMethod(methodEntities.get(m), strategy.getWeight(aClass, m)));
+                    .forEach(m -> classProperties.addNotOverrideMethod(getCodeEntity(m), strategy.getWeight(aClass, m)));
             Arrays.stream(aClass.getFields())
                     .filter(f -> isProperty(aClass, f))
-                    .forEach(f -> classProperties.addField(fieldEntities.get(f), strategy.getWeight(aClass, f)));
+                    .forEach(f -> classProperties.addField(getCodeEntity(f), strategy.getWeight(aClass, f)));
             reportPropertiesCalculated();
             super.visitClass(aClass);
         }
@@ -249,26 +243,26 @@ public class EntitySearcher {
         @Override
         public void visitMethod(PsiMethod method) {
             indicator.checkCanceled();
-            final CodeEntity entity = methodEntities.get(method);
+            final CodeEntity entity = getCodeEntity(method);
             if (entity == null) {
                 super.visitMethod(method);
                 return;
 
             }
             final RelevantProperties methodProperties = entity.getRelevantProperties();
-            methodProperties.addNotOverrideMethod(methodEntities.get(method), strategy.getWeight(method, method));
+            methodProperties.addNotOverrideMethod(getCodeEntity(method), strategy.getWeight(method, method));
             Optional.ofNullable(method.getContainingClass())
-                    .ifPresent(c -> methodProperties.addClass(classEntities.get(c), strategy.getWeight(method, c)));
+                    .ifPresent(c -> methodProperties.addClass(getCodeEntity(c), strategy.getWeight(method, c)));
             if (currentMethod == null) {
                 currentMethod = method;
             }
             if (strategy.processSupers()) {
                 PSIUtil.getAllSupers(method).stream()
-                        .map(methodEntities::get)
+                        .map(EntitySearcher.this::getCodeEntity)
                         .filter(Objects::nonNull)
                         .forEach(superMethodBuilder -> superMethodBuilder
                                 .getRelevantProperties()
-                                .addOverrideMethod(methodEntities.get(method), strategy.getWeight(superMethodBuilder, method)));
+                                .addOverrideMethod(getCodeEntity(method), strategy.getWeight(superMethodBuilder, method)));
             }
             reportPropertiesCalculated();
             super.visitMethod(method);
@@ -285,13 +279,13 @@ public class EntitySearcher {
                     && isClassInProject(((PsiField) element).getContainingClass()) && strategy.isRelation(expression)) {
                 final PsiField field = (PsiField) element;
                 propertiesFor(currentMethod)
-                        .ifPresent(p -> p.addField(fieldEntities.get(field), strategy.getWeight(currentMethod, field)));
+                        .ifPresent(p -> p.addField(getCodeEntity(field), strategy.getWeight(currentMethod, field)));
 //                propertiesFor(field)
 //                        .ifPresent(p -> p.addNotOverrideMethod(currentMethod, strategy.getWeight(field, currentMethod)));
                 final PsiClass fieldClass = PsiUtil.resolveClassInType(field.getType());
                 if (isClassInProject(fieldClass)) {
                     propertiesFor(currentMethod)
-                            .ifPresent(p -> p.addClass(classEntities.get(fieldClass), strategy.getWeight(currentMethod, fieldClass)));
+                            .ifPresent(p -> p.addClass(getCodeEntity(fieldClass), strategy.getWeight(currentMethod, fieldClass)));
                 }
             }
             super.visitReferenceExpression(expression);
@@ -300,19 +294,19 @@ public class EntitySearcher {
         @Override
         public void visitField(PsiField field) {
             indicator.checkCanceled();
-            final CodeEntity entity = fieldEntities.get(field);
+            final CodeEntity entity = getCodeEntity(field);
             if (entity == null) {
                 super.visitField(field);
                 return;
             }
             RelevantProperties fieldProperties = entity.getRelevantProperties();
-            fieldProperties.addField(fieldEntities.get(field), strategy.getWeight(field, field));
+            fieldProperties.addField(getCodeEntity(field), strategy.getWeight(field, field));
             final PsiClass containingClass = field.getContainingClass();
             if (containingClass != null) {
-                fieldProperties.addClass(classEntities.get(containingClass), strategy.getWeight(field, containingClass));
+                fieldProperties.addClass(getCodeEntity(containingClass), strategy.getWeight(field, containingClass));
                 final PsiClass fieldClass = PsiUtil.resolveClassInType(field.getType());
                 if (isClassInProject(fieldClass)) {
-                    classEntities.get(containingClass).getRelevantProperties().addClass(classEntities.get(fieldClass), strategy.getWeight(containingClass, fieldClass));
+                    getCodeEntity(containingClass).getRelevantProperties().addClass(getCodeEntity(fieldClass), strategy.getWeight(containingClass, fieldClass));
                 }
             }
             reportPropertiesCalculated();
@@ -328,8 +322,8 @@ public class EntitySearcher {
                     && strategy.isRelation(expression)) {
                 propertiesFor(currentMethod)
                         .ifPresent(p -> {
-                            p.addNotOverrideMethod(methodEntities.get(called), strategy.getWeight(currentMethod, called));
-                            p.addClass(classEntities.get(usedClass), strategy.getWeight(currentMethod, usedClass));
+                            p.addNotOverrideMethod(getCodeEntity(called), strategy.getWeight(currentMethod, called));
+                            p.addClass(getCodeEntity(usedClass), strategy.getWeight(currentMethod, usedClass));
                         });
             }
             super.visitMethodCallExpression(expression);
@@ -338,7 +332,7 @@ public class EntitySearcher {
         private void reportPropertiesCalculated() {
             propertiesCalculated++;
             if (indicator != null) {
-                indicator.setFraction((double) propertiesCalculated / builders.size());
+                indicator.setFraction((double) propertiesCalculated / (classes.size() + methods.size() + fields.size()));
             }
         }
     }

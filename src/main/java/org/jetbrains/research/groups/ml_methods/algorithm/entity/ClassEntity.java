@@ -11,11 +11,7 @@ import java.util.Objects;
 public class ClassEntity extends CodeEntity {
     private final @NotNull PsiClass psiClass;
 
-    public ClassEntity(
-        final @NotNull PsiClass psiClass,
-        final @NotNull RelevantProperties relevantProperties
-    ) {
-        super(relevantProperties);
+    public ClassEntity(final @NotNull PsiClass psiClass) {
         this.psiClass = psiClass;
     }
 

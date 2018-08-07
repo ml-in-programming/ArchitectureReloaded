@@ -17,10 +17,9 @@ public class MethodEntity extends ClassInnerEntity {
 
     public MethodEntity(
         final @NotNull PsiMethod psiMethod,
-        final @NotNull ClassEntity containingClass,
-        final @NotNull RelevantProperties relevantProperties
+        final @NotNull ClassEntity containingClass
     ) {
-        super(relevantProperties, containingClass);
+        super(containingClass);
         this.psiMethod = psiMethod;
 
         isMovable = ApplicationManager.getApplication().runReadAction((Computable<Boolean>)

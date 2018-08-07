@@ -18,10 +18,9 @@ public class FieldEntity extends ClassInnerEntity {
 
     public FieldEntity(
         final @NotNull PsiField psiField,
-        final @NotNull ClassEntity containingClass,
-        final @NotNull RelevantProperties relevantProperties
+        final @NotNull ClassEntity containingClass
     ) {
-        super(relevantProperties, containingClass);
+        super(containingClass);
         this.psiField = psiField;
 
         isMovable = ApplicationManager.getApplication().runReadAction(

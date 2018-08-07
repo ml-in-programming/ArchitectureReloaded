@@ -12,8 +12,8 @@ public abstract class CodeEntity {
     private final @NotNull
     RelevantProperties relevantProperties;
 
-    public CodeEntity(final @NotNull RelevantProperties relevantProperties) {
-        this.relevantProperties = relevantProperties;
+    public CodeEntity() {
+        this.relevantProperties = new RelevantProperties();
     }
 
     /**
