@@ -2,10 +2,12 @@ package org.jetbrains.research.groups.ml_methods.refactoring.validation;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.internal.LinkedTreeMap;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/** Server-side validator for incoming log entries */
 public class InputSessionValidator {
     private SessionValidationResult result;
 
@@ -20,10 +22,21 @@ public class InputSessionValidator {
         PAYLOAD
     }
 
+    private final String OUR_RECORDER_ID = "architecture-reloaded-plugin";
+    private final String ACCEPTED_TAG = "acceptedRefactoringsFeatures";
+    private final String REJECTED_TAG = "rejectedRefactoringsFeatures";
+
+
+    /** Takes empty @link{SessionValidationResult} which will be populated in @link{#validate} */
     public InputSessionValidator(SessionValidationResult result) {
         this.result = result;
     }
 
+    /**
+     *  Iterates through the log entries and checks is they are correct or not.
+     *  The result is put into the @link{#result} field
+     * @param input a collection of incoming log entries
+     */
     public void validate(Iterable<String> input) {
         List<EventLine> errorSession = new ArrayList<>();
         List<EventLine> validSession = new ArrayList<>();
@@ -33,23 +46,63 @@ public class InputSessionValidator {
                 continue;
 
             String[] fields = line.split("\t", -1);
-            if (fields.length != 8 || !fields[1].equals("architecture-reloaded-plugin")) {
+            if (!isFormattedCorrectly(fields)) {
                 errorSession.add(new EventLine(line));
                 continue;
             }
 
             String payload = fields[7];
-
-            try {
-                Gson gson = new Gson();
-                gson.fromJson(payload, Object.class);
+            if (isCorrectPayload(payload)) {
                 validSession.add(new EventLine(payload));
-            } catch(JsonSyntaxException ex) {
+            } else {
                 errorSession.add(new EventLine(payload));
             }
         }
 
         result.addErrorSession(errorSession);
         result.addValidSession(validSession);
+    }
+
+    private boolean isFormattedCorrectly(String[] fields) {
+        if (fields.length != 8)
+            return false;
+
+        try {
+            long timestamp = Long.parseLong(fields[0]);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        String uuidRegex = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
+
+        boolean userIdCorrect = fields[3].matches(uuidRegex);
+        boolean sessionIdCorrect = fields[4].matches(uuidRegex);
+
+
+        return fields[1].equals(OUR_RECORDER_ID)
+                && userIdCorrect
+                && sessionIdCorrect;
+    }
+
+    private boolean isCorrectPayload(String payload) {
+        if (payload.isEmpty())
+            return false;
+
+        try {
+            Gson gson = new Gson();
+            LinkedTreeMap json = gson.fromJson(payload, LinkedTreeMap.class);
+            if (json.isEmpty()
+                    || !json.containsKey(ACCEPTED_TAG)
+                    || !json.containsKey(REJECTED_TAG)
+                    || ((ArrayList) json.get(ACCEPTED_TAG)).isEmpty()) {
+                return false;
+            }
+
+
+        } catch (JsonSyntaxException ignored) {
+            return false;
+        }
+
+        return true;
     }
 }

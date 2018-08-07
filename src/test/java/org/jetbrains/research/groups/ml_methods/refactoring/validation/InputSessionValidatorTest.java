@@ -28,6 +28,7 @@ public class InputSessionValidatorTest {
         List<String> entries = loadLogs(LOGS_PATH + "correctTest1.txt");
         validator.validate(entries);
         assertEquals(1, result.validLines().size());
+        assertEquals(0, result.errorLines().size());
     }
 
     @Test
@@ -35,6 +36,71 @@ public class InputSessionValidatorTest {
         List<String> entries = loadLogs(LOGS_PATH + "correctTest2.txt");
         validator.validate(entries);
         assertEquals(1, result.validLines().size());
+        assertEquals(0, result.errorLines().size());
+    }
+
+    @Test
+    public void testCorrect3() throws IOException {
+        List<String> entries = loadLogs(LOGS_PATH + "correctTest3.txt");
+        validator.validate(entries);
+        assertEquals(1, result.validLines().size());
+        assertEquals(0, result.errorLines().size());
+    }
+
+    @Test
+    public void testIncorrectTimestamp() throws IOException {
+        List<String> entries = loadLogs(LOGS_PATH + "incorrectTest1.txt");
+        validator.validate(entries);
+        assertEquals(0, result.validLines().size());
+        assertEquals(1, result.errorLines().size());
+    }
+
+    @Test
+    public void testIncorrectUsedId() throws IOException {
+        List<String> entries = loadLogs(LOGS_PATH + "incorrectTest2.txt");
+        validator.validate(entries);
+        assertEquals(0, result.validLines().size());
+        assertEquals(1, result.errorLines().size());
+    }
+
+    @Test
+    public void testIncorrectSessionId() throws IOException {
+        List<String> entries = loadLogs(LOGS_PATH + "incorrectTest3.txt");
+        validator.validate(entries);
+        assertEquals(0, result.validLines().size());
+        assertEquals(1, result.errorLines().size());
+    }
+
+    @Test
+    public void testBothEmpty() throws IOException {
+        List<String> entries = loadLogs(LOGS_PATH + "incorrectTest4.txt");
+        validator.validate(entries);
+        assertEquals(0, result.validLines().size());
+        assertEquals(1, result.errorLines().size());
+    }
+
+    @Test
+    public void testRejectedMissing() throws IOException {
+        List<String> entries = loadLogs(LOGS_PATH + "incorrectTest5.txt");
+        validator.validate(entries);
+        assertEquals(0, result.validLines().size());
+        assertEquals(1, result.errorLines().size());
+    }
+
+    @Test
+    public void testIncorrectJsonInPayload() throws IOException {
+        List<String> entries = loadLogs(LOGS_PATH + "incorrectTest6.txt");
+        validator.validate(entries);
+        assertEquals(0, result.validLines().size());
+        assertEquals(1, result.errorLines().size());
+    }
+
+    @Test
+    public void testEmptyPayload() throws IOException {
+        List<String> entries = loadLogs(LOGS_PATH + "incorrectTest7.txt");
+        validator.validate(entries);
+        assertEquals(0, result.validLines().size());
+        assertEquals(1, result.errorLines().size());
     }
 
 

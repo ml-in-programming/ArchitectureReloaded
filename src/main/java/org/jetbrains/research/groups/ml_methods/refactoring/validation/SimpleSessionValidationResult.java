@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/** Dummy implementation of @link{SessionValidationResult}. Just stores correct and incorrect values */
 public class SimpleSessionValidationResult implements SessionValidationResult {
     private List<String> errors = new ArrayList<>();
     private List<String> valid = new ArrayList<>();
