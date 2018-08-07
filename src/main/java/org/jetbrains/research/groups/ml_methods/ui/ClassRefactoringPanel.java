@@ -9,6 +9,7 @@ import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.config.RefactoringPreferencesLog;
+import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringReporter;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringSessionInfo;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringSessionInfoRenderer;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
@@ -37,6 +39,7 @@ class ClassRefactoringPanel extends JPanel {
     private static final String REFACTOR_BUTTON_TEXT_KEY = "refactor.button";
     private static final String EXPORT_BUTTON_TEXT_KEY = "export.button";
     private static final int DEFAULT_THRESHOLD = 80; // percents
+    private static final RefactoringReporter reporter = new RefactoringReporter();
 
     @NotNull
     private final AnalysisScope scope;
@@ -54,6 +57,7 @@ class ClassRefactoringPanel extends JPanel {
     private final Map<Refactoring, String> warnings;
     private boolean isFieldDisabled;
     private final List<Refactoring> refactorings;
+    private final UUID uuid = UUID.randomUUID();
 
     private final @NotNull MetricsRun metricsRun;
 
@@ -164,7 +168,10 @@ class ClassRefactoringPanel extends JPanel {
         selectAllButton.setEnabled(false);
         table.setEnabled(false);
         final List<Refactoring> selectedRefactorings = model.pullSelected();
-        final List<Refactoring> rejectedRefactorings = new ArrayList<>(refactorings);
+        final List<Refactoring> rejectedRefactorings = new ArrayList<>();
+        for (int index = 0; index < model.getRowCount(); ++index) {
+            rejectedRefactorings.add(model.getRefactoring(index));
+        }
         rejectedRefactorings.removeAll(selectedRefactorings);
 
         /*
@@ -173,13 +180,15 @@ class ClassRefactoringPanel extends JPanel {
          * Log4J through properties file. See issue #63.
          * https://github.com/ml-in-programming/ArchitectureReloaded/issues/63
          */
+        RefactoringSessionInfo info = new RefactoringSessionInfo(selectedRefactorings, rejectedRefactorings, metricsRun);
         RefactoringPreferencesLog.log.info(
-            new RefactoringSessionInfoRenderer().doRender(
-                new RefactoringSessionInfo(selectedRefactorings, rejectedRefactorings, metricsRun)
-            )
+            new RefactoringSessionInfoRenderer().doRender(info)
         );
 
+        ClassRefactoringPanel.reporter.log(uuid, info);
+
         RefactoringUtil.moveRefactoring(selectedRefactorings, scope, model);
+
         table.setEnabled(true);
         doRefactorButton.setEnabled(true);
         selectAllButton.setEnabled(true);
