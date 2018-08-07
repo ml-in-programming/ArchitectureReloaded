@@ -29,42 +29,42 @@ public class RelevantProperties {
 
     private final Integer DEFAULT_PROPERTY_WEIGHT = 1;
 
-    void addNotOverrideMethod(MethodEntity method) {
+    void addNotOverrideMethod(final @NotNull MethodEntity method) {
         addNotOverrideMethod(method, DEFAULT_PROPERTY_WEIGHT);
     }
 
 
-    void addNotOverrideMethod(MethodEntity method, Integer weight) {
+    void addNotOverrideMethod(final @NotNull MethodEntity method, final @NotNull Integer weight) {
         if (notOverrideMethods.getOrDefault(method, 0) < weight) {
             notOverrideMethods.put(method, weight);
         }
     }
 
-    void addClass(ClassEntity aClass) {
+    void addClass(final @NotNull ClassEntity aClass) {
         addClass(aClass, DEFAULT_PROPERTY_WEIGHT);
     }
 
-    void addClass(ClassEntity aClass, Integer weight) {
+    void addClass(final @NotNull ClassEntity aClass, final @NotNull Integer weight) {
         if (classes.getOrDefault(aClass, 0) < weight) {
             classes.put(aClass, weight);
         }
     }
 
-    void addField(FieldEntity field) {
+    void addField(final @NotNull FieldEntity field) {
         addField(field, DEFAULT_PROPERTY_WEIGHT);
     }
 
-    void addField(FieldEntity field, Integer weight) {
+    void addField(final @NotNull FieldEntity field, final @NotNull Integer weight) {
         if (fields.getOrDefault(field, 0) < weight) {
             fields.put(field, weight);
         }
     }
 
-    void addOverrideMethod(MethodEntity method) {
+    void addOverrideMethod(final @NotNull MethodEntity method) {
         addOverrideMethod(method, DEFAULT_PROPERTY_WEIGHT);
     }
 
-    void addOverrideMethod(MethodEntity method, Integer weight) {
+    void addOverrideMethod(final @NotNull MethodEntity method, final @NotNull Integer weight) {
         if (overrideMethods.getOrDefault(method, 0) < weight) {
             overrideMethods.put(method, weight);
         }
@@ -94,17 +94,17 @@ public class RelevantProperties {
         return getWeightedSize(classes) + getWeightedSize(fields) + getWeightedSize(notOverrideMethods);
     }
 
-    public int getWeight(String name) {
-        return classes.getOrDefault(name, 0)
-                + notOverrideMethods.getOrDefault(name, 0)
-                + fields.getOrDefault(name, 0);
+    public int getWeight(final @NotNull CodeEntity entity) {
+        return classes.getOrDefault(entity, 0)
+                + notOverrideMethods.getOrDefault(entity, 0)
+                + fields.getOrDefault(entity, 0);
     }
 
     private int getWeightedSize(Map<?, Integer> m) {
         return m.values().stream().mapToInt(Integer::valueOf).sum();
     }
 
-    public int sizeOfIntersection(RelevantProperties properties) {
+    public int sizeOfIntersection(final @NotNull RelevantProperties properties) {
         int result = 0;
 
         final BinaryOperator<Integer> bop = Math::min;
@@ -123,7 +123,7 @@ public class RelevantProperties {
                 .sum();
     }
 
-    public int sizeOfUnion(RelevantProperties other) {
+    public int sizeOfUnion(final @NotNull RelevantProperties other) {
         int result = 0;
 
         final BinaryOperator<Integer> bop = Math::max;
