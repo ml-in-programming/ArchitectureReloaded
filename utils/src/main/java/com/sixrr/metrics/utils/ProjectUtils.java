@@ -14,10 +14,13 @@ public class ProjectUtils {
 
     @Nullable
     public static Project loadProjectWithAllDependencies(Path projectPath) {
-        Project projectToClose = ProjectManager.getInstance().getOpenProjects().length != 0 ?
-                ProjectManager.getInstance().getOpenProjects()[0] : null;
+        for (Project openedProject : ProjectManager.getInstance().getOpenProjects()) {
+            if (!ProjectManager.getInstance().closeProject(openedProject)) {
+                throw new IllegalStateException("Cannot close previous project");
+            }
+        }
         final Project project = ProjectUtil.openOrImport(projectPath.toAbsolutePath().toString(),
-                projectToClose, true);
+                null, false);
         return project == null ||
                 ProjectRootManager.getInstance(project).getProjectSdk() == null ||
                 !project.isInitialized() ?

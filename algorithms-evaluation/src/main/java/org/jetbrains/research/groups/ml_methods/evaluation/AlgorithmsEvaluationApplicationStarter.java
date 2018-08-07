@@ -65,7 +65,7 @@ public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarte
                                 .orElseThrow(() -> new IllegalArgumentException("No such algorithm")))
                         .collect(Collectors.toList());
             }
-            List<EvaluationResult> evaluationResults = algorithmsToEvaluate.stream().map(algorithm -> {
+            List<EvaluationResult> evaluationResults = algorithmsToEvaluate.parallelStream().map(algorithm -> {
                 try {
                     return JBAlgorithmEvaluator.evaluateDataset(datasetPath, algorithm);
                 } catch (IOException e) {
