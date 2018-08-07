@@ -78,7 +78,6 @@ public class InputSessionValidator {
         boolean userIdCorrect = fields[3].matches(uuidRegex);
         boolean sessionIdCorrect = fields[4].matches(uuidRegex);
 
-
         return fields[1].equals(OUR_RECORDER_ID)
                 && userIdCorrect
                 && sessionIdCorrect;
@@ -97,8 +96,6 @@ public class InputSessionValidator {
                     || ((ArrayList) json.get(ACCEPTED_TAG)).isEmpty()) {
                 return false;
             }
-
-
         } catch (JsonSyntaxException ignored) {
             return false;
         }

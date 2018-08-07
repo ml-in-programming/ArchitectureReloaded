@@ -50,8 +50,7 @@ public class RefactoringReporter {
         private StatsSender sender = StatsSender.INSTANCE;
         private BlockingQueue<String> queue;
 
-        Uploader(BlockingQueue<String> queue)
-        {
+        Uploader(BlockingQueue<String> queue) {
             this.queue = queue;
         }
 
