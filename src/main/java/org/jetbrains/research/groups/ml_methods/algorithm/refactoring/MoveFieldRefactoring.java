@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Representation of a refactoring which moves field to a target class.
  */
-class MoveFieldRefactoring extends MoveToClassRefactoring {
+public class MoveFieldRefactoring extends MoveToClassRefactoring {
     private final @NotNull PsiField field;
 
     /**

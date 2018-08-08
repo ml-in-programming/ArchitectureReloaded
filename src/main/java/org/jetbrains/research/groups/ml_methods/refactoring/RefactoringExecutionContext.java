@@ -8,6 +8,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.sixrr.metrics.metricModel.MetricsExecutionContextImpl;
+import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
 import com.sixrr.metrics.metricModel.TimeStamp;
 import com.sixrr.metrics.profile.MetricsProfile;
@@ -174,6 +175,10 @@ public class RefactoringExecutionContext {
 
     public EntitySearchResult getEntitySearchResult() {
         return entitySearchResult;
+    }
+
+    public @NotNull MetricsRun getMetricsRun() {
+        return metricsRun;
     }
 
     public int getClassCount() {

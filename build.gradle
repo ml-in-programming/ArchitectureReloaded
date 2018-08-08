@@ -18,9 +18,14 @@ allprojects {
   intellij.version = 2017.1
 }
 
+repositories {
+  mavenCentral()
+}
+
 apply plugin: 'idea'
 
 dependencies {
+  runtime 'com.google.code.gson:gson:2.8.5'
   compile project(':openapi')
   compile project(':utils')
   compile project(':stockmetrics')
