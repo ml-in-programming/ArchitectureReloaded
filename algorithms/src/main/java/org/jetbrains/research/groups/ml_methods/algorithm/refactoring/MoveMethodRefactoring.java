@@ -26,15 +26,6 @@ public class MoveMethodRefactoring extends MoveToClassRefactoring {
         this.method = method;
     }
 
-    public MoveMethodRefactoring(
-            final @NotNull PsiMethod method,
-            final @NotNull PsiClass targetClass
-    ) {
-        super(method, targetClass);
-
-        this.method = method;
-    }
-
     @Override
     public boolean isMoveFieldRefactoring() {
         return false;

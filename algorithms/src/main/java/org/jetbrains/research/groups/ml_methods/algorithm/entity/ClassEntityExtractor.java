@@ -1,10 +1,6 @@
-package org.jetbrains.research.groups.ml_methods.entity;
+package org.jetbrains.research.groups.ml_methods.algorithm.entity;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.ClassEntity;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.CodeEntity;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.FieldEntity;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.MethodEntity;
 
 /**
  * Returns {@link ClassEntity} for given {@link CodeEntity}. If given argument is a {@link ClassEntity}

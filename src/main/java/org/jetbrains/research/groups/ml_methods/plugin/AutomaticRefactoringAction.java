@@ -6,7 +6,6 @@ import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.ide.plugins.PluginManager;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.components.ServiceManager;

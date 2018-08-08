@@ -1,10 +1,6 @@
-package org.jetbrains.research.groups.ml_methods.attributes;
+package org.jetbrains.research.groups.ml_methods.algorithm.attributes;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ClassAttributes;
-import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ElementAttributes;
-import org.jetbrains.research.groups.ml_methods.algorithm.attributes.FieldAttributes;
-import org.jetbrains.research.groups.ml_methods.algorithm.attributes.MethodAttributes;
 
 /**
  * Returns {@link ClassAttributes} for given {@link ElementAttributes}. If given argument is a {@link ClassAttributes}

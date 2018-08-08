@@ -16,14 +16,6 @@ public abstract class MoveToClassRefactoring extends Refactoring {
         this.targetClass = targetClass;
     }
 
-    public MoveToClassRefactoring(
-            final @NotNull PsiElement entity,
-            final @NotNull PsiClass targetClass
-    ) {
-        super(entity, targetClass);
-        this.targetClass = targetClass;
-    }
-
     /**
      * Returns class which contains moved entity.
      */

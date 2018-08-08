@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project;
 import com.sixrr.metrics.profile.MetricsProfile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringExecutionContext;
 import org.jetbrains.research.groups.ml_methods.utils.MetricsProfilesUtil;
@@ -23,8 +24,7 @@ public class AlgorithmEvaluator {
 
         context.executeSynchronously();
 
-        List<Refactoring> foundRefactorings = context.getAlgorithmResults().get(0).getRefactorings();
-        foundRefactorings.forEach(refactoring -> System.out.println(refactoring.getAccuracy()));
+        List<CalculatedRefactoring> foundRefactorings = context.getAlgorithmResults().get(0).getRefactorings();
         return new ProjectEvaluationResult(foundRefactorings, good, bad, algorithm);
     }
 

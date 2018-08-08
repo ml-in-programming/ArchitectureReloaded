@@ -1,8 +1,7 @@
-package org.jetbrains.research.groups.ml_methods.refactoring;
+package org.jetbrains.research.groups.ml_methods.algorithm.refactoring;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 
 import java.util.Objects;
 

@@ -1,13 +1,10 @@
-package org.jetbrains.research.groups.ml_methods.attributes;
+package org.jetbrains.research.groups.ml_methods.algorithm.attributes;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ClassAttributes;
-import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ElementAttributes;
-import org.jetbrains.research.groups.ml_methods.entity.ClassInnerEntity;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.ClassInnerEntity;
 
 public abstract class ClassInnerEntityAttributes extends ElementAttributes {
-    private final @NotNull
-    ClassAttributes containingClassAttributes;
+    private final @NotNull ClassAttributes containingClassAttributes;
 
     public ClassInnerEntityAttributes(
         final @NotNull double[] features,
@@ -21,6 +18,5 @@ public abstract class ClassInnerEntityAttributes extends ElementAttributes {
         return containingClassAttributes;
     }
 
-    public abstract @NotNull
-    ClassInnerEntity getClassInnerEntity();
+    public abstract @NotNull ClassInnerEntity getClassInnerEntity();
 }

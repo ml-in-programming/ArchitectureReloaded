@@ -7,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmResult;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitiesStorage;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;

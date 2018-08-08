@@ -6,7 +6,6 @@ import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ClassAttrib
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ElementAttributes;
 
 import java.util.Map;
-import java.util.Objects;
 
 public abstract class CodeEntity {
     private final @NotNull
