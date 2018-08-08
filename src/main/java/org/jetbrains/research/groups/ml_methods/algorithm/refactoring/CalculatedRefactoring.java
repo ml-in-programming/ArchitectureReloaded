@@ -6,21 +6,23 @@ import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import java.util.Objects;
 
 /**
- * Represents a {@link Refactoring} that was found by an {@link Algorithm} or a combination of them. The difference is
+ * Represents a {@link MoveToClassRefactoring} that was found by an {@link Algorithm} or a combination of them. The difference is
  * in {@link #accuracy} field which represents algorithm's certainty in this particular refactoring.
  */
 public class CalculatedRefactoring {
-    private final @NotNull Refactoring refactoring;
+    private final @NotNull
+    MoveToClassRefactoring refactoring;
 
     private final double accuracy;
 
-    public CalculatedRefactoring(final @NotNull Refactoring refactoring, final double accuracy) {
+    public CalculatedRefactoring(final @NotNull MoveToClassRefactoring refactoring, final double accuracy) {
         this.refactoring = refactoring;
 
         this.accuracy = accuracy;
     }
 
-    public @NotNull Refactoring getRefactoring() {
+    public @NotNull
+    MoveToClassRefactoring getRefactoring() {
         return refactoring;
     }
 

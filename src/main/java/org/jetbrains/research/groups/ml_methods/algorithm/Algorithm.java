@@ -1,11 +1,9 @@
 package org.jetbrains.research.groups.ml_methods.algorithm;
 
-import com.intellij.analysis.AnalysisScope;
 import com.sixrr.metrics.Metric;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;

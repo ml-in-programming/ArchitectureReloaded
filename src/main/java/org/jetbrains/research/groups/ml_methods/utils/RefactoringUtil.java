@@ -14,7 +14,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveToClassRefactoring;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 import org.jetbrains.research.groups.ml_methods.ui.RefactoringsTableModel;
 
@@ -52,17 +52,18 @@ public final class RefactoringUtil {
     private RefactoringUtil() {
     }
 
-    public static void moveRefactoring(@NotNull List<Refactoring> refactorings,
+    public static void moveRefactoring(@NotNull List<MoveToClassRefactoring> refactorings,
                                        @NotNull AnalysisScope scope,
                                        @Nullable RefactoringsTableModel model) {
         if (!checkValid(refactorings)) {
             throw new IllegalArgumentException("Units in refactorings list must be unique!");
         }
-        final Map<PsiClass, List<PsiElement>> groupedRefactorings = prepareRefactorings(refactorings, scope);
+
+        final Map<PsiClass, List<MoveToClassRefactoring>> groupedRefactorings = prepareRefactorings(refactorings);
         ApplicationManager.getApplication().runReadAction(() -> {
-            for (Entry<PsiClass, List<PsiElement>> refactoring : groupedRefactorings.entrySet()) {
+            for (Entry<PsiClass, List<MoveToClassRefactoring>> refactoring : groupedRefactorings.entrySet()) {
                 final PsiClass target = refactoring.getKey();
-                final List<CachedMember> members = refactoring.getValue().stream()
+                final List<CachedMember> members = refactoring.getValue().stream().map(MoveToClassRefactoring::getEntity)
                         .sequential()
                         .filter(unit -> !(unit instanceof PsiMethod) || !moveInstanceMethod((PsiMethod) unit, target))
                         .map(RefactoringUtil::makeStatic) // no effect for already static members
@@ -71,7 +72,7 @@ public final class RefactoringUtil {
                 final Set<String> accepted = moveMembersRefactoring(members, target, scope);
 
                 if (model != null) {
-                    model.setAcceptedRefactorings(accepted.stream().map(m -> new CalculatedRefactoring(Refactoring.createRefactoring(m, PsiSearchUtil.getHumanReadableName(target), true, scope), 0)).collect(Collectors.toSet()));
+                    model.setAcceptedRefactorings(accepted.stream().map(m -> new CalculatedRefactoring(MoveToClassRefactoring.createRefactoring(m, PsiSearchUtil.getHumanReadableName(target), true, scope), 0)).collect(Collectors.toSet()));
                 }
             }
         });
@@ -179,23 +180,15 @@ public final class RefactoringUtil {
         return "";
     }
 
-    private static Map<PsiClass, List<PsiElement>> prepareRefactorings(List<Refactoring> refactorings,
-                                                                       AnalysisScope scope) {
-        final Set<String> names = new HashSet<>();
-        refactorings.stream()
-                .peek(refactoring -> names.add(refactoring.getEntityName()))
-                .forEach(refactoring -> names.add(refactoring.getTargetName()));
-        final Map<String, PsiElement> elements = findAllElements(names, scope, Function.identity());
-        final HashMap<PsiClass, List<PsiElement>> result = new HashMap<>();
-        for (Refactoring refactoring : refactorings) {
-            final PsiClass target = (PsiClass) elements.get(refactoring.getTargetName());
-            final PsiElement element = elements.get(refactoring.getEntityName());
-            result.computeIfAbsent(target, x -> new ArrayList<>()).add(element);
-        }
-        return result;
+    private static @NotNull Map<PsiClass, List<MoveToClassRefactoring>> prepareRefactorings(
+        final @NotNull List<MoveToClassRefactoring> refactorings
+    ) {
+        return refactorings.stream().collect(
+            Collectors.groupingBy(MoveToClassRefactoring::getTargetClass, Collectors.toList())
+        );
     }
 
-    public static boolean checkValid(Collection<Refactoring> refactorings) {
+    public static boolean checkValid(Collection<MoveToClassRefactoring> refactorings) {
         final long uniqueUnits = refactorings.stream()
                 .map(it -> it.getEntityName())
                 .distinct()
@@ -265,7 +258,7 @@ public final class RefactoringUtil {
     }
 
     private static CalculatedRefactoring combine(List<CalculatedRefactoring> refactorings, int numberOfAlgorithms) {
-        final Map<Refactoring, Double> target = refactorings.stream()
+        final Map<MoveToClassRefactoring, Double> target = refactorings.stream()
                 .collect(Collectors.groupingBy(CalculatedRefactoring::getRefactoring, Collectors.summingDouble(RefactoringUtil::getSquaredAccuracy)));
 
         return target.entrySet().stream()

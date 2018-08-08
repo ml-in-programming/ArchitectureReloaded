@@ -12,7 +12,7 @@ import org.jetbrains.research.groups.ml_methods.algorithm.entity.*;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveFieldRefactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveToClassRefactoring;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 import org.jetbrains.research.groups.ml_methods.utils.AlgorithmsUtil;
 
@@ -99,19 +99,19 @@ public class CCDA extends AbstractAlgorithm {
                         CodeEntity entity = entry.getKey();
                         ClassEntity target = entry.getValue();
 
-                        Refactoring refactoring = entity.accept(new CodeEntityVisitor<Refactoring>() {
+                        MoveToClassRefactoring refactoring = entity.accept(new CodeEntityVisitor<MoveToClassRefactoring>() {
                             @Override
-                            public Refactoring visit(@NotNull ClassEntity classEntity) {
+                            public MoveToClassRefactoring visit(@NotNull ClassEntity classEntity) {
                                 throw new IllegalStateException("Unexpected class entity");
                             }
 
                             @Override
-                            public Refactoring visit(@NotNull MethodEntity methodEntity) {
+                            public MoveToClassRefactoring visit(@NotNull MethodEntity methodEntity) {
                                 return new MoveMethodRefactoring(methodEntity.getPsiMethod(), target.getPsiClass());
                             }
 
                             @Override
-                            public Refactoring visit(@NotNull FieldEntity fieldEntity) {
+                            public MoveToClassRefactoring visit(@NotNull FieldEntity fieldEntity) {
                                 if (!enableFieldRefactorings) {
                                     return null;
                                 }
