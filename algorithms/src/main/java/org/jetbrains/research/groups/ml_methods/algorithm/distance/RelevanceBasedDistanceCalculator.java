@@ -14,7 +14,8 @@ public class RelevanceBasedDistanceCalculator implements DistanceCalculator {
 
     private RelevanceBasedDistanceCalculator() {}
 
-    public @NotNull RelevanceBasedDistanceCalculator getInstance() {
+    public @NotNull
+    static RelevanceBasedDistanceCalculator getInstance() {
         return INSTANCE;
     }
 

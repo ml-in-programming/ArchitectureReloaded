@@ -6,13 +6,14 @@ import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ClassAttrib
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ElementAttributes;
 
 import java.util.Map;
+import java.util.Objects;
 
 public abstract class CodeEntity {
     private final @NotNull
     RelevantProperties relevantProperties;
 
-    public CodeEntity(final @NotNull RelevantProperties relevantProperties) {
-        this.relevantProperties = relevantProperties;
+    public CodeEntity() {
+        this.relevantProperties = new RelevantProperties();
     }
 
     /**
@@ -43,11 +44,20 @@ public abstract class CodeEntity {
      * {@link ElementAttributes} that returns
      * {@link ClassAttributes}.
      */
+    @Deprecated
     public abstract @NotNull String getContainingClassName();
+
+    public abstract <R> R accept(@NotNull CodeEntityVisitor<R> visitor);
 
     public abstract @NotNull MetricCategory getMetricCategory();
 
     public @NotNull RelevantProperties getRelevantProperties() {
         return relevantProperties;
     }
+
+    @Override
+    public abstract boolean equals(Object o);
+
+    @Override
+    public abstract int hashCode();
 }

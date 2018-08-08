@@ -2,19 +2,19 @@ package org.jetbrains.research.groups.ml_methods.algorithm;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
 
 import java.util.Collections;
 import java.util.List;
 
 public class AlgorithmResult {
-    private final List<Refactoring> refactorings;
+    private final List<CalculatedRefactoring> refactorings;
     private final String algorithmName;
     private final long executionTime;
     private final int threadUsed;
     private final Exception exception;
 
-    AlgorithmResult(@NotNull List<Refactoring> refactorings, String algorithmName, long executionTime,
+    AlgorithmResult(@NotNull List<CalculatedRefactoring> refactorings, String algorithmName, long executionTime,
                     int threadUsed) {
         this.refactorings = refactorings;
         this.algorithmName = algorithmName;
@@ -31,7 +31,7 @@ public class AlgorithmResult {
         this.exception = exception;
     }
 
-    public List<Refactoring> getRefactorings() {
+    public List<CalculatedRefactoring> getRefactorings() {
         return Collections.unmodifiableList(refactorings);
     }
 

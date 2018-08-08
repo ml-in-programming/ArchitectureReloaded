@@ -16,14 +16,12 @@ public class MoveMethodRefactoring extends MoveToClassRefactoring {
      *
      * @param method a method that is moved in this refactoring.
      * @param targetClass destination class in which given method is placed in this refactoring.
-     * @param accuracy
      */
     public MoveMethodRefactoring(
         final @NotNull PsiMethod method,
-        final @NotNull PsiClass targetClass,
-        final double accuracy
+        final @NotNull PsiClass targetClass
     ) {
-        super(method, targetClass, accuracy);
+        super(method, targetClass);
 
         this.method = method;
     }

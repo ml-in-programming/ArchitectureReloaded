@@ -200,7 +200,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         
         if (notEmptyResult) {
             ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
-                    .show(algorithmsResults, context.getEntitySearchResult(), context.getScope());
+                    .show(algorithmsResults, context.getEntitiesStorage(), context.getScope());
         } else {
             NotificationUtil.notifyEmptyResult(context.getProject());
         }

@@ -9,7 +9,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 
 import java.util.ArrayList;
@@ -84,7 +84,7 @@ public abstract class AbstractAlgorithm implements Algorithm {
             scope
         );
 
-        final List<Refactoring> refactorings;
+        final List<CalculatedRefactoring> refactorings;
         try {
             refactorings = setUpExecutor().execute(context, enableFieldRefactorings);
         } catch (ProcessCanceledException e) {
@@ -125,7 +125,7 @@ public abstract class AbstractAlgorithm implements Algorithm {
          * @return suggested refactorings.
          * @throws Exception if any kind of error occurs during algorithm execution.
          */
-        @NotNull List<Refactoring> execute(
+        @NotNull List<CalculatedRefactoring> execute(
             @NotNull ExecutionContext context,
             boolean enableFieldRefactorings
         ) throws Exception;

@@ -8,7 +8,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 
 public abstract class Refactoring {
@@ -20,9 +19,6 @@ public abstract class Refactoring {
 
     private final String targetName;
 
-    @Nullable
-    private final Double accuracy;
-
     /**
      * This factory method is a replacement for old ctor. Previously {@link Refactoring} class
      * stored only names of entities that were involved in refactoring. Now {@link Refactoring}
@@ -33,7 +29,6 @@ public abstract class Refactoring {
     public static @NotNull Refactoring createRefactoring(
         final @NotNull String entity,
         final @NotNull String target,
-        final @Nullable Double accuracy,
         final boolean isEntityField,
         final @NotNull AnalysisScope scope
     ) {
@@ -51,29 +46,19 @@ public abstract class Refactoring {
         if (!isEntityField) {
             return new MoveMethodRefactoring(
                 (PsiMethod) entityElement,
-                (PsiClass) targetElement,
-                accuracy
+                (PsiClass) targetElement
             );
         } else {
             return new MoveFieldRefactoring(
                 (PsiField) entityElement,
-                (PsiClass) targetElement,
-                accuracy
+                (PsiClass) targetElement
             );
         }
     }
 
     public Refactoring(
-            final @NotNull PsiElement entity,
-            final @NotNull PsiElement target
-    ) {
-        this(entity, target, null);
-    }
-
-    public Refactoring(
         final @NotNull PsiElement entity,
-        final @NotNull PsiElement target,
-        final @Nullable Double accuracy
+        final @NotNull PsiElement target
     ) {
         this.entity = entity;
         this.target = target;
@@ -85,8 +70,6 @@ public abstract class Refactoring {
         this.targetName = ApplicationManager.getApplication().runReadAction(
             (Computable<String>) () -> PsiSearchUtil.getHumanReadableName(target)
         );
-
-        this.accuracy = accuracy;
     }
 
     public @NotNull PsiElement getEntity() {
@@ -115,10 +98,6 @@ public abstract class Refactoring {
     @Deprecated
     public String getTargetName() {
         return targetName;
-    }
-
-    public Double getAccuracy() {
-        return accuracy;
     }
 
     public abstract boolean isMoveFieldRefactoring();

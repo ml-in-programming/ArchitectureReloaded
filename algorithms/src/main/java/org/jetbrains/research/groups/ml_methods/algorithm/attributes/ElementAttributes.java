@@ -6,6 +6,9 @@ import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.CodeEntity;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.RelevantProperties;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  * Objects of this class contain useful information (attributes) for some {@link PsiElement}.
  * Namely they store array of {@code double} values which represents extracted features and
@@ -42,5 +45,20 @@ public abstract class ElementAttributes {
      */
     public @NotNull RelevantProperties getRelevantProperties() {
         return getOriginalEntity().getRelevantProperties();
+    }
+
+    public abstract <R> R accept(final @NotNull ElementAttributesVisitor<R> visitor);
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ElementAttributes that = (ElementAttributes) o;
+        return Objects.equals(getOriginalEntity(), that.getOriginalEntity());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getOriginalEntity());
     }
 }

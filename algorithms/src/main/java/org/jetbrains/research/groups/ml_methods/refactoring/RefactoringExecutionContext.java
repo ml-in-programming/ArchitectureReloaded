@@ -14,20 +14,13 @@ import com.sixrr.metrics.profile.MetricsProfile;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
-import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmResult;
-import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository;
 import org.jetbrains.research.groups.ml_methods.algorithm.*;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.NoRequestedMetricException;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitiesStorage;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearcher;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,13 +35,19 @@ import java.util.function.Consumer;
  */
 public class RefactoringExecutionContext {
     private static final Logger LOGGER = Logging.getLogger(RefactoringExecutionContext.class);
+
+    private static final List<Algorithm> ALGORITHMS = Arrays.asList(
+        new ARI(),
+        new CCDA(),
+        new HAC()
+    );
+
     @NotNull
     private final MetricsRunImpl metricsRun = new MetricsRunImpl();
     private final Project project;
     private final AnalysisScope scope;
     @NotNull
     private final MetricsProfile profile;
-    private EntitySearchResult entitySearchResult;
     private EntitiesStorage entitiesStorage;
     private final MetricsExecutionContextImpl metricsExecutionContext;
     @Nullable
@@ -63,7 +62,7 @@ public class RefactoringExecutionContext {
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
                                        @NotNull MetricsProfile profile,
                                        @Nullable Consumer<RefactoringExecutionContext> continuation) {
-        this(project, scope, profile, AlgorithmsRepository.getAvailableAlgorithms(), true, continuation);
+        this(project, scope, profile, Arrays.asList(getAvailableAlgorithms()), true, continuation);
     }
 
     /**
@@ -118,9 +117,8 @@ public class RefactoringExecutionContext {
         metricsRun.setProfileName(profile.getName());
         metricsRun.setContext(scope);
         metricsRun.setTimestamp(new TimeStamp());
-        entitySearchResult = ApplicationManager.getApplication()
-                .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
-        entitiesStorage = new EntitiesStorage(entitySearchResult);
+        entitiesStorage = ApplicationManager.getApplication()
+                .runReadAction((Computable<EntitiesStorage>) () -> EntitySearcher.analyze(scope));
         for (Algorithm algorithm : requestedAlgorithms) {
             calculate(algorithm);
         }
@@ -139,9 +137,9 @@ public class RefactoringExecutionContext {
 
         try {
             attributes = new AttributesStorage(
-                entitiesStorage,
-                algorithm.requiredMetrics(),
-                metricsRun
+                    entitiesStorage,
+                    algorithm.requiredMetrics(),
+                    metricsRun
             );
         } catch (NoRequestedMetricException e) {
             LOGGER.error(
@@ -169,20 +167,20 @@ public class RefactoringExecutionContext {
                 .findAny().orElse(null);
     }
 
-    public EntitySearchResult getEntitySearchResult() {
-        return entitySearchResult;
+    public EntitiesStorage getEntitiesStorage() {
+        return entitiesStorage;
     }
 
     public int getClassCount() {
-        return entitySearchResult.getClasses().size();
+        return entitiesStorage.getClasses().size();
     }
 
     public int getMethodsCount() {
-        return entitySearchResult.getMethods().size();
+        return entitiesStorage.getMethods().size();
     }
 
     public int getFieldsCount() {
-        return entitySearchResult.getFields().size();
+        return entitiesStorage.getFields().size();
     }
 
     public Project getProject() {
@@ -196,5 +194,9 @@ public class RefactoringExecutionContext {
     @NotNull
     public MetricsProfile getProfile() {
         return profile;
+    }
+
+    public static Algorithm[] getAvailableAlgorithms() {
+        return ALGORITHMS.toArray(new Algorithm[ALGORITHMS.size()]);
     }
 }

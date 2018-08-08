@@ -22,15 +22,6 @@ public class ClassOldEntity extends OldEntity {
         return getName();
     }
 
-
-    public void removeFromClass(String method) {
-        getRelevantProperties().removeMethod(method);
-    }
-
-    public void addToClass(String method) {
-        getRelevantProperties().addMethod(method);
-    }
-
     @Override
     public ClassOldEntity copy() {
         return new ClassOldEntity(this);
