@@ -5,6 +5,15 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    releaseJars
+}
+
+dependencies {
+    runtime 'com.google.code.gson:gson:2.8.5'
+    releaseJars 'com.google.code.gson:gson:2.8.5'
+}
+
 jar {
     baseName = 'validator'
 
@@ -12,11 +21,7 @@ jar {
         attributes "Main-Class": "org.jetbrains.research.groups.ml_methods.refactoring.validation.InputSessionValidator"
     }
 
-//    from {
-//        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-//    }
-}
-
-dependencies {
-    runtime 'com.google.code.gson:gson:2.8.5'
+    from {
+        configurations.releaseJars.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
