@@ -52,7 +52,7 @@ public final class RefactoringUtil {
     private RefactoringUtil() {
     }
 
-    public static void moveRefactoring(@NotNull List<CalculatedRefactoring> refactorings,
+    public static void moveRefactoring(@NotNull List<Refactoring> refactorings,
                                        @NotNull AnalysisScope scope,
                                        @Nullable RefactoringsTableModel model) {
         if (!checkValid(refactorings)) {
@@ -69,7 +69,10 @@ public final class RefactoringUtil {
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList());
                 final Set<String> accepted = moveMembersRefactoring(members, target, scope);
-                model.setAcceptedRefactorings(accepted.stream().map(m -> new CalculatedRefactoring(Refactoring.createRefactoring(m, PsiSearchUtil.getHumanReadableName(target), true, scope), 0)).collect(Collectors.toSet()));
+
+                if (model != null) {
+                    model.setAcceptedRefactorings(accepted.stream().map(m -> new CalculatedRefactoring(Refactoring.createRefactoring(m, PsiSearchUtil.getHumanReadableName(target), true, scope), 0)).collect(Collectors.toSet()));
+                }
             }
         });
     }
@@ -176,25 +179,25 @@ public final class RefactoringUtil {
         return "";
     }
 
-    private static Map<PsiClass, List<PsiElement>> prepareRefactorings(List<CalculatedRefactoring> refactorings,
+    private static Map<PsiClass, List<PsiElement>> prepareRefactorings(List<Refactoring> refactorings,
                                                                        AnalysisScope scope) {
         final Set<String> names = new HashSet<>();
         refactorings.stream()
-                .peek(refactoring -> names.add(refactoring.getRefactoring().getEntityName()))
-                .forEach(refactoring -> names.add(refactoring.getRefactoring().getTargetName()));
+                .peek(refactoring -> names.add(refactoring.getEntityName()))
+                .forEach(refactoring -> names.add(refactoring.getTargetName()));
         final Map<String, PsiElement> elements = findAllElements(names, scope, Function.identity());
         final HashMap<PsiClass, List<PsiElement>> result = new HashMap<>();
-        for (CalculatedRefactoring refactoring : refactorings) {
-            final PsiClass target = (PsiClass) elements.get(refactoring.getRefactoring().getTargetName());
-            final PsiElement element = elements.get(refactoring.getRefactoring().getEntityName());
+        for (Refactoring refactoring : refactorings) {
+            final PsiClass target = (PsiClass) elements.get(refactoring.getTargetName());
+            final PsiElement element = elements.get(refactoring.getEntityName());
             result.computeIfAbsent(target, x -> new ArrayList<>()).add(element);
         }
         return result;
     }
 
-    public static boolean checkValid(Collection<CalculatedRefactoring> refactorings) {
+    public static boolean checkValid(Collection<Refactoring> refactorings) {
         final long uniqueUnits = refactorings.stream()
-                .map(it -> it.getRefactoring().getEntityName())
+                .map(it -> it.getEntityName())
                 .distinct()
                 .count();
         return uniqueUnits == refactorings.size();

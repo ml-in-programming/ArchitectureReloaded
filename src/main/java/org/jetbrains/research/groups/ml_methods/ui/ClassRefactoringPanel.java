@@ -7,6 +7,7 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 import org.jetbrains.research.groups.ml_methods.config.RefactoringPreferencesLog;
 import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringSessionInfo;
 import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringSessionInfoRenderer;
@@ -159,8 +160,8 @@ class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setEnabled(false);
         selectAllButton.setEnabled(false);
         table.setEnabled(false);
-        final List<CalculatedRefactoring> selectedRefactorings = model.pullSelected();
-        final List<CalculatedRefactoring> rejectedRefactorings = new ArrayList<>(refactorings);
+        final List<Refactoring> selectedRefactorings = model.pullSelected().stream().map(CalculatedRefactoring::getRefactoring).collect(Collectors.toList());
+        final List<Refactoring> rejectedRefactorings = refactorings.stream().map(CalculatedRefactoring::getRefactoring).collect(Collectors.toList());
         rejectedRefactorings.removeAll(selectedRefactorings);
 
         /*
@@ -171,10 +172,7 @@ class ClassRefactoringPanel extends JPanel {
          */
         RefactoringPreferencesLog.log.info(
             new RefactoringSessionInfoRenderer().doRender(
-                new RefactoringSessionInfo(
-                    selectedRefactorings.stream().map(CalculatedRefactoring::getRefactoring).collect(Collectors.toList()),
-                    rejectedRefactorings.stream().map(CalculatedRefactoring::getRefactoring).collect(Collectors.toList())
-                )
+                new RefactoringSessionInfo(selectedRefactorings, rejectedRefactorings)
             )
         );
 

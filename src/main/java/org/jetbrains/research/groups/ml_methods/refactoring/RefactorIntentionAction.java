@@ -18,17 +18,17 @@ import java.util.Collections;
 
 public class RefactorIntentionAction extends BaseIntentionAction {
     private final AnalysisScope scope;
-    private final CalculatedRefactoring refactoring;
+    private final Refactoring refactoring;
 
     RefactorIntentionAction(String unit, String to, AnalysisScope scope) {
         this.scope = scope;
-        this.refactoring = new CalculatedRefactoring(Refactoring.createRefactoring(unit, to, false, scope), 0);
+        this.refactoring = Refactoring.createRefactoring(unit, to, false, scope);
     }
 
     @NotNull
     @Override
     public String getText() {
-        return String.format("Move to %s", refactoring.getRefactoring().getTargetName());
+        return String.format("Move to %s", refactoring.getTargetName());
     }
 
     @Nls
