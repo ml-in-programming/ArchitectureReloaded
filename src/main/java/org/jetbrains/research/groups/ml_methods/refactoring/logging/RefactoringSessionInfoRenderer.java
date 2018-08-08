@@ -11,6 +11,13 @@ import java.util.stream.Collectors;
  * {@link RefactoringSessionInfo} to a {@link String} that will be written to a log.
  */
 public class RefactoringSessionInfoRenderer implements ObjectRenderer {
+    /*
+     * Actually RefactoringSessionInfoRenderer should be used by Log4J. But it can be configured
+     * to use only through properties file. Unfortunately there is problem with configuring
+     * Log4J through properties file. See issue #63.
+     * https://github.com/ml-in-programming/ArchitectureReloaded/issues/63
+     */
+
     /**
      * Converts given object which is expected to be a {@link RefactoringSessionInfo} to a
      * {@link String} representation.

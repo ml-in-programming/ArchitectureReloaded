@@ -174,19 +174,8 @@ class ClassRefactoringPanel extends JPanel {
         }
         rejectedRefactorings.removeAll(selectedRefactorings);
 
-        /*
-         * Actually RefactoringSessionInfoRenderer should be used by Log4J. But it can be configured
-         * to use only through properties file. Unfortunately there is problem with configuring
-         * Log4J through properties file. See issue #63.
-         * https://github.com/ml-in-programming/ArchitectureReloaded/issues/63
-         */
         RefactoringSessionInfo info = new RefactoringSessionInfo(selectedRefactorings, rejectedRefactorings, metricsRun);
-        RefactoringPreferencesLog.log.info(
-            new RefactoringSessionInfoRenderer().doRender(info)
-        );
-
         ClassRefactoringPanel.reporter.log(uuid, info);
-
         RefactoringUtil.moveRefactoring(selectedRefactorings, scope, model);
 
         table.setEnabled(true);
