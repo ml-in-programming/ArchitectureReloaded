@@ -256,18 +256,18 @@ public final class RefactoringUtil {
                 .flatMap(List::stream)
                 .collect(Collectors.groupingBy(it -> it.getRefactoring().getEntity(), Collectors.toList()))
                 .entrySet().stream()
-                .map(entry -> combine(entry.getValue()))
+                .map(entry -> combine(entry.getValue(), refactorings.size()))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    private static CalculatedRefactoring combine(List<CalculatedRefactoring> refactorings) {
+    private static CalculatedRefactoring combine(List<CalculatedRefactoring> refactorings, int numberOfAlgorithms) {
         final Map<Refactoring, Double> target = refactorings.stream()
-                .collect(Collectors.groupingBy(CalculatedRefactoring::getRefactoring, Collectors.averagingDouble(RefactoringUtil::getSquaredAccuracy)));
+                .collect(Collectors.groupingBy(CalculatedRefactoring::getRefactoring, Collectors.summingDouble(RefactoringUtil::getSquaredAccuracy)));
 
         return target.entrySet().stream()
                 .max(Entry.comparingByValue())
-                .map(entry -> new CalculatedRefactoring(entry.getKey(),  Math.sqrt(entry.getValue())))
+                .map(entry -> new CalculatedRefactoring(entry.getKey(),  Math.sqrt(entry.getValue() / numberOfAlgorithms)))
                 .orElse(null);
     }
 
