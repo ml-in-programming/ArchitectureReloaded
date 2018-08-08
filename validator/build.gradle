@@ -1,0 +1,27 @@
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    releaseJars
+}
+
+dependencies {
+    runtime 'com.google.code.gson:gson:2.8.5'
+    releaseJars 'com.google.code.gson:gson:2.8.5'
+}
+
+jar {
+    baseName = 'validator'
+
+    manifest {
+        attributes "Main-Class": "org.jetbrains.research.groups.ml_methods.refactoring.validation.InputSessionValidator"
+    }
+
+    from {
+        configurations.releaseJars.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
