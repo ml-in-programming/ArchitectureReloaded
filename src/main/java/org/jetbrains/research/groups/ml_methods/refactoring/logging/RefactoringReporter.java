@@ -38,9 +38,9 @@ public class RefactoringReporter {
                 "\t" +
                 session +
                 "\t" +
-                "refactor" +
-                "\t" +
                 "-1" +
+                "\t" +
+                "refactor" +
                 "\t" +
                 gson.toJson(t, t.getClass());
         messages.offer(builder);
