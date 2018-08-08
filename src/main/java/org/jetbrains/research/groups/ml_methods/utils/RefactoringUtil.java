@@ -190,7 +190,7 @@ public final class RefactoringUtil {
 
     public static boolean checkValid(Collection<MoveToClassRefactoring> refactorings) {
         final long uniqueUnits = refactorings.stream()
-                .map(it -> it.getEntityName())
+                .map(MoveToClassRefactoring::getEntity)
                 .distinct()
                 .count();
         return uniqueUnits == refactorings.size();
