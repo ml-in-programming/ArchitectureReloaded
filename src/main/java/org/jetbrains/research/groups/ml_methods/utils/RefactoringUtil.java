@@ -31,23 +31,6 @@ import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHu
 public final class RefactoringUtil {
     private static Logger LOG = Logging.getLogger(RefactoringUtil.class);
 
-    private static class CachedMember {
-        public final PsiMember member;
-        public final String oldName;
-        public CachedMember(@NotNull PsiMember member, @NotNull String oldName) {
-            this.member = member;
-            this.oldName = oldName;
-        }
-
-        public PsiMember getMember() {
-            return member;
-        }
-
-        public String getOldName() {
-            return oldName;
-        }
-    }
-
     private RefactoringUtil() {
     }
 
@@ -61,13 +44,20 @@ public final class RefactoringUtil {
         final Map<PsiClass, List<MoveToClassRefactoring>> groupedRefactorings = prepareRefactorings(refactorings);
         ApplicationManager.getApplication().runReadAction(() -> {
             for (Entry<PsiClass, List<MoveToClassRefactoring>> refactoring : groupedRefactorings.entrySet()) {
+                final Set<MoveToClassRefactoring> accepted = new HashSet<>();
+
                 final PsiClass target = refactoring.getKey();
                 final List<MoveToClassRefactoring> filteredRefactorings = refactoring.getValue().stream()
                         .sequential()
                         .filter(r -> r.accept(new RefactoringVisitor<Boolean>() {
                             @Override
                             public @NotNull Boolean visit(final @NotNull MoveMethodRefactoring refactoring) {
-                                return !moveInstanceMethod(refactoring.getMethod(), target);
+                                if (moveInstanceMethod(refactoring.getMethod(), target)) {
+                                    accepted.add(refactoring);
+                                    return false;
+                                } else {
+                                    return true;
+                                }
                             }
 
                             @Override
@@ -77,7 +67,8 @@ public final class RefactoringUtil {
                         }))
                         .filter(r -> makeStatic(r.getEntity())) // no effect for already static members
                         .collect(Collectors.toList());
-                final Set<MoveToClassRefactoring> accepted = moveMembersRefactoring(filteredRefactorings, target, scope);
+
+                 accepted.addAll(moveMembersRefactoring(filteredRefactorings, target, scope));
 
                 if (model != null) {
                     model.setAcceptedRefactorings(accepted.stream().map(m -> new CalculatedRefactoring(m, 0)).collect(Collectors.toSet()));
