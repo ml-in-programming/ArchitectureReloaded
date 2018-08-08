@@ -6,7 +6,6 @@ import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ElementAttr
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.ClassEntity;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.ClassEntityExtractor;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.CodeEntity;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.OldEntity;
 
 import java.util.Collection;
 import java.util.List;
@@ -29,15 +28,6 @@ public class AlgorithmsUtil {
         }
         first.addAll(second);
         return first;
-    }
-
-    @Deprecated
-    public static Entry<String, Long> getDominantClassOld(Collection<OldEntity> entities) {
-        return entities.stream()
-                .collect(Collectors.groupingBy(OldEntity::getClassName, Collectors.counting()))
-                .entrySet().stream()
-                .max(Entry.comparingByValue())
-                .orElse(null);
     }
 
     public static Entry<ClassAttributes, Long> getDominantClassForAttributes(Collection<ElementAttributes> entities) {

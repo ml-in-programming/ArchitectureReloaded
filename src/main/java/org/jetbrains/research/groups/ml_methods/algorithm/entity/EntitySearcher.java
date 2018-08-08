@@ -22,7 +22,7 @@ import java.util.*;
 import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHumanReadableName;
 
 /**
- * Extracts every {@link OldEntity} from {@link AnalysisScope} according to a {@link FinderStrategy} that is uses.
+ * Extracts every {@link CodeEntity} from {@link AnalysisScope} according to a {@link FinderStrategy} that is uses.
  * It is also responsible for relevant properties extraction.
  */
 public class EntitySearcher {
