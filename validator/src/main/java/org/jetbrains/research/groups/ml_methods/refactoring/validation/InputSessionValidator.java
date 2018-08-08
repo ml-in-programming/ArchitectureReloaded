@@ -9,7 +9,7 @@ import java.util.List;
 
 /** Server-side validator for incoming log entries */
 public class InputSessionValidator {
-    private SessionValidationResult result;
+    private org.jetbrains.research.groups.ml_methods.refactoring.validation.SessionValidationResult result;
 
     private enum LogEntryFields {
         TIMESTAMP,
@@ -28,7 +28,7 @@ public class InputSessionValidator {
 
 
     /** Takes empty @link{SessionValidationResult} which will be populated in @link{#validate} */
-    public InputSessionValidator(SessionValidationResult result) {
+    public InputSessionValidator(org.jetbrains.research.groups.ml_methods.refactoring.validation.SessionValidationResult result) {
         this.result = result;
     }
 
@@ -101,5 +101,9 @@ public class InputSessionValidator {
         }
 
         return true;
+    }
+
+    public static void main(String args[]) {
+        System.out.println("working fine.");
     }
 }

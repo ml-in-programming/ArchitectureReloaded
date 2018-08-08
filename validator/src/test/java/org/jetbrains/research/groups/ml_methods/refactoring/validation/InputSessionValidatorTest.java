@@ -3,14 +3,13 @@ package org.jetbrains.research.groups.ml_methods.refactoring.validation;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class InputSessionValidatorTest {
     private InputSessionValidator validator;
