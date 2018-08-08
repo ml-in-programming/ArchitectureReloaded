@@ -73,7 +73,6 @@ public class RefactoringReporter {
                         errors = 0;
                     }
 
-                    System.out.println(message);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
