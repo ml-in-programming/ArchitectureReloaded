@@ -152,7 +152,7 @@ public class RefactoringExecutionContext {
         }
 
         final AlgorithmResult result =
-            algorithm.execute(attributes, executorService, enableFieldRefactoring, scope);
+            algorithm.execute(attributes, executorService, enableFieldRefactoring);
 
         algorithmsResults.add(result);
     }
