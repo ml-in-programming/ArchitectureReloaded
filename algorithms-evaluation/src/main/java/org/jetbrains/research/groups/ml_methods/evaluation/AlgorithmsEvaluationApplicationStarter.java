@@ -11,9 +11,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -65,13 +65,10 @@ public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarte
                                 .orElseThrow(() -> new IllegalArgumentException("No such algorithm")))
                         .collect(Collectors.toList());
             }
-            List<EvaluationResult> evaluationResults = algorithmsToEvaluate.stream().map(algorithm -> {
-                try {
-                    return JBAlgorithmEvaluator.evaluateDataset(datasetPath, algorithm);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }).collect(Collectors.toList());
+            List<EvaluationResult> evaluationResults = new ArrayList<>();
+            for (Algorithm algorithm : algorithmsToEvaluate) {
+                evaluationResults.add(JBAlgorithmEvaluator.evaluateDataset(datasetPath, algorithm));
+            }
             evaluationResults.forEach(this::printEvaluationResult);
             if (!pathToSaveResults.toString().equals("")) {
                 EvaluationResultsWriter.writeTable(evaluationResults, pathToSaveResults);
