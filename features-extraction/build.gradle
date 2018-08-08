@@ -1,0 +1,8 @@
+dependencies {
+    compile project(':openapi')
+    compile project(':utils')
+    compile project(':algorithms')
+
+    testCompile project(':utils').sourceSets.test.output
+    testCompile files('../lib/hamcrest-all-1.3.jar')
+}

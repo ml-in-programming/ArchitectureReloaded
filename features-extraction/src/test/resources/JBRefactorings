@@ -1,0 +1,25 @@
+[
+  {
+    "targetClassQualifiedName": "org.jhotdraw.samples.svg.SVGDrawingPanel",
+    "sourceClassQualifiedName": "org.jhotdraw.samples.svg.gui.ViewToolBar",
+    "methodName": "setEditor",
+    "paramsClasses": [
+      "int"
+    ]
+  },
+  {
+    "targetClassQualifiedName": "org.jhotdraw.draw.AttributeKeys",
+    "sourceClassQualifiedName": "org.jhotdraw.samples.svg.io.SVGInputFormat",
+    "methodName": "readTransformAttribute",
+    "paramsClasses": []
+  },
+  {
+    "targetClassQualifiedName": "org.jhotdraw.xml.NanoXMLDOMOutput",
+    "sourceClassQualifiedName": "net.n3.nanoxml.XMLElement",
+    "methodName": "print",
+    "paramsClasses": [
+      "java.lang.Integer",
+      "java.util.List\u003cjava.lang.Integer\u003e"
+    ]
+  }
+]

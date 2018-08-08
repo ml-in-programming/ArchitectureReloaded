@@ -6,7 +6,6 @@ import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.ide.plugins.PluginManager;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.components.ServiceManager;
@@ -21,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmResult;
+import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository;
 import org.jetbrains.research.groups.ml_methods.config.ArchitectureReloadedConfig;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringExecutionContext;
@@ -146,7 +146,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     public void analyzeBackground(@NotNull final Project project, @NotNull final AnalysisScope analysisScope,
                                   String identifier) {
-        List<Algorithm> availableAlgorithms = Arrays.asList(RefactoringExecutionContext.getAvailableAlgorithms());
+        List<Algorithm> availableAlgorithms = AlgorithmsRepository.getAvailableAlgorithms();
         final MetricsProfile metricsProfile = getMetricsProfile(new HashSet<>(availableAlgorithms));
         assert metricsProfile != null;
 
@@ -199,7 +199,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
         
         if (notEmptyResult) {
             ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
-                    .show(algorithmsResults, context.getEntitySearchResult(), context.getScope());
+                    .show(algorithmsResults, context.getEntitiesStorage(), context.getScope());
         } else {
             NotificationUtil.notifyEmptyResult(context.getProject());
         }
