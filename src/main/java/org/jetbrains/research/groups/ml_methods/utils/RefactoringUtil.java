@@ -13,8 +13,7 @@ import com.sixrr.metrics.utils.MethodUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveToClassRefactoring;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.*;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 import org.jetbrains.research.groups.ml_methods.ui.RefactoringsTableModel;
 
@@ -63,58 +62,65 @@ public final class RefactoringUtil {
         ApplicationManager.getApplication().runReadAction(() -> {
             for (Entry<PsiClass, List<MoveToClassRefactoring>> refactoring : groupedRefactorings.entrySet()) {
                 final PsiClass target = refactoring.getKey();
-                final List<CachedMember> members = refactoring.getValue().stream().map(MoveToClassRefactoring::getEntity)
+                final List<MoveToClassRefactoring> filteredRefactorings = refactoring.getValue().stream()
                         .sequential()
-                        .filter(unit -> !(unit instanceof PsiMethod) || !moveInstanceMethod((PsiMethod) unit, target))
-                        .map(RefactoringUtil::makeStatic) // no effect for already static members
-                        .filter(Objects::nonNull)
+                        .filter(r -> r.accept(new RefactoringVisitor<Boolean>() {
+                            @Override
+                            public @NotNull Boolean visit(final @NotNull MoveMethodRefactoring refactoring) {
+                                return !moveInstanceMethod(refactoring.getMethod(), target);
+                            }
+
+                            @Override
+                            public @NotNull Boolean visit(final @NotNull MoveFieldRefactoring refactoring) {
+                                return true;
+                            }
+                        }))
+                        .filter(r -> makeStatic(r.getEntity())) // no effect for already static members
                         .collect(Collectors.toList());
-                final Set<String> accepted = moveMembersRefactoring(members, target, scope);
+                final Set<MoveToClassRefactoring> accepted = moveMembersRefactoring(filteredRefactorings, target, scope);
 
                 if (model != null) {
-                    model.setAcceptedRefactorings(accepted.stream().map(m -> new CalculatedRefactoring(MoveToClassRefactoring.createRefactoring(m, PsiSearchUtil.getHumanReadableName(target), true, scope), 0)).collect(Collectors.toSet()));
+                    model.setAcceptedRefactorings(accepted.stream().map(m -> new CalculatedRefactoring(m, 0)).collect(Collectors.toSet()));
                 }
             }
         });
     }
 
-    private static Set<String> moveMembersRefactoring(Collection<CachedMember> elements, PsiClass targetClass,
+    private static Set<MoveToClassRefactoring> moveMembersRefactoring(Collection<MoveToClassRefactoring> elements, PsiClass targetClass,
                                                AnalysisScope scope) {
-        final Map<PsiClass, Set<CachedMember>> groupByCurrentClass = elements.stream()
-                .collect(groupingBy((CachedMember cm) -> cm.member.getContainingClass(), Collectors.toSet()));
+        final Map<PsiClass, Set<MoveToClassRefactoring>> groupByCurrentClass = elements.stream()
+                .collect(groupingBy((MoveToClassRefactoring it) -> it.getEntity().getContainingClass(), Collectors.toSet()));
 
-        final Set<String> accepted = new HashSet<>();
-        for (Entry<PsiClass, Set<CachedMember>> movement : groupByCurrentClass.entrySet()) {
-            final Set<String> names = movement.getValue().stream().map(CachedMember::getOldName).collect(Collectors.toSet());
-            final Set<PsiMember> members = movement.getValue().stream().map(CachedMember::getMember).collect(Collectors.toSet());
+        final Set<MoveToClassRefactoring> accepted = new HashSet<>();
+        for (Entry<PsiClass, Set<MoveToClassRefactoring>> movement : groupByCurrentClass.entrySet()) {
+            final Set<PsiMember> members = movement.getValue().stream().map(MoveToClassRefactoring::getEntity).collect(Collectors.toSet());
             MoveMembersDialog dialog = new MoveMembersDialog(scope.getProject(), movement.getKey(), targetClass,
                     members, null);
             TransactionGuard.getInstance().submitTransactionAndWait(dialog::show);
             if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
-                accepted.addAll(names);
+                accepted.addAll(movement.getValue());
             }
         }
         return accepted;
     }
 
-    private static CachedMember makeStatic(PsiElement element) {
+    private static boolean makeStatic(PsiElement element) {
         if (!(element instanceof PsiMember)) {
-            return null;
+            return false;
         }
         final PsiMember member = (PsiMember) element;
-        final String oldName = PsiSearchUtil.getHumanReadableName(member);
         if (isStatic(member)) {
-            return new CachedMember(member, oldName);
+            return true;
         }
         if (!(member instanceof PsiMethod)) {
-            return null;
+            return false;
         }
         PsiMethod method = (PsiMethod) element;
         if (method.isConstructor()) {
-            return null;
+            return false;
         }
         TransactionGuard.getInstance().submitTransactionAndWait(() -> MakeStaticHandler.invoke(method));
-        return isStatic(member) ? new CachedMember(member, oldName) : null;
+        return isStatic(member);
     }
 
     private static PsiVariable[] getAvailableVariables(PsiMethod method, String target) {

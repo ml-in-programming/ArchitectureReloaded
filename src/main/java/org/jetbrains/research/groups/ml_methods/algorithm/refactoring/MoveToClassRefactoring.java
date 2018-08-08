@@ -3,16 +3,13 @@ package org.jetbrains.research.groups.ml_methods.algorithm.refactoring;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
+import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 
 public abstract class MoveToClassRefactoring {
-    private final @NotNull PsiElement entity;
+    private final @NotNull PsiMember entity;
 
     private final @NotNull PsiClass targetClass;
 
@@ -59,7 +56,7 @@ public abstract class MoveToClassRefactoring {
     }
 
     public MoveToClassRefactoring(
-        final @NotNull PsiElement entity,
+        final @NotNull PsiMember entity,
         final @NotNull PsiClass target
     ) {
         this.entity = entity;
@@ -86,7 +83,7 @@ public abstract class MoveToClassRefactoring {
         return targetClass;
     }
 
-    public @NotNull PsiElement getEntity() {
+    public @NotNull PsiMember getEntity() {
         return entity;
     }
 
