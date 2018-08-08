@@ -33,7 +33,7 @@ public class ARI extends AbstractAlgorithm {
     @Override
     protected @NotNull Executor setUpExecutor() {
         return new Executor() {
-            private final List<ElementAttributes> units = new ArrayList<>();
+            private final List<ClassInnerEntityAttributes> units = new ArrayList<>();
             private final List<ClassAttributes> classAttributes = new ArrayList<>();
             private final AtomicInteger progressCount = new AtomicInteger();
             private ExecutionContext context;
@@ -54,7 +54,7 @@ public class ARI extends AbstractAlgorithm {
                 return context.runParallel(units, ArrayList<CalculatedRefactoring>::new, this::findRefactoring, AlgorithmsUtil::combineLists);
             }
 
-            private List<CalculatedRefactoring> findRefactoring(ElementAttributes entity, List<CalculatedRefactoring> accumulator) {
+            private List<CalculatedRefactoring> findRefactoring(ClassInnerEntityAttributes entity, List<CalculatedRefactoring> accumulator) {
                 context.reportProgress((double) progressCount.incrementAndGet() / units.size());
                 context.checkCanceled();
                 if (!entity.getOriginalEntity().isMovable() || classAttributes.size() < 2) {
@@ -79,8 +79,8 @@ public class ARI extends AbstractAlgorithm {
                     LOGGER.warn("targetClass is null for " + entity.getOriginalEntity().getIdentifier());
                     return accumulator;
                 }
-                final String targetClassName = targetClassAttributes.getOriginalEntity().getIdentifier();
-                if (!targetClassName.equals(entity.getOriginalEntity().getContainingClassName())) {
+
+                if (!targetClassAttributes.equals(entity.getContainingClassAttributes())) {
                     double accuracy = AlgorithmsUtil.getGapBasedAccuracyRating(minDistance, difference) * ACCURACY;
                     PsiClass targetClass = targetClassAttributes.getOriginalClass().getPsiClass();
 

@@ -40,13 +40,6 @@ public class MethodEntity extends ClassInnerEntity {
     }
 
     @Override
-    public @NotNull String getContainingClassName() {
-        final String signature = getIdentifier();
-        final String name = signature.substring(0, signature.indexOf('('));
-        return name.substring(0, name.lastIndexOf('.'));
-    }
-
-    @Override
     public <R> R accept(@NotNull CodeEntityVisitor<R> visitor) {
         return visitor.visit(this);
     }

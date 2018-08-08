@@ -41,12 +41,6 @@ public class FieldEntity extends ClassInnerEntity {
     }
 
     @Override
-    public @NotNull String getContainingClassName() {
-        final String name = getIdentifier();
-        return name.substring(0, name.lastIndexOf('.'));
-    }
-
-    @Override
     public <R> R accept(@NotNull CodeEntityVisitor<R> visitor) {
         return visitor.visit(this);
     }
