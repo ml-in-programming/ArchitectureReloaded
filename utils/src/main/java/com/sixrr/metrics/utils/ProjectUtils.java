@@ -4,6 +4,7 @@ import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -17,6 +18,10 @@ public class ProjectUtils {
         for (Project openedProject : ProjectManager.getInstance().getOpenProjects()) {
             if (!ProjectManager.getInstance().closeProject(openedProject)) {
                 throw new IllegalStateException("Cannot close previous project");
+            }
+            Disposer.dispose(openedProject);
+            if (!openedProject.isDisposed()) {
+                throw new IllegalStateException("Cannot dispose project");
             }
         }
         final Project project = ProjectUtil.openOrImport(projectPath.toAbsolutePath().toString(),

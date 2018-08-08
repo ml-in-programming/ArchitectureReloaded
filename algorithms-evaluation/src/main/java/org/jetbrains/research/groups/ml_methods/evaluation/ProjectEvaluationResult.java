@@ -34,11 +34,22 @@ public class ProjectEvaluationResult extends AbstractEvaluationResult {
             refactoring -> goodRefactorings.contains(refactoring.getRefactoring()) ||
                     badRefactorings.contains(refactoring.getRefactoring())
         );
+        List<Refactoring> foundWithoutAccuracy = foundRefactorings.stream()
+                .map(CalculatedRefactoring::getRefactoring)
+                .collect(Collectors.toList());
         errors.addAll(foundBadRefactorings.stream()
                 .map(value -> value.getAccuracy() - 0)
                 .collect(Collectors.toList()));
+        errors.addAll(badRefactorings.stream()
+                .filter(refactoring -> !foundWithoutAccuracy.contains(refactoring))
+                .map(value -> 0.0 - 0)
+                .collect(Collectors.toList()));
         errors.addAll(foundGoodRefactorings.stream()
                 .map(value -> 1 - value.getAccuracy())
+                .collect(Collectors.toList()));
+        errors.addAll(goodRefactorings.stream()
+                .filter(refactoring -> !foundWithoutAccuracy.contains(refactoring))
+                .map(value -> 1 - 0.0)
                 .collect(Collectors.toList()));
     }
 
