@@ -23,4 +23,8 @@ public class ClassAttributes extends ElementAttributes {
     public @NotNull ClassEntity getOriginalClass() {
         return classEntity;
     }
+
+    public <R> R accept(final @NotNull ElementAttributesVisitor<R> visitor) {
+        return visitor.visit(this);
+    }
 }

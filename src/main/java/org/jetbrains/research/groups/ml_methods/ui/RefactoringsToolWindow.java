@@ -11,10 +11,11 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
+import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmResult;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitiesStorage;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
 import org.jetbrains.research.groups.ml_methods.utils.RefactoringUtil;
 
@@ -34,7 +35,8 @@ public final class RefactoringsToolWindow implements Disposable {
     private final List<ClassRefactoringPanel> contents = new ArrayList<>();
     private ToolWindow myToolWindow = null;
     private List<AlgorithmResult> results;
-    private EntitySearchResult searchResult;
+    private EntitiesStorage entitiesStorage;
+    private MetricsRun metricsRun;
     private AnalysisScope scope;
     private boolean enableHighlighting;
     private boolean excludeFieldRefactorings;
@@ -52,8 +54,8 @@ public final class RefactoringsToolWindow implements Disposable {
         myToolWindow.setAvailable(false, null);
     }
 
-    private void addTab(String tabName, @NotNull List<Refactoring> refactorings, boolean isClosable) {
-        final ClassRefactoringPanel panel = new ClassRefactoringPanel(refactorings, scope);
+    private void addTab(String tabName, @NotNull List<CalculatedRefactoring> refactorings, boolean isClosable) {
+        final ClassRefactoringPanel panel = new ClassRefactoringPanel(refactorings, scope, metricsRun);
         panel.setEnableHighlighting(enableHighlighting);
         final ActionToolbar toolbar = createToolbar();
         final JPanel contentPanel = new JPanel(new BorderLayout());
@@ -77,17 +79,24 @@ public final class RefactoringsToolWindow implements Disposable {
                 .createActionToolbar(WINDOW_ID, toolbarGroup, false);
     }
 
-    public void show(List<AlgorithmResult> results, EntitySearchResult searchResult, AnalysisScope scope) {
+    public void show(
+        List<AlgorithmResult> results,
+        EntitiesStorage entitiesStorage,
+        AnalysisScope scope,
+        final @NotNull MetricsRun metricsRun
+    ) {
         this.results = results;
         this.scope = scope;
-        this.searchResult = searchResult;
+        this.entitiesStorage = entitiesStorage;
+        this.metricsRun = metricsRun;
+
         myToolWindow.getContentManager().removeAllContents(true);
         contents.clear();
         myToolWindow.setAvailable(false, null);
-        final List<List<Refactoring>> refactorings = results.stream()
+        final List<List<CalculatedRefactoring>> refactorings = results.stream()
                 .map(AlgorithmResult::getRefactorings)
                 .collect(Collectors.toList());
-        final List<Refactoring> measured = RefactoringUtil.combine(refactorings, scope);
+        final List<CalculatedRefactoring> measured = RefactoringUtil.combine(refactorings);
         addTab("Total", measured, false);
         myToolWindow.setAvailable(true, null);
         myToolWindow.show(null);
@@ -99,16 +108,16 @@ public final class RefactoringsToolWindow implements Disposable {
         toolWindowManager.unregisterToolWindow(WINDOW_ID);
         results = null;
         scope = null;
-        searchResult = null;
+        entitiesStorage = null;
     }
 
     private void intersect(Set<String> algorithms) {
-        final List<List<Refactoring>> refactorings = results.stream()
+        final List<List<CalculatedRefactoring>> refactorings = results.stream()
                 .filter(result -> algorithms.contains(result.getAlgorithmName()))
                 .map(AlgorithmResult::getRefactorings)
                 .collect(Collectors.toList());
         // todo may be should use combine instead of intersect
-        final List<Refactoring> intersection = RefactoringUtil.intersect(refactorings);
+        final List<CalculatedRefactoring> intersection = RefactoringUtil.intersect(refactorings);
         if (!algorithms.isEmpty()) {
             final String tabName = algorithms.stream()
                     .collect(Collectors.joining(" & "));
@@ -147,8 +156,8 @@ public final class RefactoringsToolWindow implements Disposable {
 
         @Override
         public void actionPerformed(AnActionEvent e) {
-            if (results != null && searchResult != null) {
-                final DialogWrapper dialog = new ExecutionInfoDialog(project, searchResult, results);
+            if (results != null && entitiesStorage != null) {
+                final DialogWrapper dialog = new ExecutionInfoDialog(project, entitiesStorage, results);
                 dialog.show();
             }
         }

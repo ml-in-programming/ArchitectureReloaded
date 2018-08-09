@@ -2,10 +2,10 @@ package org.jetbrains.research.groups.ml_methods.algorithm.distance;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ElementAttributes;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.OldEntity;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.CodeEntity;
 
 /**
- * It's just a distance formula taken from old {@link OldEntity}
+ * It's just a distance formula taken from old version of {@link CodeEntity}
  * class.
  */
 public class RelevanceBasedDistanceCalculator implements DistanceCalculator {
@@ -14,7 +14,8 @@ public class RelevanceBasedDistanceCalculator implements DistanceCalculator {
 
     private RelevanceBasedDistanceCalculator() {}
 
-    public @NotNull RelevanceBasedDistanceCalculator getInstance() {
+    public @NotNull
+    static RelevanceBasedDistanceCalculator getInstance() {
         return INSTANCE;
     }
 

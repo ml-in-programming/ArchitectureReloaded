@@ -8,6 +8,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.sixrr.metrics.metricModel.MetricsExecutionContextImpl;
+import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.metrics.metricModel.MetricsRunImpl;
 import com.sixrr.metrics.metricModel.TimeStamp;
 import com.sixrr.metrics.profile.MetricsProfile;
@@ -18,7 +19,6 @@ import org.jetbrains.research.groups.ml_methods.algorithm.*;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.NoRequestedMetricException;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitiesStorage;
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearchResult;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearcher;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 
@@ -39,10 +39,8 @@ public class RefactoringExecutionContext {
 
     private static final List<Algorithm> ALGORITHMS = Arrays.asList(
         new ARI(),
-        new AKMeans(),
         new CCDA(),
-        new HAC(),
-        new MRI()
+        new HAC()
     );
 
     @NotNull
@@ -51,7 +49,6 @@ public class RefactoringExecutionContext {
     private final AnalysisScope scope;
     @NotNull
     private final MetricsProfile profile;
-    private EntitySearchResult entitySearchResult;
     private EntitiesStorage entitiesStorage;
     private final MetricsExecutionContextImpl metricsExecutionContext;
     @Nullable
@@ -121,9 +118,8 @@ public class RefactoringExecutionContext {
         metricsRun.setProfileName(profile.getName());
         metricsRun.setContext(scope);
         metricsRun.setTimestamp(new TimeStamp());
-        entitySearchResult = ApplicationManager.getApplication()
-                .runReadAction((Computable<EntitySearchResult>) () -> EntitySearcher.analyze(scope, metricsRun));
-        entitiesStorage = new EntitiesStorage(entitySearchResult);
+        entitiesStorage = ApplicationManager.getApplication()
+                .runReadAction((Computable<EntitiesStorage>) () -> EntitySearcher.analyze(scope));
         for (Algorithm algorithm : requestedAlgorithms) {
             calculate(algorithm);
         }
@@ -157,7 +153,7 @@ public class RefactoringExecutionContext {
         }
 
         final AlgorithmResult result =
-            algorithm.execute(attributes, executorService, enableFieldRefactoring, scope);
+            algorithm.execute(attributes, executorService, enableFieldRefactoring);
 
         algorithmsResults.add(result);
     }
@@ -172,20 +168,24 @@ public class RefactoringExecutionContext {
                 .findAny().orElse(null);
     }
 
-    public EntitySearchResult getEntitySearchResult() {
-        return entitySearchResult;
+    public EntitiesStorage getEntitiesStorage() {
+        return entitiesStorage;
+    }
+
+    public @NotNull MetricsRun getMetricsRun() {
+        return metricsRun;
     }
 
     public int getClassCount() {
-        return entitySearchResult.getClasses().size();
+        return entitiesStorage.getClasses().size();
     }
 
     public int getMethodsCount() {
-        return entitySearchResult.getMethods().size();
+        return entitiesStorage.getMethods().size();
     }
 
     public int getFieldsCount() {
-        return entitySearchResult.getFields().size();
+        return entitiesStorage.getFields().size();
     }
 
     public Project getProject() {

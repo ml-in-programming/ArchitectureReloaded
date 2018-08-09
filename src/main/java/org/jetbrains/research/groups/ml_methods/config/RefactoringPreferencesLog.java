@@ -30,7 +30,7 @@ public class RefactoringPreferencesLog {
         ).toString();
 
         try {
-            log.addAppender(new FileAppender(new PatternLayout("%m%n"), logFileName));
+            log.addAppender(new FileAppender(new PatternLayout("[%d]%m%n"), logFileName));
         } catch (IOException e) {
             System.err.println("Failed to open log file: " + logFileName);
         }
