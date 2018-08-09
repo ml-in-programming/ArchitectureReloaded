@@ -1,0 +1,1 @@
+1533549775051	architecture-reloaded-plugin	1	078ae3d4-10fd-40fb-988b-dc8387d6b07a	60b9fa5d-8004-4aea-9ca4-36b35862cb17	-1	action	{"acceptedRefactoringsFeatures":[],"rejectedRefactoringsFeatures":[]}

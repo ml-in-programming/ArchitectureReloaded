@@ -11,6 +11,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
+import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmResult;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
@@ -35,6 +36,7 @@ public final class RefactoringsToolWindow implements Disposable {
     private ToolWindow myToolWindow = null;
     private List<AlgorithmResult> results;
     private EntitySearchResult searchResult;
+    private MetricsRun metricsRun;
     private AnalysisScope scope;
     private boolean enableHighlighting;
     private boolean excludeFieldRefactorings;
@@ -53,7 +55,7 @@ public final class RefactoringsToolWindow implements Disposable {
     }
 
     private void addTab(String tabName, @NotNull List<Refactoring> refactorings, boolean isClosable) {
-        final ClassRefactoringPanel panel = new ClassRefactoringPanel(refactorings, scope);
+        final ClassRefactoringPanel panel = new ClassRefactoringPanel(refactorings, scope, metricsRun);
         panel.setEnableHighlighting(enableHighlighting);
         final ActionToolbar toolbar = createToolbar();
         final JPanel contentPanel = new JPanel(new BorderLayout());
@@ -77,10 +79,17 @@ public final class RefactoringsToolWindow implements Disposable {
                 .createActionToolbar(WINDOW_ID, toolbarGroup, false);
     }
 
-    public void show(List<AlgorithmResult> results, EntitySearchResult searchResult, AnalysisScope scope) {
+    public void show(
+        List<AlgorithmResult> results,
+        EntitySearchResult searchResult,
+        AnalysisScope scope,
+        final @NotNull MetricsRun metricsRun
+    ) {
         this.results = results;
         this.scope = scope;
         this.searchResult = searchResult;
+        this.metricsRun = metricsRun;
+
         myToolWindow.getContentManager().removeAllContents(true);
         contents.clear();
         myToolWindow.setAvailable(false, null);

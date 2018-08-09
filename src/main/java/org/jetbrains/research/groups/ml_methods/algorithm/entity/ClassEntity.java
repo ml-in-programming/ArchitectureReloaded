@@ -1,5 +1,7 @@
 package org.jetbrains.research.groups.ml_methods.algorithm.entity;
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiClass;
 import com.sixrr.metrics.MetricCategory;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +19,7 @@ public class ClassEntity extends CodeEntity {
 
     @Override
     public @NotNull String getIdentifier() {
-        return psiClass.getQualifiedName();
+        return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> psiClass.getQualifiedName());
     }
 
     @Override

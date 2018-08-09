@@ -24,8 +24,8 @@ public abstract class ExplicitModifierMethodCalculator extends MethodCalculator 
         public void visitMethod(PsiMethod method) {
             super.visitMethod(method);
             postMetric(
-                    method,
-                    method.hasModifierProperty(modifier) ? 1. : 0.
+                method,
+                method.getModifierList().hasExplicitModifier(modifier) ? 1. : 0.
             );
         }
     }

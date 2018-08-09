@@ -1,5 +1,7 @@
 package org.jetbrains.research.groups.ml_methods.algorithm.entity;
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.utils.MethodUtils;
@@ -18,8 +20,9 @@ public class MethodEntity extends CodeEntity {
         super(relevantProperties);
         this.psiMethod = psiMethod;
 
-        isMovable = !PSIUtil.isOverriding(psiMethod) &&
-                !MethodUtils.isAbstract(psiMethod) && !psiMethod.isConstructor();
+        isMovable = ApplicationManager.getApplication().runReadAction((Computable<Boolean>)
+                () ->  !PSIUtil.isOverriding(psiMethod) &&
+                !MethodUtils.isAbstract(psiMethod) && !psiMethod.isConstructor());
     }
 
     @Override
