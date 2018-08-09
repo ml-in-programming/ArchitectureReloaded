@@ -1,7 +1,6 @@
 package org.jetbrains.research.groups.ml_methods.algorithm.entity;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ClassAttributesExtractor;
 
 /**
  * Returns {@link ClassEntity} for given {@link CodeEntity}. If given argument is a {@link ClassEntity}
