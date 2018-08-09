@@ -8,13 +8,13 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
 
-import static com.sixrr.metrics.utils.MethodUtils.calculateSignature;
+import static org.jetbrains.research.groups.ml_methods.utils.PSIUtil.getHumanReadableName;
 
+@Deprecated
 public class PsiSearchUtil {
 
     public static class SearchOptions<V> {
@@ -56,21 +56,6 @@ public class PsiSearchUtil {
                 }
             }
         }.queue();
-    }
-
-    public static String getHumanReadableName(@Nullable PsiElement element) {
-        if (element instanceof PsiMethod) {
-            return calculateSignature((PsiMethod) element);
-        } else if (element instanceof PsiClass) {
-            if (element instanceof PsiAnonymousClass) {
-                return getHumanReadableName(((PsiAnonymousClass) element).getBaseClassReference().resolve());
-            }
-            return ((PsiClass) element).getQualifiedName();
-        } else if (element instanceof PsiField) {
-            final PsiMember field = (PsiMember) element;
-            return getHumanReadableName(field.getContainingClass()) + "." + field.getName();
-        }
-        return "???";
     }
 
     private static <V> Map<String, V> runSafeSearch(Set<String> keys, SearchOptions<V> options) {

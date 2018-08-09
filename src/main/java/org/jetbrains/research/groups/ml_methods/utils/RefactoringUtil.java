@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 
 import static com.sixrr.metrics.utils.MethodUtils.isStatic;
 import static java.util.stream.Collectors.groupingBy;
-import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHumanReadableName;
+import static org.jetbrains.research.groups.ml_methods.utils.PSIUtil.getHumanReadableName;
 
 public final class RefactoringUtil {
     private static Logger LOG = Logging.getLogger(RefactoringUtil.class);

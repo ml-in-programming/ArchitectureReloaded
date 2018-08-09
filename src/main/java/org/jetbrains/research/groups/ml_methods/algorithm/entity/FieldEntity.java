@@ -9,7 +9,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHumanReadableName;
+import static org.jetbrains.research.groups.ml_methods.utils.PSIUtil.getHumanReadableName;
+
 
 public class FieldEntity extends ClassInnerEntity {
     private final @NotNull PsiField psiField;

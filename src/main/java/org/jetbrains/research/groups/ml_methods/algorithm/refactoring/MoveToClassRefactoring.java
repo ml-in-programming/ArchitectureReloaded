@@ -6,6 +6,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.research.groups.ml_methods.utils.PSIUtil;
 import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 
 import java.util.Optional;
@@ -69,11 +70,11 @@ public abstract class MoveToClassRefactoring {
         );
 
         this.entityName = ApplicationManager.getApplication().runReadAction(
-            (Computable<String>) () -> PsiSearchUtil.getHumanReadableName(entity)
+            (Computable<String>) () -> PSIUtil.getHumanReadableName(entity)
         );
 
         this.targetName = ApplicationManager.getApplication().runReadAction(
-            (Computable<String>) () -> PsiSearchUtil.getHumanReadableName(target)
+            (Computable<String>) () -> PSIUtil.getHumanReadableName(target)
         );
     }
 
