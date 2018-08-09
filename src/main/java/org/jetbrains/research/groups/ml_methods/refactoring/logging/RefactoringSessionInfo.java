@@ -1,5 +1,6 @@
-package org.jetbrains.research.groups.ml_methods.refactoring;
+package org.jetbrains.research.groups.ml_methods.refactoring.logging;
 
+import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveToClassRefactoring;
 
@@ -25,19 +26,22 @@ public final class RefactoringSessionInfo {
      *
      * @param acceptedRefactorings refactorings that were accepted.
      * @param rejectedRefactorings refactorings that were rejected.
+     * @param metricsRun a result of metrics calculations. Used to {@link RefactoringFeatures}
+     *                   of a particular {@link MoveToClassRefactoring}.
      */
     public RefactoringSessionInfo(
         final @NotNull List<MoveToClassRefactoring> acceptedRefactorings,
-        final @NotNull List<MoveToClassRefactoring> rejectedRefactorings
+        final @NotNull List<MoveToClassRefactoring> rejectedRefactorings,
+        final @NotNull MetricsRun metricsRun
     ) {
         acceptedRefactoringsFeatures =
             acceptedRefactorings.stream()
-                                .map(RefactoringFeatures::new)
+                                .map((it) -> RefactoringFeatures.extractFeatures(it, metricsRun))
                                 .collect(Collectors.toList());
 
         rejectedRefactoringsFeatures =
                 rejectedRefactorings.stream()
-                        .map(RefactoringFeatures::new)
+                        .map((it) -> RefactoringFeatures.extractFeatures(it, metricsRun))
                         .collect(Collectors.toList());
     }
 

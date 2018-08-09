@@ -6,7 +6,6 @@ import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.ide.plugins.PluginManager;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.components.ServiceManager;
@@ -24,6 +23,7 @@ import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmResult;
 import org.jetbrains.research.groups.ml_methods.config.ArchitectureReloadedConfig;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringExecutionContext;
+import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringFeatures;
 import org.jetbrains.research.groups.ml_methods.ui.AlgorithmsSelectionPanel;
 import org.jetbrains.research.groups.ml_methods.ui.RefactoringsToolWindow;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
@@ -196,10 +196,15 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
         boolean notEmptyResult = algorithmsResults.stream().flatMap(result -> result.getRefactorings()
                 .stream()).findAny().isPresent();
-        
+
         if (notEmptyResult) {
             ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
-                    .show(algorithmsResults, context.getEntitiesStorage(), context.getScope());
+                .show(
+                    algorithmsResults,
+                    context.getEntitiesStorage(),
+                    context.getScope(),
+                    context.getMetricsRun()
+                );
         } else {
             NotificationUtil.notifyEmptyResult(context.getProject());
         }
@@ -210,6 +215,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
             selectedAlgorithms.stream()
                 .flatMap(it -> it.requiredMetrics().stream())
                 .collect(Collectors.toSet());
+        requestedSet.addAll(RefactoringFeatures.getRequestedMetrics());
 
         final String profileName = ArchitectureReloadedBundle.message(REFACTORING_PROFILE_KEY);
         final MetricsProfileRepository repository = MetricsProfileRepository.getInstance();
