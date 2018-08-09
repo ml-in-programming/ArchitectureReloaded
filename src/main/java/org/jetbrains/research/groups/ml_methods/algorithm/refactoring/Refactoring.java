@@ -3,17 +3,16 @@ package org.jetbrains.research.groups.ml_methods.algorithm.refactoring;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
+import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 
-public abstract class Refactoring {
-    private final @NotNull PsiElement entity;
+import java.util.Optional;
 
-    private final @NotNull PsiElement target;
+public abstract class Refactoring {
+    private final @NotNull SmartPsiElementPointer<PsiElement> entity;
+
+    private final @NotNull SmartPsiElementPointer<PsiElement> target;
 
     private final String entityName;
 
@@ -66,8 +65,8 @@ public abstract class Refactoring {
         final @NotNull PsiElement target,
         double accuracy
     ) {
-        this.entity = entity;
-        this.target = target;
+        this.entity = SmartPointerManager.getInstance(entity.getProject()).createSmartPsiElementPointer(entity);
+        this.target = SmartPointerManager.getInstance(entity.getProject()).createSmartPsiElementPointer(target);
 
         this.entityName = ApplicationManager.getApplication().runReadAction(
             (Computable<String>) () -> PsiSearchUtil.getHumanReadableName(entity)
@@ -80,12 +79,12 @@ public abstract class Refactoring {
         this.accuracy = accuracy;
     }
 
-    public @NotNull PsiElement getEntity() {
-        return entity;
+    public @NotNull Optional<PsiElement> getEntity() {
+        return Optional.ofNullable(entity.getElement());
     }
 
-    public @NotNull PsiElement getTarget() {
-        return target;
+    public @NotNull Optional<PsiElement> getTarget() {
+        return Optional.ofNullable(target.getElement());
     }
 
     /**
