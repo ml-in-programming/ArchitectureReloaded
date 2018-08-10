@@ -1,6 +1,11 @@
 package org.jetbrains.research.groups.ml_methods.utils;
 
-import org.jetbrains.research.groups.ml_methods.algorithm.entity.OldEntity;
+import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ClassAttributes;
+import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ClassAttributesExtractor;
+import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ElementAttributes;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.ClassEntity;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.ClassEntityExtractor;
+import org.jetbrains.research.groups.ml_methods.algorithm.entity.CodeEntity;
 
 import java.util.Collection;
 import java.util.List;
@@ -25,9 +30,17 @@ public class AlgorithmsUtil {
         return first;
     }
 
-    public static Entry<String, Long> getDominantClass(Collection<OldEntity> entities) {
+    public static Entry<ClassAttributes, Long> getDominantClassForAttributes(Collection<ElementAttributes> entities) {
         return entities.stream()
-                .collect(Collectors.groupingBy(OldEntity::getClassName, Collectors.counting()))
+                .collect(Collectors.groupingBy(it -> it.accept(ClassAttributesExtractor.getInstance()), Collectors.counting()))
+                .entrySet().stream()
+                .max(Entry.comparingByValue())
+                .orElse(null);
+    }
+
+    public static Entry<ClassEntity, Long> getDominantClass(Collection<CodeEntity> entities) {
+        return entities.stream()
+                .collect(Collectors.groupingBy(it -> it.accept(ClassEntityExtractor.getInstance()), Collectors.counting()))
                 .entrySet().stream()
                 .max(Entry.comparingByValue())
                 .orElse(null);

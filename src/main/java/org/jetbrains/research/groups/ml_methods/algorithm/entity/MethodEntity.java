@@ -8,16 +8,18 @@ import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.utils.PSIUtil;
 
-public class MethodEntity extends CodeEntity {
+import java.util.Objects;
+
+public class MethodEntity extends ClassInnerEntity {
     private final @NotNull PsiMethod psiMethod;
 
     private final boolean isMovable;
 
     public MethodEntity(
         final @NotNull PsiMethod psiMethod,
-        final @NotNull RelevantProperties relevantProperties
+        final @NotNull ClassEntity containingClass
     ) {
-        super(relevantProperties);
+        super(containingClass);
         this.psiMethod = psiMethod;
 
         isMovable = ApplicationManager.getApplication().runReadAction((Computable<Boolean>)
@@ -27,7 +29,9 @@ public class MethodEntity extends CodeEntity {
 
     @Override
     public @NotNull String getIdentifier() {
-        return MethodUtils.calculateSignature(psiMethod);
+        return ApplicationManager.getApplication().runReadAction(
+            (Computable<String>) () -> MethodUtils.calculateSignature(psiMethod)
+        );
     }
 
     @Override
@@ -36,19 +40,29 @@ public class MethodEntity extends CodeEntity {
     }
 
     @Override
-    public @NotNull String getContainingClassName() {
-        final String signature = getIdentifier();
-        final String name = signature.substring(0, signature.indexOf('('));
-        return name.substring(0, name.lastIndexOf('.'));
+    public <R> R accept(@NotNull CodeEntityVisitor<R> visitor) {
+        return visitor.visit(this);
     }
 
     @Override
-    public @NotNull
-    MetricCategory getMetricCategory() {
+    public @NotNull MetricCategory getMetricCategory() {
         return MetricCategory.Method;
     }
 
     public @NotNull PsiMethod getPsiMethod() {
         return psiMethod;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MethodEntity that = (MethodEntity) o;
+        return Objects.equals(psiMethod, that.psiMethod);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(psiMethod);
     }
 }

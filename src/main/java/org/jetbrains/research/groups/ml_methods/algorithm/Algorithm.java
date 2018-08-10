@@ -1,11 +1,9 @@
 package org.jetbrains.research.groups.ml_methods.algorithm;
 
-import com.intellij.analysis.AnalysisScope;
 import com.sixrr.metrics.Metric;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -25,17 +23,12 @@ public interface Algorithm {
      * @param service {@link ExecutorService} in case of parallel computations.
      * @param enableFieldRefactorings {@code true} if there is a request to search for
      *                                            "move field" refactoring.
-     * @param scope this argument is needed only for backward compatibility with old version of
-     *              {@link Refactoring} class. If
-     *              {@link Refactoring#createRefactoring}
-     *              method is completely removed then this argument should also be removed.
      * @return result of algorithm execution which contains suggested refactorings.
      */
     @NotNull AlgorithmResult execute(
         @NotNull AttributesStorage attributes,
         @Nullable ExecutorService service,
-        boolean enableFieldRefactorings,
-        @NotNull AnalysisScope scope
+        boolean enableFieldRefactorings
     );
 
     /**

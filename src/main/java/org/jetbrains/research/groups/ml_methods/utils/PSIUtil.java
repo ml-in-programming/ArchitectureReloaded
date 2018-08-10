@@ -1,10 +1,12 @@
 package org.jetbrains.research.groups.ml_methods.utils;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMethod;
+import com.intellij.psi.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.sixrr.metrics.utils.MethodUtils.calculateSignature;
 
 public final class PSIUtil {
     private PSIUtil() {
@@ -26,6 +28,21 @@ public final class PSIUtil {
         }
 
         return allSupers;
+    }
+
+    public static String getHumanReadableName(@Nullable PsiElement element) {
+        if (element instanceof PsiMethod) {
+            return calculateSignature((PsiMethod) element);
+        } else if (element instanceof PsiClass) {
+            if (element instanceof PsiAnonymousClass) {
+                return getHumanReadableName(((PsiAnonymousClass) element).getBaseClassReference().resolve());
+            }
+            return ((PsiClass) element).getQualifiedName();
+        } else if (element instanceof PsiField) {
+            final PsiMember field = (PsiMember) element;
+            return getHumanReadableName(field.getContainingClass()) + "." + field.getName();
+        }
+        return "???";
     }
 
     public static Set<PsiClass> getAllSupers(PsiClass aClass) {
