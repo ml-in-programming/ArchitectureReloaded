@@ -20,7 +20,7 @@ import com.intellij.psi.PsiFile;
 
 /**
  * The MetricsCalculator interface, which is subclassed for each individual metric in order to implement all of the metrics
- * calculation.  A new MetricsCalculator is instantiated for each metrics calculation run. 
+ * calculation.  A new MetricsCalculator is instantiated for each metrics calculation run.
  */
 public interface MetricCalculator {
 
