@@ -88,7 +88,7 @@ public class MetricsCommandLine implements ApplicationStarter {
 
     @Override
     public String getCommandName() {
-        return "com/sixrr/metrics";
+        return "metrics";
     }
 
     private static void printUsage(CmdLineParser parser, PrintStream out) {

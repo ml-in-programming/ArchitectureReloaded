@@ -298,7 +298,7 @@ public final class MetricsProfileRepository implements MetricRepository, Exporta
     public void printMetricsDescriptions() {
         final Collection<Metric> metrics = this.metrics.values();
 
-        System.out.println(metrics.size() + " metrics");
+        System.out.println(metrics.size() + "  metrics");
         MetricCategory currentCategory = null;
         for (final Metric metric : metrics) {
             final MetricCategory category = metric.getCategory();

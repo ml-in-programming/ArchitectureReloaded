@@ -19,6 +19,7 @@ package com.sixrr.stockmetrics.methodMetrics;
 import com.sixrr.metrics.MetricCalculator;
 import com.sixrr.metrics.MetricType;
 import com.sixrr.stockmetrics.i18n.StockMetricsBundle;
+import com.sixrr.stockmetrics.methodCalculators.NumControlStatementsCalculator;
 import com.sixrr.stockmetrics.methodCalculators.NumNullChecksCalculator;
 import org.jetbrains.annotations.NotNull;
 

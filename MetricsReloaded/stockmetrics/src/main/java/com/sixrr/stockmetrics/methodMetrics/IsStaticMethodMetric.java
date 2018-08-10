@@ -4,6 +4,7 @@ import com.sixrr.metrics.MetricCalculator;
 import com.sixrr.metrics.MetricType;
 import com.sixrr.stockmetrics.i18n.StockMetricsBundle;
 import com.sixrr.stockmetrics.methodCalculators.IsStaticMethodCalculator;
+import com.sixrr.stockmetrics.methodCalculators.NumLocalVarsCalculator;
 import org.jetbrains.annotations.NotNull;
 
 public class IsStaticMethodMetric extends MethodMetric {
