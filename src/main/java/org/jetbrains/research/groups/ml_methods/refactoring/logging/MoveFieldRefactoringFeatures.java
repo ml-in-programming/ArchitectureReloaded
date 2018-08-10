@@ -9,7 +9,6 @@ import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethod
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Subclass of {@link RefactoringFeatures} that contains features of a
@@ -35,13 +34,13 @@ public class MoveFieldRefactoringFeatures extends RefactoringFeatures {
         MetricsResult resultsForClasses = metricsRun.getResultsForCategory(MetricCategory.Class);
 
         targetClassMetricsValues = extractMetricsResultsFor(
-                Objects.requireNonNull(refactoring.getTargetClassOrThrow().getQualifiedName()),
-                resultsForClasses
+            refactoring.getTargetClass().getQualifiedName(),
+            resultsForClasses
         );
 
         sourceClassMetricsValues = extractMetricsResultsFor(
-                Objects.requireNonNull(refactoring.getContainingClassOrThrow().getQualifiedName()),
-                resultsForClasses
+            refactoring.getContainingClass().getQualifiedName(),
+            resultsForClasses
         );
     }
 

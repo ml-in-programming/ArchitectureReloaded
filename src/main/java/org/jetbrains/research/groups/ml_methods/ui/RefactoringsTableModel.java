@@ -217,14 +217,4 @@ public class RefactoringsTableModel extends AbstractTableModel {
         }
         return RED;
     }
-
-    List<CalculatedRefactoring> getActiveRefactorings() {
-        List<CalculatedRefactoring> active = new ArrayList<>();
-        for (int i = 0; i < getRowCount(); i++) {
-            if (isActive[i]) {
-                active.add(getRefactoring(i));
-            }
-        }
-        return active;
-    }
 }

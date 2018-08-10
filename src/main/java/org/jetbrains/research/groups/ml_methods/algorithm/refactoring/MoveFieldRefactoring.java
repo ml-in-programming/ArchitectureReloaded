@@ -1,21 +1,15 @@
 package org.jetbrains.research.groups.ml_methods.algorithm.refactoring;
 
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
-import com.intellij.psi.SmartPointerManager;
-import com.intellij.psi.SmartPsiElementPointer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Optional;
 
 /**
  * Representation of a refactoring which moves field to a target class.
  */
 public class MoveFieldRefactoring extends MoveToClassRefactoring {
-    private final @NotNull SmartPsiElementPointer<PsiField> field;
+    private final @NotNull PsiField field;
 
     /**
      * Creates refactoring.
@@ -29,10 +23,7 @@ public class MoveFieldRefactoring extends MoveToClassRefactoring {
     ) {
         super(field, targetClass);
 
-        this.field = ApplicationManager.getApplication().runReadAction(
-                (Computable<SmartPsiElementPointer<PsiField>>) () ->
-                        SmartPointerManager.getInstance(field.getProject()).createSmartPsiElementPointer(field)
-        );
+        this.field = field;
     }
 
     @Override
@@ -43,29 +34,13 @@ public class MoveFieldRefactoring extends MoveToClassRefactoring {
     /**
      * Returns field that is moved in this refactoring.
      */
-    public @NotNull Optional<PsiField> getField() {
-        return Optional.ofNullable(field.getElement());
-    }
-
-    /**
-     * Returns field that is moved in this refactoring.
-     */
-    public @NotNull PsiField getFieldOrThrow() {
-        return getField().orElseThrow(() ->
-                new IllegalStateException("Cannot get field. Reference is invalid."));
+    public @NotNull PsiField getField() {
+        return field;
     }
 
     @Override
-    public @Nullable Optional<PsiClass> getContainingClass() {
-        return field.getElement() == null ?
-                Optional.empty() : Optional.ofNullable(field.getElement().getContainingClass());
-    }
-
-    @NotNull
-    @Override
-    public PsiClass getContainingClassOrThrow() {
-        return Optional.ofNullable(getFieldOrThrow().getContainingClass())
-                .orElseThrow(() -> new IllegalStateException("No containing class."));
+    public @Nullable PsiClass getContainingClass() {
+        return field.getContainingClass();
     }
 
     @NotNull
