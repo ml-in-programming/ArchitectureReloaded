@@ -35,7 +35,7 @@ hs_err_pid*
 **/.gradle/**
 
 build/**
-*/build/**
+**/build/**
 
 # Sensitive or high-churn files:
 .idea/**/dataSources/
@@ -60,6 +60,7 @@ build/**
 
 # IntelliJ
 /out/
+**/out/
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/
