@@ -48,7 +48,7 @@ public class MoveMethodRefactoringFeatures extends RefactoringFeatures {
         );
 
         methodMetricsValues = extractMetricsResultsFor(
-            MethodUtils.calculateSignature(refactoring.getMethod()),
+            MethodUtils.calculateSignature(refactoring.getMethodOrThrow()),
             resultsForMethods
         );
     }

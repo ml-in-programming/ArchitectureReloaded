@@ -51,7 +51,7 @@ public final class RefactoringUtil {
                         .filter(r -> r.accept(new RefactoringVisitor<Boolean>() {
                             @Override
                             public @NotNull Boolean visit(final @NotNull MoveMethodRefactoring refactoring) {
-                                if (moveInstanceMethod(refactoring.getMethod(), target)) {
+                                if (moveInstanceMethod(refactoring.getMethodOrThrow(), target)) {
                                     accepted.add(refactoring);
                                     return false;
                                 } else {
@@ -113,7 +113,7 @@ public final class RefactoringUtil {
         return isStatic(member);
     }
 
-    private static PsiVariable[] getAvailableVariables(PsiMethod method, String target) {
+    private static PsiVariable[] getAvailableVariables(PsiMethod method, PsiClass target) {
         if (target == null) {
             return new PsiVariable[0];
         }
@@ -122,12 +122,12 @@ public final class RefactoringUtil {
         Stream<PsiVariable> fields = psiClass == null ? Stream.empty() : Arrays.stream(psiClass.getFields());
         return Stream.concat(parameters, fields)
                 .filter(Objects::nonNull)
-                .filter(p -> target.equals(p.getType().getCanonicalText()))
+                .filter(p -> p.getType() instanceof PsiClassType && target.equals(((PsiClassType) p.getType()).resolve()))
                 .toArray(PsiVariable[]::new);
     }
 
     private static boolean moveInstanceMethod(@NotNull PsiMethod method, PsiClass target) {
-        PsiVariable[] available = getAvailableVariables(method, target.getQualifiedName());
+        PsiVariable[] available = getAvailableVariables(method, target);
         if (available.length == 0) {
             return false;
         }
@@ -138,25 +138,21 @@ public final class RefactoringUtil {
     }
 
     public static Map<CalculatedRefactoring, String> getWarnings(List<CalculatedRefactoring> refactorings, AnalysisScope scope) {
-        final Set<String> allUnits = refactorings.stream()
-                .map(it -> it.getRefactoring().getEntityName())
-                .collect(Collectors.toSet());
-        final Map<String, PsiElement> psiElements = PsiSearchUtil.findAllElements(allUnits, scope, Function.identity());
         Map<CalculatedRefactoring, String> warnings = new HashMap<>();
         for (CalculatedRefactoring refactoring : refactorings) {
-            final PsiElement element = psiElements.get(refactoring.getRefactoring().getEntityName());
-            final String target = refactoring.getRefactoring().getTargetName();
+            final Optional<PsiMember> element = refactoring.getRefactoring().getEntity();
+            final PsiClass target = refactoring.getRefactoring().getTargetClassOrThrow();
             String warning = "";
-            if (element != null) {
+            if (element.isPresent()) {
                 warning = ApplicationManager.getApplication()
-                        .runReadAction((Computable<String>) () -> getWarning(element, target));
+                        .runReadAction((Computable<String>) () -> getWarning(element.get(), target));
             }
             warnings.put(refactoring, warning);
         }
         return warnings;
     }
 
-    private static String getWarning(PsiElement element, String target) {
+    private static String getWarning(PsiElement element, PsiClass target) {
         if (element instanceof PsiMethod) {
             PsiMethod method = (PsiMethod) element;
             if (!isStatic(method) && getAvailableVariables(method, target).length == 0) {

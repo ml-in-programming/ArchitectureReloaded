@@ -63,10 +63,12 @@ public abstract class MoveToClassRefactoring {
         final @NotNull PsiClass target
     ) {
         this.entity = ApplicationManager.getApplication().runReadAction(
-                (Computable<SmartPsiElementPointer<PsiMember>>) () -> SmartPointerManager.getInstance(entity.getProject()).createSmartPsiElementPointer(entity)
+                (Computable<SmartPsiElementPointer<PsiMember>>) () ->
+                        SmartPointerManager.getInstance(entity.getProject()).createSmartPsiElementPointer(entity)
         );
         this.targetClass = ApplicationManager.getApplication().runReadAction(
-                (Computable<SmartPsiElementPointer<PsiClass>>) () -> SmartPointerManager.getInstance(target.getProject()).createSmartPsiElementPointer(target)
+                (Computable<SmartPsiElementPointer<PsiClass>>) () ->
+                        SmartPointerManager.getInstance(target.getProject()).createSmartPsiElementPointer(target)
         );
 
         this.entityName = ApplicationManager.getApplication().runReadAction(
@@ -82,6 +84,11 @@ public abstract class MoveToClassRefactoring {
      * Returns class which contains moved entity.
      */
     public abstract @Nullable PsiClass getContainingClass();
+
+    /**
+     * Returns class which contains moved entity.
+     */
+    public abstract @Nullable PsiClass getContainingClassOrThrow();
 
     /**
      * Returns class in which entity is placed in this refactoring
