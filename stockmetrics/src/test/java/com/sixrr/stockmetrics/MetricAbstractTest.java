@@ -29,7 +29,7 @@ public abstract class MetricAbstractTest extends LightCodeInsightFixtureTestCase
     }
 
     protected MetricsResultsHolderTestImpl runMetricOnTestCase(Metric metric) {
-        String pathToTestCase = Paths.get(getTestClassName(), getTestName(true)).toString();
+        String pathToTestCase = Paths.get(getTestClassName(), getTestName(true)).toString().replace("\\", "/");
         AnalysisScope scope = createScope(pathToTestCase);
 
         MetricCalculator metricCalculator = metric.createCalculator();
