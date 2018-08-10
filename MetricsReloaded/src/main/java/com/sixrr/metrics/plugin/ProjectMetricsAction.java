@@ -39,7 +39,7 @@ import javax.swing.*;
 public class ProjectMetricsAction extends BaseAnalysisAction {
 
     public ProjectMetricsAction() {
-        super(MetricsReloadedBundle.message("com.sixrr.metrics.calculation"), MetricsReloadedBundle.message("com.sixrr.metrics"));
+        super(MetricsReloadedBundle.message("metrics.calculation"), MetricsReloadedBundle.message("com.sixrr.metrics"));
     }
 
     @Override
@@ -55,7 +55,7 @@ public class ProjectMetricsAction extends BaseAnalysisAction {
                 final boolean showOnlyWarnings = MetricsReloadedConfig.getInstance().isShowOnlyWarnings();
                 if(!metricsRun.hasWarnings(profile) && showOnlyWarnings) {
                     ToolWindowManager.getInstance(project).notifyByBalloon(MetricsToolWindow.METRICS_TOOL_WINDOW_ID,
-                            MessageType.INFO, MetricsReloadedBundle.message("no.com.sixrr.metrics.warnings.found"));
+                            MessageType.INFO, MetricsReloadedBundle.message("no.metrics.warnings.found"));
                     return;
                 }
                 final String profileName = profile.getName();

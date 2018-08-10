@@ -26,19 +26,19 @@ public final class MetricsCategoryNameUtil {
     public static String getLongNameForCategory(@NotNull MetricCategory category) {
         switch (category) {
             case Class:
-                return MetricsReloadedBundle.message("class.com.sixrr.metrics.long.name");
+                return MetricsReloadedBundle.message("class.metrics.long.name");
             case Interface:
-                return MetricsReloadedBundle.message("interface.com.sixrr.metrics.long.name");
+                return MetricsReloadedBundle.message("interface.metrics.long.name");
             case Method:
-                return MetricsReloadedBundle.message("method.com.sixrr.metrics.long.name");
+                return MetricsReloadedBundle.message("method.metrics.long.name");
             case Module:
-                return MetricsReloadedBundle.message("module.com.sixrr.metrics.long.name");
+                return MetricsReloadedBundle.message("module.metrics.long.name");
             case Package:
-                return MetricsReloadedBundle.message("package.com.sixrr.metrics.long.name");
+                return MetricsReloadedBundle.message("package.metrics.long.name");
             case FileType:
-                return MetricsReloadedBundle.message("file.type.com.sixrr.metrics.long.name");
+                return MetricsReloadedBundle.message("file.type.metrics.long.name");
             case Project:
-                return MetricsReloadedBundle.message("project.com.sixrr.metrics.long.name");
+                return MetricsReloadedBundle.message("project.metrics.long.name");
             default:
                 throw new AssertionError("unknown category: " + category);
         }
@@ -47,19 +47,19 @@ public final class MetricsCategoryNameUtil {
     public static String getShortNameForCategory(@NotNull MetricCategory category) {
         switch (category) {
             case Class:
-                return MetricsReloadedBundle.message("class.com.sixrr.metrics.short.name");
+                return MetricsReloadedBundle.message("class.metrics.short.name");
             case Interface:
-                return MetricsReloadedBundle.message("interface.com.sixrr.metrics.short.name");
+                return MetricsReloadedBundle.message("interface.metrics.short.name");
             case Method:
-                return MetricsReloadedBundle.message("method.com.sixrr.metrics.short.name");
+                return MetricsReloadedBundle.message("method.metrics.short.name");
             case Module:
-                return MetricsReloadedBundle.message("module.com.sixrr.metrics.short.name");
+                return MetricsReloadedBundle.message("module.metrics.short.name");
             case Package:
-                return MetricsReloadedBundle.message("package.com.sixrr.metrics.short.name");
+                return MetricsReloadedBundle.message("package.metrics.short.name");
             case FileType:
-                return MetricsReloadedBundle.message("file.type.com.sixrr.metrics.short.name");
+                return MetricsReloadedBundle.message("file.type.metrics.short.name");
             case Project:
-                return MetricsReloadedBundle.message("project.com.sixrr.metrics.short.name");
+                return MetricsReloadedBundle.message("project.metrics.short.name");
             default:
                 throw new AssertionError("unknown category: " + category);
         }

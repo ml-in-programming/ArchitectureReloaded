@@ -40,7 +40,7 @@ public class ProfileSelectionPanel extends JPanel {
                 buildComboBoxWithBrowseButton(project, MetricsProfileRepository.getInstance());
 
         final JComponent separator =
-                new TitledSeparator(MetricsReloadedBundle.message("com.sixrr.metrics.profile"));
+                new TitledSeparator(MetricsReloadedBundle.message("metrics.profile"));
         final JCheckBox checkBox = buildCheckBox(MetricsReloadedConfig.getInstance());
 
         final GridBagConstraints constraints = new GridBagConstraints();
@@ -65,7 +65,7 @@ public class ProfileSelectionPanel extends JPanel {
 
     private static JCheckBox buildCheckBox(final MetricsReloadedConfig configuration) {
         final JCheckBox checkBox = new JCheckBox(MetricsReloadedBundle.message(
-                "show.only.results.which.exceed.com.sixrr.metrics.thresholds"));
+                "show.only.results.which.exceed.metrics.thresholds"));
         checkBox.setSelected(configuration.isShowOnlyWarnings());
         checkBox.addActionListener(new ActionListener() {
             @Override

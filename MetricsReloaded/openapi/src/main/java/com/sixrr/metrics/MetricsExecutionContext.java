@@ -22,7 +22,7 @@ import com.intellij.analysis.AnalysisScope;
 
 /**
  * The MetricsExecutionContext is used .  One MetricsExecutionContext is created for each metrics run, and shared by
- * all of the individual MetricsCalculators.  That makes it handy for sharing org.jfree.data between MetricsCalculators.
+ * all of the individual MetricsCalculators.  That makes it handy for sharing data between MetricsCalculators.
  */
 public interface MetricsExecutionContext extends UserDataHolder {
     /**

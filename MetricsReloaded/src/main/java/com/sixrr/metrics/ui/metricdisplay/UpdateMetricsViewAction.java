@@ -32,8 +32,8 @@ class UpdateMetricsViewAction extends AnAction {
     private final Project project;
 
     UpdateMetricsViewAction(MetricsToolWindow toolWindow, Project project) {
-        super(MetricsReloadedBundle.message("update.com.sixrr.metrics.action"),
-                MetricsReloadedBundle.message("update.com.sixrr.metrics.description"), AllIcons.Actions.Refresh);
+        super(MetricsReloadedBundle.message("update.metrics.action"),
+                MetricsReloadedBundle.message("update.metrics.description"), AllIcons.Actions.Refresh);
         this.toolWindow = toolWindow;
         this.project = project;
     }

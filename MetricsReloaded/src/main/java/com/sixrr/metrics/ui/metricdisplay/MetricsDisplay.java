@@ -22,9 +22,7 @@ import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.table.JBTable;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
-import com.sixrr.metrics.metricModel.MetricInstanceAbbreviationComparator;
-import com.sixrr.metrics.metricModel.MetricsResult;
-import com.sixrr.metrics.metricModel.MetricsRun;
+import com.sixrr.metrics.metricModel.*;
 import com.sixrr.metrics.profile.MetricDisplaySpecification;
 import com.sixrr.metrics.profile.MetricInstance;
 import com.sixrr.metrics.profile.MetricTableSpecification;
@@ -74,19 +72,19 @@ public class MetricsDisplay {
         setupTable(classMetricsTable, project);
         setupTable(interfaceMetricsTable, project);
         setupTable(methodMetricsTable, project);
-        tabbedPane.add(MetricsReloadedBundle.message("project.com.sixrr.metrics"),
+        tabbedPane.add(MetricsReloadedBundle.message("project.metrics"),
                 ScrollPaneFactory.createScrollPane(projectMetricsTable));
-        tabbedPane.add(MetricsReloadedBundle.message("file.type.com.sixrr.metrics"),
+        tabbedPane.add(MetricsReloadedBundle.message("file.type.metrics"),
                 ScrollPaneFactory.createScrollPane(fileTypeMetricsTable));
-        tabbedPane.add(MetricsReloadedBundle.message("module.com.sixrr.metrics"),
+        tabbedPane.add(MetricsReloadedBundle.message("module.metrics"),
                 ScrollPaneFactory.createScrollPane(moduleMetricsTable));
-        tabbedPane.add(MetricsReloadedBundle.message("package.com.sixrr.metrics"),
+        tabbedPane.add(MetricsReloadedBundle.message("package.metrics"),
                 ScrollPaneFactory.createScrollPane(packageMetricsTable));
-        tabbedPane.add(MetricsReloadedBundle.message("class.com.sixrr.metrics"),
+        tabbedPane.add(MetricsReloadedBundle.message("class.metrics"),
                 ScrollPaneFactory.createScrollPane(classMetricsTable));
-        tabbedPane.add(MetricsReloadedBundle.message("interface.com.sixrr.metrics"),
+        tabbedPane.add(MetricsReloadedBundle.message("interface.metrics"),
                 ScrollPaneFactory.createScrollPane(interfaceMetricsTable));
-        tabbedPane.add(MetricsReloadedBundle.message("method.com.sixrr.metrics"),
+        tabbedPane.add(MetricsReloadedBundle.message("method.metrics"),
                 ScrollPaneFactory.createScrollPane(methodMetricsTable));
     }
 

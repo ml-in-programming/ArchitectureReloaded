@@ -58,11 +58,11 @@ public class MetricsCommandLine implements ApplicationStarter {
 
     private static final Logger LOG = Logger.getInstance("MetricsReloaded");
 
-    @Argument(index = 0, required = true, metaVar = "<project_path>", usage = "the project to calculate com.sixrr.metrics for")
+    @Argument(index = 0, required = true, metaVar = "<project_path>", usage = "the project to calculate metrics for")
     private String projectPath = null;
 
     @Argument(index = 1, required = true, metaVar = "<metrics_profile_name>",
-            usage = "name of the com.sixrr.metrics profile to use")
+            usage = "name of the metrics profile to use")
     private String metricsProfileName = "";
 
     @Argument(index = 2, metaVar = "<output_path>",
@@ -70,11 +70,11 @@ public class MetricsCommandLine implements ApplicationStarter {
     private String outputXmlPath = null;
 
     @Option(name = "-d", aliases = "--directory", metaVar = "<path>", forbids = "-s",
-            usage = "directory to calculate com.sixrr.metrics for, default is the whole project")
+            usage = "directory to calculate metrics for, default is the whole project")
     private String directory = null;
 
     @Option(name = "-s", aliases = "--scope", metaVar = "<scope_name>", forbids = "-d",
-            usage = "name of scope to calculate com.sixrr.metrics for, default is the whole project")
+            usage = "name of scope to calculate metrics for, default is the whole project")
     private String scope = null;
 
     @Option(name = "-v", aliases = "--verbose", usage = "show more progress information", forbids = "-q")
@@ -94,7 +94,7 @@ public class MetricsCommandLine implements ApplicationStarter {
     private static void printUsage(CmdLineParser parser, PrintStream out) {
         final String scriptName = ApplicationNamesInfo.getInstance().getScriptName();
         out.println("Usage: " + scriptName +
-                " com.sixrr.metrics [options] <project_path> <metrics_profile_name> [<output_xml_file>]");
+                " metrics [options] <project_path> <metrics_profile_name> [<output_xml_file>]");
         parser.printUsage(out);
     }
 
@@ -155,7 +155,7 @@ public class MetricsCommandLine implements ApplicationStarter {
                 if (profile == null) {
                     error("Profile not found: " + metricsProfileName);
                 }
-                info("Calculating com.sixrr.metrics");
+                info("Calculating metrics");
                 final AnalysisScope analysisScope;
                 if (scope != null) {
                     final NamedScope namedScope = NamedScopesHolder.getScope(project, scope);
@@ -208,7 +208,7 @@ public class MetricsCommandLine implements ApplicationStarter {
                         final int percent = (int)(fraction * 100);
                         if (lastPercent != percent && !isIndeterminate()) {
                             lastPercent = percent;
-                            trace("Calculating com.sixrr.metrics " + lastPercent + "%");
+                            trace("Calculating metrics " + lastPercent + "%");
                         }
                     }
                 });

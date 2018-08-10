@@ -57,7 +57,7 @@ public class MetricsExecutionContextImpl implements MetricsExecutionContext {
 
     public final void execute(final MetricsProfile profile, final MetricsResultsHolder resultsHolder) {
         final Task.Backgroundable task = new Task.Backgroundable(project,
-                MetricsReloadedBundle.message("calculating.com.sixrr.metrics"), true) {
+                MetricsReloadedBundle.message("calculating.metrics"), true) {
 
             @Override
             public void run(@NotNull final ProgressIndicator indicator) {

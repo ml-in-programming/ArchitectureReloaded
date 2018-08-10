@@ -39,10 +39,10 @@ import java.util.*;
 
 public final class MetricsProfileRepository implements MetricRepository, ExportableComponent {
 
-    private static final Logger LOG = Logger.getInstance("#MetricsProfileRepository");
+    private static final Logger LOG = Logger.getInstance("#com.sixrr.metrics.profile.MetricsProfileRepository");
 
     @NonNls
-    private static final String METRIC_PROFILE_DIR = PathManager.getConfigPath() + File.separator + "com/sixrr/metrics";
+    private static final String METRIC_PROFILE_DIR = PathManager.getConfigPath() + File.separator + "metrics";
 
     private final Map<String, MetricsProfile> profiles = new LinkedHashMap<String, MetricsProfile>(20);
     private String selectedProfile = "";
@@ -57,14 +57,14 @@ public final class MetricsProfileRepository implements MetricRepository, Exporta
     }
 
     /**
-     * Allows for exporting com.sixrr.metrics profiles. (<pre>File | Export settings...</pre>)
+     * Allows for exporting metrics profiles. (<pre>File | Export settings...</pre>)
      * <p>
-     * The com.sixrr.metrics configuration files are located within <code>idea.config.path/com.sixrr.metrics/...</code>
+     * The metrics configuration files are located within <code>idea.config.path/metrics/...</code>
      */
     @NotNull
     @Override
     public File[] getExportFiles() {
-        @NonNls final String dirName = PathManager.getConfigPath() + File.separator + "com/sixrr/metrics";
+        @NonNls final String dirName = PathManager.getConfigPath() + File.separator + "metrics";
         final File metricsDirectory = new File(dirName);
         final File[] files = metricsDirectory.listFiles();
         final File[] out;
@@ -81,7 +81,7 @@ public final class MetricsProfileRepository implements MetricRepository, Exporta
     @NotNull
     @Override
     public String getPresentableName() {
-        return MetricsReloadedBundle.message("com.sixrr.metrics.profiles.configuration.presentable.name");
+        return MetricsReloadedBundle.message("metrics.profiles.configuration.presentable.name");
     }
 
     private void initialize() {
@@ -298,7 +298,7 @@ public final class MetricsProfileRepository implements MetricRepository, Exporta
     public void printMetricsDescriptions() {
         final Collection<Metric> metrics = this.metrics.values();
 
-        System.out.println(metrics.size() + "com/sixrr/metrics");
+        System.out.println(metrics.size() + " metrics");
         MetricCategory currentCategory = null;
         for (final Metric metric : metrics) {
             final MetricCategory category = metric.getCategory();

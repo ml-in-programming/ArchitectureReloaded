@@ -28,7 +28,7 @@ public interface MetricCalculator {
      * Begin a metrics calculation run.
      * @param metric   the metric which created this metrics calculator.  This will be needed to report the results.
      * @param resultsHolder the results holder to report metrics results to.
-     * @param executionContext the metrics execution context, in which intermediate org.jfree.data can be cached for
+     * @param executionContext the metrics execution context, in which intermediate data can be cached for
      * the duration of the run.
      */
     void beginMetricsRun(Metric metric, MetricsResultsHolder resultsHolder, MetricsExecutionContext executionContext);

@@ -26,8 +26,8 @@ class CloseMetricsViewAction extends AnAction {
     private final MetricsToolWindow toolWindow;
 
     CloseMetricsViewAction(MetricsToolWindow toolWindow) {
-        super(MetricsReloadedBundle.message("close.com.sixrr.metrics.action"),
-                MetricsReloadedBundle.message("close.com.sixrr.metrics.description"), AllIcons.Actions.Cancel);
+        super(MetricsReloadedBundle.message("close.metrics.action"),
+                MetricsReloadedBundle.message("close.metrics.description"), AllIcons.Actions.Cancel);
         this.toolWindow = toolWindow;
     }
 

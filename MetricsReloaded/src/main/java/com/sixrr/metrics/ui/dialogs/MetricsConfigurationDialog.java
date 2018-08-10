@@ -122,7 +122,7 @@ public class MetricsConfigurationDialog extends DialogWrapper implements TreeSel
         upperThresholdEnabledCheckbox.setEnabled(false);
         urlLabel.setText("");
         init();
-        setTitle(MetricsReloadedBundle.message("com.sixrr.metrics.profiles"));
+        setTitle(MetricsReloadedBundle.message("metrics.profiles"));
     }
 
     private void markProfileClean() {
@@ -299,7 +299,7 @@ public class MetricsConfigurationDialog extends DialogWrapper implements TreeSel
     }
 
     private void populateTree(String filter) {
-        final MetricTreeNode root = new MetricTreeNode(MetricsReloadedBundle.message("com.sixrr.metrics"), true);
+        final MetricTreeNode root = new MetricTreeNode(MetricsReloadedBundle.message("metrics"), true);
         final Map<MetricCategory, MetricTreeNode> categoryNodes =
                 new EnumMap<MetricCategory, MetricTreeNode>(MetricCategory.class);
 
@@ -574,7 +574,7 @@ public class MetricsConfigurationDialog extends DialogWrapper implements TreeSel
 
     @Override
     public String getTitle() {
-        return MetricsReloadedBundle.message("com.sixrr.metrics.configuration.panel.title");
+        return MetricsReloadedBundle.message("metrics.configuration.panel.title");
     }
 
     @Override
@@ -830,7 +830,7 @@ public class MetricsConfigurationDialog extends DialogWrapper implements TreeSel
         public void actionPerformed(ActionEvent event) {
             final String newProfileName = Messages.showInputDialog(saveAsButton,
                     MetricsReloadedBundle.message("enter.new.profile.name"),
-                    MetricsReloadedBundle.message("create.new.com.sixrr.metrics.profile"),
+                    MetricsReloadedBundle.message("create.new.metrics.profile"),
                     Messages.getQuestionIcon(), repository.generateNewProfileName(), null);
             if (newProfileName == null) {
                 return;
@@ -860,7 +860,7 @@ public class MetricsConfigurationDialog extends DialogWrapper implements TreeSel
         public void actionPerformed(ActionEvent event) {
             final String newProfileName = Messages.showInputDialog(saveAsButton,
                     MetricsReloadedBundle.message("enter.new.profile.name"),
-                    MetricsReloadedBundle.message("create.new.com.sixrr.metrics.profile"),
+                    MetricsReloadedBundle.message("create.new.metrics.profile"),
                     Messages.getQuestionIcon(), repository.generateNewProfileName("Metrics"), null);
             if (newProfileName == null) {
                 return;

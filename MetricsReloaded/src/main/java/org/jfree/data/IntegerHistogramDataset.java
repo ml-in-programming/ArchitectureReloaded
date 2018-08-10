@@ -163,7 +163,7 @@ public class IntegerHistogramDataset extends HistogramDataset {
     }
 
     /**
-     * Returns the number of org.jfree.data items for a series.
+     * Returns the number of data items for a series.
      *
      * @param series the series index (zero based).
      * @return The item count.
@@ -204,11 +204,11 @@ public class IntegerHistogramDataset extends HistogramDataset {
         final double total = (double) getTotal(series);
         final double binWidth = getBinWidth(series);
 
-        if (getType() == HistogramDataset.FREQUENCY) {
+        if (getType() == FREQUENCY) {
             return (double) bins[item].getCount();
-        } else if (getType() == HistogramDataset.RELATIVE_FREQUENCY) {
+        } else if (getType() == RELATIVE_FREQUENCY) {
             return (double) bins[item].getCount() / total;
-        } else if (getType() == HistogramDataset.SCALE_AREA_TO_1) {
+        } else if (getType() == SCALE_AREA_TO_1) {
             return (double) bins[item].getCount() / (binWidth * total);
         } else { // pretty sure this shouldn't ever happen
             throw new IllegalStateException();

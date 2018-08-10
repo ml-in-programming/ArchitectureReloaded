@@ -70,7 +70,7 @@ public final class MetricsToolWindowImpl extends MetricsToolWindow {
         final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
         myToolWindow = toolWindowManager.registerToolWindow(METRICS_TOOL_WINDOW_ID, myContentPanel,
                 ToolWindowAnchor.BOTTOM);
-        myToolWindow.setTitle(MetricsReloadedBundle.message("com.sixrr.metrics.reloaded.toolwindow.title"));
+        myToolWindow.setTitle(MetricsReloadedBundle.message("metrics.reloaded.toolwindow.title"));
         myToolWindow.setIcon(IconLoader.getIcon(TOOL_WINDOW_ICON_PATH));
         myToolWindow.setAvailable(false, null);
     }

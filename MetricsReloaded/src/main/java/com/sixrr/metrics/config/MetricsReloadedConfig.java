@@ -23,7 +23,7 @@ import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.Nullable;
 
-@State(name = "MetricsReloaded", storages = @Storage(file = "com.sixrr.metrics.reloaded.xml"))
+@State(name = "MetricsReloaded", storages = @Storage(file = "metrics.reloaded.xml"))
 public final class MetricsReloadedConfig implements PersistentStateComponent<MetricsReloadedConfig> {
 
     public String selectedProfile = "";
