@@ -3,6 +3,7 @@ package org.jetbrains.research.groups.ml_methods.refactoring.logging;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRun;
+import com.sixrr.stockmetrics.classMetrics.*;
 import com.sixrr.stockmetrics.methodMetrics.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveFieldRefactoring;
@@ -32,7 +33,45 @@ public abstract class RefactoringFeatures {
             new IsStaticMethodMetric(),
             new IsPrivateMethodMetric(),
             new NameLenMethodMetric(),
-            new NumExceptionsThrownMetric()
+            new NumExceptionsThrownMetric(),
+            new IsAbstractMetric(),
+            new IsAbstractMethodMetric(),
+            new IsFinalMethodMetric(),
+            new IsGenericMetric(),
+            new IsGenericClassMetric(),
+            new IsGetterMetric(),
+            new IsOverridingMetric(),
+            new IsPackagePrivateMethodMetric(),
+            new IsProtectedMethodMetric(),
+            new IsPublicMethodMetric(),
+            new IsSynchronizedMethodMetric(),
+            new NumAbstractMethodsMetric(),
+            new NumCalledMethodsMetric(),
+            new NumFinalMethodsMetric(),
+            new NumGenericsMetric(),
+            new NumGettersMetric(),
+            new NumMeaningfulClassesClassMetric(),
+            new NumMeaningfulClassesMethodMetric(),
+            new NumMethodsThatCallMetric(),
+            new NumOverloadsMetric(),
+            new NumOverriddenMetric(),
+            new NumOverridingMetric(),
+            new NumPackagePrivateFieldsMetric(),
+            new NumPackagePrivateMethodsMetric(),
+            new NumPrivateFieldsMetric(),
+            new NumPrivateMethodsMetric(),
+            new NumProtectedFieldsMetric(),
+            new NumProtectedMethodsMetric(),
+            new NumPublicFieldsMetric(),
+            new NumPublicMethodsMetric(),
+            new NumSameClassCalledMethodsMetric(),
+            new NumSameClassMethodsThatCallMetric(),
+            new NumSettersMetric(),
+            new NumStaticFieldsMetric(),
+            new NumStaticMethodsMetric(),
+            new NumSynchronizedMethodsMetric(),
+            new NumVolatileFieldsMetric(),
+            new NumFinalFieldsMetric()
         );
 
     private static final @NotNull Set<String> requestedMetricsIds =
