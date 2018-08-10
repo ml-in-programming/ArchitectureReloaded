@@ -19,16 +19,16 @@ package com.sixrr.metrics;
 import com.intellij.psi.PsiFile;
 
 /**
- * The MetricsCalculator interface, which is subclassed for each individual metric in order to implement all of the com.sixrr.metrics
- * calculation.  A new MetricsCalculator is instantiated for each com.sixrr.metrics calculation run.
+ * The MetricsCalculator interface, which is subclassed for each individual metric in order to implement all of the metrics
+ * calculation.  A new MetricsCalculator is instantiated for each metrics calculation run.
  */
 public interface MetricCalculator {
 
     /**
-     * Begin a com.sixrr.metrics calculation run.
-     * @param metric   the metric which created this com.sixrr.metrics calculator.  This will be needed to report the results.
-     * @param resultsHolder the results holder to report com.sixrr.metrics results to.
-     * @param executionContext the com.sixrr.metrics execution context, in which intermediate org.jfree.data can be cached for
+     * Begin a metrics calculation run.
+     * @param metric   the metric which created this metrics calculator.  This will be needed to report the results.
+     * @param resultsHolder the results holder to report metrics results to.
+     * @param executionContext the metrics execution context, in which intermediate org.jfree.data can be cached for
      * the duration of the run.
      */
     void beginMetricsRun(Metric metric, MetricsResultsHolder resultsHolder, MetricsExecutionContext executionContext);
@@ -40,7 +40,7 @@ public interface MetricCalculator {
     void processFile(PsiFile file);
 
     /**
-     * Complete the com.sixrr.metrics run. This is where the calculator should report any final results, and clean up any resources it
+     * Complete the metrics run. This is where the calculator should report any final results, and clean up any resources it
      * has acquired.
      */
     void endMetricsRun();

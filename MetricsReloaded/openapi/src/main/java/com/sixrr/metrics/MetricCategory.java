@@ -47,7 +47,7 @@ public enum MetricCategory {
     Module,
 
     /**
-     * The com.sixrr.metrics is calculated for each file type.
+     * The metrics is calculated for each file type.
      */
     FileType,
 

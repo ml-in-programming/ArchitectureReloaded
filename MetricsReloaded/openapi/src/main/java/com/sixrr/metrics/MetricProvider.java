@@ -22,10 +22,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /**
- * To add com.sixrr.metrics to IntelliJ IDEA, you first create the Metric classes for them, and then bind them into IDEA using a
- * MetricsProvider component.  Create an implementation of MetricsProvider which lists the com.sixrr.metrics you wish to add.
- * Additionally, you can specify a list of pre-built com.sixrr.metrics profiles, which may make it easier for new users to use your
- * com.sixrr.metrics.
+ * To add metrics to IntelliJ IDEA, you first create the Metric classes for them, and then bind them into IDEA using a
+ * MetricsProvider component.  Create an implementation of MetricsProvider which lists the metrics you wish to add.
+ * Additionally, you can specify a list of pre-built metrics profiles, which may make it easier for new users to use your
+ * metrics.
  */
 public interface MetricProvider {
 
@@ -33,15 +33,15 @@ public interface MetricProvider {
             ExtensionPointName.create("ArchitectureReloaded.metricProvider");
 
     /**
-     * Returns the list of com.sixrr.metrics provided by this provider.
-     * @return the com.sixrr.metrics for this provider
+     * Returns the list of metrics provided by this provider.
+     * @return the metrics for this provider
      */
     @NotNull
     List<Metric> getMetrics();
 
     /**
-     * Returns the list of prebuilt com.sixrr.metrics profiles provided by this provider.
-     * @return the prebuilt com.sixrr.metrics profiles for this provider.
+     * Returns the list of prebuilt metrics profiles provided by this provider.
+     * @return the prebuilt metrics profiles for this provider.
      */
     @NotNull
     List<PrebuiltMetricProfile> getPrebuiltProfiles();

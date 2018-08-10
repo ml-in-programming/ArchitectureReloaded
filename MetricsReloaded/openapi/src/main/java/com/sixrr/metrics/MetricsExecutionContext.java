@@ -21,18 +21,18 @@ import com.intellij.openapi.util.UserDataHolder;
 import com.intellij.analysis.AnalysisScope;
 
 /**
- * The MetricsExecutionContext is used .  One MetricsExecutionContext is created for each com.sixrr.metrics run, and shared by
+ * The MetricsExecutionContext is used .  One MetricsExecutionContext is created for each metrics run, and shared by
  * all of the individual MetricsCalculators.  That makes it handy for sharing org.jfree.data between MetricsCalculators.
  */
 public interface MetricsExecutionContext extends UserDataHolder {
     /**
-     * A reference to the project that com.sixrr.metrics are being calculated for.
+     * A reference to the project that metrics are being calculated for.
      * @return  the project for the run.
      */
     Project getProject();
 
   /**
-     * A reference to the analysis scope (i.e. set of files) that com.sixrr.metrics are being calculated for.
+     * A reference to the analysis scope (i.e. set of files) that metrics are being calculated for.
      * @return  the analysis scope for the run.
      */
     AnalysisScope getScope();

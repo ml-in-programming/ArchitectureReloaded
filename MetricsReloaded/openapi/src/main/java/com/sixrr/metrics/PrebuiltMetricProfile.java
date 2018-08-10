@@ -21,8 +21,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 /**
- * The PrebuiltMetricProfile class represents a pre-build set of com.sixrr.metrics and thresholds which a com.sixrr.metrics plugin may install
- * into IntelliJ IDEA.  Prebuilt profiles may make it easier for end-users to learn the com.sixrr.metrics available, and how they
+ * The PrebuiltMetricProfile class represents a pre-build set of metrics and thresholds which a metrics plugin may install
+ * into IntelliJ IDEA.  Prebuilt profiles may make it easier for end-users to learn the metrics available, and how they
  * interact.
  */
 public class PrebuiltMetricProfile {
@@ -59,7 +59,7 @@ public class PrebuiltMetricProfile {
     }
 
     /**
-     * Add a metric to the profile, optionally specifying upper and lower thresholds for the com.sixrr.metrics acceptable.
+     * Add a metric to the profile, optionally specifying upper and lower thresholds for the metrics acceptable.
      *
      * @param metricID       the ID of the metric to add.
      * @param lowerThreshold The lower threshold of acceptable values for the metric, or null if there isn't any.
@@ -85,7 +85,7 @@ public class PrebuiltMetricProfile {
     }
 
     /**
-     * Get the ids of the com.sixrr.metrics which have been added to the profile.
+     * Get the ids of the metrics which have been added to the profile.
      *
      * @return the metric ids for the profile.
      */

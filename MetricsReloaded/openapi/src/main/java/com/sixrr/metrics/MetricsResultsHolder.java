@@ -23,7 +23,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiPackage;
 
 /**
- * The MetricsResultHolder is the mechanism by which com.sixrr.metrics values get reported for later display and processing.  There
+ * The MetricsResultHolder is the mechanism by which metrics values get reported for later display and processing.  There
  * are a pair of metric posting methods for each metric category, one for simple values and one for ratio values.
  */
 public interface MetricsResultsHolder {

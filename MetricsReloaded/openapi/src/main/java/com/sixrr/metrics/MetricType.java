@@ -17,7 +17,7 @@
 package com.sixrr.metrics;
 
 /**
- * The MetricType class enumerates the various kinds of com.sixrr.metrics available (counts, ratios, averages, etc.), and is used
+ * The MetricType class enumerates the various kinds of metrics available (counts, ratios, averages, etc.), and is used
  * to determine how metric values are aggregated and displayed.
  */
 public enum MetricType {
@@ -28,7 +28,7 @@ public enum MetricType {
     Count,
 
     /**
-     * Use the Score metric type if your metric is some number with no intrinsic meaning other than comparison (i.e. Halstead com.sixrr.metrics), or which
+     * Use the Score metric type if your metric is some number with no intrinsic meaning other than comparison (i.e. Halstead metrics), or which
      * cannot be reasonably aggregated (i.e. loop nesting depths).  Scores can be any integer value.
      */
     Score,

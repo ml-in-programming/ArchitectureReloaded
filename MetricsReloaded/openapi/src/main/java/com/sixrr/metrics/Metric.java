@@ -26,8 +26,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface Metric {
     /**
-     * The id of the metric.  This is a non-user visible string which will be used a key for managing com.sixrr.metrics internal
-     * to MetricsReloaded.  It should be unique over the space of all defined com.sixrr.metrics.
+     * The id of the metric.  This is a non-user visible string which will be used a key for managing metrics internal
+     * to MetricsReloaded.  It should be unique over the space of all defined metrics.
      * @return the metric id
      */
     @NonNls
@@ -82,7 +82,7 @@ public interface Metric {
 
 
     /**
-     * Create a calculator for this method.  The calculator returned is used for the duration of one entire com.sixrr.metrics run.
+     * Create a calculator for this method.  The calculator returned is used for the duration of one entire metrics run.
      * @return a calculator for this metric.
      */
     @NotNull
