@@ -1,9 +1,13 @@
 package org.jetbrains.research.groups.ml_methods.utils;
 
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 public final class PSIUtil {
@@ -73,5 +77,14 @@ public final class PSIUtil {
 
     public static boolean isOverriding(PsiMethod method) {
         return method.findSuperMethods().length != 0;
+    }
+
+    public static @NotNull Optional<PsiMethod> getParentMethod(final @NotNull PsiElement psiElement) {
+        PsiMethod parent = PsiTreeUtil.getParentOfType(psiElement, PsiMethod.class);
+        if (parent == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(parent);
     }
 }

@@ -16,6 +16,8 @@
 
 package com.sixrr.stockmetrics.methodCalculators;
 
+import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.PsiMethod;
 import com.sixrr.stockmetrics.execution.BaseMetricsCalculator;
 
@@ -30,5 +32,14 @@ public abstract class MethodCalculator extends BaseMetricsCalculator {
 
     void postMetric(PsiMethod method, double value) {
         resultsHolder.postMethodMetric(metric, method, value);
+    }
+
+    public void processMethod(final PsiMethod method) {
+        ProgressManager.getInstance().runProcess(new Runnable() {
+            @Override
+            public void run() {
+                method.accept(visitor);
+            }
+        }, new EmptyProgressIndicator());
     }
 }

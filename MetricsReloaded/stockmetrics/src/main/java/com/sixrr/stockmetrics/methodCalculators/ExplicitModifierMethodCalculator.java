@@ -1,14 +1,16 @@
+
 package com.sixrr.stockmetrics.methodCalculators;
 
 import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class ExplicitModifierMethodCalculator extends MethodCalculator {
     private final @NotNull String modifier;
 
-    public ExplicitModifierMethodCalculator(final @NotNull String modifier) {
+    public ExplicitModifierMethodCalculator(final @PsiModifier.ModifierConstant @NotNull String modifier) {
         this.modifier = modifier;
     }
 

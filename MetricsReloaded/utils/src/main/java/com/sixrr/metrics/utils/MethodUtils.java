@@ -23,6 +23,7 @@ import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
 import com.intellij.util.Processor;
 import com.intellij.util.Query;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -65,6 +66,26 @@ public final class MethodUtils {
 
     public static boolean isPrivate(PsiModifierListOwner unit) {
         return unit.hasModifierProperty(PsiModifier.PRIVATE);
+    }
+
+    public static boolean isPublic(PsiModifierListOwner unit) {
+        return unit.hasModifierProperty(PsiModifier.PUBLIC);
+    }
+
+    public static boolean isProtected(PsiModifierListOwner unit) {
+        return unit.hasModifierProperty(PsiModifier.PROTECTED);
+    }
+
+    public static boolean isPackagePrivate(PsiModifierListOwner unit) {
+        return unit.hasModifierProperty(PsiModifier.PACKAGE_LOCAL);
+    }
+
+    public static boolean isFinal(PsiModifierListOwner unit) {
+        return unit.hasModifierProperty(PsiModifier.FINAL);
+    }
+
+    public static boolean isVolatile(PsiModifierListOwner unit) {
+        return unit.hasModifierProperty(PsiModifier.VOLATILE);
     }
 
     public static int parametersCount(PsiMethod method) {
@@ -200,5 +221,160 @@ public final class MethodUtils {
             }
         }
         return false;
+    }
+
+    public static boolean isOverriding(PsiMethod method) {
+        return method.findSuperMethods().length != 0;
+    }
+
+    /**
+     * This method looks for not overriding methods, located in super or containing class and which are overloads of given method (have the same name).
+     * It doesn't exclude from return set the original passed method (or its deepest super method).
+     * @param method whose overloads we need to find.
+     * @param containingClass class where method is located.
+     * @param considerSupers true if we need look into supers.
+     * @return all methods that are not overriding, located in supers or in containingClass and have the same name as method.
+     */
+    public static List<PsiMethod> getAllRootOverloads(@NotNull PsiMethod method, @NotNull PsiClass containingClass,
+                                                     boolean considerSupers) {
+        String methodName = method.getName();
+        List<PsiMethod> overloads = new ArrayList<>();
+        for (PsiMethod methodInClass : containingClass.getMethods()) {
+            if (methodInClass.getName().equals(methodName) && !isOverriding(methodInClass)) {
+                overloads.add(methodInClass);
+            }
+        }
+        if (considerSupers) {
+            processSupers(method, containingClass, overloads);
+        }
+        return overloads;
+    }
+
+    private static void processSupers(@NotNull PsiMethod method, @NotNull PsiClass containingClass, @NotNull List<PsiMethod> overloads) {
+        for (PsiClass superClass : containingClass.getSupers()) {
+            for (PsiMethod methodInClass : superClass.getMethods()) {
+                if (methodInClass.getName().equals(method.getName()) && !isOverriding(methodInClass)) {
+                    overloads.add(methodInClass);
+                }
+            }
+            processSupers(method, superClass, overloads);
+        }
+    }
+
+    public static List<PsiMethod> getOverloads(@NotNull PsiMethod method, @NotNull PsiClass containingClass,
+                                           boolean considerSupers) {
+        List<PsiMethod> overloads = getAllRootOverloads(method, containingClass, considerSupers);
+        if (!overloads.remove(isOverriding(method) ? method.findDeepestSuperMethods()[0] : method)) {
+            throw new IllegalStateException("Set of overloaded methods must contain original method");
+        }
+        return overloads;
+    }
+
+    public static int getNumberOfOverloads(@NotNull PsiMethod method, @NotNull PsiClass containingClass,
+                                           boolean considerSupers) {
+        return getOverloads(method, containingClass, considerSupers).size();
+    }
+
+    public static boolean isGeneric(PsiMethod method) {
+        return method.getTypeParameters().length != 0;
+    }
+
+    public static @NotNull Set<PsiClass> getMeaningfulClasses(final @NotNull PsiMethod mainMethod) {
+        Set<PsiClass> meaningfulClasses = new HashSet<>();
+
+        mainMethod.accept(new JavaRecursiveElementVisitor() {
+            @Override
+            public void visitMethod(PsiMethod method) {
+                if (!method.equals(mainMethod)) {
+                    return;
+                }
+
+                super.visitMethod(method);
+
+                convertToClass(method.getReturnType()).ifPresent(meaningfulClasses::add);
+
+                for (PsiClassType classType : method.getThrowsList().getReferencedTypes()) {
+                    PsiClass psiClass = classType.resolve();
+                    if (psiClass != null) {
+                        meaningfulClasses.add(psiClass);
+                    }
+                }
+            }
+
+            @Override
+            public void visitClass(PsiClass aClass) {}
+
+            @Override
+            public void visitMethodCallExpression(PsiMethodCallExpression expression) {
+                super.visitMethodCallExpression(expression);
+
+                PsiMethod calledMethod = expression.resolveMethod();
+                if (calledMethod == null) {
+                    return;
+                }
+
+                PsiClass containingClass = calledMethod.getContainingClass();
+                if (containingClass != null) {
+                    meaningfulClasses.add(containingClass);
+                }
+            }
+
+            @Override
+            public void visitReferenceExpression(PsiReferenceExpression expression) {
+                super.visitReferenceExpression(expression);
+
+                JavaResolveResult result = expression.advancedResolve(false);
+                PsiElement element = result.getElement();
+
+                if (!(element instanceof PsiField)) {
+                    return;
+                }
+
+                PsiField field = (PsiField) element;
+
+                convertToClass(field.getType()).ifPresent(meaningfulClasses::add);
+            }
+
+            @Override
+            public void visitNewExpression(PsiNewExpression exp) {
+                super.visitNewExpression(exp);
+
+                PsiJavaCodeReferenceElement classReference = exp.getClassReference();
+                if (classReference == null) {
+                    return;
+                }
+
+                PsiClass psiClass = (PsiClass) classReference.resolve();
+                if (psiClass != null) {
+                    meaningfulClasses.add(psiClass);
+                }
+            }
+
+            @Override
+            public void visitDeclarationStatement(PsiDeclarationStatement statement) {
+                super.visitDeclarationStatement(statement);
+
+                for (PsiElement element : statement.getDeclaredElements()) {
+                    if (element instanceof PsiLocalVariable) {
+                        PsiLocalVariable localVariable = (PsiLocalVariable) element;
+                        convertToClass(localVariable.getTypeElement().getType()).ifPresent(meaningfulClasses::add);
+                    }
+                }
+            }
+
+            private @NotNull Optional<PsiClass> convertToClass(final @Nullable PsiType type) {
+                if (type == null) {
+                    return Optional.empty();
+                }
+
+                if (!(type instanceof PsiClassType)) {
+                    return Optional.empty();
+                }
+
+                return Optional.ofNullable(((PsiClassType) type).resolve());
+            }
+        });
+
+        return meaningfulClasses;
     }
 }
