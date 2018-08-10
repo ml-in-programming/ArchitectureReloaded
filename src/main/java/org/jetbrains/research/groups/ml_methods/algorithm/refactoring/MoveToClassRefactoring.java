@@ -8,10 +8,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 
-public abstract class MoveToClassRefactoring {
-    private final @NotNull PsiMember entity;
+import java.util.Optional;
 
-    private final @NotNull PsiClass targetClass;
+public abstract class MoveToClassRefactoring {
+    private final @NotNull SmartPsiElementPointer<PsiMember> entity;
+
+    private final @NotNull SmartPsiElementPointer<PsiClass> targetClass;
 
     private final String entityName;
 
@@ -59,8 +61,14 @@ public abstract class MoveToClassRefactoring {
         final @NotNull PsiMember entity,
         final @NotNull PsiClass target
     ) {
-        this.entity = entity;
-        this.targetClass = target;
+        this.entity = ApplicationManager.getApplication().runReadAction(
+                (Computable<SmartPsiElementPointer<PsiMember>>) () ->
+                        SmartPointerManager.getInstance(entity.getProject()).createSmartPsiElementPointer(entity)
+        );
+        this.targetClass = ApplicationManager.getApplication().runReadAction(
+                (Computable<SmartPsiElementPointer<PsiClass>>) () ->
+                        SmartPointerManager.getInstance(target.getProject()).createSmartPsiElementPointer(target)
+        );
 
         this.entityName = ApplicationManager.getApplication().runReadAction(
             (Computable<String>) () -> PsiSearchUtil.getHumanReadableName(entity)
@@ -74,17 +82,35 @@ public abstract class MoveToClassRefactoring {
     /**
      * Returns class which contains moved entity.
      */
-    public abstract @Nullable PsiClass getContainingClass();
+    public abstract @Nullable Optional<PsiClass> getContainingClass();
+
+    /**
+     * Returns class which contains moved entity.
+     */
+    public abstract @NotNull PsiClass getContainingClassOrThrow();
 
     /**
      * Returns class in which entity is placed in this refactoring
      */
-    public @NotNull PsiClass getTargetClass() {
-        return targetClass;
+    public @NotNull Optional<PsiClass> getTargetClass() {
+        return Optional.ofNullable(targetClass.getElement());
     }
 
-    public @NotNull PsiMember getEntity() {
-        return entity;
+    public @NotNull Optional<PsiMember> getEntity() {
+        return Optional.ofNullable(entity.getElement());
+    }
+
+    /**
+     * Returns class in which entity is placed in this refactoring
+     */
+    public @NotNull PsiClass getTargetClassOrThrow() {
+        return getTargetClass().orElseThrow(() ->
+                new IllegalStateException("Cannot get target class. Reference is invalid."));
+    }
+
+    public @NotNull PsiMember getEntityOrThrow() {
+        return getEntity().orElseThrow(() ->
+                new IllegalStateException("Cannot get entity. Reference is invalid."));
     }
 
     /**

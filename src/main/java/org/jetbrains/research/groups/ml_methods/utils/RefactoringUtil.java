@@ -25,7 +25,6 @@ import java.util.stream.Stream;
 
 import static com.sixrr.metrics.utils.MethodUtils.isStatic;
 import static java.util.stream.Collectors.groupingBy;
-import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.findAllElements;
 import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHumanReadableName;
 
 public final class RefactoringUtil {
@@ -52,7 +51,7 @@ public final class RefactoringUtil {
                         .filter(r -> r.accept(new RefactoringVisitor<Boolean>() {
                             @Override
                             public @NotNull Boolean visit(final @NotNull MoveMethodRefactoring refactoring) {
-                                if (moveInstanceMethod(refactoring.getMethod(), target)) {
+                                if (moveInstanceMethod(refactoring.getMethodOrThrow(), target)) {
                                     accepted.add(refactoring);
                                     return false;
                                 } else {
@@ -65,7 +64,7 @@ public final class RefactoringUtil {
                                 return true;
                             }
                         }))
-                        .filter(r -> makeStatic(r.getEntity())) // no effect for already static members
+                        .filter(r -> makeStatic(r.getEntityOrThrow())) // no effect for already static members
                         .collect(Collectors.toList());
 
                  accepted.addAll(moveMembersRefactoring(filteredRefactorings, target, scope));
@@ -80,11 +79,11 @@ public final class RefactoringUtil {
     private static Set<MoveToClassRefactoring> moveMembersRefactoring(Collection<MoveToClassRefactoring> elements, PsiClass targetClass,
                                                AnalysisScope scope) {
         final Map<PsiClass, Set<MoveToClassRefactoring>> groupByCurrentClass = elements.stream()
-                .collect(groupingBy((MoveToClassRefactoring it) -> it.getEntity().getContainingClass(), Collectors.toSet()));
+                .collect(groupingBy((MoveToClassRefactoring it) -> it.getEntityOrThrow().getContainingClass(), Collectors.toSet()));
 
         final Set<MoveToClassRefactoring> accepted = new HashSet<>();
         for (Entry<PsiClass, Set<MoveToClassRefactoring>> movement : groupByCurrentClass.entrySet()) {
-            final Set<PsiMember> members = movement.getValue().stream().map(MoveToClassRefactoring::getEntity).collect(Collectors.toSet());
+            final Set<PsiMember> members = movement.getValue().stream().map(MoveToClassRefactoring::getEntityOrThrow).collect(Collectors.toSet());
             MoveMembersDialog dialog = new MoveMembersDialog(scope.getProject(), movement.getKey(), targetClass,
                     members, null);
             TransactionGuard.getInstance().submitTransactionAndWait(dialog::show);
@@ -181,7 +180,7 @@ public final class RefactoringUtil {
         final @NotNull List<MoveToClassRefactoring> refactorings
     ) {
         return refactorings.stream().collect(
-            Collectors.groupingBy(MoveToClassRefactoring::getTargetClass, Collectors.toList())
+            Collectors.groupingBy(MoveToClassRefactoring::getTargetClassOrThrow, Collectors.toList())
         );
     }
 

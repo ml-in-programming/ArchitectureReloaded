@@ -5,15 +5,12 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
-import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveToClassRefactoring;
-import org.jetbrains.research.groups.ml_methods.config.RefactoringPreferencesLog;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringReporter;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringSessionInfo;
-import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringSessionInfoRenderer;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
 import org.jetbrains.research.groups.ml_methods.utils.ExportResultsUtil;
 import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
@@ -25,7 +22,6 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -170,12 +166,12 @@ class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setEnabled(false);
         selectAllButton.setEnabled(false);
         table.setEnabled(false);
-        final List<MoveToClassRefactoring> selectedRefactorings = model.pullSelected().stream().map(CalculatedRefactoring::getRefactoring).collect(Collectors.toList());
-        final List<MoveToClassRefactoring> rejectedRefactorings = refactorings.stream().map(CalculatedRefactoring::getRefactoring).collect(Collectors.toList());
-        for (int index = 0; index < model.getRowCount(); ++index) {
-            rejectedRefactorings.add(model.getRefactoring(index).getRefactoring());
-        }
-        rejectedRefactorings.removeAll(selectedRefactorings);
+        final List<MoveToClassRefactoring> selectedRefactorings = model.pullSelected().stream()
+                .map(CalculatedRefactoring::getRefactoring)
+                .collect(Collectors.toList());
+        final List<MoveToClassRefactoring> rejectedRefactorings = model.getActiveRefactorings().stream()
+                .map(CalculatedRefactoring::getRefactoring)
+                .collect(Collectors.toList());
 
         RefactoringSessionInfo info = new RefactoringSessionInfo(selectedRefactorings, rejectedRefactorings, metricsRun);
         ClassRefactoringPanel.reporter.log(uuid, info);
