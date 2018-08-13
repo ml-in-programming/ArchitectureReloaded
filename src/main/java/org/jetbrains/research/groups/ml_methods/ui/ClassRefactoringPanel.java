@@ -5,9 +5,11 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
+import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveToClassRefactoring;
 import org.jetbrains.research.groups.ml_methods.config.RefactoringPreferencesLog;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringReporter;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringSessionInfo;
@@ -28,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 import static org.jetbrains.research.groups.ml_methods.ui.RefactoringsTableModel.ACCURACY_COLUMN_INDEX;
@@ -54,14 +57,14 @@ class ClassRefactoringPanel extends JPanel {
     private final JSlider thresholdSlider = new JSlider(0, 100, 0);
     private final JLabel info = new JLabel();
 
-    private final Map<Refactoring, String> warnings;
+    private final Map<CalculatedRefactoring, String> warnings;
     private boolean isFieldDisabled;
-    private final List<Refactoring> refactorings;
+    private final List<CalculatedRefactoring> refactorings;
     private final UUID uuid = UUID.randomUUID();
 
     private final @NotNull MetricsRun metricsRun;
 
-    ClassRefactoringPanel(List<Refactoring> refactorings, @NotNull AnalysisScope scope, final @NotNull MetricsRun metricsRun) {
+    ClassRefactoringPanel(List<CalculatedRefactoring> refactorings, @NotNull AnalysisScope scope, @NotNull MetricsRun metricsRun) {
         this.scope = scope;
         this.refactorings = refactorings;
         this.metricsRun = metricsRun;
@@ -89,9 +92,9 @@ class ClassRefactoringPanel extends JPanel {
         setupTableLayout();
     }
 
-    private Predicate<Refactoring> getCurrentPredicate(int sliderValue) {
+    private Predicate<CalculatedRefactoring> getCurrentPredicate(int sliderValue) {
         return refactoring -> refactoring.getAccuracy() >= sliderValue / 100.0
-                && !(isFieldDisabled && refactoring.isMoveFieldRefactoring());
+                && !(isFieldDisabled && refactoring.getRefactoring().isMoveFieldRefactoring());
     }
 
     private void setupGUI() {
@@ -127,7 +130,7 @@ class ClassRefactoringPanel extends JPanel {
 
         final double maxAccuracy = model.getRefactorings()
                 .stream()
-                .mapToDouble(Refactoring::getAccuracy)
+                .mapToDouble(CalculatedRefactoring::getAccuracy)
                 .max()
                 .orElse(1);
         final int recommendedPercents = (int) (maxAccuracy * 80);
@@ -167,10 +170,10 @@ class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setEnabled(false);
         selectAllButton.setEnabled(false);
         table.setEnabled(false);
-        final List<Refactoring> selectedRefactorings = model.pullSelected();
-        final List<Refactoring> rejectedRefactorings = new ArrayList<>();
+        final List<MoveToClassRefactoring> selectedRefactorings = model.pullSelected().stream().map(CalculatedRefactoring::getRefactoring).collect(Collectors.toList());
+        final List<MoveToClassRefactoring> rejectedRefactorings = refactorings.stream().map(CalculatedRefactoring::getRefactoring).collect(Collectors.toList());
         for (int index = 0; index < model.getRowCount(); ++index) {
-            rejectedRefactorings.add(model.getRefactoring(index));
+            rejectedRefactorings.add(model.getRefactoring(index).getRefactoring());
         }
         rejectedRefactorings.removeAll(selectedRefactorings);
 

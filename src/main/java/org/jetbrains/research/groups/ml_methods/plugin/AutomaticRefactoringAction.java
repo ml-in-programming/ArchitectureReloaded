@@ -201,7 +201,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
             ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
                 .show(
                     algorithmsResults,
-                    context.getEntitySearchResult(),
+                    context.getEntitiesStorage(),
                     context.getScope(),
                     context.getMetricsRun()
                 );

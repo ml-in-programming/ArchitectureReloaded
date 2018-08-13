@@ -8,7 +8,7 @@ import com.sixrr.stockmetrics.methodMetrics.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveFieldRefactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveToClassRefactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.RefactoringVisitor;
 
 import java.util.ArrayList;
@@ -18,8 +18,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * This class contains features extracted from some {@link Refactoring}. This features should
- * characterize {@link Refactoring} in a way that helps to extract user refactorings preferences
+ * This class contains features extracted from some {@link MoveToClassRefactoring}. This features should
+ * characterize {@link MoveToClassRefactoring} in a way that helps to extract user refactorings preferences
  * from features of accepted and rejected refactorings.
  */
 public abstract class RefactoringFeatures {
@@ -81,15 +81,15 @@ public abstract class RefactoringFeatures {
     public abstract <R> R accept(final @NotNull RefactoringFeaturesVisitor<R> visitor);
 
     /**
-     * Extracts features from a given {@link Refactoring}.
+     * Extracts features from a given {@link MoveToClassRefactoring}.
      *
-     * @param refactoring a {@link Refactoring} to extract features from.
+     * @param refactoring a {@link MoveToClassRefactoring} to extract features from.
      * @param metricsRun a result of metrics calculations. Some of metrics values calculated for
      *                   objects given refactoring operates on can be used to extract refactoring
      *                   features.
      */
     public static @NotNull RefactoringFeatures extractFeatures(
-        final @NotNull Refactoring refactoring,
+        final @NotNull MoveToClassRefactoring refactoring,
         final @NotNull MetricsRun metricsRun
     ) {
         return refactoring.accept(new RefactoringVisitor<RefactoringFeatures>() {

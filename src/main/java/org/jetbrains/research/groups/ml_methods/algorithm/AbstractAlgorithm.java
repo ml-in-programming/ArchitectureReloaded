@@ -9,7 +9,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 
 import java.util.ArrayList;
@@ -60,8 +60,7 @@ public abstract class AbstractAlgorithm implements Algorithm {
     public @NotNull AlgorithmResult execute(
         final @NotNull AttributesStorage attributes,
         final @Nullable ExecutorService service,
-        final boolean enableFieldRefactorings,
-        final @NotNull AnalysisScope scope
+        final boolean enableFieldRefactorings
     ) {
         LOGGER.info(name + " started");
         final long startTime = System.currentTimeMillis();
@@ -80,11 +79,10 @@ public abstract class AbstractAlgorithm implements Algorithm {
         final ExecutionContext context = new ExecutionContext(
             enableParallelExecution ? requireNonNull(service) : null,
             indicator,
-            attributes,
-            scope
+            attributes
         );
 
-        final List<Refactoring> refactorings;
+        final List<CalculatedRefactoring> refactorings;
         try {
             refactorings = setUpExecutor().execute(context, enableFieldRefactorings);
         } catch (ProcessCanceledException e) {
@@ -125,7 +123,7 @@ public abstract class AbstractAlgorithm implements Algorithm {
          * @return suggested refactorings.
          * @throws Exception if any kind of error occurs during algorithm execution.
          */
-        @NotNull List<Refactoring> execute(
+        @NotNull List<CalculatedRefactoring> execute(
             @NotNull ExecutionContext context,
             boolean enableFieldRefactorings
         ) throws Exception;
@@ -142,9 +140,6 @@ public abstract class AbstractAlgorithm implements Algorithm {
 
         private final AttributesStorage attributes;
 
-        /** Only for backward compatibility see {@link Algorithm#execute}. */
-        private final @NotNull AnalysisScope scope;
-
         private final int preferredThreadsCount;
 
         private int usedThreads = 1; // default thread
@@ -152,13 +147,11 @@ public abstract class AbstractAlgorithm implements Algorithm {
         private ExecutionContext(
             final ExecutorService service,
             final ProgressIndicator indicator,
-            final @NotNull AttributesStorage attributes,
-            final @NotNull AnalysisScope scope
+            final @NotNull AttributesStorage attributes
         ) {
             this.service = service;
             this.indicator = indicator;
             this.attributes = attributes;
-            this.scope = scope;
 
             preferredThreadsCount = Runtime.getRuntime().availableProcessors();
         }
