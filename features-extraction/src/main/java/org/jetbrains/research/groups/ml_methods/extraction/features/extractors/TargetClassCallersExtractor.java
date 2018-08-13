@@ -14,9 +14,10 @@ public class TargetClassCallersExtractor implements MoveMethodSingleFeatureExtra
         final @NotNull PsiClass targetClass
     ) {
         return new TargetClassCallers(
-            methodInfo.getAnotherInstanceCallers(
-                MethodFilters.sameClass(targetClass)
-            ).count()
+            methodInfo.getAnotherInstanceCallers()
+                .stream()
+                .filter(MethodFilters.sameClass(targetClass))
+                .count()
         );
     }
 }

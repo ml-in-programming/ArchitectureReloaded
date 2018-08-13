@@ -14,9 +14,9 @@ public class AnotherInstanceCallersExtractor implements MoveMethodSingleFeatureE
         final @NotNull PsiClass targetClass
     ) {
         return new AnotherInstanceCallers(
-            methodInfo.getAnotherInstanceCallers(
-                MethodFilters.sameClass(methodInfo.getContainingClass())
-            ).count()
+            methodInfo.getAnotherInstanceCallers().stream()
+                    .filter(MethodFilters.sameClass(methodInfo.getContainingClass()))
+                    .count()
         );
     }
 }

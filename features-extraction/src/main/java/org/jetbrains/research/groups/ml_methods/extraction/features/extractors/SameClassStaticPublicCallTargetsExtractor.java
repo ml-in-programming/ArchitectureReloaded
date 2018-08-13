@@ -12,11 +12,12 @@ public class SameClassStaticPublicCallTargetsExtractor implements MoveMethodSing
         @NotNull PsiClass targetClass
     ) {
         return new SameClassStaticPublicCallTargets(
-            methodInfo.getAnotherInstanceTargets(
-                MethodFilters.sameClass(methodInfo.getContainingClass()),
-                MethodFilters.isPublic,
-                MethodFilters.isStatic
-            ).count()
+            methodInfo.getAnotherInstanceTargets()
+                .stream()
+                .filter(MethodFilters.sameClass(methodInfo.getContainingClass()))
+                .filter(MethodFilters.isPublic)
+                .filter(MethodFilters.isStatic)
+                .count()
         );
     }
 }

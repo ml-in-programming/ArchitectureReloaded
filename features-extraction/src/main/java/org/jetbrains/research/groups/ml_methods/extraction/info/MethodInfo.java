@@ -57,24 +57,12 @@ public class MethodInfo {
         return Collections.unmodifiableList(sameInstanceCallers);
     }
 
-    public @NotNull Stream<PsiMethod> getSameInstanceCallers(
-        final @NotNull Predicate<? super PsiMethod>... filters
-    ) {
-        return createFilteredStream(sameInstanceCallers, filters);
-    }
-
     /**
      * Returns {@link List} of methods that call method this info object is created for not through
      * {@code this} object.
      */
     public @NotNull List<PsiMethod> getAnotherInstanceCallers() {
         return Collections.unmodifiableList(anotherInstanceCallers);
-    }
-
-    public @NotNull Stream<PsiMethod> getAnotherInstanceCallers(
-        final @NotNull Predicate<? super PsiMethod>... filters
-    ) {
-        return createFilteredStream(anotherInstanceCallers, filters);
     }
 
     /**
@@ -85,12 +73,6 @@ public class MethodInfo {
         return Collections.unmodifiableList(sameInstanceTargets);
     }
 
-    public @NotNull Stream<PsiMethod> getSameInstanceTargets(
-        final @NotNull Predicate<? super PsiMethod>... filters
-    ) {
-        return createFilteredStream(sameInstanceTargets, filters);
-    }
-
     /**
      * Returns {@link List} of methods that are called by method this info object is created for
      * not through {@code this} object.
@@ -99,32 +81,12 @@ public class MethodInfo {
         return Collections.unmodifiableList(anotherInstanceTargets);
     }
 
-    public @NotNull Stream<PsiMethod> getAnotherInstanceTargets(
-        final @NotNull Predicate<? super PsiMethod>... filters
-    ) {
-        return createFilteredStream(anotherInstanceTargets, filters);
-    }
-
     /**
      * Returns {@link List} of all fields that are accessed by method this info object is created
      * for.
      */
     public @NotNull List<PsiField> getAccessedFields() {
         return Collections.unmodifiableList(accessedFields);
-    }
-
-    public @NotNull Stream<PsiField> getAccessedFields(
-        final @NotNull Predicate<? super PsiField>... filters
-    ) {
-        return createFilteredStream(accessedFields, filters);
-    }
-
-    private static <T> Stream<T> createFilteredStream(
-        final @NotNull List<T> list,
-        final @NotNull Predicate<? super T>[] filters
-    ) {
-        return list.stream()
-                .filter(it -> Arrays.stream(filters).allMatch(itt -> itt.test(it)));
     }
 
     public static class Builder {
