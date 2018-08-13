@@ -1,19 +1,24 @@
 package org.jetbrains.research.groups.ml_methods.ui;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.ide.util.EditorHelper;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiMember;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveToClassRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringReporter;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringSessionInfo;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
 import org.jetbrains.research.groups.ml_methods.utils.ExportResultsUtil;
-import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 import org.jetbrains.research.groups.ml_methods.utils.RefactoringUtil;
 
 import javax.swing.*;
@@ -201,7 +206,26 @@ class ClassRefactoringPanel extends JPanel {
         if (selectedRow == -1 || selectedColumn == -1 || selectedColumn == SELECTION_COLUMN_INDEX) {
             return;
         }
-        PsiSearchUtil.openDefinition(model.getUnitAt(selectedRow, selectedColumn).orElse(null), scope);
+        openDefinition(model.getUnitAt(selectedRow, selectedColumn).orElse(null), scope);
+    }
+
+    private static void openDefinition(@Nullable PsiMember unit, AnalysisScope scope) {
+        new Task.Backgroundable(scope.getProject(), "Search Definition"){
+            private PsiElement result;
+
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+                indicator.setIndeterminate(true);
+                result = unit;
+            }
+
+            @Override
+            public void onSuccess() {
+                if (result != null) {
+                    EditorHelper.openInEditor(result);
+                }
+            }
+        }.queue();
     }
 
     private void onSelectionChanged() {
