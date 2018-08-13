@@ -66,7 +66,7 @@ class ClassRefactoringPanel extends JPanel {
         this.metricsRun = metricsRun;
 
         setLayout(new BorderLayout());
-        model = new RefactoringsTableModel(RefactoringUtil.filter(refactorings, scope));
+        model = new RefactoringsTableModel(RefactoringUtil.filter(refactorings));
         warnings = RefactoringUtil.getWarnings(refactorings, scope);
         isFieldDisabled = false;
         model.filter(getCurrentPredicate(DEFAULT_THRESHOLD));

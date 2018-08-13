@@ -19,7 +19,6 @@ import org.jetbrains.research.groups.ml_methods.ui.RefactoringsTableModel;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -183,20 +182,14 @@ public final class RefactoringUtil {
         return uniqueUnits == refactorings.size();
     }
 
-    public static List<CalculatedRefactoring> filter(List<CalculatedRefactoring> refactorings, AnalysisScope scope) {
-        final Set<String> allUnits = refactorings.stream()
-                .map(it -> it.getRefactoring().getEntityName())
-                .collect(Collectors.toSet());
-        final Map<String, PsiElement> psiElements = PsiSearchUtil.findAllElements(allUnits, scope, Function.identity());
+    public static List<CalculatedRefactoring> filter(List<CalculatedRefactoring> refactorings) {
         final List<CalculatedRefactoring> validRefactorings = new ArrayList<>();
         for (CalculatedRefactoring refactoring : refactorings) {
-            final PsiElement element = psiElements.get(refactoring.getRefactoring().getEntityName());
-            if (element != null) {
-                final boolean isMovable = ApplicationManager.getApplication()
-                        .runReadAction((Computable<Boolean>) () -> isMovable(element));
-                if (isMovable) {
-                    validRefactorings.add(refactoring);
-                }
+            final PsiElement element = refactoring.getRefactoring().getEntityOrThrow();
+            final boolean isMovable = ApplicationManager.getApplication()
+                    .runReadAction((Computable<Boolean>) () -> isMovable(element));
+            if (isMovable) {
+                validRefactorings.add(refactoring);
             }
         }
         return validRefactorings;
