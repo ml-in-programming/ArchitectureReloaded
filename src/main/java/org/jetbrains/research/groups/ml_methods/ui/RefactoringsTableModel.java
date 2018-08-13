@@ -3,7 +3,7 @@ package org.jetbrains.research.groups.ml_methods.ui;
 import com.intellij.ui.BooleanTableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;

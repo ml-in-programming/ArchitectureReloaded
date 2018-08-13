@@ -1,8 +1,8 @@
 package org.jetbrains.research.groups.ml_methods.utils;
 
 import org.apache.log4j.Logger;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
-import org.jetbrains.research.groups.ml_methods.config.Logging;
+import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
+import org.jetbrains.research.groups.ml_methods.logging.Logging;
 
 import java.io.File;
 import java.io.IOException;

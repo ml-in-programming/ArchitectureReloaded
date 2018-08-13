@@ -27,5 +27,6 @@ apply plugin: 'idea'
 dependencies {
   runtime 'com.google.code.gson:gson:2.8.5'
   compile project(':MetricsReloaded')
+  compile project(':core')
   compile files('lib/args4j-2.32.jar', 'lib/jcommon-0.9.1.jar', 'lib/jfreechart-0.9.16.jar')
 }
