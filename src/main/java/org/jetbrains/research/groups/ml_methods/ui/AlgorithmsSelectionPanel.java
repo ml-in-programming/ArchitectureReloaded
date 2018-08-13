@@ -4,8 +4,8 @@ import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBCheckBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
+import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository;
 import org.jetbrains.research.groups.ml_methods.config.ArchitectureReloadedConfig;
-import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringExecutionContext;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;
@@ -89,7 +89,7 @@ public class AlgorithmsSelectionPanel extends JPanel {
     private static Tab createAlgorithmsTab() {
         JPanel panel = new JPanel(new GridBagLayout());
 
-        final Algorithm[] algorithms = RefactoringExecutionContext.getAvailableAlgorithms();
+        final Algorithm[] algorithms = AlgorithmsRepository.getAvailableAlgorithms().toArray(new Algorithm[0]);
         final ArchitectureReloadedConfig config = ArchitectureReloadedConfig.getInstance();
 
         final GridBagConstraints constraints = new GridBagConstraints();

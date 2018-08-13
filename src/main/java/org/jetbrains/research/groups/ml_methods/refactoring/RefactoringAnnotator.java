@@ -13,6 +13,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
+import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository;
 import org.jetbrains.research.groups.ml_methods.plugin.AutomaticRefactoringAction;
 import org.jetbrains.research.groups.ml_methods.utils.PSIUtil;
 
@@ -24,7 +25,7 @@ public class RefactoringAnnotator implements Annotator {
         final Project project = psiElement.getProject();
         final AnalysisScope scope = new AnalysisScope(project);
 
-        for (Algorithm algorithm : RefactoringExecutionContext.getAvailableAlgorithms()) {
+        for (Algorithm algorithm : AlgorithmsRepository.getAvailableAlgorithms()) {
             try {
                 setAnnotations(psiElement,
                         algorithm.getDescriptionString(),
