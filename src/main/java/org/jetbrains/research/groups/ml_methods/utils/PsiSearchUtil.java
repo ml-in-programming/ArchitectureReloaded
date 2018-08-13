@@ -39,14 +39,14 @@ public class PsiSearchUtil {
         return findElement(humanReadableName, scope, Function.identity());
     }
 
-    public static void openDefinition(String unit, AnalysisScope scope) {
+    public static void openDefinition(@Nullable PsiMember unit, AnalysisScope scope) {
         new Task.Backgroundable(scope.getProject(), "Search Definition"){
             private PsiElement result;
 
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 indicator.setIndeterminate(true);
-                result = findElement(unit, scope).orElse(null);
+                result = unit;
             }
 
             @Override

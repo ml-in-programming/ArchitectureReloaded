@@ -1,5 +1,6 @@
 package org.jetbrains.research.groups.ml_methods.ui;
 
+import com.intellij.psi.PsiMember;
 import com.intellij.ui.BooleanTableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -148,13 +149,13 @@ public class RefactoringsTableModel extends AbstractTableModel {
         throw new IndexOutOfBoundsException("Unexpected column index: " + columnIndex);
     }
 
-    String getUnitAt(int virtualRow, int column) {
+    Optional<? extends PsiMember> getUnitAt(int virtualRow, int column) {
         final int row = virtualRows.get(virtualRow);
         switch (column) {
             case ENTITY_COLUMN_INDEX:
-                return refactorings.get(row).getRefactoring().getEntityName();
+                return refactorings.get(row).getRefactoring().getEntity();
             case MOVE_TO_COLUMN_INDEX:
-                return refactorings.get(row).getRefactoring().getTargetName();
+                return refactorings.get(row).getRefactoring().getTargetClass();
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }

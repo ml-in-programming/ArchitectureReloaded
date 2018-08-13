@@ -201,7 +201,7 @@ class ClassRefactoringPanel extends JPanel {
         if (selectedRow == -1 || selectedColumn == -1 || selectedColumn == SELECTION_COLUMN_INDEX) {
             return;
         }
-        PsiSearchUtil.openDefinition(model.getUnitAt(selectedRow, selectedColumn), scope);
+        PsiSearchUtil.openDefinition(model.getUnitAt(selectedRow, selectedColumn).orElse(null), scope);
     }
 
     private void onSelectionChanged() {
