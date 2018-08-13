@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("WeakerAccess")
 public abstract class AlgorithmAbstractTest extends LightCodeInsightFixtureTestCase {
-    protected final TestCasesCheckers testCasesChecker = new TestCasesCheckers(getAlgorithm().getDescriptionString());
+    protected final TestCasesCheckers testCasesChecker = new TestCasesCheckers(getAlgorithm().getAlgorithmType());
 
     @Override
     protected String getTestDataPath() {

@@ -205,14 +205,14 @@ public final class RefactoringUtil {
         return false;
     }
 
-    public static Map<String, String> toMap(List<CalculatedRefactoring> refactorings) {
-        return refactorings.stream().collect(Collectors.toMap(it -> it.getRefactoring().getEntityName(),it -> it.getRefactoring().getTargetName()));
-    }
-
+    // TODO: rewrite method, if it is intersection of several sets then arguments must be sets.
     public static List<CalculatedRefactoring> intersect(Collection<List<CalculatedRefactoring>> refactorings) {
         return refactorings.stream()
                 .flatMap(List::stream)
-                .collect(Collectors.groupingBy(refactoring -> refactoring.getRefactoring().getEntityName() + "&" + refactoring.getRefactoring().getTargetName(),
+                .collect(Collectors.groupingBy(refactoring ->
+                                getHumanReadableName(refactoring.getRefactoring().getEntityOrThrow()) +
+                                        "&" +
+                                        getHumanReadableName(refactoring.getRefactoring().getTargetClassOrThrow()),
                         Collectors.toList()))
                 .values().stream()
                 .filter(collection -> collection.size() == refactorings.size())

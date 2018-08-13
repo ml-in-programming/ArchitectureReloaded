@@ -3,8 +3,8 @@ package org.jetbrains.research.groups.ml_methods.refactoring.logging;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRun;
-import com.sixrr.stockmetrics.classMetrics.*;
-import com.sixrr.stockmetrics.methodMetrics.*;
+import com.sixrr.stockmetrics.classMetrics.NumFinalFieldsMetric;
+import com.sixrr.stockmetrics.methodMetrics.FormalParametersCountMethodMetric;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveFieldRefactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
@@ -26,6 +26,7 @@ public abstract class RefactoringFeatures {
     private static final @NotNull List<Metric> requestedMetrics =
         Arrays.asList(
             new FormalParametersCountMethodMetric(),
+            /*
             new LinesOfCodeMethodMetric(),
             new NumAssertsMetric(),
             new NumLoopsMetric(),
@@ -71,6 +72,7 @@ public abstract class RefactoringFeatures {
             new NumStaticMethodsMetric(),
             new NumSynchronizedMethodsMetric(),
             new NumVolatileFieldsMetric(),
+            */
             new NumFinalFieldsMetric()
         );
 

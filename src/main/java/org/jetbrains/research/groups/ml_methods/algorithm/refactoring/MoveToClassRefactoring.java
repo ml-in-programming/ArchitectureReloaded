@@ -1,13 +1,13 @@
 package org.jetbrains.research.groups.ml_methods.algorithm.refactoring;
 
-import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMember;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.research.groups.ml_methods.utils.PSIUtil;
-import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 
 import java.util.Optional;
 
@@ -15,48 +15,6 @@ public abstract class MoveToClassRefactoring {
     private final @NotNull SmartPsiElementPointer<PsiMember> entity;
 
     private final @NotNull SmartPsiElementPointer<PsiClass> targetClass;
-
-    private final String entityName;
-
-    private final String targetName;
-
-    /**
-     * This factory method is a replacement for old ctor. Previously {@link MoveToClassRefactoring} class
-     * stored only names of entities that were involved in refactoring. Now {@link MoveToClassRefactoring}
-     * class has subclasses for different type of refactorings.
-     * Use constructors of {@link MoveMethodRefactoring} and {@link MoveFieldRefactoring} instead.
-     */
-    @Deprecated
-    public static @NotNull
-    MoveToClassRefactoring createRefactoring(
-        final @NotNull String entity,
-        final @NotNull String target,
-        final boolean isEntityField,
-        final @NotNull AnalysisScope scope
-    ) {
-        String exceptionMessage =
-            "Unable to find PsiElement with given name during Refactoring creation";
-
-        PsiElement entityElement =
-            PsiSearchUtil.findElement(entity, scope)
-                         .orElseThrow(() -> new IllegalArgumentException(exceptionMessage));
-
-        PsiElement targetElement =
-            PsiSearchUtil.findElement(target, scope)
-                         .orElseThrow(() -> new IllegalArgumentException(exceptionMessage));
-
-        if (!isEntityField) {
-            return new MoveMethodRefactoring(
-                (PsiMethod) entityElement,
-                (PsiClass) targetElement
-            );
-        } else {
-            return new MoveFieldRefactoring(
-                (PsiField) entityElement,
-                (PsiClass) targetElement
-            );
-        }
-    }
 
     public MoveToClassRefactoring(
         final @NotNull PsiMember entity,
@@ -69,14 +27,6 @@ public abstract class MoveToClassRefactoring {
         this.targetClass = ApplicationManager.getApplication().runReadAction(
                 (Computable<SmartPsiElementPointer<PsiClass>>) () ->
                         SmartPointerManager.getInstance(target.getProject()).createSmartPsiElementPointer(target)
-        );
-
-        this.entityName = ApplicationManager.getApplication().runReadAction(
-            (Computable<String>) () -> PSIUtil.getHumanReadableName(entity)
-        );
-
-        this.targetName = ApplicationManager.getApplication().runReadAction(
-            (Computable<String>) () -> PSIUtil.getHumanReadableName(target)
         );
     }
 
@@ -112,26 +62,6 @@ public abstract class MoveToClassRefactoring {
     public @NotNull PsiMember getEntityOrThrow() {
         return getEntity().orElseThrow(() ->
                 new IllegalStateException("Cannot get entity. Reference is invalid."));
-    }
-
-    /**
-     * If you need to identify code entity. Then it is better to identify it directly and not
-     * through its name.
-     * Use {@link #getEntity()} instead.
-     */
-    @Deprecated
-    public String getEntityName() {
-        return entityName;
-    }
-
-    /**
-     * If you need to identify code entity. Then it is better to identify it directly and not
-     * through its name.
-     * Use {@link #getTargetClass()} instead.
-     */
-    @Deprecated
-    public String getTargetName() {
-        return targetName;
     }
 
     public abstract boolean isMoveFieldRefactoring();

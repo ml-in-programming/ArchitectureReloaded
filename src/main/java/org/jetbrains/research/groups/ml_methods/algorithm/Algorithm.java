@@ -8,6 +8,8 @@ import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesS
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
+import static org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.AlgorithmType;
+
 /**
  * An algorithm that analyses given {@link AttributesStorage} and produces refactoring suggestions
  * as an {@link AlgorithmResult}.
@@ -35,6 +37,11 @@ public interface Algorithm {
      * Returns a short textual description of this algorithm.
      */
     @NotNull String getDescriptionString();
+
+    /**
+     * Returns a type of algorithm. Should be used to identify algorithm and request it by enum type not by name.
+     */
+    @NotNull AlgorithmType getAlgorithmType();
 
     /**
      * Returns an array of metrics from which a features vectors for this particular algorithm

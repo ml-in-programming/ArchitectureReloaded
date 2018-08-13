@@ -3,10 +3,6 @@ package org.jetbrains.research.groups.ml_methods.algorithm;
 public class CcdaTest extends AlgorithmAbstractTest {
     private static final Algorithm algorithm = new CCDA();
 
-    private static final String algorithmName = algorithm.getDescriptionString();
-
-    private static final TestCasesCheckers testCasesChecker = new TestCasesCheckers(algorithmName);
-
     public void testMoveMethod() {
         executeTest(testCasesChecker::checkMoveMethod, "ClassA.java", "ClassB.java");
     }

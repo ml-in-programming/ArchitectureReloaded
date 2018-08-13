@@ -1,5 +1,6 @@
 package org.jetbrains.research.groups.ml_methods.ui;
 
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMember;
 import com.intellij.ui.BooleanTableCellRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +17,8 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static org.jetbrains.research.groups.ml_methods.utils.PSIUtil.getHumanReadableName;
 
 public class RefactoringsTableModel extends AbstractTableModel {
     private static final String ENTITY_COLUMN_TITLE_KEY = "unit.column.title";
@@ -139,9 +142,13 @@ public class RefactoringsTableModel extends AbstractTableModel {
             case SELECTION_COLUMN_INDEX:
                 return isSelected[rowIndex];
             case ENTITY_COLUMN_INDEX:
-                return refactorings.get(rowIndex).getRefactoring().getEntityName();
+                Optional<PsiMember> method = refactorings.get(rowIndex).getRefactoring().getEntity();
+                return method.isPresent() ? getHumanReadableName(method.get()) :
+                        ArchitectureReloadedBundle.message("java.member.is.not.valid");
             case MOVE_TO_COLUMN_INDEX:
-                return refactorings.get(rowIndex).getRefactoring().getTargetName();
+                Optional<PsiClass> targetClass = refactorings.get(rowIndex).getRefactoring().getTargetClass();
+                return targetClass.isPresent() ? getHumanReadableName(targetClass.get()) :
+                        ArchitectureReloadedBundle.message("target.class.is.not.valid");
             case ACCURACY_COLUMN_INDEX:
                 final double accuracy = refactorings.get(rowIndex).getAccuracy();
                 return String.format("%.2f", accuracy);

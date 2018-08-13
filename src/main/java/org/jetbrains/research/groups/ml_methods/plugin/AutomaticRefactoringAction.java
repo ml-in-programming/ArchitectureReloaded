@@ -21,6 +21,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmResult;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository;
+import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.AlgorithmType;
+import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.config.ArchitectureReloadedConfig;
 import org.jetbrains.research.groups.ml_methods.config.Logging;
 import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringExecutionContext;
@@ -30,7 +32,6 @@ import org.jetbrains.research.groups.ml_methods.ui.RefactoringsToolWindow;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
 import org.jetbrains.research.groups.ml_methods.utils.MetricsProfilesUtil;
 import org.jetbrains.research.groups.ml_methods.utils.NotificationUtil;
-import org.jetbrains.research.groups.ml_methods.utils.RefactoringUtil;
 
 import javax.swing.*;
 import java.util.*;
@@ -48,7 +49,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
     private static final String REFACTORING_PROFILE_KEY = "refactoring.metrics.profile.name";
     private static final Map<String, ProgressIndicator> processes = new ConcurrentHashMap<>();
 
-    private Map<String, Map<String, String>> results = new HashMap<>();
+    private EnumMap<AlgorithmType, List<CalculatedRefactoring>> results = new EnumMap<>(AlgorithmType.class);
 
     private static final Map<Project, AutomaticRefactoringAction> factory = new HashMap<>();
 
@@ -176,23 +177,23 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
 
     private void updateResults(@NotNull RefactoringExecutionContext context) {
         for (AlgorithmResult result : context.getAlgorithmResults()) {
-            results.put(result.getAlgorithmName(), RefactoringUtil.toMap(result.getRefactorings()));
+            results.put(result.getAlgorithmType(), result.getRefactorings());
         }
     }
 
 
     private void showDialogs(@NotNull RefactoringExecutionContext context) {
         updateResults(context);
-        final Set<String> selectedAlgorithms =
+        final Set<AlgorithmType> selectedAlgorithms =
             ArchitectureReloadedConfig.getInstance()
                 .getSelectedAlgorithms()
                 .stream()
-                .map(Algorithm::getDescriptionString)
+                .map(Algorithm::getAlgorithmType)
                 .collect(Collectors.toSet());
 
         final List<AlgorithmResult> algorithmsResults = context.getAlgorithmResults()
                 .stream()
-                .filter(result -> selectedAlgorithms.contains(result.getAlgorithmName()))
+                .filter(result -> selectedAlgorithms.contains(result.getAlgorithmType()))
                 .collect(Collectors.toList());
 
         boolean notEmptyResult = algorithmsResults.stream().flatMap(result -> result.getRefactorings()
@@ -236,12 +237,12 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
     }
 
     @NotNull
-    public Set<String> calculatedAlgorithms() {
+    public Set<AlgorithmType> calculatedAlgorithms() {
         return results.keySet();
     }
 
     @NotNull
-    public Map<String, String> getRefactoringsForName(String algorithm) {
+    public List<CalculatedRefactoring> getRefactoringsForType(AlgorithmType algorithm) {
         if (!results.containsKey(algorithm)) {
             throw new IllegalArgumentException("Uncalculated algorithm requested: " + algorithm);
         }

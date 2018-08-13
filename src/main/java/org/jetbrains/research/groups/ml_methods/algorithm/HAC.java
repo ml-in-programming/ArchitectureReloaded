@@ -7,6 +7,7 @@ import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.AlgorithmType;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.*;
 import org.jetbrains.research.groups.ml_methods.algorithm.distance.DistanceCalculator;
 import org.jetbrains.research.groups.ml_methods.algorithm.distance.RelevanceBasedDistanceCalculator;
@@ -30,7 +31,7 @@ public class HAC extends AbstractAlgorithm {
     private static final @NotNull DistanceCalculator distanceCalculator = RelevanceBasedDistanceCalculator.getInstance();
 
     public HAC() {
-        super("HAC", true);
+        super(AlgorithmType.HAC, true);
     }
 
     @Override
