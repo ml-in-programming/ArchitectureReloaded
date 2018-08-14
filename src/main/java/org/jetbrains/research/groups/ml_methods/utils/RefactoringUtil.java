@@ -50,8 +50,10 @@ public final class RefactoringUtil {
                         .filter(r -> r.accept(new RefactoringVisitor<Boolean>() {
                             @Override
                             public @NotNull Boolean visit(final @NotNull MoveMethodRefactoring refactoring) {
-                                if (moveInstanceMethod(refactoring.getMethodOrThrow(), target)) {
-                                    accepted.add(refactoring);
+                                if (canMoveInstanceMethod(refactoring.getMethodOrThrow(), target)) {
+                                    if (moveInstanceMethod(refactoring.getMethodOrThrow(), target)) {
+                                        accepted.add(refactoring);
+                                    }
                                     return false;
                                 } else {
                                     return true;
@@ -122,15 +124,20 @@ public final class RefactoringUtil {
                 .toArray(PsiVariable[]::new);
     }
 
+    private static boolean canMoveInstanceMethod(@NotNull PsiMethod method, PsiClass target) {
+        PsiVariable[] available = getAvailableVariables(method, target);
+        return available.length != 0;
+    }
+
     private static boolean moveInstanceMethod(@NotNull PsiMethod method, PsiClass target) {
         PsiVariable[] available = getAvailableVariables(method, target);
         if (available.length == 0) {
-            return false;
+            throw new IllegalStateException("Cannot move instance method");
         }
         MoveInstanceMethodDialog dialog = new MoveInstanceMethodDialog(method, available);
         dialog.setTitle("Move Instance Method " + getHumanReadableName(method));
         dialog.show();
-        return true;
+        return dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE;
     }
 
     public static Map<CalculatedRefactoring, String> getWarnings(List<CalculatedRefactoring> refactorings, AnalysisScope scope) {
