@@ -1,8 +1,8 @@
 package org.jetbrains.research.groups.ml_methods.utils;
 
 import org.apache.log4j.Logger;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
-import org.jetbrains.research.groups.ml_methods.config.Logging;
+import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
+import org.jetbrains.research.groups.ml_methods.logging.Logging;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +13,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.function.Function;
 
-import static java.nio.file.Files.*;
+import static java.nio.file.Files.createFile;
+import static java.nio.file.Files.write;
 
 public class ExportResultsUtil {
     private static final Logger LOGGER = Logging.getLogger(ExportResultsUtil.class);
@@ -22,14 +23,14 @@ public class ExportResultsUtil {
     private ExportResultsUtil(){
     }
 
-    public static void exportToFile(List<Refactoring> refactorings, String directory) {
+    public static void exportToFile(List<CalculatedRefactoring> refactorings, String directory) {
         exportToFile(refactorings, ExportResultsUtil::defaultRefactoringView, directory);
     }
 
-    public static void exportToFile(List<Refactoring> refactorings, Function<Refactoring, String> show, String directory) {
+    public static void exportToFile(List<CalculatedRefactoring> refactorings, Function<CalculatedRefactoring, String> show, String directory) {
         try {
             StringBuilder results = new StringBuilder();
-            for (Refactoring refactoring: refactorings) {
+            for (CalculatedRefactoring refactoring: refactorings) {
                 results.append(show.apply(refactoring)).append(System.lineSeparator());
             }
             Path path = Paths.get(directory + File.separator + fileName);
@@ -41,7 +42,7 @@ public class ExportResultsUtil {
         }
     }
 
-    private static String defaultRefactoringView(Refactoring r) {
-        return String.format("%s --> %s (%s)", r.getEntityName(), r.getTargetName(), r.getAccuracy());
+    private static String defaultRefactoringView(CalculatedRefactoring r) {
+        return String.format("%s --> %s (%s)", r.getRefactoring().getEntityName(), r.getRefactoring().getTargetName(), r.getAccuracy());
     }
 }

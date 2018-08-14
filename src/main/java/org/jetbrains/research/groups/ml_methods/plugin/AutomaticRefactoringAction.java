@@ -21,8 +21,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmResult;
 import org.jetbrains.research.groups.ml_methods.config.ArchitectureReloadedConfig;
-import org.jetbrains.research.groups.ml_methods.config.Logging;
-import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringExecutionContext;
+import org.jetbrains.research.groups.ml_methods.logging.Logging;
+import org.jetbrains.research.groups.ml_methods.algorithm.RefactoringExecutionContext;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringFeatures;
 import org.jetbrains.research.groups.ml_methods.ui.AlgorithmsSelectionPanel;
 import org.jetbrains.research.groups.ml_methods.ui.RefactoringsToolWindow;
@@ -201,7 +201,7 @@ public class AutomaticRefactoringAction extends BaseAnalysisAction {
             ServiceManager.getService(context.getProject(), RefactoringsToolWindow.class)
                 .show(
                     algorithmsResults,
-                    context.getEntitySearchResult(),
+                    context.getEntitiesStorage(),
                     context.getScope(),
                     context.getMetricsRun()
                 );

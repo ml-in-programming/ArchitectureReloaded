@@ -3,7 +3,7 @@ package org.jetbrains.research.groups.ml_methods.ui;
 import com.intellij.ui.BooleanTableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;
@@ -32,13 +32,13 @@ public class RefactoringsTableModel extends AbstractTableModel {
     static final int ACCURACY_COLUMN_INDEX = 3;
     private static final int COLUMNS_COUNT = 4;
 
-    private final List<Refactoring> refactorings = new ArrayList<>();
+    private final List<CalculatedRefactoring> refactorings = new ArrayList<>();
     private final List<Integer> virtualRows = new ArrayList<>();
     private final boolean[] isSelected;
     private final boolean[] isActive;
     private boolean enableHighlighting;
 
-    RefactoringsTableModel(List<Refactoring> refactorings) {
+    RefactoringsTableModel(List<CalculatedRefactoring> refactorings) {
         this.refactorings.addAll(refactorings);
         isSelected = new boolean[refactorings.size()];
         isActive = new boolean[refactorings.size()];
@@ -62,7 +62,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
         fireTableDataChanged();
     }
 
-    public void setAcceptedRefactorings(@NotNull Set<Refactoring> accepted) {
+    public void setAcceptedRefactorings(@NotNull Set<CalculatedRefactoring> accepted) {
         virtualRows.forEach(i -> {
             if (accepted.contains(refactorings.get(i))) {
                 isActive[i] = false;
@@ -70,8 +70,8 @@ public class RefactoringsTableModel extends AbstractTableModel {
         });
     }
 
-    List<Refactoring> pullSelected() {
-        final List<Refactoring> result = IntStream.range(0, isSelected.length)
+    List<CalculatedRefactoring> pullSelected() {
+        final List<CalculatedRefactoring> result = IntStream.range(0, isSelected.length)
                 .filter(i -> isSelected[i] && isActive[i])
                 .mapToObj(refactorings::get)
                 .collect(Collectors.toList());
@@ -79,7 +79,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
         return result;
     }
 
-    void filter(Predicate<Refactoring> predicate) {
+    void filter(Predicate<CalculatedRefactoring> predicate) {
         virtualRows.clear();
         deselectAll();
         IntStream.range(0, refactorings.size())
@@ -138,9 +138,9 @@ public class RefactoringsTableModel extends AbstractTableModel {
             case SELECTION_COLUMN_INDEX:
                 return isSelected[rowIndex];
             case ENTITY_COLUMN_INDEX:
-                return refactorings.get(rowIndex).getEntityName();
+                return refactorings.get(rowIndex).getRefactoring().getEntityName();
             case MOVE_TO_COLUMN_INDEX:
-                return refactorings.get(rowIndex).getTargetName();
+                return refactorings.get(rowIndex).getRefactoring().getTargetName();
             case ACCURACY_COLUMN_INDEX:
                 final double accuracy = refactorings.get(rowIndex).getAccuracy();
                 return String.format("%.2f", accuracy);
@@ -152,18 +152,18 @@ public class RefactoringsTableModel extends AbstractTableModel {
         final int row = virtualRows.get(virtualRow);
         switch (column) {
             case ENTITY_COLUMN_INDEX:
-                return refactorings.get(row).getEntityName();
+                return refactorings.get(row).getRefactoring().getEntityName();
             case MOVE_TO_COLUMN_INDEX:
-                return refactorings.get(row).getTargetName();
+                return refactorings.get(row).getRefactoring().getTargetName();
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }
 
-    Set<Refactoring> getRefactorings() {
+    Set<CalculatedRefactoring> getRefactorings() {
         return new HashSet<>(refactorings);
     }
 
-    Refactoring getRefactoring(int virtualRow) {
+    CalculatedRefactoring getRefactoring(int virtualRow) {
         return refactorings.get(virtualRows.get(virtualRow));
     }
 

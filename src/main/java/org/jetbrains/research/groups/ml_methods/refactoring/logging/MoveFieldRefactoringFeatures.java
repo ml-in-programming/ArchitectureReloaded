@@ -4,8 +4,8 @@ import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveFieldRefactoring;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveFieldRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 
 import java.util.ArrayList;
 import java.util.List;

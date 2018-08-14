@@ -8,7 +8,7 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
-import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringExecutionContext;
+import org.jetbrains.research.groups.ml_methods.algorithm.RefactoringExecutionContext;
 
 import java.util.Arrays;
 import java.util.Collections;
