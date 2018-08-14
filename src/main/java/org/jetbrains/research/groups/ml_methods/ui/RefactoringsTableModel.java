@@ -134,6 +134,15 @@ public class RefactoringsTableModel extends AbstractTableModel {
         fireTableCellUpdated(virtualRow, columnIndex);
     }
 
+    boolean isAnySelected() {
+        for (boolean isSelectedItem : isSelected) {
+            if (isSelectedItem) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     @Nullable
     public Object getValueAt(int virtualRow, int columnIndex) {

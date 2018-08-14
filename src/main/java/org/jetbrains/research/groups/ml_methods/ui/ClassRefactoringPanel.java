@@ -156,6 +156,7 @@ class ClassRefactoringPanel extends JPanel {
 
         doRefactorButton.setText(ArchitectureReloadedBundle.message(REFACTOR_BUTTON_TEXT_KEY));
         doRefactorButton.addActionListener(e -> refactorSelected());
+        model.addTableModelListener(l -> doRefactorButton.setEnabled(model.isAnySelected()));
         buttonsPanel.add(doRefactorButton);
 
         exportButton.setText(ArchitectureReloadedBundle.message(EXPORT_BUTTON_TEXT_KEY));
