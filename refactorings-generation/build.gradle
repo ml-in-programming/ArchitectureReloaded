@@ -1,0 +1,8 @@
+dependencies {
+    compile project(':core')
+    compile project(':features-extraction')
+    compile project(':MetricsReloaded')
+
+    testCompile project(':core').sourceSets.test.output
+    testCompile files('../lib/hamcrest-all-1.3.jar')
+}

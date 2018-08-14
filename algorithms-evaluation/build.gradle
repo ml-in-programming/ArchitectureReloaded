@@ -1,0 +1,12 @@
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile project(':core')
+    compile project(':features-extraction')
+    // compile project(':utils')
+
+    // testCompile project(':utils').sourceSets.test.output
+    testCompile group: 'org.mockito', name: 'mockito-core', version: '2.19.1'
+}
