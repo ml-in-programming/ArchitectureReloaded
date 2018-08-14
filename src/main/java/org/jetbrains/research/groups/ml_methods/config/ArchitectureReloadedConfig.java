@@ -9,7 +9,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository;
-import org.jetbrains.research.groups.ml_methods.algorithm.RefactoringExecutionContext;
 
 import java.util.Collections;
 import java.util.HashSet;

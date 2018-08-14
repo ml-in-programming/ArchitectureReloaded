@@ -9,8 +9,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.AlgorithmType;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
-import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.logging.Logging;
+import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 
 import java.util.ArrayList;
 import java.util.List;

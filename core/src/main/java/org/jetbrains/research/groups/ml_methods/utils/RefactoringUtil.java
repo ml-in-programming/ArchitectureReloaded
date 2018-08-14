@@ -1,6 +1,5 @@
 package org.jetbrains.research.groups.ml_methods.utils;
 
-import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
@@ -14,8 +13,9 @@ import org.jetbrains.research.groups.ml_methods.refactoring.MoveToClassRefactori
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static org.jetbrains.research.groups.ml_methods.utils.PSIUtil.getHumanReadableName;
 
 public final class RefactoringUtil {
     private static Logger LOG = Logging.getLogger(RefactoringUtil.class);
@@ -23,20 +23,15 @@ public final class RefactoringUtil {
     private RefactoringUtil() {
     }
 
-    public static List<CalculatedRefactoring> filter(List<CalculatedRefactoring> refactorings, AnalysisScope scope) {
-        final Set<String> allUnits = refactorings.stream()
-                .map(it -> it.getRefactoring().getEntityName())
-                .collect(Collectors.toSet());
-        final Map<String, PsiElement> psiElements = PsiSearchUtil.findAllElements(allUnits, scope, Function.identity());
+
+    public static List<CalculatedRefactoring> filter(List<CalculatedRefactoring> refactorings) {
         final List<CalculatedRefactoring> validRefactorings = new ArrayList<>();
         for (CalculatedRefactoring refactoring : refactorings) {
-            final PsiElement element = psiElements.get(refactoring.getRefactoring().getEntityName());
-            if (element != null) {
-                final boolean isMovable = ApplicationManager.getApplication()
-                        .runReadAction((Computable<Boolean>) () -> isMovable(element));
-                if (isMovable) {
-                    validRefactorings.add(refactoring);
-                }
+            final PsiElement element = refactoring.getRefactoring().getEntityOrThrow();
+            final boolean isMovable = ApplicationManager.getApplication()
+                    .runReadAction((Computable<Boolean>) () -> isMovable(element));
+            if (isMovable) {
+                validRefactorings.add(refactoring);
             }
         }
         return validRefactorings;
@@ -52,14 +47,14 @@ public final class RefactoringUtil {
         return false;
     }
 
-    public static Map<String, String> toMap(List<CalculatedRefactoring> refactorings) {
-        return refactorings.stream().collect(Collectors.toMap(it -> it.getRefactoring().getEntityName(),it -> it.getRefactoring().getTargetName()));
-    }
-
+    // TODO: rewrite method, if it is intersection of several sets then arguments must be sets.
     public static List<CalculatedRefactoring> intersect(Collection<List<CalculatedRefactoring>> refactorings) {
         return refactorings.stream()
                 .flatMap(List::stream)
-                .collect(Collectors.groupingBy(refactoring -> refactoring.getRefactoring().getEntityName() + "&" + refactoring.getRefactoring().getTargetName(),
+                .collect(Collectors.groupingBy(refactoring ->
+                                getHumanReadableName(refactoring.getRefactoring().getEntityOrThrow()) +
+                                        "&" +
+                                        getHumanReadableName(refactoring.getRefactoring().getTargetClassOrThrow()),
                         Collectors.toList()))
                 .values().stream()
                 .filter(collection -> collection.size() == refactorings.size())

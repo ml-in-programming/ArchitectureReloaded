@@ -13,8 +13,6 @@ import com.intellij.ui.table.JBTable;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveToClassRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveToClassRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringReporter;
@@ -74,7 +72,7 @@ class ClassRefactoringPanel extends JPanel {
 
         setLayout(new BorderLayout());
         model = new RefactoringsTableModel(RefactoringUtil.filter(refactorings));
-        warnings = RefactoringsApplier.getWarnings(refactorings, scope);
+        warnings = RefactoringsApplier.getWarnings(refactorings);
         isFieldDisabled = false;
         model.filter(getCurrentPredicate(DEFAULT_THRESHOLD));
         setupGUI();

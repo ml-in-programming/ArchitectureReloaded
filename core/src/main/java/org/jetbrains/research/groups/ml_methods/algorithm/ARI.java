@@ -10,10 +10,10 @@ import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.A
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.*;
 import org.jetbrains.research.groups.ml_methods.algorithm.distance.DistanceCalculator;
 import org.jetbrains.research.groups.ml_methods.algorithm.distance.RelevanceBasedDistanceCalculator;
+import org.jetbrains.research.groups.ml_methods.logging.Logging;
 import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveFieldRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
-import org.jetbrains.research.groups.ml_methods.logging.Logging;
 import org.jetbrains.research.groups.ml_methods.utils.AlgorithmsUtil;
 
 import java.util.ArrayList;

@@ -12,7 +12,6 @@ import com.intellij.refactoring.move.moveMembers.MoveMembersDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.refactoring.*;
-import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -27,7 +26,7 @@ public class RefactoringsApplier {
     private RefactoringsApplier() {
     }
 
-    public static Map<CalculatedRefactoring, String> getWarnings(List<CalculatedRefactoring> refactorings, AnalysisScope scope) {
+    static Map<CalculatedRefactoring, String> getWarnings(List<CalculatedRefactoring> refactorings) {
         Map<CalculatedRefactoring, String> warnings = new HashMap<>();
         for (CalculatedRefactoring refactoring : refactorings) {
             final PsiMember element = refactoring.getRefactoring().getEntityOrThrow();
@@ -85,7 +84,7 @@ public class RefactoringsApplier {
         });
     }
 
-    public static boolean checkValid(Collection<MoveToClassRefactoring> refactorings) {
+    private static boolean checkValid(Collection<MoveToClassRefactoring> refactorings) {
         final long uniqueUnits = refactorings.stream()
                 .map(MoveToClassRefactoring::getEntity)
                 .distinct()

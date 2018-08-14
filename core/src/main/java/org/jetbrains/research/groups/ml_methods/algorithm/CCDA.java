@@ -10,11 +10,11 @@ import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesS
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ClassAttributes;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ClassInnerEntityAttributes;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.*;
+import org.jetbrains.research.groups.ml_methods.logging.Logging;
 import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveFieldRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveToClassRefactoring;
-import org.jetbrains.research.groups.ml_methods.logging.Logging;
 import org.jetbrains.research.groups.ml_methods.utils.AlgorithmsUtil;
 
 import java.util.*;
