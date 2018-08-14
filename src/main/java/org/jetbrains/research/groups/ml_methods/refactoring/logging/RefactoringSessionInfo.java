@@ -2,7 +2,7 @@ package org.jetbrains.research.groups.ml_methods.refactoring.logging;
 
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveToClassRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveToClassRefactoring;
 
 import java.util.ArrayList;
 import java.util.List;

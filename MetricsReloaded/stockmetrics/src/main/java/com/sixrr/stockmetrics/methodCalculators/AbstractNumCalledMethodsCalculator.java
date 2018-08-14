@@ -61,6 +61,10 @@ public abstract class AbstractNumCalledMethodsCalculator extends MethodCalculato
         public void visitMethodCallExpression(PsiMethodCallExpression expression) {
             super.visitMethodCallExpression(expression);
 
+            if (!isInsideMethod) {
+                return;
+            }
+
             PsiMethod calledMethod = expression.resolveMethod();
             if (calledMethod == null) {
                 return;

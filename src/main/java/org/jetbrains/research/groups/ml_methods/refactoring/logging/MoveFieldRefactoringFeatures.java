@@ -4,12 +4,11 @@ import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.metricModel.MetricsResult;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveFieldRefactoring;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveFieldRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Subclass of {@link RefactoringFeatures} that contains features of a
@@ -35,13 +34,13 @@ public class MoveFieldRefactoringFeatures extends RefactoringFeatures {
         MetricsResult resultsForClasses = metricsRun.getResultsForCategory(MetricCategory.Class);
 
         targetClassMetricsValues = extractMetricsResultsFor(
-                Objects.requireNonNull(refactoring.getTargetClassOrThrow().getQualifiedName()),
-                resultsForClasses
+            refactoring.getTargetClass().getQualifiedName(),
+            resultsForClasses
         );
 
         sourceClassMetricsValues = extractMetricsResultsFor(
-                Objects.requireNonNull(refactoring.getContainingClassOrThrow().getQualifiedName()),
-                resultsForClasses
+            refactoring.getContainingClass().getQualifiedName(),
+            resultsForClasses
         );
     }
 

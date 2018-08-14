@@ -6,10 +6,10 @@ import com.sixrr.metrics.metricModel.MetricsRun;
 import com.sixrr.stockmetrics.classMetrics.*;
 import com.sixrr.stockmetrics.methodMetrics.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveFieldRefactoring;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveToClassRefactoring;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.RefactoringVisitor;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveFieldRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveToClassRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringVisitor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,7 +52,7 @@ public abstract class RefactoringFeatures {
             new NumGettersMetric(),
             new NumMeaningfulClassesClassMetric(),
             new NumMeaningfulClassesMethodMetric(),
-            new NumMethodsThatCallMetric(),
+            // new NumMethodsThatCallMetric(),
             new NumOverloadsMetric(),
             new NumOverriddenMetric(),
             new NumOverridingMetric(),
@@ -65,7 +65,7 @@ public abstract class RefactoringFeatures {
             new NumPublicFieldsMetric(),
             new NumPublicMethodsMetric(),
             new NumSameClassCalledMethodsMetric(),
-            new NumSameClassMethodsThatCallMetric(),
+            // new NumSameClassMethodsThatCallMetric(),
             new NumSettersMetric(),
             new NumStaticFieldsMetric(),
             new NumStaticMethodsMetric(),

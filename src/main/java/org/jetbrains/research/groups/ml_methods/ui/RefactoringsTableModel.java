@@ -5,7 +5,7 @@ import com.intellij.psi.PsiMember;
 import com.intellij.ui.BooleanTableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;
@@ -233,15 +233,5 @@ public class RefactoringsTableModel extends AbstractTableModel {
             return YELLOW;
         }
         return RED;
-    }
-
-    List<CalculatedRefactoring> getActiveRefactorings() {
-        List<CalculatedRefactoring> active = new ArrayList<>();
-        for (int i = 0; i < getRowCount(); i++) {
-            if (isActive[i]) {
-                active.add(getRefactoring(i));
-            }
-        }
-        return active;
     }
 }

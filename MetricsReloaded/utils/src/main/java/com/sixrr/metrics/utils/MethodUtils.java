@@ -92,7 +92,7 @@ public final class MethodUtils {
         return method.getParameterList().getParametersCount();
     }
 
-    public static String calculateSignature(@NotNull PsiMethod method) {
+    public static String calculateSignature(PsiMethod method) {
         final PsiClass containingClass = method.getContainingClass();
         final String className;
         if (containingClass != null) {

@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveToClassRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveToClassRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringReporter;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringSessionInfo;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
@@ -72,7 +74,7 @@ class ClassRefactoringPanel extends JPanel {
 
         setLayout(new BorderLayout());
         model = new RefactoringsTableModel(RefactoringUtil.filter(refactorings));
-        warnings = RefactoringUtil.getWarnings(refactorings, scope);
+        warnings = RefactoringsApplier.getWarnings(refactorings, scope);
         isFieldDisabled = false;
         model.filter(getCurrentPredicate(DEFAULT_THRESHOLD));
         setupGUI();
@@ -181,7 +183,7 @@ class ClassRefactoringPanel extends JPanel {
 
         RefactoringSessionInfo info = new RefactoringSessionInfo(selectedRefactorings, rejectedRefactorings, metricsRun);
         ClassRefactoringPanel.reporter.log(uuid, info);
-        RefactoringUtil.moveRefactoring(selectedRefactorings, scope, model);
+        RefactoringsApplier.moveRefactoring(selectedRefactorings, scope, model);
 
         table.setEnabled(true);
         doRefactorButton.setEnabled(true);
