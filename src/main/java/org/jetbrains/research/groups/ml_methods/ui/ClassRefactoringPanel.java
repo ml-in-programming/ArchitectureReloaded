@@ -15,8 +15,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveToClassRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringFeatures;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringReporter;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringSessionInfo;
+import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringSessionInfoRenderer;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
 import org.jetbrains.research.groups.ml_methods.utils.ExportResultsUtil;
 import org.jetbrains.research.groups.ml_methods.utils.RefactoringUtil;
@@ -27,10 +29,8 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -62,14 +62,20 @@ class ClassRefactoringPanel extends JPanel {
     private final Map<CalculatedRefactoring, String> warnings;
     private boolean isFieldDisabled;
     private final List<CalculatedRefactoring> refactorings;
-    private final UUID uuid = UUID.randomUUID();
+    private final Map<MoveToClassRefactoring, RefactoringFeatures> refactoringFeatures;
 
-    private final @NotNull MetricsRun metricsRun;
+    private final UUID uuid = UUID.randomUUID();
 
     ClassRefactoringPanel(List<CalculatedRefactoring> refactorings, @NotNull AnalysisScope scope, @NotNull MetricsRun metricsRun) {
         this.scope = scope;
         this.refactorings = refactorings;
-        this.metricsRun = metricsRun;
+
+        refactoringFeatures = refactorings.stream().collect(
+            Collectors.toMap(
+                CalculatedRefactoring::getRefactoring,
+                it -> RefactoringFeatures.extractFeatures(it.getRefactoring(), metricsRun)
+            )
+        );
 
         setLayout(new BorderLayout());
         model = new RefactoringsTableModel(RefactoringUtil.filter(refactorings));
@@ -173,16 +179,25 @@ class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setEnabled(false);
         selectAllButton.setEnabled(false);
         table.setEnabled(false);
-        final List<MoveToClassRefactoring> selectedRefactorings = model.pullSelected().stream().map(CalculatedRefactoring::getRefactoring).collect(Collectors.toList());
-        final List<MoveToClassRefactoring> rejectedRefactorings = new ArrayList<>();
-        for (int index = 0; index < model.getRowCount(); ++index) {
-            rejectedRefactorings.add(model.getRefactoring(index).getRefactoring());
-        }
-        rejectedRefactorings.removeAll(selectedRefactorings);
 
-        RefactoringSessionInfo info = new RefactoringSessionInfo(selectedRefactorings, rejectedRefactorings, metricsRun);
+        final Set<MoveToClassRefactoring> selectableRefactorings = model.pullSelectable().stream().map(CalculatedRefactoring::getRefactoring).collect(Collectors.toSet());
+        final Set<MoveToClassRefactoring> selectedRefactorings = model.pullSelected().stream().map(CalculatedRefactoring::getRefactoring).collect(Collectors.toSet());
+
+        Set<MoveToClassRefactoring> appliedRefactorings = RefactoringsApplier.moveRefactoring(new ArrayList<>(selectedRefactorings), scope, model);
+        model.setAppliedRefactorings(appliedRefactorings.stream().map(m -> new CalculatedRefactoring(m, 0)).collect(Collectors.toSet()));
+
+        Set<MoveToClassRefactoring> uncheckedRefactorings = new HashSet<>(selectableRefactorings);
+        uncheckedRefactorings.removeAll(selectedRefactorings);
+
+        Set<MoveToClassRefactoring> rejectedRefactorings = new HashSet<>(selectedRefactorings);
+        rejectedRefactorings.removeAll(appliedRefactorings);
+
+        RefactoringSessionInfo info = new RefactoringSessionInfo(
+            uncheckedRefactorings.stream().map(refactoringFeatures::get).collect(Collectors.toList()),
+            rejectedRefactorings.stream().map(refactoringFeatures::get).collect(Collectors.toList()),
+            appliedRefactorings.stream().map(refactoringFeatures::get).collect(Collectors.toList())
+        );
         ClassRefactoringPanel.reporter.log(uuid, info);
-        RefactoringsApplier.moveRefactoring(selectedRefactorings, scope, model);
 
         table.setEnabled(true);
         doRefactorButton.setEnabled(true);

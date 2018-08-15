@@ -66,18 +66,28 @@ public class RefactoringsTableModel extends AbstractTableModel {
         fireTableDataChanged();
     }
 
-    public void setAcceptedRefactorings(@NotNull Set<CalculatedRefactoring> accepted) {
+    public void setAppliedRefactorings(@NotNull Set<CalculatedRefactoring> accepted) {
         virtualRows.forEach(i -> {
             if (accepted.contains(refactorings.get(i))) {
                 isActive[i] = false;
+                isSelected[i] = false;
             }
         });
     }
 
+    List<CalculatedRefactoring> pullSelectable() {
+        final List<CalculatedRefactoring> result = virtualRows.stream()
+                .filter(i -> isActive[i])
+                .map(refactorings::get)
+                .collect(Collectors.toList());
+        fireTableDataChanged();
+        return result;
+    }
+
     List<CalculatedRefactoring> pullSelected() {
-        final List<CalculatedRefactoring> result = IntStream.range(0, isSelected.length)
+        final List<CalculatedRefactoring> result = virtualRows.stream()
                 .filter(i -> isSelected[i] && isActive[i])
-                .mapToObj(refactorings::get)
+                .map(refactorings::get)
                 .collect(Collectors.toList());
         fireTableDataChanged();
         return result;

@@ -39,18 +39,20 @@ public class RefactoringsApplier {
         return warnings;
     }
 
-    public static void moveRefactoring(@NotNull List<MoveToClassRefactoring> refactorings,
-                                       @NotNull AnalysisScope scope,
-                                       @Nullable RefactoringsTableModel model) {
+    public static @NotNull Set<MoveToClassRefactoring> moveRefactoring(
+        final @NotNull List<MoveToClassRefactoring> refactorings,
+        final @NotNull AnalysisScope scope,
+        final @Nullable RefactoringsTableModel model
+    ) {
         if (!checkValid(refactorings)) {
             throw new IllegalArgumentException("Units in refactorings list must be unique!");
         }
 
         final Map<PsiClass, List<MoveToClassRefactoring>> groupedRefactorings = prepareRefactorings(refactorings);
-        ApplicationManager.getApplication().runReadAction(() -> {
-            for (Entry<PsiClass, List<MoveToClassRefactoring>> refactoring : groupedRefactorings.entrySet()) {
-                final Set<MoveToClassRefactoring> accepted = new HashSet<>();
+        final Set<MoveToClassRefactoring> accepted = new HashSet<>();
 
+        ApplicationManager.getApplication().runReadAction(() -> {
+            for (Map.Entry<PsiClass, List<MoveToClassRefactoring>> refactoring : groupedRefactorings.entrySet()) {
                 final PsiClass target = refactoring.getKey();
                 final List<MoveToClassRefactoring> filteredRefactorings = refactoring.getValue().stream()
                         .sequential()
@@ -75,13 +77,11 @@ public class RefactoringsApplier {
                         .filter(r -> makeStatic(r.getEntityOrThrow())) // no effect for already static members
                         .collect(Collectors.toList());
 
-                 accepted.addAll(moveMembersRefactoring(filteredRefactorings, target, scope));
-
-                if (model != null) {
-                    model.setAcceptedRefactorings(accepted.stream().map(m -> new CalculatedRefactoring(m, 0)).collect(Collectors.toSet()));
-                }
+                accepted.addAll(moveMembersRefactoring(filteredRefactorings, target, scope));
             }
         });
+
+        return accepted;
     }
 
     private static boolean checkValid(Collection<MoveToClassRefactoring> refactorings) {
