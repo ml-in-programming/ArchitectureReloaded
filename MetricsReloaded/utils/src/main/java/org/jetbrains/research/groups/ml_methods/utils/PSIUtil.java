@@ -1,13 +1,16 @@
 package org.jetbrains.research.groups.ml_methods.utils;
 
+import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.roots.TestSourcesFilter;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static com.sixrr.metrics.utils.MethodUtils.calculateSignature;
 
@@ -102,5 +105,30 @@ public final class PSIUtil {
             return getHumanReadableName(field.getContainingClass()) + "." + field.getName();
         }
         return "???";
+    }
+
+    public static List<VirtualFile> getAllJavaFiles(Project project, boolean includeTestSources) {
+        List<VirtualFile> javaVirtualFiles = new ArrayList<>();
+        ProjectRootManager projectRootManager = ProjectRootManager.getInstance(project);
+        projectRootManager.getFileIndex().iterateContent(virtualFile -> {
+            if (isJavaFile(virtualFile)) {
+                if (includeTestSources && TestSourcesFilter.isTestSources(virtualFile, project)) {
+                    javaVirtualFiles.add(virtualFile);
+                }
+                if (!TestSourcesFilter.isTestSources(virtualFile, project)) {
+                    javaVirtualFiles.add(virtualFile);
+                }
+            }
+            return true;
+        });
+        return javaVirtualFiles;
+    }
+
+    public static int getNumberOfJavaFiles(Project project, boolean includeTestSources) {
+        return getAllJavaFiles(project, includeTestSources).size();
+    }
+
+    public static boolean isJavaFile(VirtualFile virtualFile) {
+        return virtualFile.getFileType().equals(StdFileTypes.JAVA);
     }
 }

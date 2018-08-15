@@ -93,7 +93,7 @@ public class FormatterApplicationStarter implements ApplicationStarter {
                     LOGGER.info(
                             refactoring.getMethod() + "->" +
                                     refactoring.getTargetClass() + System.lineSeparator() +
-                                    extractMethodDeclaration(refactoring.getMethod()))
+                                    extractMethodDeclaration(refactoring.getMethodOrThrow()))
             );
             writer.write(refactorings, out);
         } catch (Throwable throwable) {

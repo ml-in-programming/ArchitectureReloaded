@@ -49,13 +49,13 @@ public class MoveMethodFeaturesExtractor {
         List<FeatureVector> vectors = new ArrayList<>();
         for (MoveMethodRefactoring refactoring : refactorings) {
             MethodInfo methodInfo =
-                repository.getMethodInfo(refactoring.getMethod()).orElseThrow(
+                repository.getMethodInfo(refactoring.getMethodOrThrow()).orElseThrow(
                     () -> new IllegalArgumentException(
                             "Refactoring of method which was not found in scope"
                     )
                 );
 
-            vectors.add(extractor.extract(methodInfo, refactoring.getTargetClass()));
+            vectors.add(extractor.extract(methodInfo, refactoring.getTargetClassOrThrow()));
         }
 
         return vectors;

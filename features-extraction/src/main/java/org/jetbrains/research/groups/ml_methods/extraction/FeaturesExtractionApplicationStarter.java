@@ -89,7 +89,7 @@ public class FeaturesExtractionApplicationStarter implements ApplicationStarter 
                     LOGGER.info(
                             refactoring.getMethod() + "->" +
                                     refactoring.getTargetClass() + System.lineSeparator() +
-                                    extractMethodDeclaration(refactoring.getMethod()))
+                                    extractMethodDeclaration(refactoring.getMethodOrThrow()))
             );
 
             List<FeatureVector> vectors;
