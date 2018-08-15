@@ -1,3 +1,5 @@
+apply plugin: 'idea'
+
 dependencies {
     compile project(':core')
     compile project(':features-extraction')
@@ -5,4 +7,13 @@ dependencies {
 
     testCompile project(':core').sourceSets.test.output
     testCompile files('../lib/hamcrest-all-1.3.jar')
+}
+
+task runRefactoringsGeneration(dependsOn: runIde) {}
+
+gradle.taskGraph.whenReady { graph ->
+    if (graph.hasTask(runRefactoringsGeneration)) {
+        runIde.args 'refactorings-generation', "$pathToProject", "$pathToOutput"
+        runIde.jvmArgs '-Djava.awt.headless=true', '-Xmx2048m'
+    }
 }
