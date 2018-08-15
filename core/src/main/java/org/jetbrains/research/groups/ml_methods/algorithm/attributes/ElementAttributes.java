@@ -6,7 +6,6 @@ import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.CodeEntity;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.RelevantProperties;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 /**

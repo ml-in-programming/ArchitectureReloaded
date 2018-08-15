@@ -23,8 +23,9 @@ public class InputSessionValidator {
     }
 
     private final String OUR_RECORDER_ID = "architecture-reloaded-plugin";
-    private final String ACCEPTED_TAG = "acceptedRefactoringsFeatures";
+    private final String UNCHECKED_TAG = "uncheckedRefactoringsFeatures";
     private final String REJECTED_TAG = "rejectedRefactoringsFeatures";
+    private final String APPLIED_TAG = "appliedRefactoringsFeatures";
 
 
     /** Takes empty @link{SessionValidationResult} which will be populated in @link{#validate} */
@@ -91,9 +92,10 @@ public class InputSessionValidator {
             Gson gson = new Gson();
             LinkedTreeMap json = gson.fromJson(payload, LinkedTreeMap.class);
             if (json.isEmpty()
-                    || !json.containsKey(ACCEPTED_TAG)
+                    || !json.containsKey(UNCHECKED_TAG)
                     || !json.containsKey(REJECTED_TAG)
-                    || ((ArrayList) json.get(ACCEPTED_TAG)).isEmpty()) {
+                    || !json.containsKey(APPLIED_TAG)
+                    || ((ArrayList) json.get(APPLIED_TAG)).isEmpty()) {
                 return false;
             }
         } catch (JsonSyntaxException ignored) {

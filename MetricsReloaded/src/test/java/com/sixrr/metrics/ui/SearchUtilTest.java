@@ -20,10 +20,9 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
-import static org.junit.Assert.*;
-import static com.sixrr.metrics.ui.SearchUtil.*;
+import static com.sixrr.metrics.ui.SearchUtil.tokenizeFilter;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Bas Leijdekkers

@@ -1,19 +1,26 @@
 package org.jetbrains.research.groups.ml_methods.ui;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.ide.util.EditorHelper;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiMember;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveToClassRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringFeatures;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringReporter;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringSessionInfo;
+import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringSessionInfoRenderer;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
 import org.jetbrains.research.groups.ml_methods.utils.ExportResultsUtil;
-import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
 import org.jetbrains.research.groups.ml_methods.utils.RefactoringUtil;
 
 import javax.swing.*;
@@ -22,9 +29,8 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -56,18 +62,24 @@ class ClassRefactoringPanel extends JPanel {
     private final Map<CalculatedRefactoring, String> warnings;
     private boolean isFieldDisabled;
     private final List<CalculatedRefactoring> refactorings;
-    private final UUID uuid = UUID.randomUUID();
+    private final Map<MoveToClassRefactoring, RefactoringFeatures> refactoringFeatures;
 
-    private final @NotNull MetricsRun metricsRun;
+    private final UUID uuid = UUID.randomUUID();
 
     ClassRefactoringPanel(List<CalculatedRefactoring> refactorings, @NotNull AnalysisScope scope, @NotNull MetricsRun metricsRun) {
         this.scope = scope;
         this.refactorings = refactorings;
-        this.metricsRun = metricsRun;
+
+        refactoringFeatures = refactorings.stream().collect(
+            Collectors.toMap(
+                CalculatedRefactoring::getRefactoring,
+                it -> RefactoringFeatures.extractFeatures(it.getRefactoring(), metricsRun)
+            )
+        );
 
         setLayout(new BorderLayout());
-        model = new RefactoringsTableModel(RefactoringUtil.filter(refactorings, scope));
-        warnings = RefactoringsApplier.getWarnings(refactorings, scope);
+        model = new RefactoringsTableModel(RefactoringUtil.filter(refactorings));
+        warnings = RefactoringsApplier.getWarnings(refactorings);
         isFieldDisabled = false;
         model.filter(getCurrentPredicate(DEFAULT_THRESHOLD));
         setupGUI();
@@ -151,6 +163,7 @@ class ClassRefactoringPanel extends JPanel {
 
         doRefactorButton.setText(ArchitectureReloadedBundle.message(REFACTOR_BUTTON_TEXT_KEY));
         doRefactorButton.addActionListener(e -> refactorSelected());
+        model.addTableModelListener(l -> doRefactorButton.setEnabled(model.isAnySelected()));
         buttonsPanel.add(doRefactorButton);
 
         exportButton.setText(ArchitectureReloadedBundle.message(EXPORT_BUTTON_TEXT_KEY));
@@ -166,19 +179,27 @@ class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setEnabled(false);
         selectAllButton.setEnabled(false);
         table.setEnabled(false);
-        final List<MoveToClassRefactoring> selectedRefactorings = model.pullSelected().stream().map(CalculatedRefactoring::getRefactoring).collect(Collectors.toList());
-        final List<MoveToClassRefactoring> rejectedRefactorings = refactorings.stream().map(CalculatedRefactoring::getRefactoring).collect(Collectors.toList());
-        for (int index = 0; index < model.getRowCount(); ++index) {
-            rejectedRefactorings.add(model.getRefactoring(index).getRefactoring());
-        }
-        rejectedRefactorings.removeAll(selectedRefactorings);
 
-        RefactoringSessionInfo info = new RefactoringSessionInfo(selectedRefactorings, rejectedRefactorings, metricsRun);
+        final Set<MoveToClassRefactoring> selectableRefactorings = model.pullSelectable().stream().map(CalculatedRefactoring::getRefactoring).collect(Collectors.toSet());
+        final Set<MoveToClassRefactoring> selectedRefactorings = model.pullSelected().stream().map(CalculatedRefactoring::getRefactoring).collect(Collectors.toSet());
+
+        Set<MoveToClassRefactoring> appliedRefactorings = RefactoringsApplier.moveRefactoring(new ArrayList<>(selectedRefactorings), scope, model);
+        model.setAppliedRefactorings(appliedRefactorings.stream().map(m -> new CalculatedRefactoring(m, 0)).collect(Collectors.toSet()));
+
+        Set<MoveToClassRefactoring> uncheckedRefactorings = new HashSet<>(selectableRefactorings);
+        uncheckedRefactorings.removeAll(selectedRefactorings);
+
+        Set<MoveToClassRefactoring> rejectedRefactorings = new HashSet<>(selectedRefactorings);
+        rejectedRefactorings.removeAll(appliedRefactorings);
+
+        RefactoringSessionInfo info = new RefactoringSessionInfo(
+            uncheckedRefactorings.stream().map(refactoringFeatures::get).collect(Collectors.toList()),
+            rejectedRefactorings.stream().map(refactoringFeatures::get).collect(Collectors.toList()),
+            appliedRefactorings.stream().map(refactoringFeatures::get).collect(Collectors.toList())
+        );
         ClassRefactoringPanel.reporter.log(uuid, info);
-        RefactoringsApplier.moveRefactoring(selectedRefactorings, scope, model);
 
         table.setEnabled(true);
-        doRefactorButton.setEnabled(true);
         selectAllButton.setEnabled(true);
     }
 
@@ -201,7 +222,26 @@ class ClassRefactoringPanel extends JPanel {
         if (selectedRow == -1 || selectedColumn == -1 || selectedColumn == SELECTION_COLUMN_INDEX) {
             return;
         }
-        PsiSearchUtil.openDefinition(model.getUnitAt(selectedRow, selectedColumn), scope);
+        openDefinition(model.getUnitAt(selectedRow, selectedColumn).orElse(null), scope);
+    }
+
+    private static void openDefinition(@Nullable PsiMember unit, AnalysisScope scope) {
+        new Task.Backgroundable(scope.getProject(), "Search Definition"){
+            private PsiElement result;
+
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+                indicator.setIndeterminate(true);
+                result = unit;
+            }
+
+            @Override
+            public void onSuccess() {
+                if (result != null) {
+                    EditorHelper.openInEditor(result);
+                }
+            }
+        }.queue();
     }
 
     private void onSelectionChanged() {

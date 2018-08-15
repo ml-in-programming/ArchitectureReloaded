@@ -1,110 +1,67 @@
 package org.jetbrains.research.groups.ml_methods.refactoring;
 
-import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMember;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
+
+import java.util.Optional;
 
 public abstract class MoveToClassRefactoring {
-    private final @NotNull PsiMember entity;
+    private final @NotNull SmartPsiElementPointer<PsiMember> entity;
 
-    private final @NotNull PsiClass targetClass;
-
-    private final String entityName;
-
-    private final String targetName;
-
-    /**
-     * This factory method is a replacement for old ctor. Previously {@link MoveToClassRefactoring} class
-     * stored only names of entities that were involved in refactoring. Now {@link MoveToClassRefactoring}
-     * class has subclasses for different type of refactorings.
-     * Use constructors of {@link MoveMethodRefactoring} and {@link MoveFieldRefactoring} instead.
-     */
-    @Deprecated
-    public static @NotNull
-    MoveToClassRefactoring createRefactoring(
-        final @NotNull String entity,
-        final @NotNull String target,
-        final boolean isEntityField,
-        final @NotNull AnalysisScope scope
-    ) {
-        String exceptionMessage =
-            "Unable to find PsiElement with given name during Refactoring creation";
-
-        PsiElement entityElement =
-            PsiSearchUtil.findElement(entity, scope)
-                         .orElseThrow(() -> new IllegalArgumentException(exceptionMessage));
-
-        PsiElement targetElement =
-            PsiSearchUtil.findElement(target, scope)
-                         .orElseThrow(() -> new IllegalArgumentException(exceptionMessage));
-
-        if (!isEntityField) {
-            return new MoveMethodRefactoring(
-                (PsiMethod) entityElement,
-                (PsiClass) targetElement
-            );
-        } else {
-            return new MoveFieldRefactoring(
-                (PsiField) entityElement,
-                (PsiClass) targetElement
-            );
-        }
-    }
+    private final @NotNull SmartPsiElementPointer<PsiClass> targetClass;
 
     public MoveToClassRefactoring(
         final @NotNull PsiMember entity,
         final @NotNull PsiClass target
     ) {
-        this.entity = entity;
-        this.targetClass = target;
-
-        this.entityName = ApplicationManager.getApplication().runReadAction(
-            (Computable<String>) () -> PsiSearchUtil.getHumanReadableName(entity)
+        this.entity = ApplicationManager.getApplication().runReadAction(
+                (Computable<SmartPsiElementPointer<PsiMember>>) () ->
+                        SmartPointerManager.getInstance(entity.getProject()).createSmartPsiElementPointer(entity)
         );
-
-        this.targetName = ApplicationManager.getApplication().runReadAction(
-            (Computable<String>) () -> PsiSearchUtil.getHumanReadableName(target)
+        this.targetClass = ApplicationManager.getApplication().runReadAction(
+                (Computable<SmartPsiElementPointer<PsiClass>>) () ->
+                        SmartPointerManager.getInstance(target.getProject()).createSmartPsiElementPointer(target)
         );
     }
 
     /**
      * Returns class which contains moved entity.
      */
-    public abstract @Nullable PsiClass getContainingClass();
+    public abstract @Nullable Optional<PsiClass> getOptionalContainingClass();
+
+    /**
+     * Returns class which contains moved entity.
+     */
+    public abstract @NotNull PsiClass getContainingClass();
+
+    /**
+     * Returns class in which entity is placed in this refactoring
+     */
+    public @NotNull Optional<PsiClass> getOptionalTargetClass() {
+        return Optional.ofNullable(targetClass.getElement());
+    }
+
+    public @NotNull Optional<PsiMember> getOptionalEntity() {
+        return Optional.ofNullable(entity.getElement());
+    }
 
     /**
      * Returns class in which entity is placed in this refactoring
      */
     public @NotNull PsiClass getTargetClass() {
-        return targetClass;
+        return Optional.ofNullable(targetClass.getElement()).orElseThrow(() ->
+                new IllegalStateException("Cannot get target class. Reference is invalid."));
     }
 
     public @NotNull PsiMember getEntity() {
-        return entity;
-    }
-
-    /**
-     * If you need to identify code entity. Then it is better to identify it directly and not
-     * through its name.
-     * Use {@link #getEntity()} instead.
-     */
-    @Deprecated
-    public String getEntityName() {
-        return entityName;
-    }
-
-    /**
-     * If you need to identify code entity. Then it is better to identify it directly and not
-     * through its name.
-     * Use {@link #getTargetClass()} instead.
-     */
-    @Deprecated
-    public String getTargetName() {
-        return targetName;
+        return Optional.ofNullable(entity.getElement()).orElseThrow(() ->
+                new IllegalStateException("Cannot get entity. Reference is invalid."));
     }
 
     public abstract boolean isMoveFieldRefactoring();

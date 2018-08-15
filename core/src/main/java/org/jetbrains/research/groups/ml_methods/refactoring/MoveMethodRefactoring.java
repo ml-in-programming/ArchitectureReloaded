@@ -1,16 +1,22 @@
 package org.jetbrains.research.groups.ml_methods.refactoring;
 
+
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.research.groups.ml_methods.refactoring.MoveToClassRefactoring;
+
+import java.util.Optional;
 
 /**
  * Representation of a refactoring which moves method to a target class.
  */
 public class MoveMethodRefactoring extends MoveToClassRefactoring {
-    private final @NotNull PsiMethod method;
+    private final @NotNull SmartPsiElementPointer<PsiMethod> method;
 
     /**
      * Creates refactoring.
@@ -19,12 +25,15 @@ public class MoveMethodRefactoring extends MoveToClassRefactoring {
      * @param targetClass destination class in which given method is placed in this refactoring.
      */
     public MoveMethodRefactoring(
-        final @NotNull PsiMethod method,
-        final @NotNull PsiClass targetClass
+            final @NotNull PsiMethod method,
+            final @NotNull PsiClass targetClass
     ) {
         super(method, targetClass);
 
-        this.method = method;
+        this.method = ApplicationManager.getApplication().runReadAction(
+                (Computable<SmartPsiElementPointer<PsiMethod>>) () ->
+                        SmartPointerManager.getInstance(method.getProject()).createSmartPsiElementPointer(method)
+        );
     }
 
     @Override
@@ -35,13 +44,29 @@ public class MoveMethodRefactoring extends MoveToClassRefactoring {
     /**
      * Returns method that is moved in this refactoring.
      */
+    public @NotNull Optional<PsiMethod> getOptionalMethod() {
+        return Optional.ofNullable(method.getElement());
+    }
+
+    /**
+     * Returns method that is moved in this refactoring.
+     */
     public @NotNull PsiMethod getMethod() {
-        return method;
+        return Optional.ofNullable(method.getElement()).orElseThrow(() ->
+                new IllegalStateException("Cannot get method. Reference is invalid."));
     }
 
     @Override
-    public @Nullable PsiClass getContainingClass() {
-        return method.getContainingClass();
+    public @Nullable Optional<PsiClass> getOptionalContainingClass() {
+        return method.getElement() == null ?
+                Optional.empty() : Optional.ofNullable(method.getElement().getContainingClass());
+    }
+
+    @NotNull
+    @Override
+    public PsiClass getContainingClass() {
+        return Optional.ofNullable(getMethod().getContainingClass())
+                .orElseThrow(() -> new IllegalStateException("No containing class."));
     }
 
     @NotNull
