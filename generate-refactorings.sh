@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 if [ $# -ne "2" ]; then
     echo "usage: generate-refactorings <path to project> <path to output file>"
     exit 1
