@@ -1,6 +1,6 @@
 <idea-plugin url="https://github.com/ml-in-programming/architectureReloaded">
-    <name>ArchitectureReloaded-AlgorithmsEvaluation</name>
-    <id>ArchitectureReloaded-AlgorithmsEvaluation</id>
+    <name>ArchitectureReloaded-RefactoringGeneration</name>
+    <id>ArchitectureReloaded-RefactoringGeneration</id>
     <depends>com.intellij.modules.lang</depends>
 
     <version>0.1</version>
