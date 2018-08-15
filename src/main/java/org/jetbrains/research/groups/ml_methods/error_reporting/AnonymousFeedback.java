@@ -12,7 +12,6 @@ import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.net.URL;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -20,8 +19,7 @@ import java.util.Map.Entry;
  * Provides functionality to create and send GitHub issues when an exception is thrown by a plugin.
  */
 class AnonymousFeedback {
-
-    private final static String tokenFile = "de/halirutan/mathematica/errorreporting/ScrambledToken.bin";
+    private final static String tokenFile = "errorReporterToken";
     private final static String gitRepoUser = "ml-in-programming";
     private final static String gitRepo = "ArchitectureReloaded";
 
@@ -42,12 +40,7 @@ class AnonymousFeedback {
 
         final SubmittedReportInfo result;
         try {
-            // TODO: erase token
-            final URL resource = AnonymousFeedback.class.getClassLoader().getResource(tokenFile);
-            if (resource == null) {
-                throw new IOException("Could not decrypt access token");
-            }
-            final String gitAccessToken = GitHubAccessTokenScrambler.decrypt(resource.getFile());
+            final String gitAccessToken = GitHubAccessTokenScrambler.decrypt(AnonymousFeedback.class.getResourceAsStream(tokenFile));
 
             GitHubClient client = new GitHubClient();
             client.setOAuth2Token(gitAccessToken);

@@ -6,8 +6,8 @@ import org.apache.commons.codec.binary.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
@@ -52,9 +52,9 @@ public class GitHubAccessTokenScrambler {
         return null;
     }
 
-    static String decrypt(String file) throws Exception {
+    static String decrypt(InputStream inputStream) throws Exception {
         String in;
-        final ObjectInputStream o = new ObjectInputStream(new FileInputStream(file));
+        final ObjectInputStream o = new ObjectInputStream(inputStream);
         in = (String) o.readObject();
         IvParameterSpec iv = new IvParameterSpec(myInitVector.getBytes("UTF-8"));
         SecretKeySpec keySpec = new SecretKeySpec(myKey.getBytes("UTF-8"), "AES");
