@@ -3,7 +3,6 @@ package org.jetbrains.research.groups.ml_methods.algorithm;
 import com.intellij.analysis.AnalysisScope;
 import com.sixrr.metrics.profile.MetricsProfile;
 import org.jetbrains.research.groups.ml_methods.ScopeAbstractTest;
-import org.jetbrains.research.groups.ml_methods.algorithm.RefactoringExecutionContext;
 import org.jetbrains.research.groups.ml_methods.utils.MetricsProfilesUtil;
 
 import java.util.Collections;
@@ -12,7 +11,7 @@ import java.util.function.Consumer;
 @SuppressWarnings("WeakerAccess")
 public abstract class AlgorithmAbstractTest extends ScopeAbstractTest {
     protected final TestCasesCheckers testCasesChecker =
-        new TestCasesCheckers(getAlgorithm().getDescriptionString());
+        new TestCasesCheckers(getAlgorithm().getAlgorithmType());
 
     protected RefactoringExecutionContext createContext(
         AnalysisScope scope,

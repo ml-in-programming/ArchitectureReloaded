@@ -2,13 +2,13 @@ package org.jetbrains.research.groups.ml_methods.extraction;
 
 import com.intellij.analysis.AnalysisScope;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.features.extractors.MoveMethodSingleFeatureExtractor;
 import org.jetbrains.research.groups.ml_methods.extraction.features.vector.FeatureVector;
 import org.jetbrains.research.groups.ml_methods.extraction.features.vector.MoveMethodVectorExtractor;
 import org.jetbrains.research.groups.ml_methods.extraction.info.InfoCollector;
 import org.jetbrains.research.groups.ml_methods.extraction.info.MethodInfo;
 import org.jetbrains.research.groups.ml_methods.extraction.info.MethodInfoRepository;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 
 import java.util.ArrayList;
 import java.util.List;

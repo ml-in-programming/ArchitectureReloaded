@@ -4,7 +4,6 @@ import org.jetbrains.annotations.Contract;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 public class AlgorithmsRepository {
     private static final List<Algorithm> ALGORITHMS = Arrays.asList(

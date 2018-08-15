@@ -22,7 +22,6 @@ import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearcher;
 import org.jetbrains.research.groups.ml_methods.logging.Logging;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -30,6 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 import static org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.AlgorithmType;
+import static org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.getAvailableAlgorithms;
 
 /**
  * Stores all information that might be needed for refactoring suggestions calculation. Can be
@@ -58,7 +58,7 @@ public class RefactoringExecutionContext {
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
                                        @NotNull MetricsProfile profile,
                                        @Nullable Consumer<RefactoringExecutionContext> continuation) {
-        this(project, scope, profile, Arrays.asList(getAvailableAlgorithms()), true, continuation);
+        this(project, scope, profile, getAvailableAlgorithms(), true, continuation);
     }
 
     /**

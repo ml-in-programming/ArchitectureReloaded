@@ -2,12 +2,9 @@ package org.jetbrains.research.groups.ml_methods.extraction.info;
 
 import com.intellij.psi.*;
 import com.sixrr.metrics.utils.MethodUtils;
-import com.sun.xml.internal.xsom.impl.scd.Iterators;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 /**
  * This class contains structural information gathered for a particular method. It stores methods
