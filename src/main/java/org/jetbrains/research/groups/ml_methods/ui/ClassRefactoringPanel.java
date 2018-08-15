@@ -175,6 +175,7 @@ class ClassRefactoringPanel extends JPanel {
         final List<MoveToClassRefactoring> selectedRefactorings = model.pullSelected().stream()
                 .map(CalculatedRefactoring::getRefactoring)
                 .collect(Collectors.toList());
+        // TODO: strange place, active or not selected? Not selected will crash because applied refactorings are not valid.
         final List<MoveToClassRefactoring> rejectedRefactorings = model.getActiveRefactorings().stream()
                 .map(CalculatedRefactoring::getRefactoring)
                 .collect(Collectors.toList());
