@@ -5,9 +5,9 @@ import com.intellij.openapi.project.Project;
 import com.sixrr.metrics.profile.MetricsProfile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
+import org.jetbrains.research.groups.ml_methods.algorithm.RefactoringExecutionContext;
 import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveToClassRefactoring;
-import org.jetbrains.research.groups.ml_methods.algorithm.RefactoringExecutionContext;
 import org.jetbrains.research.groups.ml_methods.utils.MetricsProfilesUtil;
 
 import java.util.Collections;

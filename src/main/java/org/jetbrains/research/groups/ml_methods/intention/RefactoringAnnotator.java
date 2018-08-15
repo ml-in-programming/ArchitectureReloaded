@@ -13,24 +13,27 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
-import org.jetbrains.research.groups.ml_methods.algorithm.RefactoringExecutionContext;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository;
 import org.jetbrains.research.groups.ml_methods.plugin.AutomaticRefactoringAction;
-import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
+import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 
-import java.util.Map;
+import java.util.List;
 
 public class RefactoringAnnotator implements Annotator {
     @Override
     public synchronized void annotate(@NotNull PsiElement psiElement, @NotNull AnnotationHolder annotationHolder) {
-        final Project project = psiElement.getProject();
+        if (!(psiElement instanceof PsiMember)) {
+            return;
+        }
+        final PsiMember psiMember = (PsiMember) psiElement;
+        final Project project = psiMember.getProject();
         final AnalysisScope scope = new AnalysisScope(project);
 
         for (Algorithm algorithm : AlgorithmsRepository.getAvailableAlgorithms()) {
             try {
-                setAnnotations(psiElement,
+                setAnnotations(psiMember,
                         algorithm.getDescriptionString(),
-                        AutomaticRefactoringAction.getInstance(project).getRefactoringsForName(algorithm.getDescriptionString()),
+                        AutomaticRefactoringAction.getInstance(project).getRefactoringsForType(algorithm.getAlgorithmType()),
                         annotationHolder, scope);
             } catch (IllegalArgumentException e) {
                 //ignore
@@ -38,22 +41,25 @@ public class RefactoringAnnotator implements Annotator {
         }
     }
 
-    private static void setAnnotations(@NotNull PsiElement element,
+    private static void setAnnotations(@NotNull PsiMember element,
                                        @NotNull String algorithmName,
-                                       final Map<String, String> refactorings,
+                                       final List<CalculatedRefactoring> refactorings,
                                        @NotNull AnnotationHolder holder,
                                        @NotNull AnalysisScope scope) {
         if (refactorings == null || refactorings.isEmpty()) {
             return;
         }
-        final String name = PsiSearchUtil.getHumanReadableName(element);
-        if (refactorings.containsKey(name)) {
+        final CalculatedRefactoring refactoring = refactorings.stream()
+                .filter(refactoringToCheck -> refactoringToCheck.getRefactoring().getEntityOrThrow().equals(element))
+                .findAny()
+                .orElse(null);
+        if (refactoring != null) {
             final Annotation annotation = holder.createWarningAnnotation(
                     getAnnotationPart(element),
                     String.format("Can be moved to %s (%s)",
-                            refactorings.get(name), algorithmName));
+                            refactoring.getRefactoring().getTargetClassOrThrow().getQualifiedName(), algorithmName));
 
-            annotation.registerFix(new RefactorIntentionAction(name, refactorings.get(name), scope));
+            annotation.registerFix(new RefactorIntentionAction(refactoring.getRefactoring(), scope));
         }
     }
 

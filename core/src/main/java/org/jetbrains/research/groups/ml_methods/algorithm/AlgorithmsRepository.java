@@ -17,6 +17,10 @@ public class AlgorithmsRepository {
         return ALGORITHMS.stream().filter(algorithm -> algorithm.getDescriptionString().equals(algorithmName)).findAny();
     }
 
+    public enum AlgorithmType {
+        ARI, CCDA, HAC
+    }
+
     @Contract(pure = true)
     public static List<Algorithm> getAvailableAlgorithms() {
         return ALGORITHMS;

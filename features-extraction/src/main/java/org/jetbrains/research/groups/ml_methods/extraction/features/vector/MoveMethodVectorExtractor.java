@@ -2,9 +2,9 @@ package org.jetbrains.research.groups.ml_methods.extraction.features.vector;
 
 import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.extraction.info.MethodInfo;
 import org.jetbrains.research.groups.ml_methods.extraction.features.Feature;
 import org.jetbrains.research.groups.ml_methods.extraction.features.extractors.MoveMethodSingleFeatureExtractor;
+import org.jetbrains.research.groups.ml_methods.extraction.info.MethodInfo;
 
 import java.util.ArrayList;
 import java.util.List;

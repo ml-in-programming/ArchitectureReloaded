@@ -11,12 +11,12 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringsLoader;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers.RefactoringsReader;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers.RefactoringsReaders;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers.RefactoringsWriter;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers.RefactoringsWriters;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -93,7 +93,7 @@ public class FormatterApplicationStarter implements ApplicationStarter {
                     LOGGER.info(
                             refactoring.getMethod() + "->" +
                                     refactoring.getTargetClass() + System.lineSeparator() +
-                                    extractMethodDeclaration(refactoring.getMethod()))
+                                    extractMethodDeclaration(refactoring.getMethodOrThrow()))
             );
             writer.write(refactorings, out);
         } catch (Throwable throwable) {

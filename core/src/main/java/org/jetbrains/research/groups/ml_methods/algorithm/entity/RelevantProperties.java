@@ -1,8 +1,5 @@
 package org.jetbrains.research.groups.ml_methods.algorithm.entity;
 
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -10,8 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BinaryOperator;
-
-import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHumanReadableName;
 
 /**
  * A set of properties of an {@link CodeEntity}. A property is a method, a class or a field which has

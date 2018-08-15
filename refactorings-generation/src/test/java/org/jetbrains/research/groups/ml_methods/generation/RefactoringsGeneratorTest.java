@@ -2,11 +2,11 @@ package org.jetbrains.research.groups.ml_methods.generation;
 
 import com.intellij.analysis.AnalysisScope;
 import org.jetbrains.research.groups.ml_methods.ScopeAbstractTest;
-import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.JBRefactoringTextRepresentation;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory.GenerationConstraintType;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 
 import java.util.Arrays;
 import java.util.Collections;

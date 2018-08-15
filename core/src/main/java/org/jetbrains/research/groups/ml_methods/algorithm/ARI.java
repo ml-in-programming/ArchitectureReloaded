@@ -6,13 +6,14 @@ import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
 import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.AlgorithmType;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.*;
 import org.jetbrains.research.groups.ml_methods.algorithm.distance.DistanceCalculator;
 import org.jetbrains.research.groups.ml_methods.algorithm.distance.RelevanceBasedDistanceCalculator;
+import org.jetbrains.research.groups.ml_methods.logging.Logging;
 import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveFieldRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
-import org.jetbrains.research.groups.ml_methods.logging.Logging;
 import org.jetbrains.research.groups.ml_methods.utils.AlgorithmsUtil;
 
 import java.util.ArrayList;
@@ -27,7 +28,7 @@ public class ARI extends AbstractAlgorithm {
     private static final @NotNull DistanceCalculator distanceCalculator = RelevanceBasedDistanceCalculator.getInstance();
 
     public ARI() {
-        super("ARI", true);
+        super(AlgorithmType.ARI, true);
     }
 
     @Override

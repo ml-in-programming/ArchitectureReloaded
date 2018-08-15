@@ -5,7 +5,7 @@ import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.ScopeAbstractTest;
-import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
+import org.jetbrains.research.groups.ml_methods.utils.PSIUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -156,7 +156,7 @@ public class InfoCollectorTest extends ScopeAbstractTest {
             assertSameElements(
                 info.getAccessedFields()
                     .stream()
-                    .map(PsiSearchUtil::getHumanReadableName)
+                    .map(PSIUtil::getHumanReadableName)
                     .collect(Collectors.toList()),
                 validator.getAccessedFields(methodName)
             );

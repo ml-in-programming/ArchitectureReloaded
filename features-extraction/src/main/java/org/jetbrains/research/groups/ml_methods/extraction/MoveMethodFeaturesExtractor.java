@@ -2,13 +2,13 @@ package org.jetbrains.research.groups.ml_methods.extraction;
 
 import com.intellij.analysis.AnalysisScope;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.features.extractors.MoveMethodSingleFeatureExtractor;
 import org.jetbrains.research.groups.ml_methods.extraction.features.vector.FeatureVector;
 import org.jetbrains.research.groups.ml_methods.extraction.features.vector.MoveMethodVectorExtractor;
 import org.jetbrains.research.groups.ml_methods.extraction.info.InfoCollector;
 import org.jetbrains.research.groups.ml_methods.extraction.info.MethodInfo;
 import org.jetbrains.research.groups.ml_methods.extraction.info.MethodInfoRepository;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,13 +49,13 @@ public class MoveMethodFeaturesExtractor {
         List<FeatureVector> vectors = new ArrayList<>();
         for (MoveMethodRefactoring refactoring : refactorings) {
             MethodInfo methodInfo =
-                repository.getMethodInfo(refactoring.getMethod()).orElseThrow(
+                repository.getMethodInfo(refactoring.getMethodOrThrow()).orElseThrow(
                     () -> new IllegalArgumentException(
                             "Refactoring of method which was not found in scope"
                     )
                 );
 
-            vectors.add(extractor.extract(methodInfo, refactoring.getTargetClass()));
+            vectors.add(extractor.extract(methodInfo, refactoring.getTargetClassOrThrow()));
         }
 
         return vectors;

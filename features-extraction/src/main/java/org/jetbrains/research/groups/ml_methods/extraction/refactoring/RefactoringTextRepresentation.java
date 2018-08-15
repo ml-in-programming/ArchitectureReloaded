@@ -44,8 +44,8 @@ public abstract class RefactoringTextRepresentation {
     }
 
     public RefactoringTextRepresentation(MoveMethodRefactoring refactoring) {
-        PsiMethod method = refactoring.getMethod();
-        PsiClass targetClass = refactoring.getTargetClass();
+        PsiMethod method = refactoring.getMethodOrThrow();
+        PsiClass targetClass = refactoring.getTargetClassOrThrow();
         if (method.getContainingClass() == null || method.getContainingClass().getQualifiedName() == null) {
             String errorMessage = "Refactorings without source qualified names are not supported. " +
                     "Problem during creating refactoring for method " + method.getName() + ".";

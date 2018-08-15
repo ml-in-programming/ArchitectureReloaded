@@ -15,19 +15,21 @@ import org.jetbrains.research.groups.ml_methods.ui.RefactoringsApplier;
 
 import java.util.Collections;
 
+import static org.jetbrains.research.groups.ml_methods.utils.PSIUtil.getHumanReadableName;
+
 public class RefactorIntentionAction extends BaseIntentionAction {
     private final AnalysisScope scope;
     private final MoveToClassRefactoring refactoring;
 
-    RefactorIntentionAction(String unit, String to, AnalysisScope scope) {
+    RefactorIntentionAction(MoveToClassRefactoring refactoring, AnalysisScope scope) {
         this.scope = scope;
-        this.refactoring = MoveToClassRefactoring.createRefactoring(unit, to, false, scope);
+        this.refactoring = refactoring;
     }
 
     @NotNull
     @Override
     public String getText() {
-        return String.format("Move to %s", refactoring.getTargetName());
+        return String.format("Move to %s", getHumanReadableName(refactoring.getTargetClassOrThrow()));
     }
 
     @Nls
