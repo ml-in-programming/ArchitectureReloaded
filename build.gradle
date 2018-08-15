@@ -25,6 +25,7 @@ repositories {
 apply plugin: 'idea'
 
 dependencies {
+  compile group: 'org.eclipse.mylyn.github', name: 'org.eclipse.egit.github.core', version: '2.1.5'
   runtime 'com.google.code.gson:gson:2.8.5'
   compile project(':MetricsReloaded')
   compile project(':core')
