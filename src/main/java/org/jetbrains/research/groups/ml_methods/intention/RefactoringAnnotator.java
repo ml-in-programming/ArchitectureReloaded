@@ -14,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository;
+import org.jetbrains.research.groups.ml_methods.algorithm.RefactoringExecutionContext;
+import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository;
 import org.jetbrains.research.groups.ml_methods.plugin.AutomaticRefactoringAction;
 import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 

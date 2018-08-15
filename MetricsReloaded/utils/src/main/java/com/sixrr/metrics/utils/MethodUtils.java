@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 public final class MethodUtils {
 
@@ -62,6 +63,14 @@ public final class MethodUtils {
 
     public static boolean isStatic(PsiModifierListOwner unit) {
         return unit.hasModifierProperty(PsiModifier.STATIC);
+    }
+
+    public static boolean isSynchronized(PsiModifierListOwner unit) {
+        return unit.hasModifierProperty(PsiModifier.SYNCHRONIZED);
+    }
+
+    public static boolean isOverriding(PsiMethod method) {
+        return method.findSuperMethods().length != 0;
     }
 
     public static boolean isPrivate(PsiModifierListOwner unit) {
@@ -223,8 +232,24 @@ public final class MethodUtils {
         return false;
     }
 
-    public static boolean isOverriding(PsiMethod method) {
-        return method.findSuperMethods().length != 0;
+    public static boolean isPublic(PsiMethod method) {
+        if (method.hasModifierProperty(PsiModifier.PUBLIC)) {
+            return true;
+        }
+
+        PsiClass containingClass = method.getContainingClass();
+
+        return containingClass != null && containingClass.isInterface();
+    }
+
+    public static String extractMethodDeclaration(final @NotNull PsiMethod method) {
+        String code = method.getText();
+
+        code = Pattern.compile("/\\*.*?\\*/", Pattern.DOTALL).matcher(code).replaceAll("");
+        code = Pattern.compile("//.*?$", Pattern.DOTALL | Pattern.MULTILINE).matcher(code).replaceAll("");
+
+        code = Pattern.compile("\\{.*}", Pattern.DOTALL).matcher(code).replaceAll("");
+        return code.trim();
     }
 
     /**

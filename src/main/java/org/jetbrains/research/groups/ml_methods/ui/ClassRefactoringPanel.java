@@ -27,6 +27,7 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -172,13 +173,12 @@ class ClassRefactoringPanel extends JPanel {
         doRefactorButton.setEnabled(false);
         selectAllButton.setEnabled(false);
         table.setEnabled(false);
-        final List<MoveToClassRefactoring> selectedRefactorings = model.pullSelected().stream()
-                .map(CalculatedRefactoring::getRefactoring)
-                .collect(Collectors.toList());
-        // TODO: strange place, active or not selected? Not selected will crash because applied refactorings are not valid.
-        final List<MoveToClassRefactoring> rejectedRefactorings = model.getActiveRefactorings().stream()
-                .map(CalculatedRefactoring::getRefactoring)
-                .collect(Collectors.toList());
+        final List<MoveToClassRefactoring> selectedRefactorings = model.pullSelected().stream().map(CalculatedRefactoring::getRefactoring).collect(Collectors.toList());
+        final List<MoveToClassRefactoring> rejectedRefactorings = new ArrayList<>();
+        for (int index = 0; index < model.getRowCount(); ++index) {
+            rejectedRefactorings.add(model.getRefactoring(index).getRefactoring());
+        }
+        rejectedRefactorings.removeAll(selectedRefactorings);
 
         RefactoringSessionInfo info = new RefactoringSessionInfo(selectedRefactorings, rejectedRefactorings, metricsRun);
         ClassRefactoringPanel.reporter.log(uuid, info);

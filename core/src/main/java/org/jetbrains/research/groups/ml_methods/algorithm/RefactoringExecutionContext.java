@@ -38,12 +38,6 @@ import static org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepos
 public class RefactoringExecutionContext {
     private static final Logger LOGGER = Logging.getLogger(RefactoringExecutionContext.class);
 
-    private static final List<Algorithm> ALGORITHMS = Arrays.asList(
-        new ARI(),
-        new CCDA(),
-        new HAC()
-    );
-
     @NotNull
     private final MetricsRunImpl metricsRun = new MetricsRunImpl();
     private final Project project;
@@ -200,9 +194,5 @@ public class RefactoringExecutionContext {
     @NotNull
     public MetricsProfile getProfile() {
         return profile;
-    }
-
-    public static Algorithm[] getAvailableAlgorithms() {
-        return ALGORITHMS.toArray(new Algorithm[ALGORITHMS.size()]);
     }
 }
