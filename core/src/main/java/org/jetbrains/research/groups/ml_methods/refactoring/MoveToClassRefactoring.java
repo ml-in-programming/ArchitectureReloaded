@@ -55,12 +55,12 @@ public abstract class MoveToClassRefactoring {
      * Returns class in which entity is placed in this refactoring
      */
     public @NotNull PsiClass getTargetClassOrThrow() {
-        return getTargetClass().orElseThrow(() ->
+        return Optional.ofNullable(targetClass.getElement()).orElseThrow(() ->
                 new IllegalStateException("Cannot get target class. Reference is invalid."));
     }
 
     public @NotNull PsiMember getEntityOrThrow() {
-        return getEntity().orElseThrow(() ->
+        return Optional.ofNullable(entity.getElement()).orElseThrow(() ->
                 new IllegalStateException("Cannot get entity. Reference is invalid."));
     }
 

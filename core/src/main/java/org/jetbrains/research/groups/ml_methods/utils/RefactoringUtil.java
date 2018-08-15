@@ -72,7 +72,7 @@ public final class RefactoringUtil {
     public static List<CalculatedRefactoring> combine(Collection<List<CalculatedRefactoring>> refactorings) {
         return refactorings.stream()
                 .flatMap(List::stream)
-                .collect(Collectors.groupingBy(it -> it.getRefactoring().getEntity(), Collectors.toList()))
+                .collect(Collectors.groupingBy(it -> it.getRefactoring().getEntityOrThrow(), Collectors.toList()))
                 .entrySet().stream()
                 .map(entry -> combine(entry.getValue(), refactorings.size()))
                 .filter(Objects::nonNull)

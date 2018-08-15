@@ -86,7 +86,7 @@ public class RefactoringsApplier {
 
     private static boolean checkValid(Collection<MoveToClassRefactoring> refactorings) {
         final long uniqueUnits = refactorings.stream()
-                .map(MoveToClassRefactoring::getEntity)
+                .map(MoveToClassRefactoring::getEntityOrThrow)
                 .distinct()
                 .count();
         return uniqueUnits == refactorings.size();
