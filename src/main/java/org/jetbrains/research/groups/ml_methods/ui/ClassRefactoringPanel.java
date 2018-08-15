@@ -200,7 +200,6 @@ class ClassRefactoringPanel extends JPanel {
         ClassRefactoringPanel.reporter.log(uuid, info);
 
         table.setEnabled(true);
-        doRefactorButton.setEnabled(true);
         selectAllButton.setEnabled(true);
     }
 

@@ -73,24 +73,21 @@ public class RefactoringsTableModel extends AbstractTableModel {
                 isSelected[i] = false;
             }
         });
+        fireTableDataChanged();
     }
 
     List<CalculatedRefactoring> pullSelectable() {
-        final List<CalculatedRefactoring> result = virtualRows.stream()
+        return virtualRows.stream()
                 .filter(i -> isActive[i])
                 .map(refactorings::get)
                 .collect(Collectors.toList());
-        fireTableDataChanged();
-        return result;
     }
 
     List<CalculatedRefactoring> pullSelected() {
-        final List<CalculatedRefactoring> result = virtualRows.stream()
+        return virtualRows.stream()
                 .filter(i -> isSelected[i] && isActive[i])
                 .map(refactorings::get)
                 .collect(Collectors.toList());
-        fireTableDataChanged();
-        return result;
     }
 
     void filter(Predicate<CalculatedRefactoring> predicate) {
