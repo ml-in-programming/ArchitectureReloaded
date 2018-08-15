@@ -44,28 +44,28 @@ public class MoveMethodRefactoring extends MoveToClassRefactoring {
     /**
      * Returns method that is moved in this refactoring.
      */
-    public @NotNull Optional<PsiMethod> getMethod() {
+    public @NotNull Optional<PsiMethod> getOptionalMethod() {
         return Optional.ofNullable(method.getElement());
     }
 
     /**
      * Returns method that is moved in this refactoring.
      */
-    public @NotNull PsiMethod getMethodOrThrow() {
-        return getMethod().orElseThrow(() ->
+    public @NotNull PsiMethod getMethod() {
+        return Optional.ofNullable(method.getElement()).orElseThrow(() ->
                 new IllegalStateException("Cannot get method. Reference is invalid."));
     }
 
     @Override
-    public @Nullable Optional<PsiClass> getContainingClass() {
+    public @Nullable Optional<PsiClass> getOptionalContainingClass() {
         return method.getElement() == null ?
                 Optional.empty() : Optional.ofNullable(method.getElement().getContainingClass());
     }
 
     @NotNull
     @Override
-    public PsiClass getContainingClassOrThrow() {
-        return Optional.ofNullable(getMethodOrThrow().getContainingClass())
+    public PsiClass getContainingClass() {
+        return Optional.ofNullable(getMethod().getContainingClass())
                 .orElseThrow(() -> new IllegalStateException("No containing class."));
     }
 

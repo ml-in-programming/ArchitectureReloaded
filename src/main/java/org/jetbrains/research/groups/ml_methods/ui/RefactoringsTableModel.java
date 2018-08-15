@@ -161,11 +161,11 @@ public class RefactoringsTableModel extends AbstractTableModel {
             case SELECTION_COLUMN_INDEX:
                 return isSelected[rowIndex];
             case ENTITY_COLUMN_INDEX:
-                Optional<PsiMember> method = refactorings.get(rowIndex).getRefactoring().getEntity();
+                Optional<PsiMember> method = refactorings.get(rowIndex).getRefactoring().getOptionalEntity();
                 return method.isPresent() ? getHumanReadableName(method.get()) :
                         ArchitectureReloadedBundle.message("java.member.is.not.valid");
             case MOVE_TO_COLUMN_INDEX:
-                Optional<PsiClass> targetClass = refactorings.get(rowIndex).getRefactoring().getTargetClass();
+                Optional<PsiClass> targetClass = refactorings.get(rowIndex).getRefactoring().getOptionalTargetClass();
                 return targetClass.isPresent() ? getHumanReadableName(targetClass.get()) :
                         ArchitectureReloadedBundle.message("target.class.is.not.valid");
             case ACCURACY_COLUMN_INDEX:
@@ -179,9 +179,9 @@ public class RefactoringsTableModel extends AbstractTableModel {
         final int row = virtualRows.get(virtualRow);
         switch (column) {
             case ENTITY_COLUMN_INDEX:
-                return refactorings.get(row).getRefactoring().getEntity();
+                return refactorings.get(row).getRefactoring().getOptionalEntity();
             case MOVE_TO_COLUMN_INDEX:
-                return refactorings.get(row).getRefactoring().getTargetClass();
+                return refactorings.get(row).getRefactoring().getOptionalTargetClass();
         }
         throw new IndexOutOfBoundsException("Unexpected column index: " + column);
     }

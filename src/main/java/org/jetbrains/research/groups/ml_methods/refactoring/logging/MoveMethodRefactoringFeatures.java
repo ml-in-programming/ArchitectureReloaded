@@ -38,17 +38,17 @@ public class MoveMethodRefactoringFeatures extends RefactoringFeatures {
         MetricsResult resultsForMethods = metricsRun.getResultsForCategory(MetricCategory.Method);
 
         targetClassMetricsValues = extractMetricsResultsFor(
-                Objects.requireNonNull(refactoring.getTargetClassOrThrow().getQualifiedName()),
+                Objects.requireNonNull(refactoring.getTargetClass().getQualifiedName()),
                 resultsForClasses
         );
 
         sourceClassMetricsValues = extractMetricsResultsFor(
-                Objects.requireNonNull(refactoring.getContainingClassOrThrow().getQualifiedName()),
+                Objects.requireNonNull(refactoring.getContainingClass().getQualifiedName()),
                 resultsForClasses
         );
 
         methodMetricsValues = extractMetricsResultsFor(
-            MethodUtils.calculateSignature(refactoring.getMethodOrThrow()),
+            MethodUtils.calculateSignature(refactoring.getMethod()),
             resultsForMethods
         );
     }

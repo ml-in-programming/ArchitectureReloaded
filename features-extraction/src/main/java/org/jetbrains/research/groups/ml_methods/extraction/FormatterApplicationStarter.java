@@ -92,8 +92,8 @@ public class FormatterApplicationStarter implements ApplicationStarter {
             refactorings.forEach(refactoring ->
                     LOGGER.info(
                             refactoring.getMethod() + "->" +
-                                    refactoring.getTargetClassOrThrow() + System.lineSeparator() +
-                                    extractMethodDeclaration(refactoring.getMethodOrThrow()))
+                                    refactoring.getTargetClass() + System.lineSeparator() +
+                                    extractMethodDeclaration(refactoring.getMethod()))
             );
             writer.write(refactorings, out);
         } catch (Throwable throwable) {

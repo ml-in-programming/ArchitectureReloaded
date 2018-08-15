@@ -23,8 +23,8 @@ class TestCasesCheckers {
 
     private static Map<String, String> toMap(List<CalculatedRefactoring> refactorings) {
         return refactorings.stream().collect(Collectors.toMap(it ->
-                getHumanReadableName(it.getRefactoring().getEntityOrThrow()),
-                it -> getHumanReadableName(it.getRefactoring().getTargetClassOrThrow())));
+                getHumanReadableName(it.getRefactoring().getEntity()),
+                it -> getHumanReadableName(it.getRefactoring().getTargetClass())));
     }
 
     @NotNull

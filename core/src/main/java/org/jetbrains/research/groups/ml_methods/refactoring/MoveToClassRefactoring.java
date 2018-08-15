@@ -33,33 +33,33 @@ public abstract class MoveToClassRefactoring {
     /**
      * Returns class which contains moved entity.
      */
-    public abstract @Nullable Optional<PsiClass> getContainingClass();
+    public abstract @Nullable Optional<PsiClass> getOptionalContainingClass();
 
     /**
      * Returns class which contains moved entity.
      */
-    public abstract @NotNull PsiClass getContainingClassOrThrow();
+    public abstract @NotNull PsiClass getContainingClass();
 
     /**
      * Returns class in which entity is placed in this refactoring
      */
-    public @NotNull Optional<PsiClass> getTargetClass() {
+    public @NotNull Optional<PsiClass> getOptionalTargetClass() {
         return Optional.ofNullable(targetClass.getElement());
     }
 
-    public @NotNull Optional<PsiMember> getEntity() {
+    public @NotNull Optional<PsiMember> getOptionalEntity() {
         return Optional.ofNullable(entity.getElement());
     }
 
     /**
      * Returns class in which entity is placed in this refactoring
      */
-    public @NotNull PsiClass getTargetClassOrThrow() {
+    public @NotNull PsiClass getTargetClass() {
         return Optional.ofNullable(targetClass.getElement()).orElseThrow(() ->
                 new IllegalStateException("Cannot get target class. Reference is invalid."));
     }
 
-    public @NotNull PsiMember getEntityOrThrow() {
+    public @NotNull PsiMember getEntity() {
         return Optional.ofNullable(entity.getElement()).orElseThrow(() ->
                 new IllegalStateException("Cannot get entity. Reference is invalid."));
     }

@@ -43,28 +43,28 @@ public class MoveFieldRefactoring extends MoveToClassRefactoring {
     /**
      * Returns field that is moved in this refactoring.
      */
-    public @NotNull Optional<PsiField> getField() {
+    public @NotNull Optional<PsiField> getOptionalField() {
         return Optional.ofNullable(field.getElement());
     }
 
     /**
      * Returns field that is moved in this refactoring.
      */
-    public @NotNull PsiField getFieldOrThrow() {
-        return getField().orElseThrow(() ->
+    public @NotNull PsiField getField() {
+        return Optional.ofNullable(field.getElement()).orElseThrow(() ->
                 new IllegalStateException("Cannot get field. Reference is invalid."));
     }
 
     @Override
-    public @Nullable Optional<PsiClass> getContainingClass() {
+    public @Nullable Optional<PsiClass> getOptionalContainingClass() {
         return field.getElement() == null ?
                 Optional.empty() : Optional.ofNullable(field.getElement().getContainingClass());
     }
 
     @NotNull
     @Override
-    public PsiClass getContainingClassOrThrow() {
-        return Optional.ofNullable(getFieldOrThrow().getContainingClass())
+    public PsiClass getContainingClass() {
+        return Optional.ofNullable(getField().getContainingClass())
                 .orElseThrow(() -> new IllegalStateException("No containing class."));
     }
 

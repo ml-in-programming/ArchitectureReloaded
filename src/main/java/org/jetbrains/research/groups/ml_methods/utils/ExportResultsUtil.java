@@ -47,8 +47,8 @@ public class ExportResultsUtil {
     }
 
     private static String defaultRefactoringView(CalculatedRefactoring r) {
-        Optional<PsiMember> member = r.getRefactoring().getEntity();
-        Optional<PsiClass> target = r.getRefactoring().getTargetClass();
+        Optional<PsiMember> member = r.getRefactoring().getOptionalEntity();
+        Optional<PsiClass> target = r.getRefactoring().getOptionalTargetClass();
         return String.format("%s --> %s (%s)",
                 member.isPresent() ?
                         getHumanReadableName(member.get()) :

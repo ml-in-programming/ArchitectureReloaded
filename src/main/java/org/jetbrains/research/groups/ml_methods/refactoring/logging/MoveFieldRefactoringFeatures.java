@@ -35,12 +35,12 @@ public class MoveFieldRefactoringFeatures extends RefactoringFeatures {
         MetricsResult resultsForClasses = metricsRun.getResultsForCategory(MetricCategory.Class);
 
         targetClassMetricsValues = extractMetricsResultsFor(
-                Objects.requireNonNull(refactoring.getTargetClassOrThrow().getQualifiedName()),
+                Objects.requireNonNull(refactoring.getTargetClass().getQualifiedName()),
                 resultsForClasses
         );
 
         sourceClassMetricsValues = extractMetricsResultsFor(
-                Objects.requireNonNull(refactoring.getContainingClassOrThrow().getQualifiedName()),
+                Objects.requireNonNull(refactoring.getContainingClass().getQualifiedName()),
                 resultsForClasses
         );
     }

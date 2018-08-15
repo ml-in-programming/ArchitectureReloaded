@@ -27,7 +27,7 @@ public final class RefactoringUtil {
     public static List<CalculatedRefactoring> filter(List<CalculatedRefactoring> refactorings) {
         final List<CalculatedRefactoring> validRefactorings = new ArrayList<>();
         for (CalculatedRefactoring refactoring : refactorings) {
-            final PsiElement element = refactoring.getRefactoring().getEntityOrThrow();
+            final PsiElement element = refactoring.getRefactoring().getEntity();
             final boolean isMovable = ApplicationManager.getApplication()
                     .runReadAction((Computable<Boolean>) () -> isMovable(element));
             if (isMovable) {
@@ -52,9 +52,9 @@ public final class RefactoringUtil {
         return refactorings.stream()
                 .flatMap(List::stream)
                 .collect(Collectors.groupingBy(refactoring ->
-                                getHumanReadableName(refactoring.getRefactoring().getEntityOrThrow()) +
+                                getHumanReadableName(refactoring.getRefactoring().getEntity()) +
                                         "&" +
-                                        getHumanReadableName(refactoring.getRefactoring().getTargetClassOrThrow()),
+                                        getHumanReadableName(refactoring.getRefactoring().getTargetClass()),
                         Collectors.toList()))
                 .values().stream()
                 .filter(collection -> collection.size() == refactorings.size())
@@ -72,7 +72,7 @@ public final class RefactoringUtil {
     public static List<CalculatedRefactoring> combine(Collection<List<CalculatedRefactoring>> refactorings) {
         return refactorings.stream()
                 .flatMap(List::stream)
-                .collect(Collectors.groupingBy(it -> it.getRefactoring().getEntityOrThrow(), Collectors.toList()))
+                .collect(Collectors.groupingBy(it -> it.getRefactoring().getEntity(), Collectors.toList()))
                 .entrySet().stream()
                 .map(entry -> combine(entry.getValue(), refactorings.size()))
                 .filter(Objects::nonNull)

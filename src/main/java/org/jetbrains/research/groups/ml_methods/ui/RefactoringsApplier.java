@@ -29,8 +29,8 @@ public class RefactoringsApplier {
     static Map<CalculatedRefactoring, String> getWarnings(List<CalculatedRefactoring> refactorings) {
         Map<CalculatedRefactoring, String> warnings = new HashMap<>();
         for (CalculatedRefactoring refactoring : refactorings) {
-            final PsiMember element = refactoring.getRefactoring().getEntityOrThrow();
-            final PsiClass target = refactoring.getRefactoring().getTargetClassOrThrow();
+            final PsiMember element = refactoring.getRefactoring().getEntity();
+            final PsiClass target = refactoring.getRefactoring().getTargetClass();
             String warning;
             warning = ApplicationManager.getApplication()
                     .runReadAction((Computable<String>) () -> getWarning(element, target));
@@ -59,8 +59,8 @@ public class RefactoringsApplier {
                         .filter(r -> r.accept(new RefactoringVisitor<Boolean>() {
                             @Override
                             public @NotNull Boolean visit(final @NotNull MoveMethodRefactoring refactoring) {
-                                if (canMoveInstanceMethod(refactoring.getMethodOrThrow(), target)) {
-                                    if (moveInstanceMethod(refactoring.getMethodOrThrow(), target)) {
+                                if (canMoveInstanceMethod(refactoring.getMethod(), target)) {
+                                    if (moveInstanceMethod(refactoring.getMethod(), target)) {
                                         accepted.add(refactoring);
                                     }
                                     return false;
@@ -74,7 +74,7 @@ public class RefactoringsApplier {
                                 return true;
                             }
                         }))
-                        .filter(r -> makeStatic(r.getEntityOrThrow())) // no effect for already static members
+                        .filter(r -> makeStatic(r.getEntity())) // no effect for already static members
                         .collect(Collectors.toList());
 
                 accepted.addAll(moveMembersRefactoring(filteredRefactorings, target, scope));
@@ -86,7 +86,7 @@ public class RefactoringsApplier {
 
     private static boolean checkValid(Collection<MoveToClassRefactoring> refactorings) {
         final long uniqueUnits = refactorings.stream()
-                .map(MoveToClassRefactoring::getEntityOrThrow)
+                .map(MoveToClassRefactoring::getEntity)
                 .distinct()
                 .count();
         return uniqueUnits == refactorings.size();
@@ -96,7 +96,7 @@ public class RefactoringsApplier {
             final @NotNull List<MoveToClassRefactoring> refactorings
     ) {
         return refactorings.stream().collect(
-                Collectors.groupingBy(MoveToClassRefactoring::getTargetClassOrThrow, Collectors.toList())
+                Collectors.groupingBy(MoveToClassRefactoring::getTargetClass, Collectors.toList())
         );
     }
 
@@ -143,11 +143,11 @@ public class RefactoringsApplier {
     private static Set<MoveToClassRefactoring> moveMembersRefactoring(Collection<MoveToClassRefactoring> elements, PsiClass targetClass,
                                                                       AnalysisScope scope) {
         final Map<PsiClass, Set<MoveToClassRefactoring>> groupByCurrentClass = elements.stream()
-                .collect(groupingBy((MoveToClassRefactoring it) -> it.getEntityOrThrow().getContainingClass(), Collectors.toSet()));
+                .collect(groupingBy((MoveToClassRefactoring it) -> it.getEntity().getContainingClass(), Collectors.toSet()));
 
         final Set<MoveToClassRefactoring> accepted = new HashSet<>();
         for (Entry<PsiClass, Set<MoveToClassRefactoring>> movement : groupByCurrentClass.entrySet()) {
-            final Set<PsiMember> members = movement.getValue().stream().map(MoveToClassRefactoring::getEntityOrThrow).collect(Collectors.toSet());
+            final Set<PsiMember> members = movement.getValue().stream().map(MoveToClassRefactoring::getEntity).collect(Collectors.toSet());
             MoveMembersDialog dialog = new MoveMembersDialog(scope.getProject(), movement.getKey(), targetClass,
                     members, null);
             TransactionGuard.getInstance().submitTransactionAndWait(dialog::show);

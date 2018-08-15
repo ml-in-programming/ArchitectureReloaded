@@ -29,7 +29,7 @@ public class RefactorIntentionAction extends BaseIntentionAction {
     @NotNull
     @Override
     public String getText() {
-        return String.format("Move to %s", getHumanReadableName(refactoring.getTargetClassOrThrow()));
+        return String.format("Move to %s", getHumanReadableName(refactoring.getTargetClass()));
     }
 
     @Nls

@@ -50,14 +50,14 @@ public class RefactoringAnnotator implements Annotator {
             return;
         }
         final CalculatedRefactoring refactoring = refactorings.stream()
-                .filter(refactoringToCheck -> refactoringToCheck.getRefactoring().getEntityOrThrow().equals(element))
+                .filter(refactoringToCheck -> refactoringToCheck.getRefactoring().getEntity().equals(element))
                 .findAny()
                 .orElse(null);
         if (refactoring != null) {
             final Annotation annotation = holder.createWarningAnnotation(
                     getAnnotationPart(element),
                     String.format("Can be moved to %s (%s)",
-                            refactoring.getRefactoring().getTargetClassOrThrow().getQualifiedName(), algorithmName));
+                            refactoring.getRefactoring().getTargetClass().getQualifiedName(), algorithmName));
 
             annotation.registerFix(new RefactorIntentionAction(refactoring.getRefactoring(), scope));
         }
