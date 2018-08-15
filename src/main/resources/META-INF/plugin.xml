@@ -75,5 +75,10 @@
             </action>
             <add-to-group group-id="InspectCodeGroup" anchor="last"/>
         </group>
+        <!--Action for throwing an exception just to test the reporting of errors into the YouTrack database-->
+        <action id="org.jetbrains.research.groups.ml_methods.error_reporting.TriggerExceptionAction"
+                class="org.jetbrains.research.groups.ml_methods.error_reporting.TriggerExceptionAction" text="FireArtificialException">
+            <keyboard-shortcut keymap="$default" first-keystroke="shift ctrl alt F12"/>
+        </action>
     </actions>
 </idea-plugin>
