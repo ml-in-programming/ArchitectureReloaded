@@ -42,6 +42,7 @@ class AnonymousFeedback {
         usersInformationToPresentableForm.put(APP_BUILD, "App Build");
         usersInformationToPresentableForm.put(APP_VERSION, "App Version");
         usersInformationToPresentableForm.put(LAST_ACTION, "Last Action");
+        usersInformationToPresentableForm.put(PERMANENT_INSTALLATION_ID, "User's Permanent Installation ID");
     }
 
     private AnonymousFeedback() {
@@ -102,7 +103,6 @@ class AnonymousFeedback {
     @Nullable
     private static Issue findFirstDuplicate(String uniqueTitle, final IssueService service, RepositoryId repo) {
         Map<String, String> searchParameters = new HashMap<>(2);
-        // TODO: process closed: if it is closed advice update
         searchParameters.put(IssueService.FILTER_STATE, IssueService.STATE_OPEN);
         final PageIterator<Issue> pages = service.pageIssues(repo, searchParameters);
         for (Collection<Issue> page : pages) {

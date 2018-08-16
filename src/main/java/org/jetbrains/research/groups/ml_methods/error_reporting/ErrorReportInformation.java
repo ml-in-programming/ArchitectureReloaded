@@ -1,6 +1,7 @@
 package org.jetbrains.research.groups.ml_methods.error_reporting;
 
 import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.openapi.application.PermanentInstallationID;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.Attachment;
 import com.intellij.util.SystemProperties;
@@ -16,7 +17,7 @@ class ErrorReportInformation {
     public enum InformationType {
         ERROR_DESCRIPTION, PLUGIN_NAME, PLUGIN_VERSION, OS_NAME, JAVA_VERSION, JAVA_VM_VENDOR,
         APP_NAME, APP_FULL_NAME, APP_VERSION_NAME, IS_EAP, APP_BUILD, APP_VERSION, LAST_ACTION,
-        ERROR_MESSAGE, ERROR_STACKTRACE, ERROR_HASH, ATTACHMENT_NAME, ATTACHMENT_VALUE
+        PERMANENT_INSTALLATION_ID, ERROR_MESSAGE, ERROR_STACKTRACE, ERROR_HASH, ATTACHMENT_NAME, ATTACHMENT_VALUE
     }
 
     private final EnumMap<InformationType, String> information = new EnumMap<>(InformationType.class);
@@ -28,18 +29,16 @@ class ErrorReportInformation {
 
         information.put(PLUGIN_NAME, error.getPluginName());
         information.put(PLUGIN_VERSION, error.getPluginVersion());
-
         information.put(OS_NAME, SystemProperties.getOsName());
         information.put(JAVA_VERSION, SystemProperties.getJavaVersion());
         information.put(JAVA_VM_VENDOR, SystemProperties.getJavaVmVendor());
-
         information.put(APP_NAME, namesInfo.getProductName());
         information.put(APP_FULL_NAME, namesInfo.getFullProductName());
         information.put(APP_VERSION_NAME, appInfo.getVersionName());
         information.put(IS_EAP, Boolean.toString(appInfo.isEAP()));
         information.put(APP_BUILD, appInfo.getBuild().asString());
         information.put(APP_VERSION, appInfo.getFullVersion());
-
+        information.put(PERMANENT_INSTALLATION_ID, PermanentInstallationID.get());
         information.put(LAST_ACTION, error.getLastAction());
 
         information.put(ERROR_MESSAGE, error.getMessage());
