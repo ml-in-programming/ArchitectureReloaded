@@ -8,11 +8,13 @@ import org.eclipse.egit.github.core.RepositoryId;
 import org.eclipse.egit.github.core.client.GitHubClient;
 import org.eclipse.egit.github.core.client.PageIterator;
 import org.eclipse.egit.github.core.service.IssueService;
+import org.jetbrains.research.groups.ml_methods.error_reporting.ErrorReportInformation.InformationType;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.Map.Entry;
+
+import static org.jetbrains.research.groups.ml_methods.error_reporting.ErrorReportInformation.InformationType.*;
 
 /**
  * Provides functionality to create and send GitHub issues when an exception is thrown by a plugin.
@@ -23,6 +25,24 @@ class AnonymousFeedback {
     private final static String GIT_REPO = "ArchitectureReloaded";
     private final static String ISSUE_LABEL_BUG = "bug";
     private final static String ISSUE_LABEL_AUTO_GENERATED = "auto-generated";
+    private final static String GIT_ISSUE_TITLE = "[auto-generated:%s] %s";
+    private final static EnumMap<InformationType, String> usersInformationToPresentableForm
+            = new EnumMap<>(InformationType.class);
+
+    static {
+        usersInformationToPresentableForm.put(PLUGIN_NAME, "Plugin Name");
+        usersInformationToPresentableForm.put(PLUGIN_VERSION, "Plugin Version");
+        usersInformationToPresentableForm.put(OS_NAME, "OS Name");
+        usersInformationToPresentableForm.put(JAVA_VERSION, "Java Version");
+        usersInformationToPresentableForm.put(JAVA_VM_VENDOR, "Java VM Vendor");
+        usersInformationToPresentableForm.put(APP_NAME, "App Name");
+        usersInformationToPresentableForm.put(APP_FULL_NAME, "App Full Name");
+        usersInformationToPresentableForm.put(APP_VERSION_NAME, "App Version Name");
+        usersInformationToPresentableForm.put(IS_EAP, "Is EAP");
+        usersInformationToPresentableForm.put(APP_BUILD, "App Build");
+        usersInformationToPresentableForm.put(APP_VERSION, "App Version");
+        usersInformationToPresentableForm.put(LAST_ACTION, "Last Action");
+    }
 
     private AnonymousFeedback() {
     }
@@ -31,11 +51,11 @@ class AnonymousFeedback {
      * Makes a connection to GitHub. Checks if there is an issue that is a duplicate and based on this, creates either a
      * new issue or comments on the duplicate (if the user provided additional information).
      *
-     * @param environmentDetails Information collected by {@link IdeaInformationProxy}
+     * @param errorReportInformation Information collected by {@link ErrorReportInformation}
      * @return The report info that is then used in {@link GitHubErrorReporter} to show the user a balloon with the link
      * of the created issue.
      */
-    static SubmittedReportInfo sendFeedback(LinkedHashMap<String, String> environmentDetails) {
+    static SubmittedReportInfo sendFeedback(ErrorReportInformation errorReportInformation) {
 
         final SubmittedReportInfo result;
         try {
@@ -46,16 +66,12 @@ class AnonymousFeedback {
             RepositoryId repoID = new RepositoryId(GIT_REPO_USER, GIT_REPO);
             IssueService issueService = new IssueService(client);
 
-            String errorDescription = environmentDetails.get("error.description");
-
-            Issue newGibHubIssue = createNewGibHubIssue(environmentDetails);
+            Issue newGibHubIssue = createNewGibHubIssue(errorReportInformation);
             Issue duplicate = findFirstDuplicate(newGibHubIssue.getTitle(), issueService, repoID);
             boolean isNewIssue = true;
             if (duplicate != null) {
-                // TODO: fix error description doesn't prints, implement enums
-                errorDescription = errorDescription == null ? "Me too! \n" : "";
-                errorDescription += generateGitHubIssueBody(environmentDetails, true);
-                issueService.createComment(repoID, duplicate.getNumber(), errorDescription);
+                String newErrorComment = generateGitHubIssueBody(errorReportInformation, false);
+                issueService.createComment(repoID, duplicate.getNumber(), newErrorComment);
                 newGibHubIssue = duplicate;
                 isNewIssue = false;
             } else {
@@ -86,6 +102,7 @@ class AnonymousFeedback {
     @Nullable
     private static Issue findFirstDuplicate(String uniqueTitle, final IssueService service, RepositoryId repo) {
         Map<String, String> searchParameters = new HashMap<>(2);
+        // TODO: process closed: if it is closed advice update
         searchParameters.put(IssueService.FILTER_STATE, IssueService.STATE_OPEN);
         final PageIterator<Issue> pages = service.pageIssues(repo, searchParameters);
         for (Collection<Issue> page : pages) {
@@ -101,26 +118,23 @@ class AnonymousFeedback {
     /**
      * Turns collected information of an error into a new (offline) GitHub issue
      *
-     * @param details A map of the information. Note that I remove items from there when they should not go in the issue
+     * @param errorReportInformation A map of the information. Note that I remove items from there when they should not go in the issue
      *                body as well. When creating the body, all remaining items are iterated.
      * @return The new issue
      */
-    private static Issue createNewGibHubIssue(LinkedHashMap<String, String> details) {
-        String errorMessage = details.get("error.message");
+    private static Issue createNewGibHubIssue(ErrorReportInformation errorReportInformation) {
+        String errorMessage = errorReportInformation.get(ERROR_MESSAGE);
         if (errorMessage == null || errorMessage.isEmpty()) {
             errorMessage = "Unspecified error";
         }
-        details.remove("error.message");
-
-        String errorHash = details.get("error.hash");
+        String errorHash = errorReportInformation.get(ERROR_HASH);
         if (errorHash == null) {
             errorHash = "";
         }
-        details.remove("error.hash");
 
         final Issue gitHubIssue = new Issue();
-        final String body = generateGitHubIssueBody(details, false);
-        gitHubIssue.setTitle(ArchitectureReloadedBundle.message("git.issue.title", errorHash, errorMessage));
+        final String body = generateGitHubIssueBody(errorReportInformation, true);
+        gitHubIssue.setTitle(String.format(GIT_ISSUE_TITLE, errorHash, errorMessage));
         gitHubIssue.setBody(body);
         Label bugLabel = new Label();
         bugLabel.setName(ISSUE_LABEL_BUG);
@@ -131,42 +145,36 @@ class AnonymousFeedback {
     }
 
     /**
-     * Creates the body of the GitHub issue. It will contain information about the system, details provided by the user
-     * and the full stack trace. Everything is formatted using markdown.
+     * Creates the body of the GitHub issue. It will contain information about the system, error report information
+     * provided by the user and the full stack trace. Everything is formatted using markdown.
      *
-     * @param details Details provided by {@link IdeaInformationProxy}
+     * @param errorReportInformation Details provided by {@link ErrorReportInformation}
      * @return A markdown string representing the GitHub issue body.
      */
-    private static String generateGitHubIssueBody(LinkedHashMap<String, String> details, boolean onlyUserInfo) {
-        String errorDescription = details.get("error.description");
+    private static String generateGitHubIssueBody(ErrorReportInformation errorReportInformation, boolean addStacktrace) {
+        String errorDescription = errorReportInformation.get(ERROR_DESCRIPTION);
         if (errorDescription == null) {
             errorDescription = "";
         }
-        details.remove("error.description");
-
-
-        String stackTrace = details.get("error.stacktrace");
+        String stackTrace = errorReportInformation.get(ERROR_STACKTRACE);
         if (stackTrace == null || stackTrace.isEmpty()) {
             stackTrace = "invalid stacktrace";
         }
-        details.remove("error.stacktrace");
 
         StringBuilder result = new StringBuilder();
-
         if (!errorDescription.isEmpty()) {
             result.append(errorDescription);
             result.append("\n\n----------------------\n\n");
         }
-
-        for (Entry<String, String> entry : details.entrySet()) {
+        for (Map.Entry<InformationType, String> usersInformationEntry : usersInformationToPresentableForm.entrySet()) {
             result.append("- ");
-            result.append(entry.getKey());
+            result.append(usersInformationEntry.getValue());
             result.append(": ");
-            result.append(entry.getValue());
+            result.append(errorReportInformation.get(usersInformationEntry.getKey()));
             result.append("\n");
         }
 
-        if (!onlyUserInfo) {
+        if (addStacktrace) {
             result.append("\n```\n");
             result.append(stackTrace);
             result.append("\n```\n");

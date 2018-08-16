@@ -13,7 +13,6 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationInfo;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
@@ -28,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
 
 import java.awt.*;
-import java.util.LinkedHashMap;
 
 public class GitHubErrorReporter extends ErrorReportSubmitter {
     @Override
@@ -66,9 +64,8 @@ public class GitHubErrorReporter extends ErrorReportSubmitter {
             bean.setAttachments(((LogMessageEx) data).getIncludedAttachments());
         }
 
-        LinkedHashMap<String, String> reportValues = IdeaInformationProxy
-                .getKeyValuePairs(bean,
-                        ApplicationManager.getApplication(),
+        ErrorReportInformation errorReportInformation = ErrorReportInformation
+                .getUsersInformation(bean,
                         (ApplicationInfoEx) ApplicationInfo.getInstance(),
                         ApplicationNamesInfo.getInstance());
 
@@ -79,7 +76,7 @@ public class GitHubErrorReporter extends ErrorReportSubmitter {
                 new AnonymousFeedbackTask(project,
                         ArchitectureReloadedBundle.message("report.error.progress.dialog.text"),
                         true,
-                        reportValues,
+                        errorReportInformation,
                         notifyingCallback);
         if (project == null) {
             task.run(new EmptyProgressIndicator());
