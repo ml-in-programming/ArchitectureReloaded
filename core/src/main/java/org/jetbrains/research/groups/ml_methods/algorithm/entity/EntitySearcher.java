@@ -19,7 +19,7 @@ import org.jetbrains.research.groups.ml_methods.utils.PSIUtil;
 
 import java.util.*;
 
-import static org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil.getHumanReadableName;
+import static org.jetbrains.research.groups.ml_methods.utils.PSIUtil.getHumanReadableName;
 
 /**
  * Extracts every {@link CodeEntity} from {@link AnalysisScope} according to a {@link FinderStrategy} that is uses.

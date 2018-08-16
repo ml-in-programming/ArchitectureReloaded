@@ -2,11 +2,8 @@ package org.jetbrains.research.groups.ml_methods.algorithm.entity;
 
 import com.sixrr.metrics.MetricCategory;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ClassAttributes;
-import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ElementAttributes;
 
 import java.util.Map;
-import java.util.Objects;
 
 public abstract class CodeEntity {
     private final @NotNull

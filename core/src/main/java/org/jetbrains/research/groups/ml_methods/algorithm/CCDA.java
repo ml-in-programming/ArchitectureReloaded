@@ -5,15 +5,16 @@ import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
 import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.AlgorithmType;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ClassAttributes;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ClassInnerEntityAttributes;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.*;
+import org.jetbrains.research.groups.ml_methods.logging.Logging;
 import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveFieldRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveToClassRefactoring;
-import org.jetbrains.research.groups.ml_methods.logging.Logging;
 import org.jetbrains.research.groups.ml_methods.utils.AlgorithmsUtil;
 
 import java.util.*;
@@ -25,7 +26,7 @@ public class CCDA extends AbstractAlgorithm {
     private static final double ACCURACY = 1;
 
     public CCDA() {
-        super("CCDA", true);
+        super(AlgorithmType.CCDA, true);
 
     }
 

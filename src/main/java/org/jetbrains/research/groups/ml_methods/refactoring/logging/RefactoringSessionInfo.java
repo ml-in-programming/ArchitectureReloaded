@@ -1,12 +1,10 @@
 package org.jetbrains.research.groups.ml_methods.refactoring.logging;
 
-import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveToClassRefactoring;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Objects of this class contain information about one user interaction with the plugin.
@@ -17,47 +15,47 @@ import java.util.stream.Collectors;
  * to log for further analysis.
  */
 public final class RefactoringSessionInfo {
-    private final @NotNull List<RefactoringFeatures> acceptedRefactoringsFeatures;
+    private final @NotNull List<RefactoringFeatures> uncheckedRefactoringsFeatures;
 
     private final @NotNull List<RefactoringFeatures> rejectedRefactoringsFeatures;
+
+    private final @NotNull List<RefactoringFeatures> appliedRefactoringsFeatures;
 
     /**
      * Creates session info for given accepted and rejected refactorings.
      *
-     * @param acceptedRefactorings refactorings that were accepted.
-     * @param rejectedRefactorings refactorings that were rejected.
-     * @param metricsRun a result of metrics calculations. Used to {@link RefactoringFeatures}
-     *                   of a particular {@link MoveToClassRefactoring}.
+     * @param uncheckedRefactoringsFeatures refactorings that were accepted.
+     * @param rejectedRefactoringsFeatures refactorings that were rejected.
+     * @param appliedRefactoringsFeatures refactorings that were applied.
      */
     public RefactoringSessionInfo(
-        final @NotNull List<MoveToClassRefactoring> acceptedRefactorings,
-        final @NotNull List<MoveToClassRefactoring> rejectedRefactorings,
-        final @NotNull MetricsRun metricsRun
+        final @NotNull List<RefactoringFeatures> uncheckedRefactoringsFeatures,
+        final @NotNull List<RefactoringFeatures> rejectedRefactoringsFeatures,
+        final @NotNull List<RefactoringFeatures> appliedRefactoringsFeatures
     ) {
-        acceptedRefactoringsFeatures =
-            acceptedRefactorings.stream()
-                                .map((it) -> RefactoringFeatures.extractFeatures(it, metricsRun))
-                                .collect(Collectors.toList());
-
-        rejectedRefactoringsFeatures =
-                rejectedRefactorings.stream()
-                        .map((it) -> RefactoringFeatures.extractFeatures(it, metricsRun))
-                        .collect(Collectors.toList());
+        this.uncheckedRefactoringsFeatures = uncheckedRefactoringsFeatures;
+        this.rejectedRefactoringsFeatures = rejectedRefactoringsFeatures;
+        this.appliedRefactoringsFeatures = appliedRefactoringsFeatures;
     }
 
     /**
-     * Returns features of all accepted refactorings.
+     * Returns features of all unchecked refactorings.
      */
-    @NotNull
-    public List<RefactoringFeatures> getAcceptedRefactoringsFeatures() {
-        return new ArrayList<>(acceptedRefactoringsFeatures);
+    public @NotNull List<RefactoringFeatures> getUncheckedRefactoringsFeatures() {
+        return new ArrayList<>(uncheckedRefactoringsFeatures);
     }
 
     /**
      * Returns features of all rejected refactorings.
      */
-    @NotNull
-    public List<RefactoringFeatures> getRejectedRefactoringsFeatures() {
+    public @NotNull List<RefactoringFeatures> getRejectedRefactoringsFeatures() {
         return new ArrayList<>(rejectedRefactoringsFeatures);
+    }
+
+    /**
+     * Returns features of all applied refactorings.
+     */
+    public @NotNull List<RefactoringFeatures> getAppliedRefactoringsFeatures() {
+        return new ArrayList<>(appliedRefactoringsFeatures);
     }
 }

@@ -41,12 +41,12 @@ public class RefactoringSessionInfoRenderer implements ObjectRenderer {
         StringBuilder builder = new StringBuilder();
         builder.append(lineSeparator);
 
-        builder.append("Accepted refactorings").append(lineSeparator);
-        for (RefactoringFeatures features : info.getAcceptedRefactoringsFeatures()) {
+        builder.append("Unchecked refactorings").append(lineSeparator);
+        for (RefactoringFeatures features : info.getUncheckedRefactoringsFeatures()) {
             builder.append('[')
-                   .append(serializeFeatures(features, lineSeparator))
-                   .append(']')
-                   .append(lineSeparator);
+                    .append(serializeFeatures(features, lineSeparator))
+                    .append(']')
+                    .append(lineSeparator);
         }
 
         builder.append(lineSeparator);
@@ -54,9 +54,19 @@ public class RefactoringSessionInfoRenderer implements ObjectRenderer {
         builder.append("Rejected refactorings").append(lineSeparator);
         for (RefactoringFeatures features : info.getRejectedRefactoringsFeatures()) {
             builder.append('[')
-                   .append(serializeFeatures(features, lineSeparator))
-                   .append(']')
-                   .append(lineSeparator);
+                    .append(serializeFeatures(features, lineSeparator))
+                    .append(']')
+                    .append(lineSeparator);
+        }
+
+        builder.append(lineSeparator);
+
+        builder.append("Applied refactorings").append(lineSeparator);
+        for (RefactoringFeatures features : info.getAppliedRefactoringsFeatures()) {
+            builder.append('[')
+                    .append(serializeFeatures(features, lineSeparator))
+                    .append(']')
+                    .append(lineSeparator);
         }
 
         return builder.toString();

@@ -79,7 +79,8 @@ public class MetricsExecutionContextImpl implements MetricsExecutionContext {
 
     public void calculateMetrics(MetricsProfile profile, final MetricsResultsHolder resultsHolder) {
         final ProgressIndicator indicator;
-        if (ApplicationManager.getApplication().isUnitTestMode()) {
+
+        if (ApplicationManager.getApplication().isUnitTestMode() || ApplicationManager.getApplication().isHeadlessEnvironment()) {
             indicator = new EmptyProgressIndicator();
         } else {
             indicator = ProgressManager.getInstance().getProgressIndicator();

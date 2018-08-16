@@ -1,0 +1,21 @@
+repositories {
+    mavenCentral()
+}
+
+apply plugin: 'idea'
+
+dependencies {
+    compile project(':core')
+    compile project(':features-extraction')
+
+    testCompile group: 'org.mockito', name: 'mockito-core', version: '2.19.1'
+}
+
+task runAlgorithmsEvaluation(dependsOn: runIde) {}
+
+gradle.taskGraph.whenReady { graph ->
+    if (graph.hasTask(runAlgorithmsEvaluation)) {
+        runIde.args 'algorithms-evaluation', "$pathToDataset", "$algorithmsNames", "$pathToSaveResults"
+        runIde.jvmArgs '-Djava.awt.headless=true', '-Xmx4096m'
+    }
+}

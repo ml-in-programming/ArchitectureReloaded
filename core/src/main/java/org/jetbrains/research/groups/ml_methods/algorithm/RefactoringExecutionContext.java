@@ -22,12 +22,14 @@ import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitySearcher;
 import org.jetbrains.research.groups.ml_methods.logging.Logging;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+
+import static org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.AlgorithmType;
+import static org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.getAvailableAlgorithms;
 
 /**
  * Stores all information that might be needed for refactoring suggestions calculation. Can be
@@ -35,12 +37,6 @@ import java.util.function.Consumer;
  */
 public class RefactoringExecutionContext {
     private static final Logger LOGGER = Logging.getLogger(RefactoringExecutionContext.class);
-
-    private static final List<Algorithm> ALGORITHMS = Arrays.asList(
-        new ARI(),
-        new CCDA(),
-        new HAC()
-    );
 
     @NotNull
     private final MetricsRunImpl metricsRun = new MetricsRunImpl();
@@ -62,7 +58,7 @@ public class RefactoringExecutionContext {
     public RefactoringExecutionContext(@NotNull Project project, @NotNull AnalysisScope scope,
                                        @NotNull MetricsProfile profile,
                                        @Nullable Consumer<RefactoringExecutionContext> continuation) {
-        this(project, scope, profile, Arrays.asList(getAvailableAlgorithms()), true, continuation);
+        this(project, scope, profile, getAvailableAlgorithms(), true, continuation);
     }
 
     /**
@@ -161,9 +157,9 @@ public class RefactoringExecutionContext {
         return new ArrayList<>(algorithmsResults);
     }
 
-    public AlgorithmResult getResultForName(String algorithmName) {
+    public AlgorithmResult getResultForType(AlgorithmType algorithmType) {
         return algorithmsResults.stream()
-                .filter(result -> algorithmName.equals(result.getAlgorithmName()))
+                .filter(result -> algorithmType.equals(result.getAlgorithmType()))
                 .findAny().orElse(null);
     }
 
@@ -198,9 +194,5 @@ public class RefactoringExecutionContext {
     @NotNull
     public MetricsProfile getProfile() {
         return profile;
-    }
-
-    public static Algorithm[] getAvailableAlgorithms() {
-        return ALGORITHMS.toArray(new Algorithm[ALGORITHMS.size()]);
     }
 }

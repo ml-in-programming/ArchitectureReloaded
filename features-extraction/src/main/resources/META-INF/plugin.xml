@@ -1,0 +1,17 @@
+<idea-plugin url="https://github.com/ml-in-programming/architectureReloaded">
+    <name>ArchitectureReloaded-FeaturesExtraction</name>
+    <id>ArchitectureReloaded-FeaturesExtraction</id>
+    <depends>com.intellij.modules.lang</depends>
+
+    <version>0.1</version>
+    <idea-version since-build="139"/>
+
+    <extensionPoints>
+        <extensionPoint name="metricProvider" interface="com.sixrr.metrics.MetricProvider"/>
+    </extensionPoints>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <appStarter implementation="org.jetbrains.research.groups.ml_methods.extraction.FeaturesExtractionApplicationStarter"/>
+        <appStarter implementation="org.jetbrains.research.groups.ml_methods.extraction.FormatterApplicationStarter"/>
+    </extensions>
+</idea-plugin>
