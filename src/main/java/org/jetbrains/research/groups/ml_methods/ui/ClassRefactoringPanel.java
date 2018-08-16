@@ -18,7 +18,6 @@ import org.jetbrains.research.groups.ml_methods.refactoring.MoveToClassRefactori
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringFeatures;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringReporter;
 import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringSessionInfo;
-import org.jetbrains.research.groups.ml_methods.refactoring.logging.RefactoringSessionInfoRenderer;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
 import org.jetbrains.research.groups.ml_methods.utils.ExportResultsUtil;
 import org.jetbrains.research.groups.ml_methods.utils.RefactoringUtil;
