@@ -76,7 +76,11 @@ public class GitHubErrorReporter extends ErrorReportSubmitter {
 
         final CallbackWithNotification notifyingCallback = new CallbackWithNotification(callback, project);
         AnonymousFeedbackTask task =
-                new AnonymousFeedbackTask(project, ArchitectureReloadedBundle.message("report.error.progress.dialog.text"), true, reportValues, notifyingCallback);
+                new AnonymousFeedbackTask(project,
+                        ArchitectureReloadedBundle.message("report.error.progress.dialog.text"),
+                        true,
+                        reportValues,
+                        notifyingCallback);
         if (project == null) {
             task.run(new EmptyProgressIndicator());
         } else {
