@@ -85,7 +85,9 @@ class AnonymousFeedback {
             result = new SubmittedReportInfo(htmlUrl, message, isNewIssue ? SubmissionStatus.NEW_ISSUE : SubmissionStatus.DUPLICATE);
             return result;
         } catch (Exception e) {
-            return new SubmittedReportInfo(null, ArchitectureReloadedBundle.message("report.error.connection.failure"), SubmissionStatus.FAILED);
+            return new SubmittedReportInfo(null,
+                    ArchitectureReloadedBundle.message("report.error.connection.failure") + "\nReason: " + e.getMessage(),
+                    SubmissionStatus.FAILED);
         }
     }
 
