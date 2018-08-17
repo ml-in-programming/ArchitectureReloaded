@@ -14,7 +14,6 @@ import java.io.ObjectOutputStream;
 /**
  * Provides functionality to encode and decode secret tokens to make them not directly readable. Let me be clear:
  * THIS IS THE OPPOSITE OF SECURITY!
- * @author patrick (20.06.17).
  */
 public class GitHubAccessTokenScrambler {
     private static final String myInitVector = "RandomInitVector";

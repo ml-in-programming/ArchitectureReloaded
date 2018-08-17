@@ -6,7 +6,6 @@ import java.util.Arrays;
 
 /**
  * Extends the standard class to provide the hash of the thrown exception stack trace.
- * @author patrick (17.06.17).
  */
 class GitHubErrorBean extends ErrorBean {
 
@@ -14,8 +13,8 @@ class GitHubErrorBean extends ErrorBean {
 
     GitHubErrorBean(Throwable throwable, String lastAction) {
         super(throwable, lastAction);
-        final int hashCode = Arrays.hashCode(throwable.getStackTrace());
-        myExceptionHash = String.valueOf(hashCode);
+        final long hashCode = Integer.toUnsignedLong(Arrays.hashCode(throwable.getStackTrace()));
+        myExceptionHash = Long.toHexString(hashCode);
     }
 
     String getExceptionHash() {

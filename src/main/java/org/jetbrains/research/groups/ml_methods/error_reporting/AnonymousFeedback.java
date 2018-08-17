@@ -26,6 +26,7 @@ class AnonymousFeedback {
     private final static String ISSUE_LABEL_BUG = "bug";
     private final static String ISSUE_LABEL_AUTO_GENERATED = "auto-generated";
     private final static String GIT_ISSUE_TITLE = "[auto-generated:%s] %s";
+    private final static String HTML_URL_TO_CREATE_NEW_ISSUE = "https://github.com/ml-in-programming/ArchitectureReloaded/issues/new";
     private final static EnumMap<InformationType, String> usersInformationToPresentableForm
             = new EnumMap<>(InformationType.class);
 
@@ -85,8 +86,10 @@ class AnonymousFeedback {
             result = new SubmittedReportInfo(htmlUrl, message, isNewIssue ? SubmissionStatus.NEW_ISSUE : SubmissionStatus.DUPLICATE);
             return result;
         } catch (Exception e) {
-            return new SubmittedReportInfo(null,
-                    ArchitectureReloadedBundle.message("report.error.connection.failure") + "\nReason: " + e.getMessage(),
+            return new SubmittedReportInfo(HTML_URL_TO_CREATE_NEW_ISSUE,
+                    ArchitectureReloadedBundle.message("report.error.connection.failure",
+                            HTML_URL_TO_CREATE_NEW_ISSUE,
+                            e.getMessage()),
                     SubmissionStatus.FAILED);
         }
     }

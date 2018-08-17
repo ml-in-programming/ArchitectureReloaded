@@ -114,7 +114,7 @@ public class GitHubErrorReporter extends ErrorReportSubmitter {
                         ReportMessages.ERROR_REPORT,
                         reportInfo.getLinkText(),
                         NotificationType.ERROR,
-                        null).setImportant(false).notify(myProject);
+                        NotificationListener.URL_OPENING_LISTENER).setImportant(false).notify(myProject);
             } else {
                 ReportMessages.GROUP.createNotification(
                         ReportMessages.ERROR_REPORT,
