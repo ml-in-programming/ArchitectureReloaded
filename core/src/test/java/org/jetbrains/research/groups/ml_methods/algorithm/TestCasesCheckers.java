@@ -1,7 +1,6 @@
 package org.jetbrains.research.groups.ml_methods.algorithm;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.AlgorithmType;
 import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 
 import java.util.*;
