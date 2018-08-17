@@ -95,7 +95,11 @@ public class InputSessionValidator {
                     || !json.containsKey(UNCHECKED_TAG)
                     || !json.containsKey(REJECTED_TAG)
                     || !json.containsKey(APPLIED_TAG)
-                    || ((ArrayList) json.get(APPLIED_TAG)).isEmpty()) {
+                    || ( ((ArrayList) json.get(UNCHECKED_TAG)).isEmpty() &&
+                         ((ArrayList) json.get(REJECTED_TAG)).isEmpty() &&
+                         ((ArrayList) json.get(APPLIED_TAG)).isEmpty()
+                       )
+            ) {
                 return false;
             }
         } catch (JsonSyntaxException ignored) {
