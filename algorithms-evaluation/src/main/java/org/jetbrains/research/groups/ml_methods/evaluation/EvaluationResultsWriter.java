@@ -32,7 +32,7 @@ class EvaluationResultsWriter {
         lines.add("<tr>");
         lines.addAll(Arrays.asList("<th>", "", "</th>"));
         for (EvaluationResult evaluationResult : evaluationResults) {
-            lines.addAll(Arrays.asList("<th>", evaluationResult.getAlgorithm().getDescriptionString(), "</th>"));
+            lines.addAll(Arrays.asList("<th>", evaluationResult.getAlgorithm().getName(), "</th>"));
         }
         lines.add("</tr>");
 

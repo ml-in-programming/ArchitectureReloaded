@@ -5,7 +5,6 @@ import com.sixrr.stockmetrics.classMetrics.NumAttributesAddedMetric;
 import com.sixrr.stockmetrics.classMetrics.NumMethodsClassMetric;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.AlgorithmType;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ClassAttributes;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.ClassInnerEntityAttributes;
@@ -26,7 +25,7 @@ public class CCDA extends AbstractAlgorithm {
     private static final double ACCURACY = 1;
 
     public CCDA() {
-        super(AlgorithmType.CCDA, true);
+        super("CCDA", true);
 
     }
 

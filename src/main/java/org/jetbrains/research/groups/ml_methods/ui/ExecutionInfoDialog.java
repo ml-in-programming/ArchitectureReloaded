@@ -54,7 +54,7 @@ public class ExecutionInfoDialog extends DialogWrapper {
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.NORTHWEST;
 
-        panel.add(new TitledSeparator(result.getAlgorithmType() + " execution"), constraints);
+        panel.add(new TitledSeparator(result.getAlgorithm().getName() + " execution"), constraints);
 
         constraints.insets.left = 12;
         constraints.gridy++;

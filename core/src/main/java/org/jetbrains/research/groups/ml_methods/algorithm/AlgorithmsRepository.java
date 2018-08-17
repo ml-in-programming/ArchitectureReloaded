@@ -8,17 +8,13 @@ import java.util.Optional;
 
 public class AlgorithmsRepository {
     private static final List<Algorithm> ALGORITHMS = Arrays.asList(
-            new ARI(),
-            new CCDA(),
-            new HAC()
+        new ARI(),
+        new CCDA(),
+        new HAC()
     );
 
     public static Optional<Algorithm> getAlgorithmByName(String algorithmName) {
-        return ALGORITHMS.stream().filter(algorithm -> algorithm.getDescriptionString().equals(algorithmName)).findAny();
-    }
-
-    public enum AlgorithmType {
-        ARI, CCDA, HAC
+        return ALGORITHMS.stream().filter(algorithm -> algorithm.getName().equals(algorithmName)).findAny();
     }
 
     @Contract(pure = true)
