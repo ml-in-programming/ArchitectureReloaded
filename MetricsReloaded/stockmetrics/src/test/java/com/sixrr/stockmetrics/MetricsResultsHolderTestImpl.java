@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.sixrr.metrics.utils.MethodUtils.calculateSignature;
+import static com.sixrr.metrics.utils.MethodUtils.calculateUniqueSignature;
 import static junit.framework.TestCase.fail;
 
 public class MetricsResultsHolderTestImpl implements MetricsResultsHolder {
@@ -135,7 +135,7 @@ public class MetricsResultsHolderTestImpl implements MetricsResultsHolder {
 
     private PsiMethod findMethodBySignature(Metric metric, String methodSignature) {
         List<PsiMethod> methods = methodMetrics.get(metric).keySet().stream().
-                filter(method -> calculateSignature(method).equals(methodSignature)).
+                filter(method -> calculateUniqueSignature(method).equals(methodSignature)).
                 collect(Collectors.toList());
 
         if (methods.isEmpty()) {
