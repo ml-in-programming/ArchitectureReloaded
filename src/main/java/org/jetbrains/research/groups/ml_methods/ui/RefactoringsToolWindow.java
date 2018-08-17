@@ -91,6 +91,7 @@ public final class RefactoringsToolWindow implements Disposable {
         this.entitiesStorage = entitiesStorage;
         this.metricsRun = metricsRun;
 
+        contents.forEach(ClassRefactoringPanel::onClose);
         myToolWindow.getContentManager().removeAllContents(true);
         contents.clear();
         myToolWindow.setAvailable(false, null);
@@ -105,6 +106,8 @@ public final class RefactoringsToolWindow implements Disposable {
 
     @Override
     public void dispose() {
+        contents.forEach(ClassRefactoringPanel::onClose);
+
         final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
         toolWindowManager.unregisterToolWindow(WINDOW_ID);
         results = null;

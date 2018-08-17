@@ -94,6 +94,17 @@ class ClassRefactoringPanel extends JPanel {
         refreshTable();
     }
 
+    public void onClose() {
+        final Set<MoveToClassRefactoring> selectableRefactorings =
+            model.pullSelectable().stream().map(CalculatedRefactoring::getRefactoring).collect(Collectors.toSet());
+
+        sendLog(
+            selectableRefactorings.stream().map(refactoringFeatures::get).collect(Collectors.toList()),
+            Collections.emptyList(),
+            Collections.emptyList()
+        );
+    }
+
     private void refreshTable() {
         model.filter(getCurrentPredicate(thresholdSlider.getValue()));
         infoLabel.setText("Total: " + model.getRowCount());
@@ -192,15 +203,28 @@ class ClassRefactoringPanel extends JPanel {
         Set<MoveToClassRefactoring> rejectedRefactorings = new HashSet<>(selectedRefactorings);
         rejectedRefactorings.removeAll(appliedRefactorings);
 
-        RefactoringSessionInfo info = new RefactoringSessionInfo(
+        sendLog(
             uncheckedRefactorings.stream().map(refactoringFeatures::get).collect(Collectors.toList()),
             rejectedRefactorings.stream().map(refactoringFeatures::get).collect(Collectors.toList()),
             appliedRefactorings.stream().map(refactoringFeatures::get).collect(Collectors.toList())
         );
-        ClassRefactoringPanel.reporter.log(uuid, info);
 
         table.setEnabled(true);
         selectAllButton.setEnabled(true);
+    }
+
+    private void sendLog(
+        final @NotNull List<RefactoringFeatures> uncheckedRefactoringsFeatures,
+        final @NotNull List<RefactoringFeatures> rejectedRefactoringsFeatures,
+        final @NotNull List<RefactoringFeatures> appliedRefactoringsFeatures
+    ) {
+        RefactoringSessionInfo info = new RefactoringSessionInfo(
+            uncheckedRefactoringsFeatures,
+            rejectedRefactoringsFeatures,
+            appliedRefactoringsFeatures
+        );
+
+        ClassRefactoringPanel.reporter.log(uuid, info);
     }
 
     private void export() {
