@@ -106,8 +106,8 @@ public class RefactoringsFinder extends JavaRecursiveElementVisitor {
             this.method = method;
 
             if (oldMethod != null) {
-                String oldSignature = MethodUtils.calculateSignature(oldMethod);
-                String newSignature = MethodUtils.calculateSignature(method);
+                String oldSignature = MethodUtils.calculateHumanReadableSignature(oldMethod);
+                String newSignature = MethodUtils.calculateHumanReadableSignature(method);
 
                 throw new IllegalStateException("Refactorings set is ambiguous. Candidates: " +
                         oldSignature + ", " + newSignature);

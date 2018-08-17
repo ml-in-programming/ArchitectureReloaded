@@ -19,7 +19,7 @@ public class JMoveRefactoringTextRepresentation extends RefactoringTextRepresent
 
     @Override
     public boolean isOfGivenMethod(PsiMethod method) {
-        String methodsSignature = MethodUtils.calculateSignature(method);
+        String methodsSignature = MethodUtils.calculateHumanReadableSignature(method);
         String methodsSignatureWithoutParams = methodsSignature.split("\\(")[0];
         String refactoringSignature = getMethodsSignature();
         return refactoringSignature.equals(methodsSignature) ||

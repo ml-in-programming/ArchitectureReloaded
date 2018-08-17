@@ -12,7 +12,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.sixrr.metrics.utils.MethodUtils.calculateSignature;
+import static com.sixrr.metrics.utils.MethodUtils.calculateHumanReadableSignature;
+import static com.sixrr.metrics.utils.MethodUtils.calculateUniqueSignature;
 
 public final class PSIUtil {
     private PSIUtil() {
@@ -93,16 +94,25 @@ public final class PSIUtil {
     }
 
     public static String getHumanReadableName(@Nullable PsiElement element) {
+        return getPsiElementName(element, false);
+    }
+
+    public static String getUniqueName(@Nullable PsiElement element) {
+        return getPsiElementName(element, true);
+    }
+
+    private static String getPsiElementName(@Nullable PsiElement element, boolean isUnique) {
         if (element instanceof PsiMethod) {
-            return calculateSignature((PsiMethod) element);
+            return isUnique ?
+                    calculateUniqueSignature((PsiMethod) element) : calculateHumanReadableSignature((PsiMethod) element);
         } else if (element instanceof PsiClass) {
             if (element instanceof PsiAnonymousClass) {
-                return getHumanReadableName(((PsiAnonymousClass) element).getBaseClassReference().resolve());
+                return getPsiElementName(((PsiAnonymousClass) element).getBaseClassReference().resolve(), isUnique);
             }
             return ((PsiClass) element).getQualifiedName();
         } else if (element instanceof PsiField) {
             final PsiMember field = (PsiMember) element;
-            return getHumanReadableName(field.getContainingClass()) + "." + field.getName();
+            return getPsiElementName(field.getContainingClass(), isUnique) + "." + field.getName();
         }
         return "???";
     }

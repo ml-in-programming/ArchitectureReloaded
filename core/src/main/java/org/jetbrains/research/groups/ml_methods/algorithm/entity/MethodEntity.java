@@ -30,7 +30,7 @@ public class MethodEntity extends ClassInnerEntity {
     @Override
     public @NotNull String getIdentifier() {
         return ApplicationManager.getApplication().runReadAction(
-            (Computable<String>) () -> MethodUtils.calculateSignature(psiMethod)
+            (Computable<String>) () -> MethodUtils.calculateUniqueSignature(psiMethod)
         );
     }
 

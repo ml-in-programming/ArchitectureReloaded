@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import static org.jetbrains.research.groups.ml_methods.utils.PSIUtil.getHumanReadableName;
+import static org.jetbrains.research.groups.ml_methods.utils.PSIUtil.getUniqueName;
 
 public final class RefactoringUtil {
     private static Logger LOG = Logging.getLogger(RefactoringUtil.class);
@@ -52,9 +52,9 @@ public final class RefactoringUtil {
         return refactorings.stream()
                 .flatMap(List::stream)
                 .collect(Collectors.groupingBy(refactoring ->
-                                getHumanReadableName(refactoring.getRefactoring().getEntity()) +
+                                getUniqueName(refactoring.getRefactoring().getEntity()) +
                                         "&" +
-                                        getHumanReadableName(refactoring.getRefactoring().getTargetClass()),
+                                        getUniqueName(refactoring.getRefactoring().getTargetClass()),
                         Collectors.toList()))
                 .values().stream()
                 .filter(collection -> collection.size() == refactorings.size())
