@@ -13,7 +13,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Function;
 
-import static com.sixrr.metrics.utils.MethodUtils.calculateSignature;
+import static com.sixrr.metrics.utils.MethodUtils.calculateCanonicalSignature;
+import static com.sixrr.metrics.utils.MethodUtils.calculateHumanReadableSignature;
 
 public class PsiSearchUtil {
 
@@ -60,7 +61,7 @@ public class PsiSearchUtil {
 
     public static String getHumanReadableName(@Nullable PsiElement element) {
         if (element instanceof PsiMethod) {
-            return calculateSignature((PsiMethod) element);
+            return calculateHumanReadableSignature((PsiMethod) element);
         } else if (element instanceof PsiClass) {
             if (element instanceof PsiAnonymousClass) {
                 return getHumanReadableName(((PsiAnonymousClass) element).getBaseClassReference().resolve());
@@ -71,6 +72,13 @@ public class PsiSearchUtil {
             return getHumanReadableName(field.getContainingClass()) + "." + field.getName();
         }
         return "???";
+    }
+
+    public static String getCanonicalName(@Nullable PsiElement element) {
+        if (element instanceof PsiMethod) {
+            return calculateCanonicalSignature((PsiMethod) element);
+        }
+        return getHumanReadableName(element);
     }
 
     private static <V> Map<String, V> runSafeSearch(Set<String> keys, SearchOptions<V> options) {
@@ -91,7 +99,7 @@ public class PsiSearchUtil {
 
             @Override
             public void visitClass(PsiClass aClass) {
-                final String currentKey = getHumanReadableName(aClass);
+                final String currentKey = getCanonicalName(aClass);
                 if (keys.contains(currentKey)) {
                     final V value = options.resultExtractor.apply(aClass);
                     results.put(currentKey, value);
@@ -105,7 +113,7 @@ public class PsiSearchUtil {
             @Override
             public void visitMethod(PsiMethod method) {
                 super.visitMethod(method);
-                final String currentKey = getHumanReadableName(method);
+                final String currentKey = getCanonicalName(method);
                 if (keys.contains(currentKey)) {
                     final V value = options.resultExtractor.apply(method);
                     results.put(currentKey, value);
@@ -115,7 +123,7 @@ public class PsiSearchUtil {
             @Override
             public void visitField(PsiField field) {
                 super.visitField(field);
-                final String currentKey = getHumanReadableName(field);
+                final String currentKey = getCanonicalName(field);
                 if (keys.contains(currentKey)) {
                     final V value = options.resultExtractor.apply(field);
                     results.put(currentKey, value);

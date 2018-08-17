@@ -53,7 +53,7 @@ public abstract class OldEntity {
     /** Initializes this class with a given {@link PsiElement}. */
     public OldEntity(PsiElement element) {
         this.name = ApplicationManager.getApplication()
-                .runReadAction((Computable<String>) () -> PsiSearchUtil.getHumanReadableName(element));
+                .runReadAction((Computable<String>) () -> PsiSearchUtil.getCanonicalName(element));
         this.element = element;
         relevantProperties = new RelevantProperties();
     }
