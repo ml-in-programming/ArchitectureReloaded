@@ -88,8 +88,7 @@ class AnonymousFeedback {
         } catch (Exception e) {
             return new SubmittedReportInfo(HTML_URL_TO_CREATE_NEW_ISSUE,
                     ArchitectureReloadedBundle.message("report.error.connection.failure",
-                            HTML_URL_TO_CREATE_NEW_ISSUE,
-                            e.getMessage()),
+                            HTML_URL_TO_CREATE_NEW_ISSUE),
                     SubmissionStatus.FAILED);
         }
     }
