@@ -35,21 +35,10 @@ import static java.util.Objects.requireNonNull;
 public abstract class AbstractAlgorithm implements Algorithm {
     private static final Logger LOGGER = Logging.getLogger(AbstractAlgorithm.class);
 
-    private final String name;
-
     private final boolean enableParallelExecution;
 
-    public AbstractAlgorithm(final @NotNull String name, final boolean enableParallelExecution) {
-        this.name = name;
+    public AbstractAlgorithm(final boolean enableParallelExecution) {
         this.enableParallelExecution = enableParallelExecution;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public @NotNull String getName() {
-        return name;
     }
 
     /**
@@ -61,7 +50,7 @@ public abstract class AbstractAlgorithm implements Algorithm {
         final @Nullable ExecutorService service,
         final boolean enableFieldRefactorings
     ) {
-        LOGGER.info(name + " started");
+        LOGGER.info(getName() + " started");
         final long startTime = System.currentTimeMillis();
         final ProgressIndicator indicator;
 
@@ -72,7 +61,7 @@ public abstract class AbstractAlgorithm implements Algorithm {
         }
 
         indicator.pushState();
-        indicator.setText("Running " + name + "...");
+        indicator.setText("Running " + getName() + "...");
         indicator.setFraction(0);
 
         final ExecutionContext context = new ExecutionContext(
@@ -87,7 +76,7 @@ public abstract class AbstractAlgorithm implements Algorithm {
         } catch (ProcessCanceledException e) {
             throw e;
         } catch (Exception e) {
-            LOGGER.error(name + " finished with error: " + e);
+            LOGGER.error(getName() + " finished with error: " + e);
             return new AlgorithmResult(this, e);
         }
 
@@ -96,7 +85,7 @@ public abstract class AbstractAlgorithm implements Algorithm {
 
         final AlgorithmResult result = new AlgorithmResult(refactorings, this, time, context.usedThreads);
 
-        LOGGER.info(name + " successfully finished");
+        LOGGER.info(getName() + " successfully finished");
         LOGGER.info(result.getReport());
 
         return result;

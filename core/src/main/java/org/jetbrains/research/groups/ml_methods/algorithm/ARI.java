@@ -27,7 +27,15 @@ public class ARI extends AbstractAlgorithm {
     private static final @NotNull DistanceCalculator distanceCalculator = RelevanceBasedDistanceCalculator.getInstance();
 
     public ARI() {
-        super("ARI", true);
+        super(true);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public @NotNull String getName() {
+        return "ARI";
     }
 
     @Override

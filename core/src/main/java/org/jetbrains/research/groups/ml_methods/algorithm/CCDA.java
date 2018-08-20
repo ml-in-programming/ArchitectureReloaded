@@ -25,8 +25,16 @@ public class CCDA extends AbstractAlgorithm {
     private static final double ACCURACY = 1;
 
     public CCDA() {
-        super("CCDA", true);
+        super(true);
 
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public @NotNull String getName() {
+        return "CCDA";
     }
 
     @Override

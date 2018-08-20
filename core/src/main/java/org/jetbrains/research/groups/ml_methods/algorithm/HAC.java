@@ -30,7 +30,15 @@ public class HAC extends AbstractAlgorithm {
     private static final @NotNull DistanceCalculator distanceCalculator = RelevanceBasedDistanceCalculator.getInstance();
 
     public HAC() {
-        super("HAC", true);
+        super(true);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public @NotNull String getName() {
+        return "HAC";
     }
 
     @Override
