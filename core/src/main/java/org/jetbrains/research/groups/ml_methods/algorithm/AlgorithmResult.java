@@ -7,6 +7,7 @@ import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactorin
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class AlgorithmResult {
     private final List<CalculatedRefactoring> refactorings;
@@ -25,7 +26,7 @@ public class AlgorithmResult {
     }
 
     AlgorithmResult(AlgorithmType algorithmType, @NotNull Exception exception) {
-        this.refactorings = Collections.emptyList();
+        this.refactorings = null;
         this.algorithmType = algorithmType;
         this.executionTime = 0;
         this.threadUsed = 0;
@@ -33,7 +34,8 @@ public class AlgorithmResult {
     }
 
     public List<CalculatedRefactoring> getRefactorings() {
-        return Collections.unmodifiableList(refactorings);
+        throwIfNotSuccess();
+        return Collections.unmodifiableList(Objects.requireNonNull(refactorings));
     }
 
     public AlgorithmType getAlgorithmType() {
@@ -41,10 +43,12 @@ public class AlgorithmResult {
     }
 
     public long getExecutionTime() {
+        throwIfNotSuccess();
         return executionTime;
     }
 
     public int getThreadUsed() {
+        throwIfNotSuccess();
         return threadUsed;
     }
 
@@ -53,14 +57,21 @@ public class AlgorithmResult {
         return exception;
     }
 
-    public boolean isSuccess() {
+    boolean isSuccess() {
         return exception == null;
     }
 
-    public String getReport() {
-        return "Results of " + algorithmType + " running" + System.lineSeparator() +
-                "  Found " + refactorings.size() + " refactorings" + System.lineSeparator() +
+    private void throwIfNotSuccess() {
+        if (!isSuccess()) {
+            throw new AlgorithmFailedException("Algorithm ended with exception. Requested data cannot be retrieved.");
+        }
+    }
+
+    String getReport() {
+        return isSuccess() ? "Results of " + algorithmType + " running" + System.lineSeparator() +
+                "  Found " + Objects.requireNonNull(refactorings).size() + " refactorings" + System.lineSeparator() +
                 "  Execution time: " + executionTime + System.lineSeparator() +
-                "  Threads used: " + threadUsed;
+                "  Threads used: " + threadUsed :
+                algorithmType + " failed with exception: " + Objects.requireNonNull(exception).getMessage();
     }
 }

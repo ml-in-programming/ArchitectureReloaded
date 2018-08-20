@@ -54,7 +54,9 @@ public class HAC extends AbstractAlgorithm {
         if (attributes.getClassesAttributes().size() > MAX_NUMBER_OF_CLASSES ||
                 attributes.getMethodsAttributes().size() > MAX_NUMBER_OF_METHODS ||
                 attributes.getFieldsAttributes().size() > MAX_NUMBER_OF_FIELDS) {
-            return new AlgorithmResult(AlgorithmType.HAC, new TooLargeProjectException("HAC execution will be too long on this project"));
+            LOGGER.warn("HAC haven't been executed because project is too large and HAC will work too long");
+            return new AlgorithmResult(AlgorithmType.HAC,
+                    new TooLargeProjectException("HAC execution will be too long on this project"));
         }
         return super.execute(attributes, service, enableFieldRefactorings);
     }
