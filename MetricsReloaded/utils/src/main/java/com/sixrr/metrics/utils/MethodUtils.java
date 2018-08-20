@@ -22,6 +22,7 @@ import com.intellij.psi.search.searches.SuperMethodsSearch;
 import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
 import com.intellij.util.Processor;
 import com.intellij.util.Query;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,8 +30,8 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 public final class MethodUtils {
-
-    static List<String> getterPrefixes = Arrays.asList("get", "is", "has");
+    private static final @NotNull Logger LOGGER = Logger.getLogger(MethodUtils.class);
+    private static List<String> getterPrefixes = Arrays.asList("get", "is", "has");
 
     private MethodUtils() {}
 
@@ -289,8 +290,13 @@ public final class MethodUtils {
     public static List<PsiMethod> getOverloads(@NotNull PsiMethod method, @NotNull PsiClass containingClass,
                                            boolean considerSupers) {
         List<PsiMethod> overloads = getAllRootOverloads(method, containingClass, considerSupers);
-        if (!overloads.remove(isOverriding(method) ? method.findDeepestSuperMethods()[0] : method)) {
-            throw new IllegalStateException("Set of overloaded methods must contain original method");
+        PsiMethod methodThatWasAsked = isOverriding(method) ? method.findDeepestSuperMethods()[0] : method;
+        if (overloads.stream()
+                .filter(method1 -> calculateSignature(methodThatWasAsked).equals(calculateSignature(method1)))
+                .count() != 1) {
+            String errorMessage = "Set of overloaded methods must contain original method.\n" +
+                    "Overloads was searched for " + calculateSignature(method);
+            LOGGER.error(errorMessage);
         }
         return overloads;
     }

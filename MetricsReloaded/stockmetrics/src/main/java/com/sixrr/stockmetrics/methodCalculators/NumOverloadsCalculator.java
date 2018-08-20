@@ -17,7 +17,8 @@ public class NumOverloadsCalculator extends MethodCalculator {
         public void visitMethod(PsiMethod method) {
             PsiClass containingClass = method.getContainingClass();
             if (containingClass != null) {
-                postMetric(method, MethodUtils.getNumberOfOverloads(method, containingClass, true));
+                postMetric(method,
+                        MethodUtils.getNumberOfOverloads(method, containingClass, true) - 1);
             }
             super.visitMethod(method);
         }
