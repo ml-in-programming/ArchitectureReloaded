@@ -1,8 +1,8 @@
 package org.jetbrains.research.groups.ml_methods.extraction.refactoring;
 
 import org.jetbrains.research.groups.ml_methods.ScopeAbstractTest;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers.RefactoringsReaders;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 
 import java.io.IOException;
 import java.nio.file.Paths;

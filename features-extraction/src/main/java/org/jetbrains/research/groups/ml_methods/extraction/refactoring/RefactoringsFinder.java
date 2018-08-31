@@ -8,7 +8,7 @@ import com.intellij.psi.PsiMethod;
 import com.sixrr.metrics.utils.MethodUtils;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 
 import java.util.*;
 import java.util.stream.Collectors;

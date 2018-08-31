@@ -11,11 +11,11 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers.RefactoringsWriters;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory;
 import org.jetbrains.research.groups.ml_methods.generation.constraints.GenerationConstraintsFactory.GenerationConstraintType;
-import org.jetbrains.research.groups.ml_methods.utils.PsiSearchUtil;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
+import org.jetbrains.research.groups.ml_methods.utils.PSIUtil;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -72,7 +72,7 @@ public class RefactoringsGenerationApplicationStarter implements ApplicationStar
                 System.err.println("Empty scope. Probably project cannot be open. Reload it with IDEA.");
                 APPLICATION.exit(true, true);
             }
-            int numberOfJavaFiles = PsiSearchUtil.getNumberOfJavaFiles(project, false);
+            int numberOfJavaFiles = PSIUtil.getNumberOfJavaFiles(project, false);
             int numberOfRefactoringsToGenerate = (int) (numberOfJavaFiles * 0.03);
             List<MoveMethodRefactoring> generatedRefactoring = RefactoringsGenerator.generate(GenerationConstraintsFactory.get(
                     GenerationConstraintType.ACCEPT_RELEVANT_PROPERTIES), numberOfRefactoringsToGenerate, scope);

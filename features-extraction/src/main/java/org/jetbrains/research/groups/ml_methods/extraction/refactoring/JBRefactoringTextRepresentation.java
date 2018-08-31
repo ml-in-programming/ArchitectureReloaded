@@ -2,7 +2,7 @@ package org.jetbrains.research.groups.ml_methods.extraction.refactoring;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 
 import java.util.Arrays;
 import java.util.List;

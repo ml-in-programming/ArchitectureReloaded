@@ -6,9 +6,9 @@ import com.sixrr.metrics.profile.MetricsProfile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
-import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringExecutionContext;
+import org.jetbrains.research.groups.ml_methods.algorithm.RefactoringExecutionContext;
+import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveToClassRefactoring;
 import org.jetbrains.research.groups.ml_methods.utils.MetricsProfilesUtil;
 
 import java.util.Collections;
@@ -28,8 +28,10 @@ public class AlgorithmEvaluator {
     }
 
     @NotNull
-    static EvaluationResult evaluate(@NotNull AnalysisScope scope, @NotNull Algorithm algorithm,
-                                     @NotNull List<Refactoring> good, @NotNull List<Refactoring> bad,
+    static EvaluationResult evaluate(@NotNull AnalysisScope scope,
+                                     @NotNull Algorithm algorithm,
+                                     @NotNull List<MoveToClassRefactoring> good,
+                                     @NotNull List<MoveToClassRefactoring> bad,
                                      @Nullable Integer topRefactoringsBound) {
         MetricsProfile profile =
                 MetricsProfilesUtil.createProfile("evaluation_profile", algorithm.requiredMetrics());

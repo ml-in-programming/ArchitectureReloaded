@@ -3,8 +3,8 @@ package org.jetbrains.research.groups.ml_methods.evaluation;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.CalculatedRefactoring;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.Refactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveToClassRefactoring;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,15 +12,15 @@ import java.util.stream.Collectors;
 
 public class ProjectEvaluationResult extends AbstractEvaluationResult {
     private final List<CalculatedRefactoring> foundGoodRefactorings;
-    private final List<Refactoring> goodRefactorings;
+    private final List<MoveToClassRefactoring> goodRefactorings;
     private final List<CalculatedRefactoring> foundBadRefactorings;
-    private final List<Refactoring> badRefactorings;
+    private final List<MoveToClassRefactoring> badRefactorings;
     private final @NotNull List<CalculatedRefactoring> foundOthersRefactorings;
     private final @NotNull List<Double> errors = new ArrayList<>();
 
     ProjectEvaluationResult(List<CalculatedRefactoring> foundRefactorings,
-                            List<Refactoring> goodRefactorings,
-                            List<Refactoring> badRefactorings,
+                            List<MoveToClassRefactoring> goodRefactorings,
+                            List<MoveToClassRefactoring> badRefactorings,
                             @NotNull Algorithm evaluatingAlgorithm) {
         super(evaluatingAlgorithm);
         foundGoodRefactorings = new ArrayList<>(foundRefactorings);
@@ -34,7 +34,7 @@ public class ProjectEvaluationResult extends AbstractEvaluationResult {
             refactoring -> goodRefactorings.contains(refactoring.getRefactoring()) ||
                     badRefactorings.contains(refactoring.getRefactoring())
         );
-        List<Refactoring> foundWithoutAccuracy = foundRefactorings.stream()
+        List<MoveToClassRefactoring> foundWithoutAccuracy = foundRefactorings.stream()
                 .map(CalculatedRefactoring::getRefactoring)
                 .collect(Collectors.toList());
         errors.addAll(foundBadRefactorings.stream()

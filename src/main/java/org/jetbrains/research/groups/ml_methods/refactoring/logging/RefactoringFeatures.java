@@ -1,0 +1,166 @@
+package org.jetbrains.research.groups.ml_methods.refactoring.logging;
+
+import com.sixrr.metrics.Metric;
+import com.sixrr.metrics.metricModel.MetricsResult;
+import com.sixrr.metrics.metricModel.MetricsRun;
+import com.sixrr.stockmetrics.classMetrics.*;
+import com.sixrr.stockmetrics.methodMetrics.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveFieldRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveToClassRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringVisitor;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/**
+ * This class contains features extracted from some {@link MoveToClassRefactoring}. This features should
+ * characterize {@link MoveToClassRefactoring} in a way that helps to extract user refactorings preferences
+ * from features of accepted and rejected refactorings.
+ */
+public abstract class RefactoringFeatures {
+    private static final @NotNull List<Metric> requestedMetrics =
+        Arrays.asList(
+            new FormalParametersCountMethodMetric(),
+            new LinesOfCodeMethodMetric(),
+            new NumAssertsMetric(),
+            new NumLoopsMetric(),
+            new NumLocalVarsMetric(),
+            new IsStaticMethodMetric(),
+            new IsPrivateMethodMetric(),
+            new NameLenMethodMetric(),
+            new NumExceptionsThrownMetric(),
+            new IsAbstractMetric(),
+            new IsAbstractMethodMetric(),
+            new IsFinalMethodMetric(),
+            new IsGenericMetric(),
+            new IsGenericClassMetric(),
+            new IsGetterMetric(),
+            new IsOverridingMetric(),
+            new IsPackagePrivateMethodMetric(),
+            new IsProtectedMethodMetric(),
+            new IsPublicMethodMetric(),
+            new IsSynchronizedMethodMetric(),
+            new NumAbstractMethodsMetric(),
+            new NumCalledMethodsMetric(),
+            new NumFinalMethodsMetric(),
+            new NumGenericsMetric(),
+            new NumGettersMetric(),
+            new NumMeaningfulClassesClassMetric(),
+            new NumMeaningfulClassesMethodMetric(),
+            // new NumMethodsThatCallMetric(),
+            new NumOverloadsMetric(),
+            new NumOverriddenMetric(),
+            new NumOverridingMetric(),
+            new NumPackagePrivateFieldsMetric(),
+            new NumPackagePrivateMethodsMetric(),
+            new NumPrivateFieldsMetric(),
+            new NumPrivateMethodsMetric(),
+            new NumProtectedFieldsMetric(),
+            new NumProtectedMethodsMetric(),
+            new NumPublicFieldsMetric(),
+            new NumPublicMethodsMetric(),
+            new NumSameClassCalledMethodsMetric(),
+            // new NumSameClassMethodsThatCallMetric(),
+            new NumSettersMetric(),
+            new NumStaticFieldsMetric(),
+            new NumStaticMethodsMetric(),
+            new NumSynchronizedMethodsMetric(),
+            new NumVolatileFieldsMetric(),
+            new NumFinalFieldsMetric()
+        );
+
+    private static final @NotNull Set<String> requestedMetricsIds =
+        requestedMetrics.stream().map(Metric::getID).collect(Collectors.toSet());
+
+    @NotNull
+    public abstract <R> R accept(final @NotNull RefactoringFeaturesVisitor<R> visitor);
+
+    /**
+     * Extracts features from a given {@link MoveToClassRefactoring}.
+     *
+     * @param refactoring a {@link MoveToClassRefactoring} to extract features from.
+     * @param metricsRun a result of metrics calculations. Some of metrics values calculated for
+     *                   objects given refactoring operates on can be used to extract refactoring
+     *                   features.
+     */
+    public static @NotNull RefactoringFeatures extractFeatures(
+        final @NotNull MoveToClassRefactoring refactoring,
+        final @NotNull MetricsRun metricsRun
+    ) {
+        return refactoring.accept(new RefactoringVisitor<RefactoringFeatures>() {
+            @Override
+            public @NotNull RefactoringFeatures visit(@NotNull MoveMethodRefactoring refactoring) {
+                return new MoveMethodRefactoringFeatures(refactoring, metricsRun);
+            }
+
+            @Override
+            public @NotNull RefactoringFeatures visit(@NotNull MoveFieldRefactoring refactoring) {
+                return new MoveFieldRefactoringFeatures(refactoring, metricsRun);
+            }
+        });
+    }
+
+    /**
+     * Returns {@link List} of {@link Metric}s that are required to construct
+     * {@link RefactoringFeatures}. This returned metrics are supposed to be calculated during
+     * common metrics calculation process and passed to {@link #extractFeatures} method when
+     * features extraction is required.
+     */
+    public static @NotNull List<Metric> getRequestedMetrics() {
+        return requestedMetrics;
+    }
+
+    protected static List<MetricCalculationResult> extractMetricsResultsFor(
+        final @NotNull String measuredObject,
+        final @NotNull MetricsResult results
+    ) {
+        List<MetricCalculationResult> extractedResults = new ArrayList<>();
+
+        Metric[] metrics = results.getMetrics();
+
+        for (Metric metric : metrics) {
+            if (!requestedMetricsIds.contains(metric.getID())) {
+                continue;
+            }
+
+            double metricValue = results.getValueForMetric(metric, measuredObject);
+
+            extractedResults.add(
+                    new MetricCalculationResult(metric.getID(), metricValue)
+            );
+        }
+
+        return extractedResults;
+    }
+
+    /**
+     * Result of calculation of one single {@link Metric} for a particular object. Contains actual
+     * real value and metric's id.
+     */
+    public static class MetricCalculationResult {
+        private final @NotNull String metricId;
+
+        private final double metricValue;
+
+        public MetricCalculationResult(
+            final @NotNull String metricId,
+            final double metricValue
+        ) {
+            this.metricId = metricId;
+            this.metricValue = metricValue;
+        }
+
+        public @NotNull String getMetricId() {
+            return metricId;
+        }
+
+        public double getMetricValue() {
+            return metricValue;
+        }
+    }
+}

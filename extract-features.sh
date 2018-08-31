@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 if [ $# -ne "3" ]; then
     echo "usage: features-extraction <path to project> <path to correct refactorings> <path to output folder>"
     exit 1

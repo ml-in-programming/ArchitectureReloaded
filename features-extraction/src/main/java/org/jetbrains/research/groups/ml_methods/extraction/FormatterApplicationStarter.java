@@ -11,12 +11,12 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.algorithm.refactoring.MoveMethodRefactoring;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringsLoader;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers.RefactoringsReader;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers.RefactoringsReaders;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers.RefactoringsWriter;
 import org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers.RefactoringsWriters;
+import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -70,8 +70,8 @@ public class FormatterApplicationStarter implements ApplicationStarter {
                     .getWriterByName(args[5])
                     .orElseThrow(() -> new IllegalArgumentException("No writer in format " + args[5] + " is available"));
 
-            System.out.println("Opening project...");
-            System.out.println(projectPath.toAbsolutePath().toString());
+            LOGGER.info("Opening project...");
+            LOGGER.info(projectPath.toAbsolutePath().toString());
             final Project project = ProjectUtils.loadProjectWithAllDependencies(projectPath);
             if (project == null) {
                 System.err.println("Cannot open project. Check that path is correct.");
@@ -88,7 +88,7 @@ public class FormatterApplicationStarter implements ApplicationStarter {
                 return;
             }
 
-            System.out.println("Found " + refactorings.size() + " refactorings: ");
+            LOGGER.info("Found " + refactorings.size() + " refactorings: ");
             refactorings.forEach(refactoring ->
                     LOGGER.info(
                             refactoring.getMethod() + "->" +
@@ -97,7 +97,7 @@ public class FormatterApplicationStarter implements ApplicationStarter {
             );
             writer.write(refactorings, out);
         } catch (Throwable throwable) {
-            System.out.println("Error: "+ throwable.getMessage());
+            LOGGER.error("Error: "+ throwable.getMessage());
             throwable.printStackTrace();
         } finally {
             APPLICATION.exit(true, true);

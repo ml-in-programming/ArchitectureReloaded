@@ -3,8 +3,6 @@ package org.jetbrains.research.groups.ml_methods.extraction.features.extractors;
 import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.extraction.features.AnotherInstanceCallers;
-import org.jetbrains.research.groups.ml_methods.extraction.features.Feature;
-import org.jetbrains.research.groups.ml_methods.extraction.features.SameInstanceCallers;
 import org.jetbrains.research.groups.ml_methods.extraction.info.MethodInfo;
 
 public class AnotherInstanceCallersExtractor implements MoveMethodSingleFeatureExtractor {
@@ -14,9 +12,9 @@ public class AnotherInstanceCallersExtractor implements MoveMethodSingleFeatureE
         final @NotNull PsiClass targetClass
     ) {
         return new AnotherInstanceCallers(
-            methodInfo.getAnotherInstanceCallers(
-                MethodFilters.sameClass(methodInfo.getContainingClass())
-            ).count()
+            methodInfo.getAnotherInstanceCallers().stream()
+                    .filter(MethodFilters.sameClass(methodInfo.getContainingClass()))
+                    .count()
         );
     }
 }

@@ -4,7 +4,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
-import org.jetbrains.research.groups.ml_methods.config.Logging;
+import org.jetbrains.research.groups.ml_methods.logging.Logging;
 
 import java.io.File;
 import java.io.IOException;

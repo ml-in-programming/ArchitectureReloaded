@@ -1,8 +1,32 @@
-dependencies {
-    compile project(':openapi')
-    compile project(':utils')
-    compile project(':algorithms')
+repositories {
+    mavenCentral()
+}
 
-    testCompile project(':utils').sourceSets.test.output
-    testCompile files('../lib/hamcrest-all-1.3.jar')
+apply plugin: 'idea'
+
+dependencies {
+    compile project(':core')
+    compile project(':MetricsReloaded')
+
+    testCompile project(':core').sourceSets.test.output
+    testCompile group: 'org.hamcrest', name: 'hamcrest-all', version: '1.3'
+    testCompile group: 'org.mockito', name: 'mockito-core', version: '2.19.1'
+}
+
+task runFeaturesExtraction(dependsOn: runIde) {}
+
+gradle.taskGraph.whenReady { graph ->
+    if (graph.hasTask(runFeaturesExtraction)) {
+        runIde.args 'features-extraction', "$pathToProject", "$pathToRefactorings", "$pathToFeatures"
+        runIde.jvmArgs '-Djava.awt.headless=true', '-Xmx2048m'
+    }
+}
+
+task runReformatRefactorings(dependsOn: runIde) {}
+
+gradle.taskGraph.whenReady { graph ->
+    if (graph.hasTask(runReformatRefactorings)) {
+        runIde.args 'reformat-refactorings', "$pathToProject", "$pathIn", "$inFormatName", "$pathOut", "$outFormatName"
+        runIde.jvmArgs '-Djava.awt.headless=true', '-Xmx2048m'
+    }
 }
