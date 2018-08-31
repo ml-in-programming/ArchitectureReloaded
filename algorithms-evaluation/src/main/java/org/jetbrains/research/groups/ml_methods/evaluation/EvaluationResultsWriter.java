@@ -6,6 +6,7 @@ import org.jetbrains.research.groups.ml_methods.evaluation.EvaluationResult.Eval
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -25,7 +26,8 @@ class EvaluationResultsWriter {
         evaluationNames.put(Evaluation.ME, "Mean Error");
     }
 
-    static void writeTable(List<EvaluationResult> evaluationResults, Path outPath) throws IOException {
+    static void writeTable(List<EvaluationResult> evaluationResults, Path outPath, OpenOption... options)
+            throws IOException {
         List<String> lines = new ArrayList<>();
         lines.add("<table border=\"1\">");
 
@@ -56,7 +58,7 @@ class EvaluationResultsWriter {
         }
 
         lines.add("</table>");
-        Files.write(outPath, lines);
+        Files.write(outPath, lines, options);
     }
 
     static void writeJSON(List<EvaluationResult> evaluationResults, Path outPath) throws IOException {
