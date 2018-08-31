@@ -16,9 +16,11 @@
 
 package com.sixrr.stockmetrics.projectCalculators;
 
-import com.intellij.psi.*;
-import com.sixrr.stockmetrics.utils.LineUtil;
+import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.sixrr.metrics.utils.TestUtils;
+import com.sixrr.stockmetrics.utils.LineUtil;
 
 public class LinesOfTestCodeProjectCalculator extends ElementCountProjectCalculator {
 

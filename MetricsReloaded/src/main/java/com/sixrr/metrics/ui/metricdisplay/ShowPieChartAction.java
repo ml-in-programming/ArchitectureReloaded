@@ -19,8 +19,8 @@ package com.sixrr.metrics.ui.metricdisplay;
 import com.intellij.openapi.project.Project;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
-import com.sixrr.metrics.utils.MetricsCategoryNameUtil;
 import com.sixrr.metrics.ui.charts.PieChartDialog;
+import com.sixrr.metrics.utils.MetricsCategoryNameUtil;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
 
 import javax.swing.*;

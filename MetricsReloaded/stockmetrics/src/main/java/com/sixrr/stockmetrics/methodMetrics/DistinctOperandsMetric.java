@@ -20,7 +20,6 @@ import com.sixrr.metrics.MetricCalculator;
 import com.sixrr.metrics.MetricType;
 import com.sixrr.stockmetrics.i18n.StockMetricsBundle;
 import com.sixrr.stockmetrics.methodCalculators.DistinctOperandsCountCalculator;
-import com.sixrr.stockmetrics.methodCalculators.OperandsCountCalculator;
 import org.jetbrains.annotations.NotNull;
 
 public class DistinctOperandsMetric extends MethodMetric {

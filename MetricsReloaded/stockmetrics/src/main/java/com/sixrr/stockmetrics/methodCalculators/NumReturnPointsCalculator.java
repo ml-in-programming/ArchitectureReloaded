@@ -17,8 +17,8 @@
 package com.sixrr.stockmetrics.methodCalculators;
 
 import com.intellij.psi.*;
-import com.sixrr.stockmetrics.utils.ControlFlowUtils;
 import com.sixrr.metrics.utils.MethodUtils;
+import com.sixrr.stockmetrics.utils.ControlFlowUtils;
 
 public class NumReturnPointsCalculator extends MethodCalculator {
     private int methodNestingDepth = 0;

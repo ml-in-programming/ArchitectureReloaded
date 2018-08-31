@@ -3,7 +3,6 @@ package com.sixrr.stockmetrics.methodMetrics;
 import com.sixrr.metrics.MetricCalculator;
 import com.sixrr.metrics.MetricType;
 import com.sixrr.stockmetrics.i18n.StockMetricsBundle;
-import com.sixrr.stockmetrics.methodCalculators.AbstractNumCalledMethodsCalculator;
 import com.sixrr.stockmetrics.methodCalculators.NumCalledMethodsCalculator;
 import org.jetbrains.annotations.NotNull;
 

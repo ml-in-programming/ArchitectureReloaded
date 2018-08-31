@@ -15,7 +15,7 @@ task runAlgorithmsEvaluation(dependsOn: runIde) {}
 
 gradle.taskGraph.whenReady { graph ->
     if (graph.hasTask(runAlgorithmsEvaluation)) {
-        runIde.args 'algorithms-evaluation', "$pathToDataset", "$algorithmsNames", "$pathToSaveResults"
+        runIde.args 'algorithms-evaluation', "$pathToDataset", "$algorithmsNames", "$pathToSaveResults", "$topRefactoringsBound"
         runIde.jvmArgs '-Djava.awt.headless=true', '-Xmx4096m'
     }
 }

@@ -16,8 +16,8 @@
 package com.sixrr.metrics.ui.dialogs;
 
 import com.sixrr.metrics.Metric;
-import com.sixrr.metrics.profile.MetricInstance;
 import com.sixrr.metrics.metricModel.MetricsResult;
+import com.sixrr.metrics.profile.MetricInstance;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
 
 import javax.swing.table.AbstractTableModel;

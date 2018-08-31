@@ -33,12 +33,3 @@ dependencies {
 
   compile files('lib/args4j-2.32.jar', 'lib/jcommon-0.9.1.jar', 'lib/jfreechart-0.9.16.jar')
 }
-
-task runAlgorithmsEvaluation(dependsOn: runIde) {}
-
-gradle.taskGraph.whenReady { graph ->
-  if (graph.hasTask(runAlgorithmsEvaluation)) {
-    runIde.args 'algorithms-evaluation', "$pathToDataset", "$algorithmsNames", "$pathToSaveResults", "$topRefactoringsBound"
-    runIde.jvmArgs '-Djava.awt.headless=true', '-Xmx4096m'
-  }
-}

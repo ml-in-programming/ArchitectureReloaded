@@ -20,11 +20,10 @@ public class AlgorithmEvaluator {
     @NotNull
     private static List<CalculatedRefactoring> getTopRefactorings(@NotNull List<CalculatedRefactoring> calculatedRefactorings,
                                                            @NotNull Integer topRefactoringsBound) {
-        List<CalculatedRefactoring> result = calculatedRefactorings.stream()
+        return calculatedRefactorings.stream()
                 .sorted(Comparator.comparingDouble(CalculatedRefactoring::getAccuracy).reversed())
                 .limit(topRefactoringsBound)
                 .collect(Collectors.toList());
-        return result;
     }
 
     @NotNull
@@ -47,7 +46,7 @@ public class AlgorithmEvaluator {
 
     @NotNull
     static EvaluationResult evaluate(@NotNull Project project, @NotNull Algorithm algorithm,
-                                     @NotNull List<Refactoring> good, @NotNull List<Refactoring> bad,
+                                     @NotNull List<MoveToClassRefactoring> good, @NotNull List<MoveToClassRefactoring> bad,
                                      @Nullable Integer topRefactoringsBound) {
         return evaluate(new AnalysisScope(project), algorithm, good, bad, topRefactoringsBound);
     }

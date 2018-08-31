@@ -20,7 +20,6 @@ import com.sixrr.metrics.MetricCalculator;
 import com.sixrr.metrics.MetricType;
 import com.sixrr.stockmetrics.i18n.StockMetricsBundle;
 import com.sixrr.stockmetrics.methodCalculators.FanInMethodCalculator;
-import com.sixrr.stockmetrics.methodCalculators.MethodCalculator;
 import org.jetbrains.annotations.NotNull;
 
 public class FanInMethodMetric extends MethodMetric {

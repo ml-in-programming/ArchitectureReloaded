@@ -20,8 +20,8 @@ import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.javadoc.PsiDocComment;
-import com.sixrr.stockmetrics.utils.LineUtil;
 import com.sixrr.metrics.utils.MethodUtils;
+import com.sixrr.stockmetrics.utils.LineUtil;
 
 public class JavadocLinesOfCodeMethodCalculator extends MethodCalculator {
     private int methodNestingDepth = 0;

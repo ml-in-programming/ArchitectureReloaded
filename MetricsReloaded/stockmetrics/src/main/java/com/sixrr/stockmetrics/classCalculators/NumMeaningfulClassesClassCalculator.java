@@ -1,6 +1,8 @@
 package com.sixrr.stockmetrics.classCalculators;
 
-import com.intellij.psi.*;
+import com.intellij.psi.JavaRecursiveElementVisitor;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElementVisitor;
 import org.jetbrains.research.groups.ml_methods.utils.ClassUtils;
 
 public class NumMeaningfulClassesClassCalculator extends ClassCalculator {

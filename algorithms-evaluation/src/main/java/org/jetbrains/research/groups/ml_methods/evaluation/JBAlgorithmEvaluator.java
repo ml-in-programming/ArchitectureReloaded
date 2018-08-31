@@ -23,7 +23,8 @@ class JBAlgorithmEvaluator {
             ProjectToEvaluate projectToEvaluate = ProjectLoader.loadForEvaluation(rootFolders[i].toPath());
             LOGGER.info(i + "/" + rootFolders.length + " projects are evaluated");
             LOGGER.info("Starting evaluation of new project: " + rootFolders[i].getAbsolutePath());
-            combinedEvaluationResult.addResult(AlgorithmEvaluator.evaluate(projectToEvaluate, algorithmToEvaluate, topRefactoringsBound));
+            combinedEvaluationResult.addResult(AlgorithmEvaluator.evaluate(projectToEvaluate, algorithmToEvaluate,
+                    topRefactoringsBound));
         }
         return combinedEvaluationResult;
     }
