@@ -35,6 +35,7 @@
     </ol>
     ]]></description>
     <version>0.2</version>
+    <vendor url="https://research.jetbrains.org/ru/groups/ml_methods" email="timofey.bryksin@gmail.com">Timofey Bryksin</vendor>
     <change-notes></change-notes>
     <idea-version since-build="171"/>
 
