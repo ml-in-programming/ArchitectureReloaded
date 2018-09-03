@@ -34,9 +34,9 @@
             Double-clicks on table cells navigate to appropriate code fragments.</li>
     </ol>
     ]]></description>
-    <version>0.1</version>
+    <version>0.2</version>
     <change-notes></change-notes>
-    <idea-version since-build="139"/>
+    <idea-version since-build="171"/>
 
     <depends optional="true" config-file="java-metrics.xml">com.intellij.modules.java</depends>
 
