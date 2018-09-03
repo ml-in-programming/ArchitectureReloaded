@@ -16,6 +16,7 @@ allprojects {
 
   apply plugin: 'org.jetbrains.intellij'
   intellij.version = 2017.1
+  intellij.updateSinceUntilBuild = false
 }
 
 repositories {

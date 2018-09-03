@@ -226,7 +226,7 @@ public class RefactoringsTableModel extends AbstractTableModel {
                 }
                 setHorizontalAlignment(column == ACCURACY_COLUMN_INDEX ? CENTER : LEFT);
                 setEnabled(isActive[row]);
-                return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, virtualRow, column);
             }
         });
     }
