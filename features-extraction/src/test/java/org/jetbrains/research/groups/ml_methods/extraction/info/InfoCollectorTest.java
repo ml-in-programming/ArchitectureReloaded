@@ -107,13 +107,13 @@ public class InfoCollectorTest extends ScopeAbstractTest {
         assertSameElements(
             repository.getMethods()
                       .stream()
-                      .map(MethodUtils::calculateSignature)
+                      .map(MethodUtils::calculateUniqueSignature)
                       .collect(Collectors.toList()),
             validator.methodNames()
         );
 
         for (PsiMethod method : repository.getMethods()) {
-            String methodName = MethodUtils.calculateSignature(method);
+            String methodName = MethodUtils.calculateUniqueSignature(method);
 
             MethodInfo info = repository.getMethodInfo(method).orElseThrow(
                 () -> new IllegalStateException(
@@ -124,7 +124,7 @@ public class InfoCollectorTest extends ScopeAbstractTest {
             assertSameElements(
                 info.getSameInstanceCallers()
                     .stream()
-                    .map(MethodUtils::calculateSignature)
+                    .map(MethodUtils::calculateUniqueSignature)
                     .collect(Collectors.toList()),
                 validator.getSameObjectCallers(methodName)
             );
@@ -132,7 +132,7 @@ public class InfoCollectorTest extends ScopeAbstractTest {
             assertSameElements(
                 info.getAnotherInstanceCallers()
                     .stream()
-                    .map(MethodUtils::calculateSignature)
+                    .map(MethodUtils::calculateUniqueSignature)
                     .collect(Collectors.toList()),
                 validator.getAnotherObjectCallers(methodName)
             );
@@ -140,7 +140,7 @@ public class InfoCollectorTest extends ScopeAbstractTest {
             assertSameElements(
                 info.getSameInstanceTargets()
                     .stream()
-                    .map(MethodUtils::calculateSignature)
+                    .map(MethodUtils::calculateUniqueSignature)
                     .collect(Collectors.toList()),
                 validator.getSameObjectTargets(methodName)
             );
@@ -148,7 +148,7 @@ public class InfoCollectorTest extends ScopeAbstractTest {
             assertSameElements(
                 info.getAnotherInstanceTargets()
                     .stream()
-                    .map(MethodUtils::calculateSignature)
+                    .map(MethodUtils::calculateUniqueSignature)
                     .collect(Collectors.toList()),
                 validator.getAnotherObjectTargets(methodName)
             );
@@ -156,7 +156,7 @@ public class InfoCollectorTest extends ScopeAbstractTest {
             assertSameElements(
                 info.getAccessedFields()
                     .stream()
-                    .map(PSIUtil::getHumanReadableName)
+                    .map(PSIUtil::getUniqueName)
                     .collect(Collectors.toList()),
                 validator.getAccessedFields(methodName)
             );

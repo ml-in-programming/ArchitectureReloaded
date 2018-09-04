@@ -11,6 +11,7 @@ import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
 import static com.intellij.testFramework.UsefulTestCase.assertOneOf;
 import static junit.framework.TestCase.assertTrue;
 import static org.jetbrains.research.groups.ml_methods.utils.PSIUtil.getHumanReadableName;
+import static org.jetbrains.research.groups.ml_methods.utils.PSIUtil.getUniqueName;
 import static org.junit.Assert.assertEquals;
 
 class TestCasesCheckers {
@@ -23,8 +24,8 @@ class TestCasesCheckers {
 
     private static Map<String, String> toMap(List<CalculatedRefactoring> refactorings) {
         return refactorings.stream().collect(Collectors.toMap(it ->
-                getHumanReadableName(it.getRefactoring().getEntity()),
-                it -> getHumanReadableName(it.getRefactoring().getTargetClass())));
+                getUniqueName(it.getRefactoring().getEntity()),
+                it -> getUniqueName(it.getRefactoring().getTargetClass())));
     }
 
     @NotNull
@@ -206,7 +207,7 @@ class TestCasesCheckers {
 
         final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
         final Map<String, String> expected = new HashMap<>();
-        expected.put(getPackageName() + ".Customer.getMovie(Movie)", getPackageName() + ".Rental");
+        expected.put(getPackageName() + ".Customer.getMovie(" + getPackageName() + ".Movie)", getPackageName() + ".Rental");
         assertEquals(expected, refactorings);
     }
 

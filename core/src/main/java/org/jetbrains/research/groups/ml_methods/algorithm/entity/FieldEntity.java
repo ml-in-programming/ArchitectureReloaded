@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-import static org.jetbrains.research.groups.ml_methods.utils.PSIUtil.getHumanReadableName;
+import static org.jetbrains.research.groups.ml_methods.utils.PSIUtil.getUniqueName;
 
 public class FieldEntity extends ClassInnerEntity {
     private final @NotNull PsiField psiField;
@@ -31,7 +31,7 @@ public class FieldEntity extends ClassInnerEntity {
     @Override
     public @NotNull String getIdentifier() {
         return ApplicationManager.getApplication().runReadAction(
-            (Computable<String>) () -> getHumanReadableName(psiField.getContainingClass()) + "." + psiField.getName()
+            (Computable<String>) () -> getUniqueName(psiField.getContainingClass()) + "." + psiField.getName()
         );
     }
 

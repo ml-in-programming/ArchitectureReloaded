@@ -39,6 +39,6 @@ public class IsGenericMetricTest extends MetricAbstractTest {
 
     public void testTwoGenericTypes() {
         MetricsResultsHolderTestImpl metricResults = runMetricOnTestCase(METRIC);
-        assertEquals(1.0, metricResults.getMethodMetric(METRIC, "A.method(T,R,Collection)"));
+        assertEquals(1.0, metricResults.getMethodMetric(METRIC, "A.method(T,R,java.util.Collection)"));
     }
 }

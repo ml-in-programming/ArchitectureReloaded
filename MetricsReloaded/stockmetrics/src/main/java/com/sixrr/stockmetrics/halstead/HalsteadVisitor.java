@@ -165,7 +165,7 @@ public class HalsteadVisitor extends JavaRecursiveElementVisitor {
         super.visitMethodCallExpression(callExpression);
         final PsiMethod method = callExpression.resolveMethod();
         if (method != null) {
-            final String signature = MethodUtils.calculateSignature(method);
+            final String signature = MethodUtils.calculateUniqueSignature(method);
             registerOperator(signature);
         }
     }
