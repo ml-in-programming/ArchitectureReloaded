@@ -14,9 +14,12 @@ import java.util.stream.Collectors;
 
 class ProjectLoader {
     static ProjectToEvaluate loadForEvaluation(Path rootFolder) throws IOException {
-        final Project project = ProjectUtils.loadProjectWithAllDependencies(rootFolder.resolve("project"));
+        final Path projectPath = rootFolder.resolve("project");
+        final Project project = ProjectUtils.loadProjectWithAllDependencies(projectPath);
         if (project == null) {
-            throw new IllegalArgumentException("Cannot open project. Check that path is correct.");
+            final String errorMessage = "Cannot open project. Check that path is correct and SDK is set up. " +
+                    "Passed path: " + projectPath.toAbsolutePath();
+            throw new IllegalArgumentException(errorMessage);
         }
         final AnalysisScope scope = new AnalysisScope(project);
         List<MoveToClassRefactoring> goodRefactorings = RefactoringsLoader.load(rootFolder.resolve("good"),

@@ -17,7 +17,10 @@
 package com.sixrr.stockmetrics.methodCalculators;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaRecursiveElementVisitor;
+import com.intellij.psi.PsiCallExpression;
+import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.PsiMethod;
 
 import java.util.HashMap;
 import java.util.HashSet;

@@ -11,8 +11,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository;
 
+import java.io.PrintStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,7 +24,7 @@ import java.util.stream.Collectors;
 
 public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarter {
     private static final ApplicationEx APPLICATION = (ApplicationEx) ApplicationManager.getApplication();
-    private static final int NUMBER_OF_ARGUMENTS = 4;
+    private static final int NUMBER_OF_ARGUMENTS = 5;
     private static final @NotNull Logger LOGGER =
             Logger.getLogger(AlgorithmsEvaluationApplicationStarter.class);
 
@@ -56,6 +59,7 @@ public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarte
             Path datasetPath = Paths.get(args[1]);
             List<String> algorithmsNames = Arrays.asList(args[2].split(","));
             Path pathToSaveResults = Paths.get(args[3]);
+            Integer topRefactoringsBound = args[4].equals("") ? null : Integer.parseInt(args[4]);
             List<Algorithm> algorithmsToEvaluate;
             if (algorithmsNames.get(0).equals("")) {
                 algorithmsToEvaluate = AlgorithmsRepository.getAvailableAlgorithms();
@@ -67,11 +71,16 @@ public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarte
             }
             List<EvaluationResult> evaluationResults = new ArrayList<>();
             for (Algorithm algorithm : algorithmsToEvaluate) {
-                evaluationResults.add(JBAlgorithmEvaluator.evaluateDataset(datasetPath, algorithm));
+                evaluationResults.add(JBAlgorithmEvaluator.evaluateDataset(datasetPath, algorithm, topRefactoringsBound));
             }
-            evaluationResults.forEach(this::printEvaluationResult);
+            try (PrintStream writeResultsStream = new PrintStream(Files.newOutputStream(pathToSaveResults))) {
+                evaluationResults.forEach(evaluationResult -> {
+                    printEvaluationResult(evaluationResult);
+                    printEvaluationResult(evaluationResult, writeResultsStream, true);
+                });
+            }
             if (!pathToSaveResults.toString().equals("")) {
-                EvaluationResultsWriter.writeTable(evaluationResults, pathToSaveResults);
+                EvaluationResultsWriter.writeTable(evaluationResults, pathToSaveResults, StandardOpenOption.APPEND);
             }
         } catch (Throwable throwable) {
             System.out.println(throwable.getClass().getSimpleName() + ": " + throwable.getMessage());
@@ -81,19 +90,26 @@ public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarte
         }
     }
 
-    private void printEvaluationResult(EvaluationResult evaluationResult) {
-        System.out.println("==================");
-        System.out.println("EVALUATION RESULT FOR " + evaluationResult.getAlgorithm().getDescriptionString());
-        System.out.println("Number of good: " + evaluationResult.getNumberOfGood());
-        System.out.println("Number of found good: " + evaluationResult.getNumberOfFoundGood());
-        System.out.println("Number of bad: " + evaluationResult.getNumberOfBad());
-        System.out.println("Number of found bad: " + evaluationResult.getNumberOfFoundBad());
-        System.out.println("Number of found others: " + evaluationResult.getNumberOfFoundOthers());
-        System.out.println("Good precision: " + evaluationResult.getGoodPrecision());
-        System.out.println("Bad precision: " + evaluationResult.getBadPrecision());
-        System.out.println("Good recall: " + evaluationResult.getGoodRecall());
-        System.out.println("Bad recall: " + evaluationResult.getBadRecall());
-        System.out.println("Mean squared error (MSE): " + evaluationResult.getMSE());
-        System.out.println("Mean error (ME): " + evaluationResult.getME());
+    private void printEvaluationResult(@NotNull EvaluationResult evaluationResult) {
+        printEvaluationResult(evaluationResult, System.out, false);
+    }
+
+    private void printEvaluationResult(@NotNull EvaluationResult evaluationResult,
+                                       @NotNull PrintStream printStream,
+                                       boolean isHtmlFile) {
+        String lineBreak = isHtmlFile ? "<br>" : System.lineSeparator();
+        printStream.print("==================" + lineBreak);
+        printStream.print("EVALUATION RESULT FOR " + evaluationResult.getAlgorithm().getDescriptionString() + lineBreak);
+        printStream.print("Number of good: " + evaluationResult.getNumberOfGood() + lineBreak);
+        printStream.print("Number of found good: " + evaluationResult.getNumberOfFoundGood() + lineBreak);
+        printStream.print("Number of bad: " + evaluationResult.getNumberOfBad() + lineBreak);
+        printStream.print("Number of found bad: " + evaluationResult.getNumberOfFoundBad() + lineBreak);
+        printStream.print("Number of found others: " + evaluationResult.getNumberOfFoundOthers() + lineBreak);
+        printStream.print("Good precision: " + evaluationResult.getGoodPrecision() + lineBreak);
+        printStream.print("Bad precision: " + evaluationResult.getBadPrecision() + lineBreak);
+        printStream.print("Good recall: " + evaluationResult.getGoodRecall() + lineBreak);
+        printStream.print("Bad recall: " + evaluationResult.getBadRecall() + lineBreak);
+        printStream.print("Mean squared error (MSE): " + evaluationResult.getMSE() + lineBreak);
+        printStream.print("Mean error (ME): " + evaluationResult.getME() + lineBreak);
     }
 }

@@ -19,13 +19,9 @@ package com.sixrr.stockmetrics;
 import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricProvider;
 import com.sixrr.metrics.PrebuiltMetricProfile;
-import com.sixrr.stockmetrics.classMetrics.SourceLinesOfCodeClassMetric;
 import com.sixrr.stockmetrics.fileTypeMetrics.*;
 import com.sixrr.stockmetrics.i18n.StockMetricsBundle;
-import com.sixrr.stockmetrics.interfaceMetrics.SourceLinesOfCodeInterfaceMetric;
-import com.sixrr.stockmetrics.methodMetrics.SourceLinesOfCodeMethodMetric;
 import com.sixrr.stockmetrics.moduleMetrics.*;
-import com.sixrr.stockmetrics.packageMetrics.*;
 import com.sixrr.stockmetrics.projectMetrics.*;
 import org.jetbrains.annotations.NotNull;
 

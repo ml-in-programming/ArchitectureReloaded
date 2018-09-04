@@ -16,11 +16,11 @@
 
 package com.sixrr.stockmetrics.utils;
 
-import com.intellij.psi.*;
+import com.intellij.psi.PsiComment;
+import com.intellij.psi.PsiCompiledElement;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiWhiteSpace;
 import org.apache.commons.lang.StringUtils;
-
-import java.io.BufferedReader;
-import java.util.StringTokenizer;
 
 public final class LineUtil {
 

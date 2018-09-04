@@ -17,8 +17,8 @@
 package com.sixrr.stockmetrics.methodCalculators;
 
 import com.intellij.psi.*;
-import com.sixrr.stockmetrics.halstead.HalsteadVisitor;
 import com.sixrr.metrics.utils.MethodUtils;
+import com.sixrr.stockmetrics.halstead.HalsteadVisitor;
 
 public class QCPMaintainabilityCalculator extends MethodCalculator {
     private int methodNestingDepth = 0;

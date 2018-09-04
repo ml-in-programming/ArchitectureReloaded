@@ -22,8 +22,8 @@ import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCategory;
 import com.sixrr.metrics.MetricType;
 import com.sixrr.metrics.profile.MetricInstance;
-import com.sixrr.metrics.utils.MetricsCategoryNameUtil;
 import com.sixrr.metrics.ui.charts.DiffDistributionDialog;
+import com.sixrr.metrics.utils.MetricsCategoryNameUtil;
 import com.sixrr.metrics.utils.MetricsReloadedBundle;
 
 import javax.swing.*;

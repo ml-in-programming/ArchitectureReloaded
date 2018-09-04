@@ -26,6 +26,11 @@ public class ProjectUtils {
         }
         final Project project = ProjectUtil.openOrImport(projectPath.toAbsolutePath().toString(),
                 null, false);
+        System.out.println("Project: " + project);
+        if (project != null) {
+            System.out.println("SDK : " +  ProjectRootManager.getInstance(project).getProjectSdk());
+            System.out.println("is project initialized : " +  project.isInitialized());
+        }
         return project == null ||
                 ProjectRootManager.getInstance(project).getProjectSdk() == null ||
                 !project.isInitialized() ?

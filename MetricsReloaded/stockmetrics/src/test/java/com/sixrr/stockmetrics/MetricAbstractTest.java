@@ -10,7 +10,6 @@ import com.sixrr.metrics.Metric;
 import com.sixrr.metrics.MetricCalculator;
 import com.sixrr.metrics.MetricsExecutionContext;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Paths;
 import java.util.Collections;

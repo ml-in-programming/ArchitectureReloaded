@@ -16,9 +16,9 @@
 
 package com.sixrr.metrics;
 
+import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolder;
-import com.intellij.analysis.AnalysisScope;
 
 /**
  * The MetricsExecutionContext is used .  One MetricsExecutionContext is created for each metrics run, and shared by

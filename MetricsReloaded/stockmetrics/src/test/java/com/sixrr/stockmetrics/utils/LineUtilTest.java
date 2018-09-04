@@ -18,7 +18,7 @@ package com.sixrr.stockmetrics.utils;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Bas Leijdekkers
