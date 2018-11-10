@@ -1,9 +1,0 @@
-dependencies {
-    compile project(':MetricsReloaded:openapi')
-    compile project(':MetricsReloaded:stockmetrics')
-    compile project(':MetricsReloaded:utils')
-
-    compile files('../lib/jfreechart-0.9.16.jar')
-    compile files('../lib/args4j-2.32.jar')
-    compile files('../lib/jcommon-0.9.1.jar')
-}
