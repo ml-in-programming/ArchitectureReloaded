@@ -34,3 +34,13 @@ dependencies {
 
   compile files('lib/args4j-2.32.jar', 'lib/jcommon-0.9.1.jar', 'lib/jfreechart-0.9.16.jar')
 }
+
+task submodulesUpdate(type:Exec) {
+  description 'Updates (and inits) git submodules'
+  commandLine 'git', 'submodule', 'update', '--init', '--recursive'
+  group 'Build Setup'
+}
+
+task build
+
+build.dependsOn submodulesUpdate
