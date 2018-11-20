@@ -1,7 +1,7 @@
-package org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers;
+package org.jetbrains.research.groups.ml_methods.refactoring.readers;
 
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.JMoveRefactoringTextRepresentation;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation;
+import org.jetbrains.research.groups.ml_methods.refactoring.JMoveRefactoringTextRepresentation;
+import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringTextRepresentation;
 import org.junit.Test;
 
 import java.io.FileInputStream;

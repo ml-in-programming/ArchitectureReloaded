@@ -7,7 +7,7 @@ import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.research.groups.ml_methods.algorithm.properties.finder_strategy.FinderStrategy;
 import org.jetbrains.research.groups.ml_methods.algorithm.properties.finder_strategy.NewStrategy;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.JBRefactoringTextRepresentation;
+import org.jetbrains.research.groups.ml_methods.refactoring.JBRefactoringTextRepresentation;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 
 import java.util.ArrayList;

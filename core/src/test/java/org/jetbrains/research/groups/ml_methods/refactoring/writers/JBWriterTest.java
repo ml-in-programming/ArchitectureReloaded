@@ -1,7 +1,7 @@
-package org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers;
+package org.jetbrains.research.groups.ml_methods.refactoring.writers;
 
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.JBRefactoringTextRepresentation;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation;
+import org.jetbrains.research.groups.ml_methods.refactoring.JBRefactoringTextRepresentation;
+import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringTextRepresentation;
 import org.junit.Test;
 
 import java.io.File;

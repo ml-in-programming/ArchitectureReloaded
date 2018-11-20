@@ -1,4 +1,4 @@
-package org.jetbrains.research.groups.ml_methods.extraction.refactoring.writers;
+package org.jetbrains.research.groups.ml_methods.refactoring.writers;
 
 import java.util.Arrays;
 import java.util.List;

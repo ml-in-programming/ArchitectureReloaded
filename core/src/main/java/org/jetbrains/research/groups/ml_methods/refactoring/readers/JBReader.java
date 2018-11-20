@@ -1,10 +1,10 @@
-package org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers;
+package org.jetbrains.research.groups.ml_methods.refactoring.readers;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.JBRefactoringTextRepresentation;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringTextRepresentation;
+import org.jetbrains.research.groups.ml_methods.refactoring.JBRefactoringTextRepresentation;
+import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringTextRepresentation;
 
 import java.io.BufferedReader;
 import java.io.IOException;

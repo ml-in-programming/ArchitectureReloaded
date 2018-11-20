@@ -3,9 +3,9 @@ package org.jetbrains.research.groups.ml_methods.evaluation;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.project.Project;
 import com.sixrr.metrics.utils.ProjectUtils;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.RefactoringsLoader;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers.RefactoringsReaders;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveToClassRefactoring;
+import org.jetbrains.research.groups.ml_methods.refactoring.RefactoringsLoader;
+import org.jetbrains.research.groups.ml_methods.refactoring.readers.RefactoringsReaders;
 
 import java.io.IOException;
 import java.nio.file.Path;

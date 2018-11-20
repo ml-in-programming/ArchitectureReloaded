@@ -1,19 +1,15 @@
-package org.jetbrains.research.groups.ml_methods.extraction.refactoring;
+package org.jetbrains.research.groups.ml_methods.refactoring;
 
 import org.jetbrains.research.groups.ml_methods.ScopeAbstractTest;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers.RefactoringsReaders;
-import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
 
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class RefactoringsLoaderTest extends ScopeAbstractTest {
-    public void testFindRefactorings() throws IOException {
+public class RefactoringsFinderTest extends ScopeAbstractTest {
+    public void testFindRefactorings() {
         // TODO: JDK is not loaded, fix it. That is why for example Integer if not qualified (supposed to be java.lang.Integer).
         List<RefactoringTextRepresentation> refactoringsToFind =
                 Arrays.asList(
@@ -26,7 +22,7 @@ public class RefactoringsLoaderTest extends ScopeAbstractTest {
                                 Arrays.asList("Integer", "List<Integer>"), "findRefactorings.A"
                         )
                 );
-        List<MoveMethodRefactoring> found = RefactoringsLoader.load(Paths.get(getTestDataPath(), "good"), RefactoringsReaders.getJBReader(), createScope("A.java", "B.java"));
+        List<MoveMethodRefactoring> found = RefactoringsFinder.find(createScope("A.java", "B.java"), refactoringsToFind);
         List<RefactoringTextRepresentation> foundTextual = found.stream()
                 .map(JBRefactoringTextRepresentation::new)
                 .collect(Collectors.toList());

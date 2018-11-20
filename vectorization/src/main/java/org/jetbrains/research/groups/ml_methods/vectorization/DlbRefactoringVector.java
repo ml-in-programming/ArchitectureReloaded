@@ -1,7 +1,7 @@
 package org.jetbrains.research.groups.ml_methods.vectorization;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.extraction.refactoring.JBRefactoringTextRepresentation;
+import org.jetbrains.research.groups.ml_methods.refactoring.JBRefactoringTextRepresentation;
 
 public class DlbRefactoringVector extends DlbVector {
     private final @NotNull

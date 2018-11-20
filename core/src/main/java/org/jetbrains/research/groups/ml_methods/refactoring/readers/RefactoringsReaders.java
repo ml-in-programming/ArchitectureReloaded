@@ -1,4 +1,4 @@
-package org.jetbrains.research.groups.ml_methods.extraction.refactoring.readers;
+package org.jetbrains.research.groups.ml_methods.refactoring.readers;
 
 import java.util.Arrays;
 import java.util.List;
