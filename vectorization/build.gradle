@@ -1,0 +1,35 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+apply plugin: 'idea'
+
+dependencies {
+    compile project(':features-extraction')
+    compile project(':MetricsReloaded')
+    compile project(':core')
+}
+
+task runVectorization(dependsOn: runIde) {}
+
+gradle.taskGraph.whenReady { graph ->
+    if (graph.hasTask(runVectorization)) {
+        runIde.args 'vectorization', "$pathToDataset", "$vectorizationType"
+        runIde.jvmArgs '-Djava.awt.headless=true', '-Xmx4096m'
+    }
+}
+version 'unspecified'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
