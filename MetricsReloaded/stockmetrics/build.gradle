@@ -1,4 +1,0 @@
-dependencies {
-    compile project(':MetricsReloaded:openapi')
-    compile project(':MetricsReloaded:utils')
-}
