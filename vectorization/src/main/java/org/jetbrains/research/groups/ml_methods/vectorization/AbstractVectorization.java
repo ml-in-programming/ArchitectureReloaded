@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -46,7 +47,7 @@ abstract public class AbstractVectorization implements Vectorization {
     public void vectorizeSingleProject(@NotNull Path projectPath, @NotNull Path pathToSaveResults)
             throws IOException, CannotOpenProjectException {
         List<? extends Vector> vectors = vectorize(projectPath);
-        Files.write(pathToSaveResults.resolve("vector"), Collections.singleton(JSON_CONVERTER.toJson(vectors)));
+        Files.write(pathToSaveResults.resolve("vector"), Arrays.asList(String.valueOf(vectors.size()), JSON_CONVERTER.toJson(vectors)));
     }
 
     @NotNull

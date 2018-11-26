@@ -9,6 +9,7 @@ import org.jetbrains.research.groups.ml_methods.algorithm.properties.finder_stra
 import org.jetbrains.research.groups.ml_methods.algorithm.properties.finder_strategy.NewStrategy;
 import org.jetbrains.research.groups.ml_methods.refactoring.JBRefactoringTextRepresentation;
 import org.jetbrains.research.groups.ml_methods.refactoring.MoveMethodRefactoring;
+import org.jetbrains.research.groups.ml_methods.utils.RefactoringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +50,7 @@ public class DlbVectorization extends AbstractVectorization {
 
         @Override
         public void visitMethod(PsiMethod method) {
-            if (strategy.acceptMethod(method)) {
+            if (strategy.acceptMethod(method) && RefactoringUtil.isMovable(method)) {
                 methods.add(method);
             }
             super.visitMethod(method);
