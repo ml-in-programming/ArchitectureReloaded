@@ -19,6 +19,7 @@ import org.jetbrains.research.groups.ml_methods.utils.AlgorithmsUtil;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -26,6 +27,9 @@ import static org.jetbrains.research.groups.ml_methods.utils.AlgorithmsUtil.getD
 
 public class HAC extends AbstractAlgorithm {
     private static final Logger LOGGER = Logging.getLogger(HAC.class);
+    private static final int MAX_NUMBER_OF_CLASSES = 1000;
+    private static final int MAX_NUMBER_OF_METHODS = 3000;
+    private static final int MAX_NUMBER_OF_FIELDS = 1500;
     private static final double ACCURACY = 1;
 
     private static final @NotNull DistanceCalculator distanceCalculator = RelevanceBasedDistanceCalculator.getInstance();
@@ -42,6 +46,23 @@ public class HAC extends AbstractAlgorithm {
     @Override
     protected @NotNull Executor setUpExecutor() {
         return new HACExecutor();
+    }
+
+    @NotNull
+    @Override
+    public AlgorithmResult execute(@NotNull AttributesStorage attributes, @Nullable ExecutorService service, boolean enableFieldRefactorings) {
+        if (willHaveLongTimeExecution(attributes)) {
+            LOGGER.warn("HAC haven't been executed because project is too large and HAC will work too long");
+            return new AlgorithmResult(AlgorithmType.HAC,
+                    new TooLargeProjectException("HAC execution will be too long on this project"));
+        }
+        return super.execute(attributes, service, enableFieldRefactorings);
+    }
+
+    private boolean willHaveLongTimeExecution(@NotNull AttributesStorage attributes) {
+        return attributes.getClassesAttributes().size() > MAX_NUMBER_OF_CLASSES ||
+                attributes.getMethodsAttributes().size() > MAX_NUMBER_OF_METHODS ||
+                attributes.getFieldsAttributes().size() > MAX_NUMBER_OF_FIELDS;
     }
 
     private static class HACExecutor implements Executor {
