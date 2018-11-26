@@ -37,7 +37,7 @@ public final class RefactoringUtil {
         return validRefactorings;
     }
 
-    private static boolean isMovable(PsiElement psiElement) {
+    public static boolean isMovable(PsiElement psiElement) {
         if (psiElement instanceof PsiField) {
             return MethodUtils.isStatic((PsiField) psiElement);
         } else if (psiElement instanceof PsiMethod) {

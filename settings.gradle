@@ -1,3 +1,5 @@
 rootProject.name = 'ArchitectureReloaded'
 
 include 'ArchitectureReloaded', 'core', 'MetricsReloaded', 'MetricsReloaded:utils', 'MetricsReloaded:openapi', 'MetricsReloaded:stockmetrics', 'features-extraction', 'refactorings-generation', 'algorithms-evaluation', 'validator'
+include 'vectorization'
+
