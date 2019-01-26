@@ -83,7 +83,7 @@ public class AlgorithmsEvaluationApplicationStarter implements ApplicationStarte
 
     private void printEvaluationResult(EvaluationResult evaluationResult) {
         System.out.println("==================");
-        System.out.println("EVALUATION RESULT FOR " + evaluationResult.getAlgorithm().getDescriptionString());
+        System.out.println("EVALUATION RESULT FOR " + evaluationResult.getAlgorithm().getName());
         System.out.println("Number of good: " + evaluationResult.getNumberOfGood());
         System.out.println("Number of found good: " + evaluationResult.getNumberOfFoundGood());
         System.out.println("Number of bad: " + evaluationResult.getNumberOfBad());

@@ -1,7 +1,6 @@
 package org.jetbrains.research.groups.ml_methods.algorithm;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.AlgorithmType;
 import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 
 import java.util.*;
@@ -15,10 +14,10 @@ import static org.junit.Assert.assertEquals;
 
 class TestCasesCheckers {
     private static final String CHECK_METHODS_PREFIX = "check";
-    private final AlgorithmType algorithmType;
+    private final Algorithm algorithm;
 
-    TestCasesCheckers(AlgorithmType algorithmType) {
-        this.algorithmType = algorithmType;
+    TestCasesCheckers(Algorithm algorithm) {
+        this.algorithm = algorithm;
     }
 
     private static Map<String, String> toMap(List<CalculatedRefactoring> refactorings) {
@@ -45,14 +44,14 @@ class TestCasesCheckers {
 
         final Map<String, String> expected = new HashMap<>();
         expected.put(getPackageName() + ".ClassB.methodB1()", getPackageName() + ".ClassA");
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         assertEquals(expected, refactorings);
     }
 
     void checkCallFromNested(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 3, 2, 1);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         assertEquals(1, refactorings.size());
         assertContainsElements(refactorings.keySet(), getPackageName() + ".ClassB.methodB1()");
         assertOneOf(refactorings.get(getPackageName() + ".ClassB.methodB1()"),
@@ -62,7 +61,7 @@ class TestCasesCheckers {
     void checkCircularDependency(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 3, 3, 0);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         final Set<Map<String, String>> possibleRefactorings = new HashSet<>();
         final Map<String, String> possibleRefactoring1 = new HashMap<>();
         possibleRefactoring1.put(getPackageName() + ".ClassB.fooB()", getPackageName() + ".ClassA");
@@ -82,7 +81,7 @@ class TestCasesCheckers {
     void checkCrossReferencesMethods(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 2, 0);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         final Set<Map<String, String>> possibleRefactorings = new HashSet<>();
         final Map<String, String> possibleRefactoring1 = new HashMap<>();
         possibleRefactoring1.put(getPackageName() + ".ClassB.methodB1()", getPackageName() + ".ClassA");
@@ -97,28 +96,28 @@ class TestCasesCheckers {
     void checkDontMoveAbstract(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 2, 0);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         assertEquals(0, refactorings.size());
     }
 
     void checkDontMoveConstructor(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 2, 1);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         assertEquals(0, refactorings.size());
     }
 
     void checkDontMoveOverridden(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 3, 1);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         assertEquals(0, refactorings.size());
     }
 
     void checkMoveField(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 11, 2);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         final Map<String, String> expected = new HashMap<>();
         expected.put(getPackageName() + ".ClassA.attributeA1", getPackageName() + ".ClassB");
         expected.put(getPackageName() + ".ClassA.attributeA2", getPackageName() + ".ClassB");
@@ -128,7 +127,7 @@ class TestCasesCheckers {
     void checkMoveTogether(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 8, 4);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         final Map<String, String> expected = new HashMap<>();
         expected.put(getPackageName() + ".ClassB.methodB1()", getPackageName() + ".ClassA");
         expected.put(getPackageName() + ".ClassB.methodB2()", getPackageName() + ".ClassA");
@@ -138,7 +137,7 @@ class TestCasesCheckers {
     void checkPriority(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 9, 0);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         final Map<String, String> expected = new HashMap<>();
         expected.put(getPackageName() + ".ClassA.methodA1()", getPackageName() + ".ClassB");
         assertEquals(expected, refactorings);
@@ -147,7 +146,7 @@ class TestCasesCheckers {
     void checkRecursiveMethod(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 5, 2);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         final Map<String, String> expected = new HashMap<>();
         expected.put(getPackageName() + ".ClassA.methodA1()", getPackageName() + ".ClassB");
         assertEquals(expected, refactorings);
@@ -156,7 +155,7 @@ class TestCasesCheckers {
     void checkReferencesOnly(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 4, 0);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         final Set<Map<String, String>> possibleRefactorings = new HashSet<>();
         final Map<String, String> possibleRefactoring1 = new HashMap<>();
         possibleRefactoring1.put(getPackageName() + ".ClassA.doSomething1()", getPackageName() + ".ClassB");
@@ -171,7 +170,7 @@ class TestCasesCheckers {
     void checkTriangularDependence(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 3, 8, 0);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         final Map<String, String> expected = new HashMap<>();
         expected.put(getPackageName() + ".ClassB.methodToMove()", getPackageName() + ".ClassA");
         expected.put(getPackageName() + ".ClassC.methodToMove()", getPackageName() + ".ClassA");
@@ -181,14 +180,14 @@ class TestCasesCheckers {
     void checkMobilePhoneNoFeatureEnvy(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 5, 2);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         assertEquals(0, refactorings.size());
     }
 
     void checkMobilePhoneWithFeatureEnvy(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 4, 2);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         final Map<String, String> expected = new HashMap<>();
         expected.put(getPackageName() + ".Customer.getMobilePhoneNumber()", getPackageName() + ".Phone");
         assertEquals(expected, refactorings);
@@ -197,14 +196,14 @@ class TestCasesCheckers {
     void checkMovieRentalStoreNoFeatureEnvy(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 3, 7, 9);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         assertEquals(0, refactorings.size());
     }
 
     void checkMovieRentalStoreWithFeatureEnvy(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 3, 7, 9);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         final Map<String, String> expected = new HashMap<>();
         expected.put(getPackageName() + ".Customer.getMovie(Movie)", getPackageName() + ".Rental");
         assertEquals(expected, refactorings);
@@ -213,7 +212,7 @@ class TestCasesCheckers {
     void checkCallFromLambda(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 2, 4, 1);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         final Set<Map<String, String>> possibleRefactorings = new HashSet<>();
         final Map<String, String> possibleRefactoring1 = new HashMap<>();
         possibleRefactoring1.put(getPackageName() + ".ClassA.doSomething1()", getPackageName() + ".ClassB");
@@ -228,14 +227,14 @@ class TestCasesCheckers {
     void checkStaticFactoryMethods(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 3, 7, 5);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         assertEquals(0, refactorings.size());
     }
 
     void checkStaticFactoryMethodsWeak(@NotNull RefactoringExecutionContext context) {
         checkStructure(context, 3, 7, 5);
 
-        final Map<String, String> refactorings = toMap(context.getResultForType(algorithmType).getRefactorings());
+        final Map<String, String> refactorings = toMap(context.getResultForAlgorithm(algorithm).getRefactorings());
         assertEquals(0, refactorings.size());
     }
 }

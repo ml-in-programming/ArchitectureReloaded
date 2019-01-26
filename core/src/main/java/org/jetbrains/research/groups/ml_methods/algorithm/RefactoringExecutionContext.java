@@ -28,7 +28,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
-import static org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.AlgorithmType;
 import static org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.getAvailableAlgorithms;
 
 /**
@@ -139,8 +138,8 @@ public class RefactoringExecutionContext {
             );
         } catch (NoRequestedMetricException e) {
             LOGGER.error(
-                "Error during attributes creation for '" + algorithm.getDescriptionString() +
-                "' algorithm: " + e.getMessage() + " - " + algorithm.getDescriptionString() +
+                "Error during attributes creation for '" + algorithm.getName() +
+                "' algorithm: " + e.getMessage() + " - " + algorithm.getName() +
                 "is aborted"
             );
 
@@ -157,9 +156,9 @@ public class RefactoringExecutionContext {
         return new ArrayList<>(algorithmsResults);
     }
 
-    public AlgorithmResult getResultForType(AlgorithmType algorithmType) {
+    public AlgorithmResult getResultForAlgorithm(Algorithm algorithm) {
         return algorithmsResults.stream()
-                .filter(result -> algorithmType.equals(result.getAlgorithmType()))
+                .filter(result -> algorithm.equals(result.getAlgorithm()))
                 .findAny().orElse(null);
     }
 

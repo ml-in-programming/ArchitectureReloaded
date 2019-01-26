@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 @SuppressWarnings("WeakerAccess")
 public abstract class AlgorithmAbstractTest extends ScopeAbstractTest {
     protected final TestCasesCheckers testCasesChecker =
-        new TestCasesCheckers(getAlgorithm().getAlgorithmType());
+        new TestCasesCheckers(getAlgorithm());
 
     protected RefactoringExecutionContext createContext(
         AnalysisScope scope,

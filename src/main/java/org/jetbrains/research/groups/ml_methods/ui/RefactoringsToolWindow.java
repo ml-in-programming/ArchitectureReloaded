@@ -13,8 +13,8 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.sixrr.metrics.metricModel.MetricsRun;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmResult;
-import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.AlgorithmType;
 import org.jetbrains.research.groups.ml_methods.algorithm.entity.EntitiesStorage;
 import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
@@ -115,16 +115,16 @@ public final class RefactoringsToolWindow implements Disposable {
         entitiesStorage = null;
     }
 
-    private void intersect(Set<AlgorithmType> algorithms) {
+    private void intersect(Set<Algorithm> algorithms) {
         final List<List<CalculatedRefactoring>> refactorings = results.stream()
-                .filter(result -> algorithms.contains(result.getAlgorithmType()))
+                .filter(result -> algorithms.contains(result.getAlgorithm()))
                 .map(AlgorithmResult::getRefactorings)
                 .collect(Collectors.toList());
         // todo may be should use combine instead of intersect
         final List<CalculatedRefactoring> intersection = RefactoringUtil.intersect(refactorings);
         if (!algorithms.isEmpty()) {
             final String tabName = algorithms.stream()
-                    .map(Enum::toString)
+                    .map(Algorithm::getName)
                     .collect(Collectors.joining(" & "));
             addTab(tabName, intersection, true);
         }
@@ -140,8 +140,8 @@ public final class RefactoringsToolWindow implements Disposable {
         @Override
         public void actionPerformed(AnActionEvent e) {
             if (results != null) {
-                final Set<AlgorithmType> algorithms = results.stream()
-                        .map(AlgorithmResult::getAlgorithmType)
+                final Set<Algorithm> algorithms = results.stream()
+                        .map(AlgorithmResult::getAlgorithm)
                         .collect(Collectors.toSet());
                 final IntersectionDialog dialog = new IntersectionDialog(project, algorithms);
                 dialog.show();

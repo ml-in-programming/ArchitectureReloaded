@@ -5,7 +5,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBCheckBox;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.AlgorithmType;
+import org.jetbrains.research.groups.ml_methods.algorithm.Algorithm;
 import org.jetbrains.research.groups.ml_methods.utils.ArchitectureReloadedBundle;
 
 import javax.swing.*;
@@ -16,9 +16,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class IntersectionDialog extends DialogWrapper {
-    private final Map<AlgorithmType, Boolean> selection = new HashMap<>();
+    private final Map<Algorithm, Boolean> selection = new HashMap<>();
 
-    IntersectionDialog(Project project, Set<AlgorithmType> algorithms) {
+    IntersectionDialog(Project project, Set<Algorithm> algorithms) {
         super(project, false);
         algorithms.forEach(algorithm -> selection.put(algorithm, false));
         setModal(true);
@@ -46,16 +46,16 @@ public class IntersectionDialog extends DialogWrapper {
         content.add(separator, constraints);
 
         constraints.insets.left = 12;
-        for (AlgorithmType algorithm : selection.keySet()) {
+        for (Algorithm algorithm : selection.keySet()) {
             constraints.gridy++;
-            final JCheckBox checkBox = new JBCheckBox(algorithm.toString(), false);
+            final JCheckBox checkBox = new JBCheckBox(algorithm.getName(), false);
             checkBox.addActionListener(e -> selection.put(algorithm, checkBox.isSelected()));
             content.add(checkBox, constraints);
         }
         return content;
     }
 
-    Set<AlgorithmType> getSelected() {
+    Set<Algorithm> getSelected() {
         return selection.entrySet().stream()
                 .filter(Map.Entry::getValue)
                 .map(Map.Entry::getKey)

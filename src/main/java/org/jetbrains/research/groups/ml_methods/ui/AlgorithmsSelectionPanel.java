@@ -107,7 +107,7 @@ public class AlgorithmsSelectionPanel extends JPanel {
             final Algorithm algorithm = algorithms[i];
 
             final JCheckBox checkBox =
-                new JBCheckBox(algorithm.getDescriptionString(), currentSelection.contains(algorithm));
+                new JBCheckBox(algorithm.getName(), currentSelection.contains(algorithm));
             checkBox.addActionListener(e -> config.setSelected(algorithm, checkBox.isSelected()));
 
             constraints.gridy = i;

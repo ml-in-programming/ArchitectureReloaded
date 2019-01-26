@@ -7,7 +7,6 @@ import com.intellij.openapi.progress.ProgressManager;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.research.groups.ml_methods.algorithm.AlgorithmsRepository.AlgorithmType;
 import org.jetbrains.research.groups.ml_methods.algorithm.attributes.AttributesStorage;
 import org.jetbrains.research.groups.ml_methods.logging.Logging;
 import org.jetbrains.research.groups.ml_methods.refactoring.CalculatedRefactoring;
@@ -36,30 +35,10 @@ import static java.util.Objects.requireNonNull;
 public abstract class AbstractAlgorithm implements Algorithm {
     private static final Logger LOGGER = Logging.getLogger(AbstractAlgorithm.class);
 
-    private final AlgorithmType algorithmType;
-
     private final boolean enableParallelExecution;
 
-    /**
-     * {@inheritDoc}
-     */
-    @NotNull
-    @Override
-    public AlgorithmType getAlgorithmType() {
-        return algorithmType;
-    }
-
-    public AbstractAlgorithm(AlgorithmType algorithmType, boolean enableParallelExecution) {
-        this.algorithmType = algorithmType;
+    public AbstractAlgorithm(final boolean enableParallelExecution) {
         this.enableParallelExecution = enableParallelExecution;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public @NotNull String getDescriptionString() {
-        return algorithmType.toString();
     }
 
     /**
@@ -71,7 +50,7 @@ public abstract class AbstractAlgorithm implements Algorithm {
         final @Nullable ExecutorService service,
         final boolean enableFieldRefactorings
     ) {
-        LOGGER.info(algorithmType + " started");
+        LOGGER.info(getName() + " started");
         final long startTime = System.currentTimeMillis();
         final ProgressIndicator indicator;
 
@@ -82,7 +61,7 @@ public abstract class AbstractAlgorithm implements Algorithm {
         }
 
         indicator.pushState();
-        indicator.setText("Running " + algorithmType + "...");
+        indicator.setText("Running " + getName() + "...");
         indicator.setFraction(0);
 
         final ExecutionContext context = new ExecutionContext(
@@ -97,16 +76,16 @@ public abstract class AbstractAlgorithm implements Algorithm {
         } catch (ProcessCanceledException e) {
             throw e;
         } catch (Exception e) {
-            LOGGER.error(algorithmType + " finished with error: " + e);
-            return new AlgorithmResult(algorithmType, e);
+            LOGGER.error(getName() + " finished with error: " + e);
+            return new AlgorithmResult(this, e);
         }
 
         final long time = System.currentTimeMillis() - startTime;
         indicator.popState();
 
-        final AlgorithmResult result = new AlgorithmResult(refactorings, algorithmType, time, context.usedThreads);
+        final AlgorithmResult result = new AlgorithmResult(refactorings, this, time, context.usedThreads);
 
-        LOGGER.info(algorithmType + " successfully finished");
+        LOGGER.info(getName() + " successfully finished");
         LOGGER.info(result.getReport());
 
         return result;

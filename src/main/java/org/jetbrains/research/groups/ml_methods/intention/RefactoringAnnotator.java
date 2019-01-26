@@ -32,8 +32,8 @@ public class RefactoringAnnotator implements Annotator {
         for (Algorithm algorithm : AlgorithmsRepository.getAvailableAlgorithms()) {
             try {
                 setAnnotations(psiMember,
-                        algorithm.getDescriptionString(),
-                        AutomaticRefactoringAction.getInstance(project).getRefactoringsForType(algorithm.getAlgorithmType()),
+                        algorithm.getName(),
+                        AutomaticRefactoringAction.getInstance(project).getRefactoringsForAlgorithm(algorithm),
                         annotationHolder, scope);
             } catch (IllegalArgumentException e) {
                 //ignore
